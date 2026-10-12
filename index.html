@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-2";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-3";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>관리자 서식함</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -61,7 +61,7 @@
 }
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
-body{color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
 body.locked{overflow:hidden}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -220,6 +220,17 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .sheet h3{margin:0 0 2px;font-size:16px}
 .sheet .hint{font-size:13px;color:var(--muted);margin:0}
 .ver{font-size:12px;color:var(--muted);text-align:center}
+.save-bar{position:sticky;bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom,0px) + 10px);z-index:4;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 8px 8px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.save-bar .state{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.save-bar.dirty{border-color:var(--accent)}
+.save-bar.dirty .state{color:var(--warn);font-weight:700}
+.save-bar .btn{min-height:42px}
+.roster{display:grid;gap:8px}
+.r-row{display:grid;grid-template-columns:minmax(0,1fr) 88px 36px 36px;gap:6px;align-items:center}
+.r-row .icon-btn{width:36px;height:36px}
+.r-row .icon-btn:disabled{opacity:.3}
+.roster-empty{font-size:13px;color:var(--muted);padding:2px}
+.member-head .m-rank{flex:none;width:92px;font-weight:500}
 @media (max-width:360px){.grid2{grid-template-columns:1fr}.local span{display:none}}
 </style>
 </head>
@@ -340,9 +351,20 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       <label class="field"><span>회사명 <span class="opt">(보고서 맨 위에 작게 표시)</span></span><input id="setCompany" type="text" placeholder="회사명"></label>
     </div>
     <div class="card">
+      <h2>기본 파트원</h2>
+      <p class="small-t muted">여기 적은 명단이 새 주간보고에 자동으로 들어가요. 보고서에도 이 순서대로 나와요.</p>
+      <div class="roster" id="rosterList"></div>
+      <button class="btn block" type="button" id="rosterAdd">+ 파트원 추가</button>
+    </div>
+    <div class="card">
       <h2>결재란</h2>
       <label class="switch" for="setShowAppr"><span>보고서에 결재란 표시</span><input type="checkbox" id="setShowAppr"></label>
       <label class="field"><span>결재란 칸 이름 <span class="opt">(쉼표로 구분, 최대 4칸)</span></span><input id="setAppr" type="text" placeholder="파트장, 총괄실장, 본부장"></label>
+    </div>
+    <div class="save-bar" id="setSaveBar">
+      <span class="state" id="setSaveState">설정이 저장되어 있어요</span>
+      <button class="btn quiet small" type="button" id="setCancel" hidden>되돌리기</button>
+      <button class="btn primary" type="button" id="setSave" disabled>저장됨</button>
     </div>
     <div class="card" id="installSettings" hidden>
       <h2>앱 설치</h2>
@@ -400,7 +422,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       </div>
       <div class="sec-h"><h2>파트원</h2><span class="muted small-t" id="wCount"></span></div>
       <div class="list" id="wMembers"></div>
-      <button class="btn block" type="button" id="wAddMember">+ 파트원 추가</button>
+      <div class="grid2">
+        <button class="btn" type="button" id="wAddMember">+ 파트원 추가</button>
+        <button class="btn" type="button" id="wLoadRoster">기본 명단 불러오기</button>
+      </div>
       <label class="field" style="margin-top:6px"><span class="field-label">주간 조치사항 (파트 전체) <span class="opt">선택</span></span>
         <textarea id="wOverall" placeholder="파트원 개인이 아닌 파트 전체에 대해 이번 주 조치한 일 (교육, 정리, 일정 조정 등)"></textarea>
       </label>
@@ -485,6 +510,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
   </div>
 </div>
 
+<datalist id="dlRanks"></datalist>
 <datalist id="dlNames"></datalist>
 <datalist id="dlManagers"></datalist>
 <datalist id="dlDests"></datalist>
@@ -655,14 +681,15 @@ function handleSave(r, okMsg) {
 }
 
 /* ================= app state ================= */
-const DEFAULT_SETTINGS = { author: '', part: '', company: '디더블유 장례의전', approvals: '파트장, 총괄실장, 본부장', showApproval: true, v: 2 };
+const DEFAULT_SETTINGS = { author: '', part: '', company: '디더블유 장례의전', approvals: '파트장, 총괄실장, 본부장', showApproval: true, roster: [], v: 2 };
+const RANKS = ['본부장', '총괄실장', '실장', '팀장', '파트장', '과장', '대리', '주임', '장례지도사', '사원'];
 const S = {
   settings: clone(DEFAULT_SETTINGS),
   weekly: new Map(), ship: new Map(), imgCache: new Map(),
   tab: 'weekly', shipView: 'log',
   logMonth: { y: 2026, m: 1 },
   rpt: { type: 'week', monday: mondayOf(new Date()), y: 2026, m: 1, qr: true },
-  ew: null, ewDirty: false,
+  ew: null, ewDirty: false, sd: null,
   es: null, esImg: null, esImgRemoved: false,
   pv: null,
 };
@@ -688,6 +715,7 @@ function autosize(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHe
 function openScreen(id) { const el = $('#' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
 function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
 function showTab(t) {
+  if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
   S.tab = t;
   ['weekly', 'ship', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
   $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
@@ -696,18 +724,20 @@ function showTab(t) {
   if (t === 'settings') renderSettings();
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
-async function saveSettings() { await Store.put('kv', clone(S.settings), 'settings'); }
+async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
 
 /* ================= 주간보고 ================= */
-const emptyMember = (name = '') => ({ name, issue: '', improve: '', action: '' });
+const emptyMember = (name = '', rank = '') => ({ name, rank, issue: '', improve: '', action: '' });
+const rosterOf = () => (S.settings.roster || []).filter((r) => (r.name || '').trim());
 function latestWeekly() { return [...S.weekly.values()].sort((a, b) => b.weekStart.localeCompare(a.weekStart))[0]; }
 function newWeeklyFor(monday) {
   const last = latestWeekly();
-  const names = last ? last.members.map((m) => m.name).filter((n) => n && n.trim()) : [];
+  const roster = rosterOf();
+  const base = roster.length ? roster : (last ? last.members.filter((m) => (m.name || '').trim()) : []);
   return {
     id: uid(), weekStart: toKey(monday),
-    part: (last && last.part) || S.settings.part || '', author: S.settings.author || (last && last.author) || '',
-    members: names.length ? names.map((n) => emptyMember(n)) : [emptyMember()],
+    part: S.settings.part || (last && last.part) || '', author: S.settings.author || (last && last.author) || '',
+    members: base.length ? base.map((m) => emptyMember(m.name, m.rank || '')) : [emptyMember()],
     overall: '', createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
@@ -732,6 +762,7 @@ function openWeekly(id) {
   const existing = id && S.weekly.get(id);
   S.ew = existing ? clone(existing) : newWeeklyFor(mondayOf(new Date()));
   S.ewDirty = false;
+  fillRanks();
   renderWeeklyEditor();
   openScreen('weeklyEditor');
 }
@@ -758,6 +789,7 @@ function renderMembers() {
       <div class="member-head">
         <span class="num">${i + 1}</span>
         <input type="text" id="m${i}-name" data-f="name" value="${esc(m.name)}" placeholder="파트원 이름" aria-label="${i + 1}번 파트원 이름">
+        <input type="text" class="m-rank" id="m${i}-rank" data-f="rank" value="${esc(m.rank || '')}" list="dlRanks" placeholder="직급" aria-label="${i + 1}번 파트원 직급">
         <button class="icon-btn m-del" type="button" aria-label="${i + 1}번 파트원 빼기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <label class="field"><span>특이사항</span><textarea id="m${i}-issue" data-f="issue" rows="2" placeholder="이번 주 있었던 일, 문제, 민원 등">${esc(m.issue)}</textarea></label>
@@ -765,6 +797,27 @@ function renderMembers() {
       <label class="field"><span>조치사항</span><textarea id="m${i}-action" data-f="action" rows="2" placeholder="파트장이 이번 주 조치한 내용">${esc(m.action)}</textarea></label>
     </div>`).join('');
   $$('#wMembers textarea').forEach(autosize);
+  $('#wLoadRoster').hidden = rosterOf().length === 0;
+}
+function fillRanks() {
+  const set = new Set(RANKS);
+  rosterOf().forEach((r) => { if ((r.rank || '').trim()) set.add(r.rank.trim()); });
+  $('#dlRanks').innerHTML = [...set].map((v) => `<option value="${esc(v)}"></option>`).join('');
+}
+function loadRosterIntoReport() {
+  const roster = rosterOf(); if (!roster.length) return;
+  const ms = S.ew.members;
+  // drop a single untouched blank card before filling
+  if (ms.length === 1 && !['name', 'rank', 'issue', 'improve', 'action'].some((f) => (ms[0][f] || '').trim())) ms.length = 0;
+  let added = 0;
+  roster.forEach((r) => {
+    const ex = ms.find((m) => (m.name || '').trim() === r.name.trim());
+    if (ex) { if (!(ex.rank || '').trim() && r.rank) ex.rank = r.rank; }
+    else { ms.push(emptyMember(r.name, r.rank || '')); added++; }
+  });
+  if (!ms.length) ms.push(emptyMember());
+  renderMembers(); touchWeekly();
+  toast(added ? `기본 명단에서 ${added}명을 넣었어요` : '기본 명단이 이미 모두 들어가 있어요');
 }
 let wTimer;
 function touchWeekly() {
@@ -787,8 +840,8 @@ async function saveWeeklyNow() {
   }
   if (ok) requestPersist();
   let changed = false;
-  if (!S.settings.author && copy.author) { S.settings.author = copy.author; changed = true; }
-  if (!S.settings.part && copy.part) { S.settings.part = copy.part; changed = true; }
+  if (!S.settings.author && copy.author) { S.settings.author = copy.author; changed = true; if (S.sd && !S.sd.author) S.sd.author = copy.author; }
+  if (!S.settings.part && copy.part) { S.settings.part = copy.part; changed = true; if (S.sd && !S.sd.part) S.sd.part = copy.part; }
   if (changed) saveSettings();
   renderWeeklyList();
 }
@@ -879,6 +932,7 @@ function fillDatalists() {
   const opt = (arr) => arr.map((v) => `<option value="${esc(v)}"></option>`).join('');
   $('#dlNames').innerHTML = opt(uniqueBy('name', (e) => e.kind === S.es.kind));
   const mgrs = uniqueBy('manager'); if (S.settings.author && !mgrs.includes(S.settings.author)) mgrs.push(S.settings.author);
+  rosterOf().forEach((r) => { if (!mgrs.includes(r.name.trim())) mgrs.push(r.name.trim()); });
   $('#dlManagers').innerHTML = opt(mgrs);
   $('#dlDests').innerHTML = opt(uniqueBy('dest'));
 }
@@ -1094,15 +1148,19 @@ function memberBlock(i, m, first) {
   });
   ctx.font = F(700, 25);
   const nameLines = wrapLines(ctx, (m.name || '').trim() || '(이름 없음)', nameW - 24);
-  const minH = nameLines.length * 34 + 64;
+  ctx.font = F(500, 19);
+  const rankLines = (m.rank || '').trim() ? wrapLines(ctx, m.rank.trim(), nameW - 24) : [];
+  const nameBlockH = 30 + nameLines.length * 34 + rankLines.length * 26 + (rankLines.length ? 4 : 0);
+  const minH = nameBlockH + 34;
   let h = rows.reduce((a, r) => a + r.h, 0);
   if (h < minH) { rows[rows.length - 1].h += minH - h; h = minH; }
   return { h, gapBefore: first ? 0 : -2, draw(ctx, y) {
     ctx.fillStyle = RP.soft; ctx.fillRect(RP.M, y, nameW, h);
-    const top = y + (h - (nameLines.length * 34 + 30)) / 2;
+    const top = y + (h - nameBlockH) / 2;
     ctx.font = F(500, 18); ctx.fillStyle = RP.muted; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(String(i + 1).padStart(2, '0'), RP.M + nameW / 2, top + 12);
     drawLines(ctx, nameLines, RP.M + 12, top + 30, nameW - 24, nameLines.length * 34, 34, 'center', RP.ink, F(700, 25));
+    if (rankLines.length) drawLines(ctx, rankLines, RP.M + 12, top + 34 + nameLines.length * 34, nameW - 24, rankLines.length * 26, 26, 'center', RP.muted, F(500, 19));
     let cy = y;
     rows.forEach((r, ri) => {
       const lx = RP.M + nameW;
@@ -1288,9 +1346,9 @@ function footerText(s, extra) {
 function weeklyJob(r, opts = {}) {
   const s = opts.settings || S.settings;
   const wi = weekInfo(fromKey(r.weekStart));
-  const members = r.members.filter((m) => ['name', 'issue', 'improve', 'action'].some((f) => (m[f] || '').trim()));
+  const members = r.members.filter((m) => ['name', 'rank', 'issue', 'improve', 'action'].some((f) => (m[f] || '').trim()));
   const issues = members.filter((m) => hasIssue(m.issue)).length;
-  const text = [r.part, r.author, s.company, r.overall, ...approvalsOf(s), ...members.flatMap((m) => [m.name, m.issue, m.improve, m.action])].join(' ');
+  const text = [r.part, r.author, s.company, r.overall, ...approvalsOf(s), ...members.flatMap((m) => [m.name, m.rank, m.issue, m.improve, m.action])].join(' ');
   return {
     title: '주간 파트 보고서', sample: !!opts.sample, text: text + ' 주간 파트 보고서 파트원별 보고 조치사항 전체 특이사항 개선사항 보고 기간 작성일 작성자 파트명',
     fileBase: safeName(`주간파트보고_${r.part || ''}_${wi.year}_${wi.label}`),
@@ -1344,9 +1402,9 @@ const SAMPLE_SETTINGS = { author: '홍길동', part: '장례지원 1파트', com
 function sampleWeekly() {
   return { id: 'sample', weekStart: toKey(mondayOf(new Date())), part: '장례지원 1파트', author: '홍길동', updatedAt: Date.now(),
     members: [
-      { name: '김민수', issue: '수요일 행사 빈소 차림이 20분 늦어 유족 민원 1건', improve: '행사 전날 용품 체크리스트로 미리 확인', action: '면담 후 체크리스트 배포, 다음 행사부터 적용' },
-      { name: '이서연', issue: '특이사항 없음', improve: '신규 상품 안내 멘트 숙지 필요', action: '상품 안내 자료 전달' },
-      { name: '박준호', issue: '금요일 발인 운구 인원 1명 부족', improve: '운구 인원 하루 전 재확인', action: '협력 인력 연락처 정리해 공유' },
+      { name: '김민수', rank: '장례지도사', issue: '수요일 행사 빈소 차림이 20분 늦어 유족 민원 1건', improve: '행사 전날 용품 체크리스트로 미리 확인', action: '면담 후 체크리스트 배포, 다음 행사부터 적용' },
+      { name: '이서연', rank: '주임', issue: '특이사항 없음', improve: '신규 상품 안내 멘트 숙지 필요', action: '상품 안내 자료 전달' },
+      { name: '박준호', rank: '사원', issue: '금요일 발인 운구 인원 1명 부족', improve: '운구 인원 하루 전 재확인', action: '협력 인력 연락처 정리해 공유' },
     ],
     overall: '파트 전체 용품 창고 정리, 근조기 보관 위치 재배치' };
 }
@@ -1450,19 +1508,52 @@ async function savePdf() {
 }
 
 /* ================= settings, backup ================= */
+/* Settings are edited as a draft (S.sd) and only kept when the person taps 저장. */
+const sdraft = () => (S.sd || (S.sd = clone(S.settings)));
 function renderSettings() {
-  const s = S.settings;
+  const s = S.sd || S.settings;
   $('#setAuthor').value = s.author || ''; $('#setPart').value = s.part || ''; $('#setCompany').value = s.company || '';
   $('#setShowAppr').checked = !!s.showApproval; $('#setAppr').value = s.approvals || ''; $('#setAppr').disabled = !s.showApproval;
+  renderRoster(); renderSaveBar(); fillRanks();
   const imgs = [...S.ship.values()].filter((e) => e.qr).length;
   $('#dataCount').textContent = `이 휴대폰에 저장된 기록: 주간보고 ${S.weekly.size}건 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)`;
 }
-let setT;
-function settingsInput() {
-  S.settings.author = $('#setAuthor').value.trim(); S.settings.part = $('#setPart').value.trim(); S.settings.company = $('#setCompany').value.trim();
-  S.settings.showApproval = $('#setShowAppr').checked; S.settings.approvals = $('#setAppr').value; $('#setAppr').disabled = !S.settings.showApproval;
-  clearTimeout(setT); setT = setTimeout(saveSettings, 400);
+function renderRoster() {
+  const list = (S.sd || S.settings).roster || [];
+  $('#rosterList').innerHTML = list.length ? list.map((r, i) => `
+    <div class="r-row" data-i="${i}">
+      <input type="text" id="r${i}-name" data-f="name" value="${esc(r.name)}" placeholder="이름" aria-label="${i + 1}번 이름">
+      <input type="text" id="r${i}-rank" data-f="rank" value="${esc(r.rank || '')}" list="dlRanks" placeholder="직급" aria-label="${i + 1}번 직급">
+      <button class="icon-btn r-up" type="button" aria-label="${i + 1}번 위로" ${i === 0 ? 'disabled' : ''}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+      <button class="icon-btn r-del" type="button" aria-label="${i + 1}번 빼기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>`).join('') : '<p class="roster-empty">아직 명단이 없어요. 아래 버튼으로 파트원을 추가하세요.</p>';
 }
+function renderSaveBar() {
+  const dirty = !!S.sd;
+  $('#setSaveBar').classList.toggle('dirty', dirty);
+  $('#setSaveState').textContent = dirty ? '저장 안 된 변경 있음' : '설정이 저장되어 있어요';
+  $('#setSave').disabled = !dirty;
+  $('#setSave').textContent = dirty ? '저장' : '저장됨';
+  $('#setCancel').hidden = !dirty;
+}
+function settingsInput() {
+  const d = sdraft();
+  d.author = $('#setAuthor').value; d.part = $('#setPart').value; d.company = $('#setCompany').value;
+  d.showApproval = $('#setShowAppr').checked; d.approvals = $('#setAppr').value; $('#setAppr').disabled = !d.showApproval;
+  renderSaveBar();
+}
+async function commitSettings() {
+  if (!S.sd) return;
+  const d = S.sd;
+  ['author', 'part', 'company', 'approvals'].forEach((k) => { d[k] = String(d[k] || '').trim(); });
+  d.roster = (d.roster || []).map((r) => ({ name: String(r.name || '').trim(), rank: String(r.rank || '').trim() })).filter((r) => r.name);
+  S.settings = d; S.sd = null;
+  const ok = await saveSettings();
+  renderSettings(); renderWeeklyList();
+  toast(ok ? '설정을 저장했어요' : '저장하지 못했어요. 다시 눌러 주세요.');
+  if (!ok) { S.sd = clone(S.settings); renderSaveBar(); }
+}
+function cancelSettings() { S.sd = null; renderSettings(); toast('저장 전 상태로 되돌렸어요'); }
 async function exportBackup() {
   const btn = $('#backupBtn'); setBusy(btn, true, '준비 중…');
   try {
@@ -1490,14 +1581,21 @@ async function importBackup(file) {
     const cur = S.ship.get(e.id);
     if (!cur || (e.updatedAt || 0) > (cur.updatedAt || 0)) { S.ship.set(e.id, e); await Store.put('ship', e); sh++; }
   }
-  if (data.settings) { for (const k of Object.keys(S.settings)) { if ((S.settings[k] === '' || S.settings[k] == null) && data.settings[k] != null) S.settings[k] = data.settings[k]; } await saveSettings(); }
+  if (data.settings) {
+    for (const k of Object.keys(S.settings)) {
+      const cur = S.settings[k];
+      const empty = cur === '' || cur == null || (Array.isArray(cur) && !cur.length);
+      if (empty && data.settings[k] != null) S.settings[k] = data.settings[k];
+    }
+    S.sd = null; await saveSettings();
+  }
   renderAll();
   toast(`주간보고 ${w}건, 탁송·출고 ${sh}건을 불러왔어요`);
 }
 async function wipeAll() {
   await Store.clearAll();
   S.weekly.clear(); S.ship.clear(); S.imgCache.clear();
-  S.settings = clone(DEFAULT_SETTINGS);
+  S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
   toast('모든 기록을 삭제했어요');
@@ -1591,6 +1689,23 @@ function bind() {
   // settings
   ['#setAuthor', '#setPart', '#setCompany', '#setAppr'].forEach((s) => $(s).addEventListener('input', settingsInput));
   $('#setShowAppr').addEventListener('change', settingsInput);
+  $('#setSave').addEventListener('click', commitSettings);
+  $('#setCancel').addEventListener('click', cancelSettings);
+  $('#rosterAdd').addEventListener('click', () => {
+    sdraft().roster.push({ name: '', rank: '' }); renderRoster(); renderSaveBar();
+    const inputs = $$('#rosterList input[data-f="name"]'); const last = inputs[inputs.length - 1]; if (last) last.focus();
+  });
+  $('#rosterList').addEventListener('input', (e) => {
+    const row = e.target.closest('.r-row'); const f = e.target.dataset.f; if (!row || !f) return;
+    sdraft().roster[+row.dataset.i][f] = e.target.value; renderSaveBar();
+  });
+  $('#rosterList').addEventListener('click', (e) => {
+    const row = e.target.closest('.r-row'); if (!row) return;
+    const i = +row.dataset.i; const list = sdraft().roster;
+    if (e.target.closest('.r-up') && i > 0) { [list[i - 1], list[i]] = [list[i], list[i - 1]]; renderRoster(); renderSaveBar(); }
+    else if (e.target.closest('.r-del')) { list.splice(i, 1); renderRoster(); renderSaveBar(); }
+  });
+  $('#wLoadRoster').addEventListener('click', loadRosterIntoReport);
   $('#backupBtn').addEventListener('click', exportBackup);
   $('#restoreFile').addEventListener('change', async (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) await importBackup(f); });
   $('#wipeBtn').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 전부 삭제', wipeAll));
@@ -1625,7 +1740,7 @@ async function copyLink() {
   try { await navigator.clipboard.writeText(url); toast('주소를 복사했어요'); }
   catch (e) { toast(url); }
 }
-function safeToReload() { return $$('.screen').every((s) => s.hidden) && $('#sheet').hidden && !S.ewDirty; }
+function safeToReload() { return $$('.screen').every((s) => s.hidden) && $('#sheet').hidden && !S.ewDirty && !S.sd; }
 function applyUpdate(ver) {
   if (updatePending) return;
   updatePending = true;

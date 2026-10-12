@@ -1,5 +1,5 @@
 /* Service worker for 관리자 서식함. Generated into sw.js by build.py; edit this template. */
-const VERSION = '2026.10.13-2';
+const VERSION = '2026.10.13-3';
 const CACHE = 'seosik-app-' + VERSION;
 const FONT_CACHE = 'seosik-fonts-v1';
 const CORE = [
