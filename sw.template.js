@@ -1,17 +1,9 @@
 /* Service worker for 관리자 서식함. Generated into sw.js by build.py; edit this template. */
 const VERSION = '__VERSION__';
-const CACHE = 'seosik-app-' + VERSION;
+const PREFIX = 'seosik-app-';
+const CACHE = PREFIX + VERSION;
 const FONT_CACHE = 'seosik-fonts-v1';
-const CORE = [
-  './',
-  './index.html',
-  './funeral.html',
-  './manifest.webmanifest',
-  './vendor/jspdf.umd.min.js',
-  './icons/gukhwa-192.png',
-  './icons/gukhwa-512.png',
-  './icons/gukhwa-apple-180.png',
-];
+const CORE = __CORE__;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -24,7 +16,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('seosik-app-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith(PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

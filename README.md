@@ -4,10 +4,12 @@
 
 - 입력한 기록은 **각자 휴대폰 안에만** 저장되고, 이 저장소나 어떤 서버에도 올라가지 않습니다.
 - 앱 주소를 휴대폰 브라우저(안드로이드 Chrome, 아이폰 Safari)로 열고 **앱 설치** 또는 **홈 화면에 추가**를 누르면 설치됩니다.
+- 서식 없이 장례 일정 작성기만 쓰는 **장례일정** 앱은 `jangrye/` 주소에 따로 있습니다.
 
 ## 고치는 방법 (관리용)
 
 1. `src/app.html`(서식함)과 `src/funeral.html`(장례 일정 작성기 원본)만 고칩니다. `index.html`, `funeral.html`, `sw.js`, `version.json` 은 자동으로 만들어지는 파일이에요.
-   `src/funeral.html` 에는 화장/매장 선택, 하관 시간, 고이장례연구소 전용 접수 칸이 더해져 있어요. 서식함과 같은 색·글꼴과 서식함으로 오가는 버튼은 `src/funeral-bridge.html` 에 따로 있어요.
+   `src/funeral.html` 에는 화장/매장 선택, 하관 시간, 고이장례연구소 전용 접수 칸이 더해져 있어요. 서식함과 같은 색·글꼴은 `src/funeral-theme.html`, 서식함으로 오가는 버튼은 `src/funeral-bridge.html`, 장례일정 앱의 설치 안내는 `src/jangrye-bridge.html` 에 있어요.
+   빌드하면 `funeral.html`(서식함 안의 장례업무)과 `jangrye/index.html`(따로 쓰는 장례일정 앱)이 함께 만들어져요.
 2. `python3 build.py` 를 실행합니다.
 3. 커밋하고 `main` 에 올리면 1~2분 뒤 GitHub Pages에 반영되고, 설치된 앱은 다음에 열 때 새 버전으로 바뀝니다.

@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "장례일정",
+  "short_name": "장례일정",
+  "description": "장례 일정 입력과 업체별 보고 양식, 정산·봉투정리, 휴무·당직. 기록은 각자 휴대폰에만 저장됩니다.",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f2ef",
+  "theme_color": "#f1f2ef",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "icons/gukhwa-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/gukhwa-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/gukhwa-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
