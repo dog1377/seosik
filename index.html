@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-4";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-5";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>관리자 서식함</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -199,7 +199,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 
 /* ---------- Tab bar & toast ---------- */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabbar-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.tabbar-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
 .tabbar button{height:var(--tabbar-h);display:grid;place-items:center;align-content:center;gap:3px;font-size:12px;color:var(--muted);background:none;border:0}
 .tabbar button[aria-current="page"]{color:var(--accent);font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(var(--tabbar-h) + 18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);z-index:40;max-width:calc(100% - 32px);background:var(--toast-bg);color:var(--toast-ink);padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;text-align:center}
@@ -226,6 +226,19 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .save-bar.dirty .state{color:var(--warn);font-weight:700}
 .save-bar .btn{min-height:42px}
 .roster{display:grid;gap:8px}
+.rv-day{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px 14px;display:grid;gap:8px}
+.rv-day-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rv-day-h b{font-size:16px;font-variant-numeric:tabular-nums}
+.rv-day-h span{font-size:12px;color:var(--muted)}
+.rv-day.today{border-color:var(--accent)}
+.rv-preview{margin:0;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;font:inherit;font-size:15px;line-height:1.6;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--ink)}
+.rv-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rv-actions.single{grid-template-columns:1fr}
+.rv-recent{display:grid;gap:6px}
+.rv-recent button{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:baseline;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--ink)}
+.rv-recent b{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rv-recent span{font-size:14px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.period .today-btn{font-size:12px;color:var(--accent);background:none;border:0;padding:2px 6px;margin-top:2px;font-weight:700}
 .r-row{display:grid;grid-template-columns:minmax(0,1fr) 88px 36px 36px;gap:6px;align-items:center}
 .r-row .icon-btn{width:36px;height:36px}
 .r-row .icon-btn:disabled{opacity:.3}
@@ -284,6 +297,31 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
         <span class="sample-ph" id="wSamplePh">예시 불러오는 중…</span>
         <span class="sample-cap">예시 보고서 크게 보기</span>
       </button>
+    </div>
+  </section>
+
+  <!-- ===== 후기 일일보고 ===== -->
+  <section class="tab" id="tab-review" hidden>
+    <div class="tab-head">
+      <h1>후기 일일보고</h1>
+      <p>출상일별로 적어 두면 이틀치 카톡 보고 문구가 자동으로 만들어져요. 비워 둔 날은 「없습니다.」로 나가요.</p>
+    </div>
+    <label class="field"><span>보고 제목</span><input id="rvTitle" type="text" placeholder="예: 2파트 후기 일일보고"></label>
+    <div class="period">
+      <button class="icon-btn" type="button" id="rvPrev" aria-label="하루 앞으로"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div><b id="rvLabel">-</b><span id="rvSub">어제 · 오늘</span><button class="today-btn" type="button" id="rvToday" hidden>오늘 기준으로</button></div>
+      <button class="icon-btn" type="button" id="rvNext" aria-label="하루 뒤로"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+    <div class="list" id="rvDays"></div>
+    <div class="sec-h"><h2>카톡 보고 문구</h2><span class="muted small-t" id="rvSaveState"></span></div>
+    <pre class="rv-preview" id="rvPreview"></pre>
+    <div class="rv-actions" id="rvActions">
+      <button class="btn" type="button" id="rvCopy">문구 복사</button>
+      <button class="btn primary" type="button" id="rvShare">카톡으로 보내기</button>
+    </div>
+    <div class="rv-recent-wrap" id="rvRecentWrap" hidden>
+      <div class="sec-h" style="margin-bottom:8px"><h2>최근 기록</h2></div>
+      <div class="rv-recent" id="rvRecent"></div>
     </div>
   </section>
 
@@ -390,6 +428,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     <button type="button" data-tab="weekly" aria-current="page">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>
       주간보고
+    </button>
+    <button type="button" data-tab="review" aria-current="false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v10.5H10l-4.5 3.5V16H4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>
+      후기보고
     </button>
     <button type="button" data-tab="ship" aria-current="false">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 10h4l3 3.2V16h-7z"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
@@ -690,6 +732,7 @@ const S = {
   logMonth: { y: 2026, m: 1 },
   rpt: { type: 'week', monday: mondayOf(new Date()), y: 2026, m: 1, qr: true },
   ew: null, ewDirty: false, sd: null,
+  reviews: {}, rvTitle: '', rvEnd: null, rvDirty: false,
   es: null, esImg: null, esImgRemoved: false,
   pv: null,
 };
@@ -717,11 +760,12 @@ function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s
 function showTab(t) {
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
   S.tab = t;
-  ['weekly', 'ship', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
+  ['weekly', 'review', 'ship', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
   $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
   try { localStorage.setItem('mf.tab', t); } catch (e) { /* ignore */ }
   window.scrollTo(0, 0);
   if (t === 'settings') renderSettings();
+  if (t === 'review') renderReview();
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
 async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
@@ -1507,6 +1551,89 @@ async function savePdf() {
     hint: isIOS() ? '아이폰은 「카톡 등으로 보내기」에서 「파일에 저장」을 고르면 파일 앱에 보관돼요.' : '' });
 }
 
+/* ================= 후기 일일보고 ================= */
+const mdLabel = (k) => { const d = fromKey(k); return `${d.getMonth() + 1}/${d.getDate()}`; };
+function rvDefaultTitle() { return `${(S.settings.part || '').trim()} 후기 일일보고`.trim(); }
+function rvTitle() { return (S.rvTitle || '').trim() || rvDefaultTitle(); }
+function rvDates() { const end = S.rvEnd || toKey(new Date()); return [toKey(addDays(fromKey(end), -1)), end]; }
+function reviewText() {
+  const out = [rvTitle(), ''];
+  rvDates().forEach((k) => {
+    const body = (S.reviews[k] || '').replace(/\s+$/g, '').replace(/^\s*\n/, '');
+    out.push(`${mdLabel(k)}일 출상`, '', body.trim() ? body : '없습니다.', '');
+  });
+  return out.join('\n').replace(/\n+$/, '');
+}
+function renderReviewPreview() { $('#rvPreview').textContent = reviewText(); }
+function renderReview() {
+  const today = toKey(new Date());
+  const dates = rvDates();
+  const end = dates[1];
+  const fmt = (k) => `${mdLabel(k)}(${DOW[fromKey(k).getDay()]})`;
+  $('#rvLabel').textContent = `${fmt(dates[0])} · ${fmt(dates[1])}`;
+  const isToday = end === today;
+  $('#rvSub').textContent = isToday ? '어제 · 오늘 출상' : (end > today ? '내일 포함' : '지난 날짜');
+  $('#rvToday').hidden = isToday;
+  $('#rvNext').disabled = end >= toKey(addDays(new Date(), 1));
+  $('#rvTitle').value = S.rvTitle || '';
+  $('#rvTitle').placeholder = rvDefaultTitle() || '예: 2파트 후기 일일보고';
+  $('#rvDays').innerHTML = dates.map((k, i) => `
+    <div class="rv-day ${k === today ? 'today' : ''}">
+      <div class="rv-day-h"><b>${esc(mdLabel(k))}일(${DOW[fromKey(k).getDay()]}) 출상</b><span>${k === today ? '오늘' : (k === toKey(addDays(new Date(), -1)) ? '어제' : '')}</span></div>
+      <textarea id="rv-${k}" data-date="${k}" rows="2" placeholder="예: 서민관 넥센타이어 5개&#10;여러 건이면 줄을 바꿔 적으세요. 없으면 비워 두세요.">${esc(S.reviews[k] || '')}</textarea>
+    </div>`).join('');
+  $$('#rvDays textarea').forEach(autosize);
+  const share = !!navigator.share && !!window.__PWA__;
+  $('#rvShare').hidden = !share;
+  $('#rvActions').classList.toggle('single', !share);
+  $('#rvSaveState').textContent = S.rvDirty ? '저장 중…' : '';
+  renderReviewPreview();
+  renderReviewRecent();
+}
+function renderReviewRecent() {
+  const keys = Object.keys(S.reviews).filter((k) => (S.reviews[k] || '').trim()).sort().reverse().slice(0, 10);
+  $('#rvRecentWrap').hidden = keys.length === 0;
+  $('#rvRecent').innerHTML = keys.map((k) => `<button type="button" data-date="${k}"><b>${esc(mdLabel(k))}(${DOW[fromKey(k).getDay()]})</b><span>${esc(S.reviews[k].trim().split('\n').join(' · '))}</span></button>`).join('');
+}
+let rvTimer;
+function touchReview() {
+  S.rvDirty = true; $('#rvSaveState').textContent = '저장 중…';
+  clearTimeout(rvTimer); rvTimer = setTimeout(saveReviewNow, 500);
+}
+async function saveReviewNow() {
+  clearTimeout(rvTimer);
+  if (!S.rvDirty) return;
+  const clean = {};
+  Object.keys(S.reviews).forEach((k) => { if ((S.reviews[k] || '').trim()) clean[k] = S.reviews[k]; });
+  S.reviews = clean;
+  const ok1 = await Store.put('kv', clone(clean), 'reviews');
+  const ok2 = await Store.put('kv', S.rvTitle || '', 'reviewTitle');
+  S.rvDirty = false;
+  $('#rvSaveState').textContent = ok1 && ok2 ? '저장됨' : '저장 안 됨';
+  if (ok1) requestPersist();
+  renderReviewRecent();
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+    ta.remove(); return ok;
+  }
+}
+async function rvCopy() {
+  await saveReviewNow();
+  const ok = await copyText(reviewText());
+  toast(ok ? '복사했어요. 카톡 대화방에 붙여 넣으세요.' : '복사하지 못했어요. 문구를 길게 눌러 복사해 주세요.');
+}
+async function rvShare() {
+  await saveReviewNow();
+  try { await navigator.share({ text: reviewText() }); }
+  catch (e) { if (!e || e.name !== 'AbortError') { const ok = await copyText(reviewText()); toast(ok ? '보내기 창이 안 열려서 문구를 복사했어요.' : '보내기 창을 열지 못했어요.'); } }
+}
+function rvShift(days) { const k = toKey(addDays(fromKey(rvDates()[1]), days)); S.rvEnd = k === toKey(new Date()) ? null : k; renderReview(); }
+
 /* ================= settings, backup ================= */
 /* Settings are edited as a draft (S.sd) and only kept when the person taps 저장. */
 const sdraft = () => (S.sd || (S.sd = clone(S.settings)));
@@ -1516,7 +1643,8 @@ function renderSettings() {
   $('#setShowAppr').checked = !!s.showApproval; $('#setAppr').value = s.approvals || ''; $('#setAppr').disabled = !s.showApproval;
   renderRoster(); renderSaveBar(); fillRanks();
   const imgs = [...S.ship.values()].filter((e) => e.qr).length;
-  $('#dataCount').textContent = `이 휴대폰에 저장된 기록: 주간보고 ${S.weekly.size}건 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)`;
+  const rvDays = Object.keys(S.reviews).filter((k) => (S.reviews[k] || '').trim()).length;
+  $('#dataCount').textContent = `이 휴대폰에 저장된 기록: 주간보고 ${S.weekly.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)`;
 }
 function renderRoster() {
   const list = (S.sd || S.settings).roster || [];
@@ -1558,7 +1686,7 @@ async function exportBackup() {
   const btn = $('#backupBtn'); setBusy(btn, true, '준비 중…');
   try {
     const img = await Store.getAll('img');
-    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img };
+    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '' };
     const now = new Date();
     const name = `관리자서식함_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
     await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요',
@@ -1581,6 +1709,12 @@ async function importBackup(file) {
     const cur = S.ship.get(e.id);
     if (!cur || (e.updatedAt || 0) > (cur.updatedAt || 0)) { S.ship.set(e.id, e); await Store.put('ship', e); sh++; }
   }
+  let rvn = 0;
+  if (data.reviews && typeof data.reviews === 'object') {
+    Object.keys(data.reviews).forEach((k) => { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && !(S.reviews[k] || '').trim() && (data.reviews[k] || '').trim()) { S.reviews[k] = data.reviews[k]; rvn++; } });
+    if (!S.rvTitle && data.reviewTitle) S.rvTitle = data.reviewTitle;
+    await Store.put('kv', clone(S.reviews), 'reviews'); await Store.put('kv', S.rvTitle || '', 'reviewTitle');
+  }
   if (data.settings) {
     for (const k of Object.keys(S.settings)) {
       const cur = S.settings[k];
@@ -1590,17 +1724,17 @@ async function importBackup(file) {
     S.sd = null; await saveSettings();
   }
   renderAll();
-  toast(`주간보고 ${w}건, 탁송·출고 ${sh}건을 불러왔어요`);
+  toast(`주간보고 ${w}건, 후기 ${rvn}일, 탁송·출고 ${sh}건을 불러왔어요`);
 }
 async function wipeAll() {
   await Store.clearAll();
-  S.weekly.clear(); S.ship.clear(); S.imgCache.clear();
+  S.weekly.clear(); S.ship.clear(); S.imgCache.clear(); S.reviews = {}; S.rvTitle = ''; S.rvDirty = false; clearTimeout(rvTimer);
   S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
   toast('모든 기록을 삭제했어요');
 }
-function renderAll() { renderWeeklyList(); renderShip(); renderSettings(); }
+function renderAll() { renderWeeklyList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
 
 /* ================= events ================= */
 function bind() {
@@ -1706,6 +1840,19 @@ function bind() {
     else if (e.target.closest('.r-del')) { list.splice(i, 1); renderRoster(); renderSaveBar(); }
   });
   $('#wLoadRoster').addEventListener('click', loadRosterIntoReport);
+  // 후기 일일보고
+  $('#rvDays').addEventListener('input', (e) => {
+    const k = e.target.dataset.date; if (!k) return;
+    S.reviews[k] = e.target.value; autosize(e.target); renderReviewPreview(); touchReview();
+  });
+  $('#rvTitle').addEventListener('input', (e) => { S.rvTitle = e.target.value; renderReviewPreview(); touchReview(); });
+  $('#rvPrev').addEventListener('click', () => rvShift(-1));
+  $('#rvNext').addEventListener('click', () => rvShift(1));
+  $('#rvToday').addEventListener('click', () => { S.rvEnd = null; renderReview(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.tab === 'review' && !S.rvDirty && !(document.activeElement && document.activeElement.tagName === 'TEXTAREA')) renderReview(); });
+  $('#rvCopy').addEventListener('click', rvCopy);
+  $('#rvShare').addEventListener('click', rvShare);
+  $('#rvRecent').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.rvEnd = b.dataset.date === toKey(new Date()) ? null : b.dataset.date; renderReview(); window.scrollTo(0, 0); });
   $('#backupBtn').addEventListener('click', exportBackup);
   $('#restoreFile').addEventListener('change', async (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) await importBackup(f); });
   $('#wipeBtn').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 전부 삭제', wipeAll));
@@ -1740,7 +1887,7 @@ async function copyLink() {
   try { await navigator.clipboard.writeText(url); toast('주소를 복사했어요'); }
   catch (e) { toast(url); }
 }
-function safeToReload() { return $$('.screen').every((s) => s.hidden) && $('#sheet').hidden && !S.ewDirty && !S.sd; }
+function safeToReload() { return $$('.screen').every((s) => s.hidden) && $('#sheet').hidden && !S.ewDirty && !S.sd && !S.rvDirty && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#tab-review textarea, #tab-review input')); }
 function applyUpdate(ver) {
   if (updatePending) return;
   updatePending = true;
@@ -1788,7 +1935,7 @@ function bindPwa() {
   $('#sheetSave').addEventListener('click', sheetSave);
   $('#sheetCancel').addEventListener('click', closeSheet);
   $('#sheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeSheet(); });
-  $('#updateBtn').addEventListener('click', async () => { await flushWeekly(); location.reload(); });
+  $('#updateBtn').addEventListener('click', async () => { await flushWeekly(); await saveReviewNow(); location.reload(); });
   $('#installClose').addEventListener('click', () => { $('#installCard').hidden = true; try { localStorage.setItem('mf.installDismissed', '1'); } catch (e) { /* ignore */ } });
   document.addEventListener('click', async (e) => {
     if (e.target.closest('.copy-link')) copyLink();
@@ -1810,13 +1957,15 @@ async function init() {
   S.rpt = { type: 'week', monday: mondayOf(now), y: now.getFullYear(), m: now.getMonth() + 1, qr: true };
   let tab = 'weekly';
   try { tab = localStorage.getItem('mf.tab') || 'weekly'; } catch (e) { /* ignore */ }
-  if (!['weekly', 'ship', 'settings'].includes(tab)) tab = 'weekly';
+  if (!['weekly', 'review', 'ship', 'settings'].includes(tab)) tab = 'weekly';
   renderAll();
   showTab(tab);
   const ok = await Store.open();
   $('#storeBanner').hidden = ok;
   if (ok) {
-    const [w, sh, st] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings')]);
+    const [w, sh, st, rv, rvt] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings'), Store.get('kv', 'reviews'), Store.get('kv', 'reviewTitle')]);
+    if (rv && typeof rv === 'object') S.reviews = rv;
+    if (typeof rvt === 'string') S.rvTitle = rvt;
     w.forEach((r) => S.weekly.set(r.id, r));
     sh.forEach((e) => S.ship.set(e.id, e));
     if (st) {
