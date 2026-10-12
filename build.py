@@ -39,7 +39,8 @@ html = f"""<!doctype html>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";
+try {{ if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); }} catch (e) {{}}</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
 </head>
@@ -50,6 +51,30 @@ html = f"""<!doctype html>
 """
 
 (ROOT / 'index.html').write_text(html, encoding='utf-8')
+
+# ---------- 장례 일정 작성기 (src/funeral.html, kept as the original file) ----------
+import re
+fsrc = (ROOT / 'src' / 'funeral.html').read_text(encoding='utf-8')
+bridge = (ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8')
+PWA_HEAD = (
+    '<link rel="manifest" href="manifest.webmanifest">\n'
+    '<link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">\n'
+    '<link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">\n'
+    '<meta name="mobile-web-app-capable" content="yes">\n'
+    '<meta name="apple-mobile-web-app-capable" content="yes">\n'
+    '<meta name="app-version" content="' + version + '">\n'
+)
+fsrc = re.sub(r'<link rel="(?:icon|apple-touch-icon)"[^>]*>\s*', '', fsrc)
+fsrc = re.sub(r'<meta name="apple-mobile-web-app-title"[^>]*>', '<meta name="apple-mobile-web-app-title" content="서식함">', fsrc)
+fsrc = re.sub(r'(<meta name="viewport"[^>]*>\s*)', lambda m: m.group(1) + PWA_HEAD, fsrc, count=1)
+# share the app's main address rather than this page's
+fsrc = fsrc.replace("location.pathname.replace(/index\\.html$/,'')", "location.pathname.replace(/(index|funeral)\\.html$/,'')")
+fsrc = fsrc.replace("navigator.share({title:'장례 일정 작성기',url})", "navigator.share({title:'관리자 서식함',url})")
+cut = fsrc.rfind('</body>')
+if cut < 0:
+    raise SystemExit('</body> not found in src/funeral.html')
+fsrc = fsrc[:cut] + bridge + '\n' + fsrc[cut:]
+(ROOT / 'funeral.html').write_text(fsrc, encoding='utf-8')
 sw = (ROOT / 'sw.template.js').read_text(encoding='utf-8').replace('__VERSION__', version)
 (ROOT / 'sw.js').write_text(sw, encoding='utf-8')
 (ROOT / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')

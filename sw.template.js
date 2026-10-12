@@ -5,6 +5,7 @@ const FONT_CACHE = 'seosik-fonts-v1';
 const CORE = [
   './',
   './index.html',
+  './funeral.html',
   './manifest.webmanifest',
   './vendor/jspdf.umd.min.js',
   './icons/gukhwa-192.png',
@@ -36,7 +37,8 @@ async function networkFirst(request) {
   const cache = await caches.open(CACHE);
   const url = new URL(request.url);
   url.search = '';
-  const key = request.mode === 'navigate' ? new URL('./index.html', self.registration.scope).href : url.href;
+  // each page keeps its own saved copy; the bare folder address is the main page
+  const key = url.pathname.endsWith('/') ? new URL('index.html', url).href : url.href;
   try {
     const res = await Promise.race([fetch(url.href, { cache: 'no-cache', credentials: 'same-origin' }), timeout(4000)]);
     if (res && res.ok) cache.put(key, res.clone());
@@ -44,6 +46,10 @@ async function networkFirst(request) {
   } catch (err) {
     const hit = await cache.match(key);
     if (hit) return hit;
+    if (request.mode === 'navigate') {
+      const home = await cache.match(new URL('./index.html', self.registration.scope).href);
+      if (home) return home;
+    }
     return fetch(request);
   }
 }

@@ -13,7 +13,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-6";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-7";
+try { if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); } catch (e) {}</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>관리자 서식함</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -138,7 +139,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .empty-msg{padding:4px 2px;color:var(--muted);font-size:14px}
 .sample{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);position:relative;text-align:left}
 .sample img{display:block;width:100%;height:240px;object-fit:cover;object-position:top}
-.sample .sample-tag{position:absolute;left:10px;bottom:52px;font-size:12px;font-weight:700;background:var(--toast-bg);color:var(--toast-ink);padding:4px 9px;border-radius:999px}
+.sample .sample-tag{position:absolute;right:10px;bottom:52px;font-size:12px;font-weight:700;background:var(--toast-bg);color:var(--toast-ink);padding:4px 9px;border-radius:999px}
 .sample .sample-cap{display:block;padding:10px 14px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
 .sample-ph{height:240px;display:grid;place-items:center;color:var(--muted);font-size:13px}
 
@@ -200,6 +201,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 /* ---------- Tab bar & toast ---------- */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabbar-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabbar-in.five{grid-template-columns:repeat(5,1fr)}
+.tabbar button{min-width:0;white-space:nowrap}
 .tabbar button{height:var(--tabbar-h);display:grid;place-items:center;align-content:center;gap:3px;font-size:12px;color:var(--muted);background:none;border:0}
 .tabbar button[aria-current="page"]{color:var(--accent);font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(var(--tabbar-h) + 18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);z-index:40;max-width:calc(100% - 32px);background:var(--toast-bg);color:var(--toast-ink);padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;text-align:center}
@@ -445,6 +448,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 
 <nav class="tabbar" aria-label="메뉴">
   <div class="tabbar-in">
+    <button type="button" data-tab="funeral" aria-current="false" id="tabFuneral" hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2"/></svg>
+      장례업무
+    </button>
     <button type="button" data-tab="weekly" aria-current="page">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>
       주간보고
@@ -1836,7 +1843,8 @@ function renderSettings() {
   renderRoster(); renderSaveBar(); fillRanks(); renderSigCard();
   const imgs = [...S.ship.values()].filter((e) => e.qr).length;
   const rvDays = Object.keys(S.reviews).filter((k) => (S.reviews[k] || '').trim()).length;
-  $('#dataCount').textContent = `이 휴대폰에 저장된 기록: 주간보고 ${S.weekly.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)`;
+  const hasFuneral = window.__PWA__ && Object.keys(funeralStorage()).length > 0;
+  $('#dataCount').textContent = `이 휴대폰에 저장된 기록: 주간보고 ${S.weekly.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)${hasFuneral ? ' · 장례업무 기록 있음' : ''}. 백업 파일에는 장례업무 기록도 함께 들어가요.`;
 }
 function renderRoster() {
   const list = (S.sd || S.settings).roster || [];
@@ -1878,7 +1886,7 @@ async function exportBackup() {
   const btn = $('#backupBtn'); setBusy(btn, true, '준비 중…');
   try {
     const img = await Store.getAll('img');
-    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig };
+    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, funeral: funeralStorage() };
     const now = new Date();
     const name = `관리자서식함_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
     await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요',
@@ -1902,6 +1910,13 @@ async function importBackup(file) {
     if (!cur || (e.updatedAt || 0) > (cur.updatedAt || 0)) { S.ship.set(e.id, e); await Store.put('ship', e); sh++; }
   }
   if (!S.sig && data.signature && data.signature.data) { S.sig = data.signature; sigImgCache = null; await saveSig(); }
+  let fn = 0, fkept = 0;
+  if (data.funeral && typeof data.funeral === 'object') {
+    Object.keys(data.funeral).forEach((k) => {
+      if (!FUNERAL_KEYS.test(k) || typeof data.funeral[k] !== 'string') return;
+      try { if (localStorage.getItem(k)) { fkept++; return; } localStorage.setItem(k, data.funeral[k]); fn++; } catch (e) { /* ignore */ }
+    });
+  }
   let rvn = 0;
   if (data.reviews && typeof data.reviews === 'object') {
     Object.keys(data.reviews).forEach((k) => { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && !(S.reviews[k] || '').trim() && (data.reviews[k] || '').trim()) { S.reviews[k] = data.reviews[k]; rvn++; } });
@@ -1917,7 +1932,7 @@ async function importBackup(file) {
     S.sd = null; await saveSettings();
   }
   renderAll();
-  toast(`주간보고 ${w}건, 후기 ${rvn}일, 탁송·출고 ${sh}건을 불러왔어요`);
+  toast(`주간보고 ${w}건, 후기 ${rvn}일, 탁송·출고 ${sh}건${fn ? ', 장례업무 기록' : ''}을 불러왔어요${fkept ? ' (이미 있던 장례업무 기록은 그대로 두었어요)' : ''}`);
 }
 async function wipeAll() {
   await Store.clearAll();
@@ -1925,13 +1940,13 @@ async function wipeAll() {
   S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
-  toast('모든 기록을 삭제했어요');
+  toast(window.__PWA__ ? '서식함 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.' : '모든 기록을 삭제했어요');
 }
 function renderAll() { renderWeeklyList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
 
 /* ================= events ================= */
 function bind() {
-  $$('.tabbar button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+  $$('.tabbar button').forEach((b) => b.addEventListener('click', () => (b.dataset.tab === 'funeral' ? goFuneral() : showTab(b.dataset.tab))));
   // weekly
   $('#newWeekly').addEventListener('click', () => {
     const k = toKey(mondayOf(new Date()));
@@ -2068,6 +2083,21 @@ function bind() {
   $('#wipeBtn').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 전부 삭제', wipeAll));
 }
 
+/* ================= 장례업무 (funeral.html, same installed app) ================= */
+const FUNERAL_KEYS = /^(funeral-|hyumu-)/;
+function setLastApp(v) { try { localStorage.setItem('mf.lastApp', v); } catch (e) { /* ignore */ } }
+async function goFuneral() {
+  if (S.sd) { showTab('settings'); toast('설정을 저장하거나 되돌린 뒤에 이동해 주세요.'); return; }
+  await flushWeekly(); await saveReviewNow();
+  setLastApp('funeral');
+  location.replace('funeral.html');
+}
+function funeralStorage() {
+  const out = {};
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (FUNERAL_KEYS.test(k)) out[k] = localStorage.getItem(k); } } catch (e) { /* ignore */ }
+  return out;
+}
+
 /* ================= installed-app support (only when served as the installable app) ================= */
 const isStandalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
 const isInApp = () => /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|FB_IAB|Line\/|DaumApps|everytimeApp|BAND\//i.test(navigator.userAgent);
@@ -2116,6 +2146,8 @@ async function checkVersion() {
 }
 function setupPwa() {
   if (!window.__PWA__) return;
+  $('#tabFuneral').hidden = false; $('.tabbar-in').classList.add('five');
+  setLastApp('forms');
   $('#appVersion').textContent = `앱 버전 ${window.__APP_VERSION__ || '-'}`;
   LABELS.png = '이미지 저장·보내기'; LABELS.pdf = 'PDF 저장·보내기';
   $('#pvPng').textContent = LABELS.png; $('#pvPdf').textContent = LABELS.pdf;
@@ -2167,6 +2199,11 @@ async function init() {
   S.rpt = { type: 'week', monday: mondayOf(now), y: now.getFullYear(), m: now.getMonth() + 1, qr: true };
   let tab = 'weekly';
   try { tab = localStorage.getItem('mf.tab') || 'weekly'; } catch (e) { /* ignore */ }
+  const fromHash = (location.hash || '').replace('#', '');
+  if (['weekly', 'review', 'ship', 'settings'].includes(fromHash)) {
+    tab = fromHash;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+  }
   if (!['weekly', 'review', 'ship', 'settings'].includes(tab)) tab = 'weekly';
   renderAll();
   showTab(tab);

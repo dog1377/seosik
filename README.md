@@ -7,6 +7,7 @@
 
 ## 고치는 방법 (관리용)
 
-1. `src/app.html` 만 고칩니다. (`index.html`, `sw.js`, `version.json` 은 자동으로 만들어지는 파일이에요.)
+1. `src/app.html`(서식함)과 `src/funeral.html`(장례 일정 작성기 원본)만 고칩니다. `index.html`, `funeral.html`, `sw.js`, `version.json` 은 자동으로 만들어지는 파일이에요.
+   장례 일정 작성기 새 버전을 받으면 `src/funeral.html` 을 통째로 바꾸면 되고, 서식함 연결 부분은 `src/funeral-bridge.html` 에 따로 있어요.
 2. `python3 build.py` 를 실행합니다.
 3. 커밋하고 `main` 에 올리면 1~2분 뒤 GitHub Pages에 반영되고, 설치된 앱은 다음에 열 때 새 버전으로 바뀝니다.

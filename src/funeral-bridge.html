@@ -1,0 +1,55 @@
+<!-- 서식함 연결: build.py가 funeral.html 맨 끝에 넣는 부분입니다. 장례 일정 작성기 원본(src/funeral.html)은 고치지 않습니다. -->
+<style id="mf-bridge">
+.mf-home{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;height:40px;padding:0 11px;border:1px solid var(--edge,#dce3ec);border-radius:12px;background:var(--surface,#fff);color:var(--ink,#182538);font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
+.mf-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.mf-home:focus-visible{outline:2px solid var(--accent,#293f65);outline-offset:2px}
+.ab-title{min-width:0}
+.ab-title b,.ab-title small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+@media (max-width:380px){.mf-home span{display:none}.mf-home{width:40px;padding:0}}
+</style>
+<script>
+(function () {
+  'use strict';
+  function setLast(v) { try { localStorage.setItem('mf.lastApp', v); } catch (e) { /* ignore */ } }
+  function toForms(tab) { setLast('forms'); location.replace('./#' + (tab || 'weekly')); }
+  setLast('funeral');
+
+  var DOC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>';
+
+  // 앱 위쪽 막대: 서식함으로 돌아가는 버튼
+  var bar = document.querySelector('.ab-in');
+  if (bar) {
+    var home = document.createElement('button');
+    home.type = 'button';
+    home.className = 'mf-home';
+    home.setAttribute('aria-label', '관리자 서식함으로 가기');
+    home.innerHTML = DOC + '<span>서식함</span>';
+    home.addEventListener('click', function () { toForms('weekly'); });
+    bar.insertBefore(home, document.getElementById('newCase'));
+  }
+
+  // 왼쪽 메뉴: 서식함 바로가기
+  var body = document.querySelector('#sideNav .sn-body');
+  if (body) {
+    var acc = document.createElement('div');
+    acc.className = 'acc';
+    acc.setAttribute('data-acc', 'forms');
+    acc.innerHTML =
+      '<button class="acc-h" type="button" aria-expanded="true"><span>' + DOC + '서식함</span><i></i></button>' +
+      '<div class="acc-b"><div>' +
+      '<button type="button" data-mf="weekly">주간 파트 보고</button>' +
+      '<button type="button" data-mf="review">후기 일일보고</button>' +
+      '<button type="button" data-mf="ship">용품 · 근조기 탁송</button>' +
+      '<button type="button" data-mf="settings">서식함 설정 · 백업</button>' +
+      '</div></div>';
+    acc.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-mf]');
+      if (b) toForms(b.getAttribute('data-mf'));
+    });
+    body.appendChild(acc);
+  }
+
+  // 인터넷이 약해도 열리도록 같은 오프라인 저장을 씁니다
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () {});
+})();
+</script>
