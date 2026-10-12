@@ -7,9 +7,9 @@ const CORE = [
   './index.html',
   './manifest.webmanifest',
   './vendor/jspdf.umd.min.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png',
+  './icons/gukhwa-192.png',
+  './icons/gukhwa-512.png',
+  './icons/gukhwa-apple-180.png',
 ];
 
 self.addEventListener('install', (event) => {

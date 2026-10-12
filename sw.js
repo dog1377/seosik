@@ -1,5 +1,5 @@
 /* Service worker for 관리자 서식함. Generated into sw.js by build.py; edit this template. */
-const VERSION = '2026.10.13-3';
+const VERSION = '2026.10.13-4';
 const CACHE = 'seosik-app-' + VERSION;
 const FONT_CACHE = 'seosik-fonts-v1';
 const CORE = [
@@ -7,9 +7,9 @@ const CORE = [
   './index.html',
   './manifest.webmanifest',
   './vendor/jspdf.umd.min.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png',
+  './icons/gukhwa-192.png',
+  './icons/gukhwa-512.png',
+  './icons/gukhwa-apple-180.png',
 ];
 
 self.addEventListener('install', (event) => {

@@ -37,8 +37,8 @@ html = f"""<!doctype html>
 <meta name="apple-mobile-web-app-title" content="서식함">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
+<link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
