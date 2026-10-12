@@ -319,12 +319,12 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       <h2>기본 정보</h2>
       <label class="field"><span>작성자 (파트장 이름)</span><input id="setAuthor" type="text" placeholder="예: 홍길동" autocomplete="name"></label>
       <label class="field"><span>파트명</span><input id="setPart" type="text" placeholder="예: 장례지원 1파트"></label>
-      <label class="field"><span>회사명 <span class="opt">(보고서 맨 위에 작게 표시)</span></span><input id="setCompany" type="text" placeholder="예: ○○상조"></label>
+      <label class="field"><span>회사명 <span class="opt">(보고서 맨 위에 작게 표시)</span></span><input id="setCompany" type="text" placeholder="회사명"></label>
     </div>
     <div class="card">
       <h2>결재란</h2>
       <label class="switch" for="setShowAppr"><span>보고서에 결재란 표시</span><input type="checkbox" id="setShowAppr"></label>
-      <label class="field"><span>결재란 칸 이름 <span class="opt">(쉼표로 구분, 최대 4칸)</span></span><input id="setAppr" type="text" placeholder="파트장, 실장, 대표"></label>
+      <label class="field"><span>결재란 칸 이름 <span class="opt">(쉼표로 구분, 최대 4칸)</span></span><input id="setAppr" type="text" placeholder="파트장, 총괄실장, 본부장"></label>
     </div>
     <div class="card" id="installSettings" hidden>
       <h2>앱 설치</h2>
@@ -637,8 +637,9 @@ function handleSave(r, okMsg) {
 }
 
 /* ================= app state ================= */
+const DEFAULT_SETTINGS = { author: '', part: '', company: '디더블유 장례의전', approvals: '파트장, 총괄실장, 본부장', showApproval: true, v: 2 };
 const S = {
-  settings: { author: '', part: '', company: '', approvals: '파트장, 실장, 대표', showApproval: true },
+  settings: clone(DEFAULT_SETTINGS),
   weekly: new Map(), ship: new Map(), imgCache: new Map(),
   tab: 'weekly', shipView: 'log',
   logMonth: { y: 2026, m: 1 },
@@ -1321,7 +1322,7 @@ function shipJob(p, items, withQr, opts = {}) {
 }
 
 /* ----- examples (shown only while there is no real data) ----- */
-const SAMPLE_SETTINGS = { author: '홍길동', part: '장례지원 1파트', company: '○○상조', approvals: '파트장, 실장, 대표', showApproval: true };
+const SAMPLE_SETTINGS = { author: '홍길동', part: '장례지원 1파트', company: '디더블유 장례의전', approvals: '파트장, 총괄실장, 본부장', showApproval: true };
 function sampleWeekly() {
   return { id: 'sample', weekStart: toKey(mondayOf(new Date())), part: '장례지원 1파트', author: '홍길동', updatedAt: Date.now(),
     members: [
@@ -1478,7 +1479,7 @@ async function importBackup(file) {
 async function wipeAll() {
   await Store.clearAll();
   S.weekly.clear(); S.ship.clear(); S.imgCache.clear();
-  S.settings = { author: '', part: '', company: '', approvals: '파트장, 실장, 대표', showApproval: true };
+  S.settings = clone(DEFAULT_SETTINGS);
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
   toast('모든 기록을 삭제했어요');
@@ -1685,7 +1686,14 @@ async function init() {
     const [w, sh, st] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings')]);
     w.forEach((r) => S.weekly.set(r.id, r));
     sh.forEach((e) => S.ship.set(e.id, e));
-    if (st) Object.assign(S.settings, st);
+    if (st) {
+      Object.assign(S.settings, st);
+      if (!st.v || st.v < 2) { // earlier versions: fill in the company and the new approval line
+        if (!st.company) S.settings.company = DEFAULT_SETTINGS.company;
+        if (!st.approvals || String(st.approvals).replace(/\s/g, '') === '파트장,실장,대표') S.settings.approvals = DEFAULT_SETTINGS.approvals;
+        S.settings.v = 2; saveSettings();
+      }
+    }
   }
   renderAll();
   setTimeout(renderSamples, 200);
