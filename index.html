@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-5";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-6";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>관리자 서식함</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -226,6 +226,16 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .save-bar.dirty .state{color:var(--warn);font-weight:700}
 .save-bar .btn{min-height:42px}
 .roster{display:grid;gap:8px}
+.sig-box{background:#ffffff;border:1px solid var(--line-2);border-radius:12px;height:120px;display:grid;place-items:center;overflow:hidden}
+.sig-box img{max-height:100px;max-width:90%;object-fit:contain}
+.sig-box span{font-size:13px;color:#6a7279}
+.sig-wrap{position:relative;width:100%;aspect-ratio:2/1;max-height:60vh;background:#ffffff;border:1px solid var(--line-2);border-radius:16px;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+.sig-wrap canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.sig-guide{position:absolute;left:8%;right:8%;bottom:26%;border-bottom:1.5px dashed #c3c8c3;pointer-events:none}
+.sig-guide::before{content:"×";position:absolute;left:-4px;bottom:2px;font-size:22px;line-height:1;color:#a9afb4}
+.sig-ph{position:absolute;inset:0;display:grid;place-items:center;color:#a9afb4;font-size:15px;pointer-events:none;padding-bottom:18%}
+.sig-tools{display:flex;gap:8px;justify-content:flex-end}
+.pv-sign{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:10px 10px 10px 14px;font-size:14px}
 .rv-day{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px 14px;display:grid;gap:8px}
 .rv-day-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .rv-day-h b{font-size:16px;font-variant-numeric:tabular-nums}
@@ -399,6 +409,16 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       <label class="switch" for="setShowAppr"><span>보고서에 결재란 표시</span><input type="checkbox" id="setShowAppr"></label>
       <label class="field"><span>결재란 칸 이름 <span class="opt">(쉼표로 구분, 최대 4칸)</span></span><input id="setAppr" type="text" placeholder="파트장, 총괄실장, 본부장"></label>
     </div>
+    <div class="card">
+      <h2>내 서명</h2>
+      <p class="small-t muted">한 번 등록하면 보고서 결재란의 「파트장」 칸에 자동으로 들어가요. 서명은 누르는 즉시 저장돼요.</p>
+      <div class="sig-box" id="sigBox"><span>등록된 서명이 없어요</span></div>
+      <label class="switch" for="sigOn"><span>보고서에 서명 넣기</span><input type="checkbox" id="sigOn"></label>
+      <div class="grid2">
+        <button class="btn primary" type="button" id="sigEdit">서명하기</button>
+        <button class="btn danger" type="button" id="sigDel">서명 지우기</button>
+      </div>
+    </div>
     <div class="save-bar" id="setSaveBar">
       <span class="state" id="setSaveState">설정이 저장되어 있어요</span>
       <button class="btn quiet small" type="button" id="setCancel" hidden>되돌리기</button>
@@ -531,6 +551,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
   <div class="screen-body">
     <div class="inner">
       <p class="pv-note" id="pvSample" hidden>예시 보고서입니다. 실제 내용을 입력하면 이 모양으로 만들어져요.</p>
+      <div class="pv-sign" id="pvSign" hidden><span>결재란에 넣을 서명이 아직 없어요.</span><button class="btn small primary" type="button" id="pvSignBtn">서명하기</button></div>
       <div class="pv-images" id="pvImages"></div>
       <p class="pv-note" id="pvHint">저장 버튼이 안 되면 이미지를 길게 눌러 사진에 저장할 수 있어요.</p>
     </div>
@@ -539,6 +560,29 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     <button class="btn" type="button" id="pvPng">이미지 저장</button>
     <button class="btn primary" type="button" id="pvPdf">PDF 저장</button>
   </div></div>
+</div>
+
+<!-- ===== 서명 화면 ===== -->
+<div class="screen" id="sigScreen" hidden>
+  <div class="screen-bar">
+    <button class="back" type="button" id="sigBack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>닫기</button>
+    <div class="screen-title">서명</div>
+  </div>
+  <div class="screen-body">
+    <div class="inner">
+      <p class="muted small-t" style="margin:0">손가락으로 천천히 크게 써 주세요. 결재란 크기에 맞게 자동으로 줄어들어요.</p>
+      <div class="sig-wrap" id="sigWrap">
+        <div class="sig-guide"></div>
+        <div class="sig-ph" id="sigPh">여기에 서명하세요</div>
+        <canvas id="sigCanvas" aria-label="서명 입력란"></canvas>
+      </div>
+      <div class="sig-tools">
+        <button class="btn small" type="button" id="sigUndo">한 획 지우기</button>
+        <button class="btn small" type="button" id="sigClear">전부 지우기</button>
+      </div>
+    </div>
+  </div>
+  <div class="screen-actions"><div class="inner"><button class="btn primary" type="button" id="sigSave">이 서명 저장</button></div></div>
 </div>
 
 <!-- ===== 저장·보내기 선택 ===== -->
@@ -732,7 +776,7 @@ const S = {
   logMonth: { y: 2026, m: 1 },
   rpt: { type: 'week', monday: mondayOf(new Date()), y: 2026, m: 1, qr: true },
   ew: null, ewDirty: false, sd: null,
-  reviews: {}, rvTitle: '', rvEnd: null, rvDirty: false,
+  reviews: {}, rvTitle: '', rvEnd: null, rvDirty: false, sig: null,
   es: null, esImg: null, esImgRemoved: false,
   pv: null,
 };
@@ -1143,6 +1187,14 @@ function headerBlock(o) {
       ctx.fillText('결', ax + side / 2, ay + (lh + sh) / 2 - 15); ctx.fillText('재', ax + side / 2, ay + (lh + sh) / 2 + 15);
       ap.forEach((t, i) => { let s = t; while (ctx.measureText(s).width > bw - 12 && s.length > 1) s = s.slice(0, -1); ctx.fillText(s, ax + side + bw * i + bw / 2, ay + lh / 2 + 1); });
       ctx.textAlign = 'left';
+      const si = o.signIndex;
+      if (o.signature && si >= 0 && si < n) {
+        const img = o.signature, iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+        const bx = ax + side + bw * si, by = ay + lh + 1, padX = 7, padY = 6;
+        const sc = Math.min((bw - padX * 2) / iw, (sh - padY * 2) / ih);
+        const dw = iw * sc, dh = ih * sc;
+        ctx.drawImage(img, bx + (bw - dw) / 2, by + (sh - 1 - dh) / 2, dw, dh);
+      }
     }
     hl(ctx, RP.M, y + h - 6, CW, 3, RP.ink);
   } };
@@ -1399,7 +1451,7 @@ function weeklyJob(r, opts = {}) {
     footerLeft: footerText({ ...s, author: r.author }),
     build: async () => {
       const b = [
-        headerBlock({ title: '주간 파트 보고서', sub: `${wi.year}년 ${wi.label}`, company: s.company, approvals: approvalsOf(s) }),
+        headerBlock({ title: '주간 파트 보고서', sub: `${wi.year}년 ${wi.label}`, company: s.company, approvals: approvalsOf(s), signature: opts.sample ? null : await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
         metaBlock([['파트명', r.part || '-'], ['작성자', r.author || '-'], ['보고 기간', wi.range], ['작성일', fmtYMD(new Date(r.updatedAt || Date.now()))]]),
         sectionBlock('파트원별 보고', `${members.length}명 · 특이사항 ${issues}건`),
       ];
@@ -1421,7 +1473,7 @@ function shipJob(p, items, withQr, opts = {}) {
     build: async () => {
       const st = shipStats(items);
       const b = [
-        headerBlock({ title, sub: p.label, company: s.company, approvals: approvalsOf(s) }),
+        headerBlock({ title, sub: p.label, company: s.company, approvals: approvalsOf(s), signature: opts.sample ? null : await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
         metaBlock([['보고 구분', `${p.typeLabel} 보고`], ['작성자', s.author || '-'], ['보고 기간', p.range], ['작성일', fmtYMD(new Date())]]),
         sectionBlock('요약'),
         summaryBlock(st),
@@ -1494,6 +1546,7 @@ async function openPreview(job) {
   $('#pvSample').hidden = !job.sample;
   $('#pvActions').hidden = !!job.sample;
   $('#pvHint').hidden = !!job.sample;
+  $('#pvSign').hidden = !!job.sample || !!(S.sig && S.sig.data) || approvalsOf(S.settings).length === 0;
   const pngBtn = $('#pvPng'), pdfBtn = $('#pvPdf');
   pngBtn.disabled = true; pngBtn.textContent = LABELS.png;
   pdfBtn.disabled = true; pdfBtn.textContent = 'PDF 준비 중…';
@@ -1549,6 +1602,145 @@ async function savePdf() {
   }
   await deliver([{ name: `${pv.job.fileBase}.pdf`, blob: pv.pdf }], { title: '보고서 PDF', okMsg: 'PDF를 저장했어요',
     hint: isIOS() ? '아이폰은 「카톡 등으로 보내기」에서 「파일에 저장」을 고르면 파일 앱에 보관돼요.' : '' });
+}
+
+/* ================= 서명 ================= */
+const INK = '#14181c';
+const SIG_MIN = 1.5, SIG_MAX = 4.6; // stroke width in screen px
+const Sig = { strokes: [], cur: null, W: 1, H: 1, dpr: 1, ctx: null, from: null, lastMid: null };
+let sigImgCache = null;
+function signIndexOf(ap) { const i = ap.findIndex((t) => /파트장/.test(t)); return i >= 0 ? i : 0; }
+async function sigImage() {
+  if (!S.sig || !S.sig.data || S.sig.on === false) return null;
+  if (sigImgCache && sigImgCache.src === S.sig.data) return sigImgCache.img;
+  const img = await loadImage(S.sig.data);
+  sigImgCache = img ? { src: S.sig.data, img } : null;
+  return img;
+}
+function renderSigCard() {
+  const has = !!(S.sig && S.sig.data);
+  $('#sigBox').innerHTML = has ? `<img src="${S.sig.data}" alt="등록된 서명">` : '<span>등록된 서명이 없어요</span>';
+  $('#sigOn').checked = has && S.sig.on !== false;
+  $('#sigOn').disabled = !has;
+  $('#sigEdit').textContent = has ? '다시 서명' : '서명하기';
+  $('#sigDel').hidden = !has;
+}
+async function saveSig() { const ok = await Store.put('kv', S.sig ? clone(S.sig) : null, 'signature'); if (ok) requestPersist(); return ok; }
+
+function sigSegment(ctx, a, b, mid0, k, ox, oy, scale) {
+  // quadratic curve from the previous midpoint to the new midpoint, with the previous point as control
+  const ax = a.u * scale - ox, ay = a.v * scale - oy, bx = b.u * scale - ox, by = b.v * scale - oy;
+  const mx = (ax + bx) / 2, my = (ay + by) / 2;
+  ctx.beginPath();
+  ctx.lineWidth = ((a.w + b.w) / 2) * k;
+  ctx.moveTo(mid0.x, mid0.y);
+  ctx.quadraticCurveTo(ax, ay, mx, my);
+  ctx.stroke();
+  return { x: mx, y: my };
+}
+function sigDrawStroke(ctx, pts, scale, k, ox = 0, oy = 0) {
+  ctx.strokeStyle = INK; ctx.fillStyle = INK; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const p0 = pts[0];
+  if (pts.length === 1) { ctx.beginPath(); ctx.arc(p0.u * scale - ox, p0.v * scale - oy, (p0.w * k) / 2, 0, Math.PI * 2); ctx.fill(); return; }
+  let mid = { x: p0.u * scale - ox, y: p0.v * scale - oy };
+  for (let i = 1; i < pts.length; i++) mid = sigSegment(ctx, pts[i - 1], pts[i], mid, k, ox, oy, scale);
+  const last = pts[pts.length - 1];
+  ctx.beginPath(); ctx.lineWidth = last.w * k; ctx.moveTo(mid.x, mid.y); ctx.lineTo(last.u * scale - ox, last.v * scale - oy); ctx.stroke();
+}
+function sigRedraw() {
+  const ctx = Sig.ctx; if (!ctx) return;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.setTransform(Sig.dpr, 0, 0, Sig.dpr, 0, 0);
+  Sig.strokes.forEach((st) => sigDrawStroke(ctx, st, Sig.W, 1));
+  $('#sigPh').hidden = Sig.strokes.length > 0;
+}
+function sigResize() {
+  const c = $('#sigCanvas'); const r = c.getBoundingClientRect();
+  if (!r.width) return;
+  Sig.dpr = Math.min(3, window.devicePixelRatio || 1);
+  Sig.W = r.width; Sig.H = r.height;
+  c.width = Math.round(r.width * Sig.dpr); c.height = Math.round(r.height * Sig.dpr);
+  Sig.ctx = c.getContext('2d');
+  sigRedraw();
+}
+function sigPoint(e) {
+  const r = $('#sigCanvas').getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top, t: e.timeStamp || performance.now(), p: e.pointerType === 'pen' ? e.pressure : 0 };
+}
+function sigAdd(raw) {
+  const st = Sig.cur; const last = st[st.length - 1];
+  const lx = last.u * Sig.W, ly = last.v * Sig.W;
+  const dist = Math.hypot(raw.x - lx, raw.y - ly);
+  if (dist < 0.8) return;
+  const dt = Math.max(1, raw.t - last.t);
+  const v = dist / dt; // px per ms
+  let target = raw.p > 0 ? SIG_MIN + (SIG_MAX - SIG_MIN) * raw.p : SIG_MAX - v * 1.25;
+  target = Math.max(SIG_MIN, Math.min(SIG_MAX, target));
+  const w = last.w * 0.72 + target * 0.28;
+  const pt = { u: raw.x / Sig.W, v: raw.y / Sig.W, w, t: raw.t };
+  st.push(pt);
+  const ctx = Sig.ctx;
+  ctx.strokeStyle = INK; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  Sig.lastMid = sigSegment(ctx, last, pt, Sig.lastMid, 1, 0, 0, Sig.W);
+}
+function sigDown(e) {
+  if (e.button > 0) return;
+  e.preventDefault();
+  const c = $('#sigCanvas'); try { c.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  const raw = sigPoint(e);
+  const w0 = raw.p > 0 ? SIG_MIN + (SIG_MAX - SIG_MIN) * raw.p : (SIG_MIN + SIG_MAX) / 2 + 0.6;
+  Sig.cur = [{ u: raw.x / Sig.W, v: raw.y / Sig.W, w: w0, t: raw.t }];
+  Sig.from = e.pointerId;
+  Sig.lastMid = { x: raw.x, y: raw.y };
+  $('#sigPh').hidden = true;
+  const ctx = Sig.ctx; ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(raw.x, raw.y, w0 / 2.4, 0, Math.PI * 2); ctx.fill();
+}
+function sigMove(e) {
+  if (!Sig.cur || e.pointerId !== Sig.from) return;
+  e.preventDefault();
+  const list = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+  (list && list.length ? list : [e]).forEach((ev) => sigAdd(sigPoint(ev)));
+}
+function sigUp(e) {
+  if (!Sig.cur || (e && e.pointerId !== Sig.from)) return;
+  const st = Sig.cur; Sig.cur = null; Sig.from = null;
+  Sig.strokes.push(st);
+  sigRedraw();
+}
+let sigReturn = null;
+function openSig(after) {
+  sigReturn = after || null;
+  Sig.strokes = []; Sig.cur = null;
+  openScreen('sigScreen');
+  requestAnimationFrame(sigResize);
+}
+function sigExport() {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  Sig.strokes.forEach((st) => st.forEach((p) => {
+    const x = p.u * Sig.W, y = p.v * Sig.W, r = p.w;
+    minX = Math.min(minX, x - r); minY = Math.min(minY, y - r); maxX = Math.max(maxX, x + r); maxY = Math.max(maxY, y + r);
+  }));
+  const pad = 8, E = 3;
+  const w = Math.ceil((maxX - minX + pad * 2) * E), h = Math.ceil((maxY - minY + pad * 2) * E);
+  const c = document.createElement('canvas'); c.width = Math.min(w, 2400); c.height = Math.min(h, 1200);
+  const ctx = c.getContext('2d');
+  const fit = Math.min(1, c.width / w, c.height / h);
+  const k = E * fit;
+  // strokes are drawn a little bolder than on screen so they stay readable once shrunk into the 결재란
+  Sig.strokes.forEach((st) => sigDrawStroke(ctx, st, Sig.W * k, k * 1.7, (minX - pad) * k, (minY - pad) * k));
+  const data = c.toDataURL('image/png'); c.width = 0; c.height = 0;
+  return data;
+}
+async function sigCommit() {
+  if (!Sig.strokes.length) { toast('서명을 먼저 써 주세요'); return; }
+  S.sig = { data: sigExport(), on: true, updatedAt: Date.now() };
+  sigImgCache = null;
+  const ok = await saveSig();
+  closeScreen('sigScreen');
+  renderSigCard();
+  toast(ok ? '서명을 저장했어요' : '서명을 저장하지 못했어요');
+  const after = sigReturn; sigReturn = null;
+  if (after) after();
 }
 
 /* ================= 후기 일일보고 ================= */
@@ -1641,7 +1833,7 @@ function renderSettings() {
   const s = S.sd || S.settings;
   $('#setAuthor').value = s.author || ''; $('#setPart').value = s.part || ''; $('#setCompany').value = s.company || '';
   $('#setShowAppr').checked = !!s.showApproval; $('#setAppr').value = s.approvals || ''; $('#setAppr').disabled = !s.showApproval;
-  renderRoster(); renderSaveBar(); fillRanks();
+  renderRoster(); renderSaveBar(); fillRanks(); renderSigCard();
   const imgs = [...S.ship.values()].filter((e) => e.qr).length;
   const rvDays = Object.keys(S.reviews).filter((k) => (S.reviews[k] || '').trim()).length;
   $('#dataCount').textContent = `이 휴대폰에 저장된 기록: 주간보고 ${S.weekly.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)`;
@@ -1686,7 +1878,7 @@ async function exportBackup() {
   const btn = $('#backupBtn'); setBusy(btn, true, '준비 중…');
   try {
     const img = await Store.getAll('img');
-    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '' };
+    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig };
     const now = new Date();
     const name = `관리자서식함_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
     await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요',
@@ -1709,6 +1901,7 @@ async function importBackup(file) {
     const cur = S.ship.get(e.id);
     if (!cur || (e.updatedAt || 0) > (cur.updatedAt || 0)) { S.ship.set(e.id, e); await Store.put('ship', e); sh++; }
   }
+  if (!S.sig && data.signature && data.signature.data) { S.sig = data.signature; sigImgCache = null; await saveSig(); }
   let rvn = 0;
   if (data.reviews && typeof data.reviews === 'object') {
     Object.keys(data.reviews).forEach((k) => { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && !(S.reviews[k] || '').trim() && (data.reviews[k] || '').trim()) { S.reviews[k] = data.reviews[k]; rvn++; } });
@@ -1728,7 +1921,7 @@ async function importBackup(file) {
 }
 async function wipeAll() {
   await Store.clearAll();
-  S.weekly.clear(); S.ship.clear(); S.imgCache.clear(); S.reviews = {}; S.rvTitle = ''; S.rvDirty = false; clearTimeout(rvTimer);
+  S.weekly.clear(); S.ship.clear(); S.imgCache.clear(); S.reviews = {}; S.rvTitle = ''; S.rvDirty = false; clearTimeout(rvTimer); S.sig = null; sigImgCache = null;
   S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
@@ -1840,6 +2033,23 @@ function bind() {
     else if (e.target.closest('.r-del')) { list.splice(i, 1); renderRoster(); renderSaveBar(); }
   });
   $('#wLoadRoster').addEventListener('click', loadRosterIntoReport);
+  // 서명
+  const sc = $('#sigCanvas');
+  sc.addEventListener('pointerdown', sigDown);
+  sc.addEventListener('pointermove', sigMove);
+  sc.addEventListener('pointerup', sigUp);
+  sc.addEventListener('pointercancel', sigUp);
+  sc.addEventListener('lostpointercapture', sigUp);
+  ['touchstart', 'touchmove'].forEach((t) => sc.addEventListener(t, (e) => e.preventDefault(), { passive: false }));
+  window.addEventListener('resize', () => { if (!$('#sigScreen').hidden) sigResize(); });
+  $('#sigUndo').addEventListener('click', () => { Sig.strokes.pop(); sigRedraw(); });
+  $('#sigClear').addEventListener('click', () => { Sig.strokes = []; sigRedraw(); });
+  $('#sigSave').addEventListener('click', sigCommit);
+  $('#sigBack').addEventListener('click', () => { sigReturn = null; closeScreen('sigScreen'); });
+  $('#sigEdit').addEventListener('click', () => openSig());
+  $('#sigOn').addEventListener('change', async (e) => { if (!S.sig) return; S.sig.on = e.target.checked; await saveSig(); toast(e.target.checked ? '보고서에 서명을 넣어요' : '보고서에서 서명을 뺐어요'); });
+  $('#sigDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => { S.sig = null; sigImgCache = null; await saveSig(); renderSigCard(); toast('서명을 지웠어요'); }));
+  $('#pvSignBtn').addEventListener('click', () => { const job = S.pv && S.pv.job; openSig(() => { if (job) openPreview(job); }); });
   // 후기 일일보고
   $('#rvDays').addEventListener('input', (e) => {
     const k = e.target.dataset.date; if (!k) return;
@@ -1963,7 +2173,8 @@ async function init() {
   const ok = await Store.open();
   $('#storeBanner').hidden = ok;
   if (ok) {
-    const [w, sh, st, rv, rvt] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings'), Store.get('kv', 'reviews'), Store.get('kv', 'reviewTitle')]);
+    const [w, sh, st, rv, rvt, sg] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings'), Store.get('kv', 'reviews'), Store.get('kv', 'reviewTitle'), Store.get('kv', 'signature')]);
+    if (sg && sg.data) S.sig = sg;
     if (rv && typeof rv === 'object') S.reviews = rv;
     if (typeof rvt === 'string') S.rvTitle = rvt;
     w.forEach((r) => S.weekly.set(r.id, r));
