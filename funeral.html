@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-7">
+<meta name="app-version" content="2026.10.13-8">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="서식함">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -578,6 +578,12 @@ body[data-tab="envelopes"] .case-panel,body[data-tab="envelopes"] .work-tabs{dis
 .env-empty h2{font-size:16px;margin:0}
 @media(max-width:799px){.env-columns{grid-template-columns:minmax(0,1fr)}.env-detail{padding:16px;gap:20px}.env-form{padding:14px}.env-stats{gap:7px}.env-stat{padding:14px 10px}.env-cash{font-size:12px}.env-cash thead th{font-size:11px}.env-event>summary{padding:16px;gap:8px}.env-event>summary b{font-size:13px}.env-total{font-size:13px}}
 </style>
+<style id="burial-ui">
+.burial-seg{display:flex;gap:3px;padding:3px;border-radius:12px;background:var(--field);border:1px solid var(--line)}
+.burial-seg button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-size:15px;font-weight:500;cursor:pointer}
+.burial-seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.burial-seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
 </head>
 <body>
 <header class="appbar" id="appbar"><div class="ab-in">
@@ -970,6 +976,48 @@ function updateCremInput(t,c){
   updCremPreview(); schedInfo(); touched(); return true;
 }
 
+/* ---------- 화장 / 매장 · 하관 ---------- */
+const SIJIN=[['자시','23','01'],['축시','01','03'],['인시','03','05'],['묘시','05','07'],['진시','07','09'],['사시','09','11'],['오시','11','13'],['미시','13','15'],['신시','15','17'],['유시','17','19'],['술시','19','21'],['해시','21','23']];
+const isBurial=f=>String((f||{}).method||'').trim()==='매장';
+const isGoi=co=>String((co||{}).name||'').replace(/\s/g,'')==='고이장례연구소';
+function hagwanStr(f){
+  if(!isBurial(f)||!f.hagwanDate) return ''; const p=parseDT(f.hagwanDate); if(!p) return '';
+  const a=f.hagwanFrom||'', b=f.hagwanTo||'';
+  const span=a&&b?`${a}시 ~ ${b}시`:(a?`${a}시`:(b?`~ ${b}시`:''));
+  return `${pad(p.mo)}월 ${pad(p.d)}일${f.hagwanSi?' '+f.hagwanSi:''}${span?` (${span})`:''}`;
+}
+function burialSegHtml(c){
+  const b=isBurial(c.f);
+  return `<div class="burial-seg" role="group" aria-label="장법 선택"><button type="button" data-burial="화장" aria-pressed="${!b}">화장</button><button type="button" data-burial="매장" aria-pressed="${b}">매장</button></div>`;
+}
+function hagwanHtml(){
+  const f=curCase().f||{};
+  const hourOpts=v=>'<option value="">시</option>'+HOURS.map(x=>`<option value="${x}" ${x===v?'selected':''}>${x}시</option>`).join('');
+  return `<label class="f"><span class="field-label">하관 날짜<i class="required-dot" aria-hidden="true"></i></span><input class="input" type="date" id="f_hagwanDate" data-k="hagwanDate" value="${esc(f.hagwanDate||'')}"></label>
+    <label class="f"><span class="field-label">한국 전통 시간</span><select class="input" id="f_hagwanSi" data-k="hagwanSi"><option value="">선택 안 함</option>${SIJIN.map(([n,a,b])=>`<option value="${n}" ${n===f.hagwanSi?'selected':''}>${n} (${a}시 ~ ${b}시)</option>`).join('')}</select></label>
+    <div class="pair"><label class="f"><span class="field-label">시작 시간</span><select class="input" id="f_hagwanFrom" data-k="hagwanFrom">${hourOpts(f.hagwanFrom||'')}</select></label><label class="f"><span class="field-label">끝 시간</span><select class="input" id="f_hagwanTo" data-k="hagwanTo">${hourOpts(f.hagwanTo||'')}</select></label></div>
+    <p class="field-hint">전통 시간을 고르면 시작·끝 시간이 자동으로 들어갑니다. 필요하면 직접 바꿀 수 있어요.</p>
+    <p class="calc crem-preview" id="hagwanPreview" aria-live="polite"></p>`;
+}
+function updateHagwanInput(t,c){
+  if(!['hagwanDate','hagwanSi','hagwanFrom','hagwanTo'].includes(t.dataset.k)) return false;
+  const f=c.f,k=t.dataset.k;
+  f[k]=t.value;
+  if(k==='hagwanSi'){
+    const s=SIJIN.find(x=>x[0]===t.value);
+    if(s){ f.hagwanFrom=s[1]; f.hagwanTo=s[2]; const a=$('#f_hagwanFrom'),b=$('#f_hagwanTo'); if(a) a.value=s[1]; if(b) b.value=s[2]; }
+  }
+  updCremPreview(); schedInfo(); touched(); return true;
+}
+function setBurial(c,v){
+  const f=c.f;
+  if(isBurial(f)===(v==='매장')){ if(!f.method){ f.method=v; touched(); } return; }
+  f.method=v;
+  if(v==='매장' && !f.hagwanDate && f.depart) f.hagwanDate=f.depart.slice(0,10);
+  touched(); renderInput();
+  toast(v==='매장'?'매장으로 바꿨습니다. 보고서에 하관 일시가 들어갑니다':'화장으로 바꿨습니다');
+}
+
 const ETC='etc';
 
 /* ---------- 저장소 (이전 버전 호환) ---------- */
@@ -1098,12 +1146,12 @@ function vals(c){
     '계열사':g('affiliate'), '직급':g('rank'), '주소':g('addr'), '장법':g('method'),
     '대체공제':(c.deductions||[]).filter(d=>d.text.trim()).map((d,i)=>`${i+1}. ${d.text.trim()}`).join('\n'),
     '공제항목':(c.deductions||[]).filter(d=>d.text.trim()).map((d,i)=>`${i+1}.${d.text.trim()}`).join('\n'),
-    '화장':cremStr(f), '화장장':cremName(f),
+    '화장':isBurial(f)?'':cremStr(f), '화장장':isBurial(f)?'':cremName(f), '하관':hagwanStr(f),
   };
 }
 const PH_KEYS=Object.keys(vals({f:{},items:[],deductions:[],companyId:ETC}));
 // 날짜 형식: {접수:dot} 2026.09.15. 08:00 · {접수:short} 26-09-25 15:20 · {접수:iso} 2026-09-24 02:35 · {접수:day} 16일 13시 · {접수:long} 09월 16일 13시 00분
-function dtRaw(c){ const f=c.f||{}; return {'접수':f.recv||f.death,'도착':f.arrive,'임종':f.death,'발생':f.death,'입관':f.casket,'발인':f.depart,'화장':f.cremDate?(f.cremDate+(f.cremTime?'T'+f.cremTime:'')):''}; }
+function dtRaw(c){ const f=c.f||{}; return {'접수':f.recv||f.death,'도착':f.arrive,'임종':f.death,'발생':f.death,'입관':f.casket,'발인':f.depart,'화장':!isBurial(f)&&f.cremDate?(f.cremDate+(f.cremTime?'T'+f.cremTime:'')):'','하관':isBurial(f)&&f.hagwanDate?(f.hagwanDate+(f.hagwanFrom?'T'+f.hagwanFrom+':00':'')):''}; }
 function fmtAs(v,fm){
   const p=parseDT(v); if(!p) return ''; const Y=p.y, YY=String(p.y).slice(2), M=pad(p.mo), D=pad(p.d), t=p.h==null?'':` ${pad(p.h)}:${pad(p.mi)}`;
   if(fm==='dot') return `${Y}.${M}.${D}.${t}`;
@@ -1113,8 +1161,9 @@ function fmtAs(v,fm){
   return dayTime(v);
 }
 function fillTpl(body,c){
-  const v=vals(c);
+  const v=vals(c), burial=isBurial(c.f||{});
   return String(body||'').split('\n').flatMap(line=>{
+    if(burial) line=line.replace(/^(\s*)화\s*장(\s*:\s*)\{화장\}/,'$1하 관$2{하관}');   // 매장이면 화장 줄을 하관 줄로
     const only=line.trim().match(/^\{(제공항목|공제항목|관리사배치)\}$/); if(only) return v[only[1]]?v[only[1]].split('\n'):[];
     return [line.replace(/\{([^}]+)\}/g,(m,k)=>{ if(k.includes(':')){ const [n,fm]=k.split(':'); const raw=dtRaw(c)[n]; return raw!==undefined?fmtAs(raw,fm):m; } return k in v?v[k]:m; }).trimEnd()];
   }).join('\n');
@@ -1131,7 +1180,7 @@ const SECTION_UI={
   method:{group:'schedule',title:'장지 안내'},product:{group:'service',title:'상품 · 금액'},
   staffOrg:{group:'staff',title:'담당자 정보'},prov:{group:'service',title:'제공내역'},
   coupon:{group:'service',title:'확인 사항'},mgr:{group:'staff',title:'관리사 배치'},
-  deduct:{group:'service',title:'공제 · 추가 항목'},crem:{group:'schedule',title:'화장 일정'}
+  deduct:{group:'service',title:'공제 · 추가 항목'},crem:{group:'schedule',title:'화장 · 매장'}
 };
 function applyInputGroup(scroll=false){
   if(!INPUT_GROUPS.some(g=>g.id===inputGroup)) inputGroup='basic';
@@ -1191,7 +1240,7 @@ const FIELD_PH={place:['장소'],recv:['접수일시','접수'],death:['임종',
 const ALWAYS=['place','death','casket','depart','name','chief'];   // 부고에 필요한 칸은 항상
 function usedPH(co){ return new Set([...[co.band,...activeReports(co).map(r=>r.body)].join('\n').matchAll(/\{([^}]+)\}/g)].map(m=>m[1].split(':')[0])); }
 function visible(k,used){ return ALWAYS.includes(k) || (FIELD_PH[k]||[]).some(p=>used.has(p)); }
-const REQUIRED={place:'장소',death:'임종',depart:'발인',customer:'고객 · 회원명',name:'고인명',chief:'상주명',staff:'담당',cremDate:'화장 날짜'};
+const REQUIRED={place:'장소',death:'임종',depart:'발인',customer:'고객 · 회원명',name:'고인명',chief:'상주명',staff:'담당',cremDate:'화장 날짜',hagwanDate:'하관 날짜'};
 
 const HOURS=Array.from({length:24},(_,i)=>pad(i)), MINS=['00','10','20','30','40','50'];
 function hmSelects(hh,mm,attr){
@@ -1212,7 +1261,7 @@ function syncChief(c){
 const CH={}; let chSeq=0, chCur=null;
 const CHEV='<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>';
 function chGet(scope,key){ const c=curCase(); if(!c) return ''; return String((scope==='s'?S(c):c.f)[key]??''); }
-function chSet(scope,key,val){ const c=curCase(); if(!c) return; (scope==='s'?S(c):c.f)[key]=val; if(scope==='f') c.f['_d_'+key]=false; touched(); if(db.tab==='settle') updSettle(); }
+function chSet(scope,key,val){ const c=curCase(); if(!c) return; (scope==='s'?S(c):c.f)[key]=val; if(scope==='f') c.f['_d_'+key]=false; touched(); if(db.tab==='settle') updSettle(); if(scope==='f'&&key==='method') renderInput(); }
 function chooser({scope='f',key,options=[],label='',placeholder='선택',direct=true,numeric=false,dirPh='직접 입력'}){
   const id='ch'+(++chSeq), value=chGet(scope,key), opts=options.filter(Boolean), isDir=direct && value && !opts.includes(value);
   CH[id]={scope,key,options:opts,label,direct,placeholder};
@@ -1314,8 +1363,8 @@ function renderInput(){
     <div class="input-controls" id="inputControls"><nav class="group-tabs" aria-label="입력 항목">${INPUT_GROUPS.map(g=>`<button type="button" data-input-group="${g.id}" aria-pressed="${g.id===inputGroup}">${g.label}</button>`).join('')}</nav><span class="input-progress" id="inputProgress"></span></div><div class="input-grid" id="inputGrid">`;
   const used=usedPH(co);
   SECTIONS.forEach(s=>{
-    const rows=s.rows.map(r=>r.filter(fd=>visible(fd.k,used))).filter(r=>r.length);
-    const extra = s.key==='mgr'?used.has('관리사배치') : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')) : s.key==='crem'?(used.has('화장')||used.has('화장장')) : false;
+    const rows=s.rows.map(r=>r.filter(fd=>fd.k==='recv'?isGoi(co):visible(fd.k,used))).filter(r=>r.length);   // 접수는 고이장례연구소만
+    const extra = s.key==='mgr'?used.has('관리사배치') : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')) : false;
     if(!rows.length && !extra) return;
     const sectionKey=s.key||s.rows[0][0].k, meta=SECTION_UI[sectionKey]||{group:'basic',title:s.t};
     h+=`<div class="sec" data-section="${sectionKey}" data-group="${meta.group}" ${meta.group===inputGroup?'':'hidden'}><div class="sec-head"><h2>${meta.title}</h2>${s.key==='sched'?'<button class="btn link" type="button" data-act="threeDay">3일장 자동 입력</button>':''}</div><div class="fields">`;
@@ -1325,7 +1374,7 @@ function renderInput(){
     if(s.key==='prov' && extra) h+=itemsHtml(c);
     if(s.key==='deduct') h+=deductHtml(c);
     if(s.key==='mgr' && extra) h+=mgrHtml(c);
-    if(s.key==='crem') h+=`<div id="cremBox" class="fields">${cremHtml()}</div>`;
+    if(s.key==='crem') h+=burialSegHtml(c)+`<div id="cremBox" class="fields">${isBurial(c.f)?hagwanHtml():cremHtml()}</div>`;
     h+=`</div></div>`;
   });
   h+=`</div><div class="group-footer" id="groupFooter"></div>`;
@@ -1347,10 +1396,15 @@ function schedInfo(){
   const out=[]; const per=period(f.death,f.depart); if(per) out.push(`<p class="calc">기간 : ${per}</p>`);
   if(f.death&&f.casket&&f.casket<f.death) out.push('<p class="warnline">입관이 임종보다 앞서 있습니다.</p>');
   if(f.casket&&f.depart&&f.depart<f.casket) out.push('<p class="warnline">발인이 입관보다 앞서 있습니다.</p>');
-  if(f.depart&&f.cremDate&&f.cremDate<f.depart.slice(0,10)) out.push('<p class="warnline">화장 날짜가 발인보다 앞서 있습니다.</p>');
+  if(!isBurial(f)&&f.depart&&f.cremDate&&f.cremDate<f.depart.slice(0,10)) out.push('<p class="warnline">화장 날짜가 발인보다 앞서 있습니다.</p>');
+  if(isBurial(f)&&f.depart&&f.hagwanDate&&f.hagwanDate<f.depart.slice(0,10)) out.push('<p class="warnline">하관 날짜가 발인보다 앞서 있습니다.</p>');
   el.innerHTML=out.join(''); el.hidden=!out.length;
 }
-function updCremPreview(){ const el=$('#cremPreview'); if(!el) return; const s=cremStr(curCase().f||{}); el.textContent=s?'화장 : '+s:'화장장 · 날짜 · 회차 · 시간을 입력하세요'; }
+function updCremPreview(){
+  const f=curCase().f||{}, hg=$('#hagwanPreview');
+  if(hg){ const s=hagwanStr(f); hg.textContent=s?'하 관 : '+s:'하관 날짜와 시간을 고르세요'; }
+  const el=$('#cremPreview'); if(!el) return; const s=cremStr(f); el.textContent=s?'화장 : '+s:'화장장 · 날짜 · 회차 · 시간을 입력하세요';
+}
 let saveT=null, dirty=true;
 function touched(){ const c=curCase(); c.updated=Date.now(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>{ save(); renderCaseSel(); },300); }
 function renumber(){
@@ -1361,7 +1415,7 @@ function renumber(){
 }
 $('#p-input').addEventListener('input',e=>{
   const t=e.target, c=curCase(); if(!c) return;
-  if(updateCremInput(t,c)) return;
+  if(updateHagwanInput(t,c)||updateCremInput(t,c)) return;
   if(t.closest('[data-dt]')) return;
   if(t.dataset.pd){ c.f[t.dataset.pd]=t.value; touched(); return; }
   if(t.type==='tel' && t.dataset.k){ const nv=fmtTel(t.value); if(nv!==t.value) t.value=nv; }
@@ -1377,7 +1431,7 @@ function composeDT(box){
 }
 $('#p-input').addEventListener('change',e=>{
   const t=e.target, c=curCase(); if(!c) return; const f=c.f;
-  if(updateCremInput(t,c)) return;
+  if(updateHagwanInput(t,c)||updateCremInput(t,c)) return;
   if(t.id==='sameChief'){ c.f.sameChief=t.checked; syncChief(c); touched(); renderInput(); toast(t.checked?'상주 칸에 회원 정보를 넣었습니다':'상주 칸을 직접 입력할 수 있습니다'); return; }
   if(t.dataset.pk){
     const k=t.dataset.pk, txt=t.parentElement.querySelector('[data-pd]');
@@ -1399,6 +1453,7 @@ $('#p-input').addEventListener('click',e=>{
   const a=b.dataset.act;
   if(a==='new'){ openPicker('new'); return; }
   if(!c) return;
+  if(b.dataset.burial){ setBurial(c,b.dataset.burial); return; }
   if(b.dataset.itdel){ c.items=c.items.filter(x=>x.id!==b.dataset.itdel); touched(); renderInput(); return; }
   if(!c.deductions) c.deductions=[];
   if(b.dataset.dddel){ c.deductions=c.deductions.filter(x=>x.id!==b.dataset.dddel); touched(); renderInput(); return; }
@@ -1418,7 +1473,7 @@ $('#p-input').addEventListener('click',e=>{
   if(a==='changeCo') openPicker('change');
   if(a==='threeDay'){
     if(!c.f.death){ toast('임종 일시를 먼저 입력하세요'); const el=$('#f_death input'); if(el) el.focus(); return; }
-    c.f.casket=addDaysAt(c.f.death,1,9,0); c.f.depart=addDaysAt(c.f.death,2,7,0); if(!c.f.cremDate) c.f.cremDate=c.f.depart.slice(0,10);
+    c.f.casket=addDaysAt(c.f.death,1,9,0); c.f.depart=addDaysAt(c.f.death,2,7,0); if(!c.f.cremDate) c.f.cremDate=c.f.depart.slice(0,10); if(!c.f.hagwanDate) c.f.hagwanDate=c.f.depart.slice(0,10);
     touched(); renderInput(); toast('입관 다음 날 09시, 발인 모레 07시로 채웠습니다');
   }
 });
@@ -1480,7 +1535,8 @@ function renderOut(){
   $('#reportCards').innerHTML=reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(co.name)} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   reports.forEach((r,i)=>{ $('#rep_'+i).value=fillTpl(r.body,c); });
   const used=usedPH(co);
-  const miss=Object.entries(REQUIRED).filter(([k])=>(k.startsWith('crem')?used.has('화장'):visible(k,used)) && !String(c.f[k]??'').trim());
+  const burialOn=used.has('화장')||used.has('하관');
+  const miss=Object.entries(REQUIRED).filter(([k])=>(k==='cremDate'?(used.has('화장')&&!isBurial(c.f)):k==='hagwanDate'?(burialOn&&isBurial(c.f)):visible(k,used)) && !String(c.f[k]??'').trim());
   $('#missing').innerHTML=miss.length?`<span>비어 있음</span>${miss.map(([k,l])=>`<button type="button" data-go="${k}">${l}</button>`).join('')}`:'';
 }
 $('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return; setTab('input'); const el=$('#f_'+b.dataset.go); if(el){ const sec=el.closest('[data-group]'); if(sec){ inputGroup=sec.dataset.group; applyInputGroup(); } el.scrollIntoView({block:'center'}); (el.matches('input,select,textarea')?el:el.querySelector('input,select'))?.focus(); } };
@@ -2122,7 +2178,91 @@ if(purged) toast(`3일 지난 ${purged}건을 자동으로 지웠습니다`);
 if(!db.cases.length&&!db.envelopes.length) openPicker('first');
 setInterval(()=>{ const n=purge(); if(n){ save(); renderAll(); toast(`3일 지난 ${n}건을 자동으로 지웠습니다`); if(!db.cases.length&&!db.envelopes.length) openPicker('first'); } else renderTtl(); }, 10*60*1000);
 </script>
-<!-- 서식함 연결: build.py가 funeral.html 맨 끝에 넣는 부분입니다. 장례 일정 작성기 원본(src/funeral.html)은 고치지 않습니다. -->
+<!-- 서식함 연결: build.py가 funeral.html 맨 끝에 넣는 부분입니다. 서식함과 같은 색·글꼴·양식을 입히고, 서식함으로 오가는 버튼을 붙입니다. -->
+<style id="mf-theme">
+/* 서식함과 같은 색 (밝은 화면 / 어두운 화면) */
+:root{
+  --bg:#f1f2ef; --surface:#ffffff; --field:#f6f7f4; --ink:#1a2128; --ink-2:#3a444d; --muted:#5d6771;
+  --line:#dcdfda; --edge:#c3c8c3; --ph:#8a939b; --accent:#2a4759; --accent-ink:#ffffff; --accent-soft:#e1e9ee;
+  --bronze:#80601d; --warn:#953d1b; --warn-soft:#f6e3d9; --shadow:none; --radius:14px;
+  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --serif:"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111518; --surface:#1a2025; --field:#151a1e; --ink:#e6e9eb; --ink-2:#c3cbd1; --muted:#9ba5ae;
+    --line:#2a3239; --edge:#3b464e; --ph:#77828b; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
+    --bronze:#d8b46a; --warn:#efa27e; --warn-soft:#3a2419; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111518; --surface:#1a2025; --field:#151a1e; --ink:#e6e9eb; --ink-2:#c3cbd1; --muted:#9ba5ae;
+  --line:#2a3239; --edge:#3b464e; --ph:#77828b; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
+  --bronze:#d8b46a; --warn:#efa27e; --warn-soft:#3a2419; --shadow:none;
+}
+body{background:var(--bg);font-family:var(--sans);letter-spacing:normal;line-height:1.55}
+
+/* 위쪽 막대와 제목: 서식함처럼 바탕색 위에 명조 제목 */
+.appbar{background:var(--bg);border-bottom:1px solid var(--line)}
+.ab-title small{font-size:12px;color:var(--muted);letter-spacing:normal}
+.ab-title b{font-family:var(--serif);font-size:18px;font-weight:700;letter-spacing:.01em}
+.page-intro h1{font-family:var(--serif);font-size:24px;font-weight:700;letter-spacing:normal;line-height:1.3;text-wrap:balance}
+.page-intro p{font-size:14px;color:var(--muted);letter-spacing:normal}
+.intro-mark{display:none}
+.sn-head b{font-family:var(--serif);font-size:18px;letter-spacing:.01em}
+.sheet h2{font-family:var(--serif);font-size:21px;letter-spacing:normal}
+
+/* 카드 */
+.sec,.out,.case-panel,.co-card{border:1px solid var(--line);border-radius:14px;box-shadow:none;background:var(--surface)}
+.sec,.out{padding:18px 16px;gap:16px}
+.sec-head{border-bottom:0;padding-bottom:0}
+.sec-head h2,.out-head h2{font-size:16px;font-weight:700;letter-spacing:normal}
+.sec-num{color:var(--muted)}
+
+/* 입력칸: 흰 바탕, 회색 테두리, 16px 글자 */
+label.f,.f-wrap{font-size:13px;font-weight:500;letter-spacing:normal}
+label.f>.field-label{color:var(--muted)}
+.input,.ch-btn{background-color:var(--surface);border:1px solid var(--edge);border-radius:10px;font-size:16px;letter-spacing:normal}
+.input:hover,.ch-btn:hover{border-color:var(--edge)}
+.input:focus,.ch-btn.open{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.input::placeholder{color:var(--ph);letter-spacing:normal}
+.input:disabled{background:var(--field)}
+.case-row .input{background-color:transparent;border:0;box-shadow:none}
+.text-out{background:var(--field);border:1px solid var(--line);letter-spacing:normal}
+.calc,.sum{background:var(--field);border:1px solid var(--line)}
+.required-dot{background:var(--warn)}
+
+/* 버튼 */
+.btn{border-radius:12px;font-weight:500;letter-spacing:normal}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700;box-shadow:none}
+.btn.primary:hover{filter:none;background:var(--accent)}
+.btn.sm{border-radius:10px}
+.btn.link{background:var(--accent-soft);color:var(--accent);border-radius:9px}
+#newCase{border-radius:12px}
+
+/* 고르는 칸(기본 정보 · 장례 일정 …): 서식함의 선택 막대와 같게 */
+.group-tabs{background:var(--field);border:1px solid var(--line);padding:3px;gap:3px;border-radius:12px}
+.group-tabs button{border-radius:9px;font-size:14px;font-weight:500;color:var(--muted);min-height:42px}
+.group-tabs button[aria-pressed="true"]{background:var(--surface);color:var(--accent);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 1px var(--line)}
+.work-tabs{border-bottom-color:var(--line)}
+.work-tabs button{letter-spacing:normal}
+.chip{border-radius:999px}
+.co-btn{background:var(--surface);border-color:var(--line)}
+.co-btn:hover{border-color:var(--accent);background:var(--accent-soft)}
+.item .tog{background:var(--accent-soft);color:var(--accent)}
+
+/* 아래 메뉴: 서식함 탭 막대와 같게 */
+.mobile-nav{background:var(--surface);border-top:1px solid var(--line)}
+.mobile-nav button{font-size:12px;color:var(--muted);gap:3px}
+.mobile-nav .ui-icon{width:22px;height:22px;stroke-width:1.8}
+.mobile-nav button[aria-current="page"]{background:none;color:var(--accent);font-weight:700}
+
+/* 왼쪽 메뉴 */
+.acc-b button.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.toast{background:var(--ink);color:var(--surface);border-radius:12px;box-shadow:none}
+</style>
 <style id="mf-bridge">
 .mf-home{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;height:40px;padding:0 11px;border:1px solid var(--edge,#dce3ec);border-radius:12px;background:var(--surface,#fff);color:var(--ink,#182538);font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
 .mf-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -2171,6 +2311,31 @@ setInterval(()=>{ const n=purge(); if(n){ save(); renderAll(); toast(`3일 지�
       if (b) toForms(b.getAttribute('data-mf'));
     });
     body.appendChild(acc);
+  }
+
+  // 휴무 · 당직 화면(안쪽 창)에도 같은 색과 글꼴
+  var DUTY_THEME = ':root{--bg:#f1f2ef;--surface:#ffffff;--surface-2:#f6f7f4;--line:#dcdfda;--line-2:#e8eae6;' +
+    '--text:#1a2128;--text-2:#3a444d;--muted:#5d6771;--faint:#8a939b;' +
+    '--primary:#2a4759;--primary-600:#1f3646;--primary-50:#e1e9ee;--primary-100:#cfdce4;' +
+    '--a:#2a4759;--a-bg:#e1e9ee;--b:#80601d;--b-bg:#f2e9d4;--sat:#2a5d8f;' +
+    '--r:12px;--r-sm:9px;--sh-1:none;--font:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}' +
+    'body{letter-spacing:normal}';
+  var duty = document.getElementById('dutyFrame');
+  if (duty) {
+    duty.addEventListener('load', function () {
+      try {
+        var d = duty.contentDocument;
+        if (!d || !d.head || d.getElementById('mf-duty-theme')) return;
+        var link = d.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap';
+        d.head.appendChild(link);
+        var st = d.createElement('style');
+        st.id = 'mf-duty-theme';
+        st.textContent = DUTY_THEME;
+        d.head.appendChild(st);
+      } catch (e) { /* ignore */ }
+    });
   }
 
   // 인터넷이 약해도 열리도록 같은 오프라인 저장을 씁니다
