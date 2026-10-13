@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-11">
+<meta name="app-version" content="2026.10.13-12">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="서식함">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -589,6 +589,35 @@ body[data-tab="envelopes"] .case-panel,body[data-tab="envelopes"] .work-tabs{dis
 .ttl.warn{color:var(--warn)}
 .keep-stats{font-size:13px;color:var(--muted);margin:0}
 </style>
+<style id="time-ui">
+.dt{grid-template-columns:minmax(0,1fr) minmax(92px,36%)!important;gap:7px}
+.tp{display:grid;min-width:0}
+.tp-btn{font-variant-numeric:tabular-nums;letter-spacing:0}
+.tp-btn:not(.empty) span{font-weight:600}
+.tp-btn svg{width:17px;height:17px}
+.mg-time{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr)!important;gap:6px}
+.mg .tp-btn{background-color:var(--surface);font-size:15px;min-height:44px}
+.tp-sheet{max-height:88dvh}
+.tp-sheet .csheet-head{gap:10px}
+.tp-sheet .csheet-head b{flex:1}
+.tp-now{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent);letter-spacing:.02em}
+.tp-body{display:grid;gap:9px;padding:2px 18px 18px;overflow:auto}
+.tp-cap{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:600;color:var(--ink-2,var(--ink))}
+.tp-cap small{font-size:11.5px;font-weight:400;color:var(--muted)}
+.tp-mwrap{display:grid;gap:9px;margin-top:6px}
+.tp-mwrap[hidden]{display:none}
+.tp-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.tp-grid button{min-height:46px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);font:inherit;font-size:17px;font-variant-numeric:tabular-nums;cursor:pointer;touch-action:manipulation;transition:background .12s,border-color .12s}
+.tp-grid button:active{transform:scale(.97)}
+.tp-grid button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.tp-grid.next button:not([aria-pressed="true"]){border-color:var(--bronze,var(--accent))}
+.tp-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:36px;margin-top:2px}
+.tp-hint{font-size:12.5px;color:var(--muted)}
+.tp-clear{flex:none;border:1px solid var(--line);background:none;color:var(--warn);font:inherit;font-size:13.5px;border-radius:9px;padding:6px 12px;cursor:pointer}
+.tp-clear[hidden]{display:none}
+body.tp-open .toast{top:calc(16px + env(safe-area-inset-top,0px));bottom:auto}
+@media (prefers-reduced-motion:reduce){ .tp-grid button{transition:none} .tp-grid button:active{transform:none} }
+</style>
 <style id="burial-ui">
 .burial-seg{display:flex;gap:3px;padding:3px;border-radius:12px;background:var(--field);border:1px solid var(--line)}
 .burial-seg button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-size:15px;font-weight:500;cursor:pointer}
@@ -748,6 +777,13 @@ body[data-tab="envelopes"] .case-panel,body[data-tab="envelopes"] .work-tabs{dis
   </div>
 </div>
 <div class="csheet-bg" id="chBg" hidden><div class="csheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="chTitle"></b><button class="x" type="button" id="chClose" aria-label="닫기">✕</button></div><div class="csheet-list" id="chList" role="listbox"></div></div></div>
+<div class="csheet-bg" id="tpBg" hidden><div class="csheet tp-sheet" role="dialog" aria-modal="true" aria-labelledby="tpTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="tpTitle">시간</b><span class="tp-now" id="tpNow" aria-live="polite"></span><button class="x" type="button" id="tpClose" aria-label="닫기">✕</button></div>
+  <div class="tp-body">
+    <div class="tp-cap"><span>시</span><small>24시간제</small></div>
+    <div class="tp-grid" id="tpH"></div>
+    <div id="tpMWrap" class="tp-mwrap"><div class="tp-cap"><span>분</span><small>10분 단위</small></div><div class="tp-grid" id="tpM"></div></div>
+    <div class="tp-foot"><span class="tp-hint" id="tpHint"></span><button type="button" class="tp-clear" id="tpClear">지우기</button></div>
+  </div></div></div>
 <nav class="mobile-nav" id="mobileNav" aria-label="주요 메뉴"><button type="button" data-ui-go="input"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6zM13 6l5 5M3 6V3h5"/></svg><span>입력</span></button><button type="button" data-ui-go="out"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/></svg><span>보고서</span></button><button type="button" data-ui-go="settle"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 8h18M21 12h-6v5h6M17 14.5h.01"/></svg><span>정산</span></button><button type="button" data-ui-go="envelopes"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg><span>봉투</span></button><button type="button" data-ui-go="duty"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2"/></svg><span>휴무</span></button><button type="button" data-ui-go="admin"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>설정</span></button></nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -983,7 +1019,7 @@ function cremHtml(){
     <div class="crem-schedule-fields">
       <label class="f"><span class="field-label">화장 날짜</span><input class="input" type="date" id="f_cremDate" data-k="cremDate" value="${esc(f.cremDate||'')}"></label>
       <label class="f"><span class="field-label">회차</span><div class="suffix"><input class="input" type="number" id="f_cremRound" data-k="cremRound" value="${esc(f.cremRound||'')}" min="1" max="999" step="1" inputmode="numeric" placeholder="예: 3"><span>회차</span></div></label>
-      <label class="f"><span class="field-label">시작 시간</span><input class="input" type="time" id="f_cremTime" data-k="cremTime" value="${esc(f.cremTime||'')}" step="60"></label>
+      <label class="f"><span class="field-label">시작 시간</span>${tpCtl({mode:'t',h:String(f.cremTime||'').slice(0,2),m:String(f.cremTime||'').slice(3,5),tAttr:'data-k="cremTime"',label:'화장 시작 시간',id:'f_cremTime'})}</label>
     </div>
     <p class="field-hint">예약한 화장장명과 회차·시간을 직접 입력하세요.</p>
     <p class="calc crem-preview" id="cremPreview" aria-live="polite"></p>`;
@@ -1018,10 +1054,9 @@ function burialSegHtml(c){
 }
 function hagwanHtml(){
   const f=curCase().f||{};
-  const hourOpts=v=>'<option value="">시</option>'+HOURS.map(x=>`<option value="${x}" ${x===v?'selected':''}>${x}시</option>`).join('');
   return `<label class="f"><span class="field-label">하관 날짜<i class="required-dot" aria-hidden="true"></i></span><input class="input" type="date" id="f_hagwanDate" data-k="hagwanDate" value="${esc(f.hagwanDate||'')}"></label>
-    <label class="f"><span class="field-label">한국 전통 시간</span><select class="input" id="f_hagwanSi" data-k="hagwanSi"><option value="">선택 안 함</option>${SIJIN.map(([n,a,b])=>`<option value="${n}" ${n===f.hagwanSi?'selected':''}>${n} (${a}시 ~ ${b}시)</option>`).join('')}</select></label>
-    <div class="pair"><label class="f"><span class="field-label">시작 시간</span><select class="input" id="f_hagwanFrom" data-k="hagwanFrom">${hourOpts(f.hagwanFrom||'')}</select></label><label class="f"><span class="field-label">끝 시간</span><select class="input" id="f_hagwanTo" data-k="hagwanTo">${hourOpts(f.hagwanTo||'')}</select></label></div>
+    <label class="f"><span class="field-label">한국 전통 시간</span>${chooser({key:'hagwanSi',options:SIJIN.map(s=>s[0]),label:'한국 전통 시간',placeholder:'선택 안 함',direct:false,fmt:sijinLabel})}</label>
+    <div class="pair"><label class="f"><span class="field-label">시작 시간</span>${tpCtl({mode:'h',h:f.hagwanFrom||'',hAttr:'data-k="hagwanFrom"',label:'하관 시작 시간',ph:'시',id:'f_hagwanFrom'})}</label><label class="f"><span class="field-label">끝 시간</span>${tpCtl({mode:'h',h:f.hagwanTo||'',hAttr:'data-k="hagwanTo"',label:'하관 끝 시간',ph:'시',id:'f_hagwanTo'})}</label></div>
     <p class="field-hint">전통 시간을 고르면 시작·끝 시간이 자동으로 들어갑니다. 필요하면 직접 바꿀 수 있어요.</p>
     <p class="calc crem-preview" id="hagwanPreview" aria-live="polite"></p>`;
 }
@@ -1029,11 +1064,14 @@ function updateHagwanInput(t,c){
   if(!['hagwanDate','hagwanSi','hagwanFrom','hagwanTo'].includes(t.dataset.k)) return false;
   const f=c.f,k=t.dataset.k;
   f[k]=t.value;
-  if(k==='hagwanSi'){
-    const s=SIJIN.find(x=>x[0]===t.value);
-    if(s){ f.hagwanFrom=s[1]; f.hagwanTo=s[2]; const a=$('#f_hagwanFrom'),b=$('#f_hagwanTo'); if(a) a.value=s[1]; if(b) b.value=s[2]; }
-  }
+  if(k==='hagwanSi') applySijin(f);
   updCremPreview(); schedInfo(); touched(); return true;
+}
+function sijinLabel(n){ const s=SIJIN.find(x=>x[0]===n); return s?`${n} (${s[1]}시 ~ ${s[2]}시)`:n; }
+function applySijin(f){
+  const s=SIJIN.find(x=>x[0]===f.hagwanSi); if(!s) return;
+  f.hagwanFrom=s[1]; f.hagwanTo=s[2];
+  [['#f_hagwanFrom',s[1]],['#f_hagwanTo',s[2]]].forEach(([q,v])=>{ const box=$(q); if(box&&box.classList.contains('tp')) tpPut(box,v,'',false); });
 }
 function setBurial(c,v){
   const f=c.f;
@@ -1273,14 +1311,82 @@ function visible(k,used){ return ALWAYS.includes(k) || (FIELD_PH[k]||[]).some(p=
 const REQUIRED={place:'장소',death:'임종',depart:'발인',customer:'고객 · 회원명',name:'고인명',chief:'상주명',staff:'담당',cremDate:'화장 날짜',hagwanDate:'하관 날짜'};
 
 const HOURS=Array.from({length:24},(_,i)=>pad(i)), MINS=['00','10','20','30','40','50'];
-function hmSelects(hh,mm,attr){
-  const mins=MINS.includes(mm)||!mm?MINS:[...MINS,mm].sort();
-  return `<select class="input" ${attr}="h" aria-label="시"><option value="">시</option>${HOURS.map(x=>`<option value="${x}" ${x===hh?'selected':''}>${x}시</option>`).join('')}</select>`
-        +`<select class="input" ${attr}="m" aria-label="분"><option value="">분</option>${mins.map(x=>`<option value="${x}" ${x===mm?'selected':''}>${x}분</option>`).join('')}</select>`;
+/* ---------- 시간 선택: 24시간제 · 10분 단위 · 누르면 바로 들어감 (완료 버튼 없음) ----------
+   mode 'hm' = 시·분 칸 두 개, 't' = "HH:MM" 한 칸, 'h' = 시만 */
+const TP_ICON='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.6V12l2.8 1.8"/></svg>';
+function tpText(h,m,mode){ return h ? (mode==='h' ? `${h}시` : `${h}:${m||'00'}`) : ''; }
+function tpCtl({mode='hm',h='',m='',hAttr='',mAttr='',tAttr='',label='시간',ph='시간',id=''}){
+  const txt=tpText(h,m,mode);
+  const ins=mode==='t' ? `<input type="hidden" data-tpr="t" ${tAttr} value="${esc(txt)}">`
+    : `<input type="hidden" data-tpr="h" ${hAttr} value="${esc(h)}">`+(mode==='hm'?`<input type="hidden" data-tpr="m" ${mAttr} value="${esc(h?(m||'00'):'')}">`:'');
+  return `<div class="tp" data-tpmode="${mode}" data-tplabel="${esc(label)}" data-tpph="${esc(ph)}"${id?` id="${id}"`:''}><button type="button" class="ch-btn tp-btn ${txt?'':'empty'}" aria-haspopup="dialog" aria-label="${esc(label)}"><span>${esc(txt||ph)}</span>${TP_ICON}</button>${ins}</div>`;
 }
-function dtCtl(k,v){
+function tpRead(box){
+  const g=r=>box.querySelector(`[data-tpr="${r}"]`);
+  if(box.dataset.tpmode==='t'){ const v=g('t').value||''; return {h:v.slice(0,2),m:v.slice(3,5)}; }
+  return {h:g('h').value||'', m:(g('m')||{}).value||''};
+}
+function tpPaint(box){
+  const {h,m}=tpRead(box), txt=tpText(h,m,box.dataset.tpmode), b=box.querySelector('.tp-btn');
+  b.classList.toggle('empty',!txt); b.querySelector('span').textContent=txt||box.dataset.tpph||'시간';
+}
+function tpPut(box,h,m,fire){
+  const mode=box.dataset.tpmode, g=r=>box.querySelector(`[data-tpr="${r}"]`), ev=el=>{ if(fire) el.dispatchEvent(new Event('change',{bubbles:true})); };
+  if(mode==='t'){ const el=g('t'); el.value=tpText(h,m,'t'); ev(el); }
+  else { const he=g('h'), me=g('m'); he.value=h||''; if(me) me.value=h?(m||'00'):''; ev(he); if(me) ev(me); }
+  tpPaint(box);
+}
+let tpBox=null, tpTouch={h:false,m:false}, tpPend='';
+function tpOpen(box){
+  tpBox=box; tpTouch={h:false,m:false}; tpPend='';
+  $('#tpTitle').textContent=box.dataset.tplabel||'시간';
+  $('#tpMWrap').hidden=box.dataset.tpmode==='h';
+  tpRender(); $('#toast').classList.remove('show'); document.body.classList.add('tp-open');
+  const bg=$('#tpBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show'));
+  box.querySelector('.tp-btn').classList.add('open');
+}
+function tpRender(){
+  if(!tpBox) return;
+  const {h,m}=tpRead(tpBox), mode=tpBox.dataset.tpmode, shownM=h?m:tpPend;
+  $('#tpNow').textContent=tpText(h,m,mode)||(mode==='h'?'--시':'--:--');
+  $('#tpH').innerHTML=HOURS.map(x=>`<button type="button" data-tph="${x}" aria-pressed="${x===h}">${x}</button>`).join('');
+  const mins=shownM&&!MINS.includes(shownM)?[...MINS,shownM].sort():MINS;
+  $('#tpM').innerHTML=mins.map(x=>`<button type="button" data-tpm="${x}" aria-pressed="${x===shownM}">${x}</button>`).join('');
+  $('#tpH').classList.toggle('next',mode!=='h'&&tpTouch.m&&!tpTouch.h);
+  $('#tpM').classList.toggle('next',tpTouch.h&&!tpTouch.m);
+  $('#tpClear').hidden=!h;
+  $('#tpHint').textContent=mode==='h'?'누르면 바로 들어갑니다':(tpTouch.h?'바로 들어갔습니다 · 분을 누르면 닫힙니다':(tpTouch.m?'시를 누르면 들어갑니다':'시를 누르면 바로 들어가고, 분을 누르면 닫힙니다'));
+}
+function tpClose(){
+  const bg=$('#tpBg'); bg.classList.remove('show'); document.body.classList.remove('tp-open');
+  document.querySelectorAll('.tp-btn.open').forEach(b=>b.classList.remove('open'));
+  setTimeout(()=>{ if(!bg.classList.contains('show')) bg.hidden=true; },200); tpBox=null;
+}
+function tpAfter(box){
+  const dt=box.closest('[data-dt]');
+  if(dt && !dt.querySelector('[data-dtp="d"]').value) toast('날짜도 골라 주세요. 날짜가 있어야 시간이 저장됩니다');
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('.tp-btn'); if(b){ e.preventDefault(); tpOpen(b.closest('.tp')); } });
+$('#tpH').addEventListener('click',e=>{
+  const b=e.target.closest('[data-tph]'); if(!b||!tpBox||!tpBox.isConnected) return;
+  const box=tpBox, mode=box.dataset.tpmode, cur=tpRead(box); tpTouch.h=true;
+  tpPut(box,b.dataset.tph,mode==='h'?'':(cur.m||tpPend||'00'),true); tpAfter(box);
+  if(mode==='h'||tpTouch.m) tpClose(); else tpRender();
+});
+$('#tpM').addEventListener('click',e=>{
+  const b=e.target.closest('[data-tpm]'); if(!b||!tpBox||!tpBox.isConnected) return;
+  const box=tpBox, cur=tpRead(box); tpTouch.m=true;
+  if(!cur.h){ tpPend=b.dataset.tpm; tpRender(); return; }
+  tpPut(box,cur.h,b.dataset.tpm,true); tpAfter(box); tpClose();
+});
+$('#tpClear').onclick=()=>{ if(tpBox&&tpBox.isConnected) tpPut(tpBox,'','',true); tpClose(); };
+$('#tpClose').onclick=tpClose;
+$('#tpBg').addEventListener('click',e=>{ if(e.target.id==='tpBg') tpClose(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && tpBox) tpClose(); });
+
+function dtCtl(k,v,label){
   const d=(v||'').slice(0,10), t=(v||'').length>10?v.slice(11,16):'';
-  return `<div class="dt" data-dt="${k}" id="f_${k}"><input class="input" type="date" data-dtp="d" value="${esc(d)}" aria-label="날짜">${hmSelects(t.slice(0,2),t.slice(3,5),'data-dtp')}</div>`;
+  return `<div class="dt" data-dt="${k}" id="f_${k}"><input class="input" type="date" data-dtp="d" value="${esc(d)}" aria-label="${esc(label||'')} 날짜">${tpCtl({mode:'hm',h:t.slice(0,2),m:t.slice(3,5),hAttr:'data-dtp="h"',mAttr:'data-dtp="m"',label:`${label||''} 시간`.trim()})}</div>`;
 }
 const SAME_MAP={chief:'customer',chiefRel:'custRel',chiefTel:'custTel'};
 function syncChief(c){
@@ -1291,23 +1397,23 @@ function syncChief(c){
 const CH={}; let chSeq=0, chCur=null;
 const CHEV='<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>';
 function chGet(scope,key){ const c=curCase(); if(!c) return ''; return String((scope==='s'?S(c):c.f)[key]??''); }
-function chSet(scope,key,val){ const c=curCase(); if(!c) return; (scope==='s'?S(c):c.f)[key]=val; if(scope==='f') c.f['_d_'+key]=false; touched(); if(db.tab==='settle') updSettle(); if(scope==='f'&&key==='method') renderInput(); }
-function chooser({scope='f',key,options=[],label='',placeholder='선택',direct=true,numeric=false,dirPh='직접 입력'}){
-  const id='ch'+(++chSeq), value=chGet(scope,key), opts=options.filter(Boolean), isDir=direct && value && !opts.includes(value);
-  CH[id]={scope,key,options:opts,label,direct,placeholder};
-  return `<div class="ch" id="${id}"><button type="button" class="ch-btn ${value?'':'empty'}" data-chopen="${id}" ${key&&scope==='f'?`id="f_${key}"`:''} aria-haspopup="listbox"><span>${esc(value?(isDir?'직접입력':value):placeholder)}</span>${CHEV}</button>${direct?`<input class="input" data-chdir="${id}" value="${isDir?esc(value):''}" placeholder="${esc(dirPh)}" ${numeric?'inputmode="numeric"':''} ${isDir?'':'hidden'}>`:''}</div>`;
+function chSet(scope,key,val){ const c=curCase(); if(!c) return; (scope==='s'?S(c):c.f)[key]=val; if(scope==='f') c.f['_d_'+key]=false; touched(); if(db.tab==='settle') updSettle(); if(scope==='f'&&key==='method') renderInput(); if(scope==='f'&&key==='hagwanSi'){ applySijin(c.f); updCremPreview(); schedInfo(); } }
+function chooser({scope='f',key,options=[],label='',placeholder='선택',direct=true,numeric=false,dirPh='직접 입력',fmt=null}){
+  const id='ch'+(++chSeq), value=chGet(scope,key), opts=options.filter(Boolean), isDir=direct && value && !opts.includes(value), show=v=>fmt?fmt(v):v;
+  CH[id]={scope,key,options:opts,label,direct,placeholder,fmt};
+  return `<div class="ch" id="${id}"><button type="button" class="ch-btn ${value?'':'empty'}" data-chopen="${id}" ${key&&scope==='f'?`id="f_${key}"`:''} aria-haspopup="listbox"><span>${esc(value?(isDir?'직접입력':show(value)):placeholder)}</span>${CHEV}</button>${direct?`<input class="input" data-chdir="${id}" value="${isDir?esc(value):''}" placeholder="${esc(dirPh)}" ${numeric?'inputmode="numeric"':''} ${isDir?'':'hidden'}>`:''}</div>`;
 }
 function chRefresh(id,mode){
   const cfg=CH[id], box=document.getElementById(id); if(!cfg||!box) return;
   const v=chGet(cfg.scope,cfg.key), btn=box.querySelector('.ch-btn'), dir=box.querySelector('[data-chdir]');
   const isDir=mode==='direct' || (cfg.direct && v && !cfg.options.includes(v));
-  btn.classList.toggle('empty',!v && !isDir); btn.querySelector('span').textContent=isDir?'직접입력':(v||cfg.placeholder);
+  btn.classList.toggle('empty',!v && !isDir); btn.querySelector('span').textContent=isDir?'직접입력':(v?(cfg.fmt?cfg.fmt(v):v):cfg.placeholder);
   if(dir){ dir.hidden=!isDir; if(isDir && mode==='direct'){ dir.value=''; dir.focus(); } }
 }
 function chOpen(id){
   const cfg=CH[id]; if(!cfg) return; chCur=id; const v=chGet(cfg.scope,cfg.key), isDir=cfg.direct && v && !cfg.options.includes(v);
   $('#chTitle').textContent=cfg.label||'선택';
-  $('#chList').innerHTML=cfg.options.map(o=>`<button type="button" role="option" data-chv="${esc(o)}" aria-selected="${o===v}">${esc(o)}</button>`).join('')
+  $('#chList').innerHTML=cfg.options.map(o=>`<button type="button" role="option" data-chv="${esc(o)}" aria-selected="${o===v}">${esc(cfg.fmt?cfg.fmt(o):o)}</button>`).join('')
     +(cfg.direct?`<button type="button" role="option" class="sub" data-chv="__direct" aria-selected="${!!isDir}">직접입력</button>`:'')
     +(v?`<hr><button type="button" class="none" data-chv="__none">선택 안 함</button>`:'');
   const bg=$('#chBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show'));
@@ -1337,7 +1443,7 @@ function fmtTel(v){
 function ctl(fd){
   const v=(curCase().f||{})[fd.k]??'';
   if(curCase().f.sameChief && SAME_MAP[fd.k]) return `<input class="input" id="f_${fd.k}" type="${fd.t==='tel'?'tel':'text'}" value="${esc(v)}" disabled title="회원과 동일">`;
-  if(fd.t==='datetime-local') return dtCtl(fd.k,v);
+  if(fd.t==='datetime-local') return dtCtl(fd.k,v,(coById(curCase().companyId).labels||{})[fd.k]||fd.l);
   const L=(coById(curCase().companyId).labels||{})[fd.k]||fd.l;
   if(fd.t==='prod'){ const co=coById(curCase().companyId); if(!(co.products||[]).length) return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" value="${esc(v)}">`; return chooser({key:fd.k,options:co.products,label:L}); }
   if(fd.t==='pick'||fd.t==='combo') return chooser({key:fd.k,options:db.lists[fd.o]||[],label:L});
@@ -1373,7 +1479,7 @@ function mgrHtml(c){
     <div class="mg-top"><input class="input" type="date" data-mg="${m.id}" data-mgf="date" value="${esc(m.date||'')}" aria-label="날짜">
       <div class="suffix"><input class="input" data-mg="${m.id}" data-mgf="n" inputmode="numeric" value="${esc(m.n||'')}" aria-label="인원"><span>명</span></div>
       <button class="x" type="button" data-mgdel="${m.id}" aria-label="삭제">✕</button></div>
-    <div class="mg-time">${hmSelects(m.sh||'',m.sm||'',`data-mg="${m.id}" data-mgt`).replace(/data-mgt="h"/,'data-mgf="sh"').replace(/data-mgt="m"/,'data-mgf="sm"')}<span>~</span>${hmSelects(m.eh||'',m.em||'',`data-mg="${m.id}" data-mgt`).replace(/data-mgt="h"/,'data-mgf="eh"').replace(/data-mgt="m"/,'data-mgf="em"')}</div>
+    <div class="mg-time">${tpCtl({mode:'hm',h:m.sh||'',m:m.sm||'',hAttr:`data-mg="${m.id}" data-mgf="sh"`,mAttr:`data-mg="${m.id}" data-mgf="sm"`,label:'관리사 시작 시간',ph:'시작'})}<span>~</span>${tpCtl({mode:'hm',h:m.eh||'',m:m.em||'',hAttr:`data-mg="${m.id}" data-mgf="eh"`,mAttr:`data-mg="${m.id}" data-mgf="em"`,label:'관리사 끝 시간',ph:'끝'})}</div>
   </div>`).join('');
   return `<div class="stack" style="gap:8px">${rows}</div>
     <div class="row"><button class="btn sm" type="button" data-act="mgrFill">행사 기간으로 채우기</button><button class="btn sm" type="button" data-act="mgrAdd">+ 날짜 추가</button></div>
@@ -1639,7 +1745,7 @@ function renderOut(){
   const miss=Object.entries(REQUIRED).filter(([k])=>(k==='cremDate'?(used.has('화장')&&!isBurial(c.f)):k==='hagwanDate'?(burialOn&&isBurial(c.f)):visible(k,used)) && !String(c.f[k]??'').trim());
   $('#missing').innerHTML=miss.length?`<span>비어 있음</span>${miss.map(([k,l])=>`<button type="button" data-go="${k}">${l}</button>`).join('')}`:'';
 }
-$('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return; setTab('input'); const el=$('#f_'+b.dataset.go); if(el){ const sec=el.closest('[data-group]'); if(sec){ inputGroup=sec.dataset.group; applyInputGroup(); } el.scrollIntoView({block:'center'}); (el.matches('input,select,textarea')?el:el.querySelector('input,select'))?.focus(); } };
+$('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return; setTab('input'); const el=$('#f_'+b.dataset.go); if(el){ const sec=el.closest('[data-group]'); if(sec){ inputGroup=sec.dataset.group; applyInputGroup(); } el.scrollIntoView({block:'center'}); (el.matches('input,select,textarea,button')?el:el.querySelector('input:not([type=hidden]),select,button'))?.focus(); } };
 
 
 /* ---------- 관리: 회사 ---------- */
