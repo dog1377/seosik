@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-12">
+<meta name="app-version" content="2026.10.13-13">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -617,6 +617,50 @@ body[data-tab="envelopes"] .case-panel,body[data-tab="envelopes"] .work-tabs{dis
 .tp-clear[hidden]{display:none}
 body.tp-open .toast{top:calc(16px + env(safe-area-inset-top,0px));bottom:auto}
 @media (prefers-reduced-motion:reduce){ .tp-grid button{transition:none} .tp-grid button:active{transform:none} }
+</style>
+<style id="settle-ui">
+.settle-guide{background:var(--accent-soft);color:var(--ink-2,var(--ink));border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.65}
+.settle-guide b{color:var(--accent)}
+.amt{position:relative;min-width:0}
+.amt .input{padding-right:50px;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.amt .input::placeholder{font-weight:400;font-size:14px}
+.amt-u{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13.5px;font-weight:500;color:var(--muted);pointer-events:none}
+.amt-r{font-size:12.5px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;margin-top:-3px;letter-spacing:0}
+.amt-r:empty{display:none}
+.s-chip{flex:none;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);letter-spacing:0}
+.s-chip.minus{background:var(--warn-soft);color:var(--warn)}
+.s-chip.off{background:var(--field);color:var(--muted);font-weight:500;font-size:12.5px;border:1px solid var(--line)}
+.s-chip:empty{display:none}
+.urn-calc{display:grid;gap:7px}
+.urn-calc>div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline}
+.urn-calc span{color:var(--ink-2,var(--ink))}
+.urn-calc b{font-variant-numeric:tabular-nums;font-size:15px}
+.urn-calc small{grid-column:1/-1;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.urn-calc .tot{border-top:1px dashed var(--edge,var(--line));padding-top:7px}
+.urn-calc .tot b{color:var(--accent);font-size:16.5px}
+.urn-calc .off span,.urn-calc .none{color:var(--muted)}
+.mi-top{grid-template-columns:minmax(0,1fr) 36px!important}
+.mi .pair{gap:8px}
+.ledger{display:grid;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.lg-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.lg-k{display:grid;min-width:0;font-size:14.5px;line-height:1.4}
+.lg-k small{font-size:12px;color:var(--muted)}
+.lg-v{flex:none;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lg-row.minus .lg-v,.lg-row.minus .lg-k{color:var(--warn)}
+.lg-total{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;background:var(--accent-soft)}
+.lg-total span{font-weight:700}
+.lg-total b{font-size:21px;font-variant-numeric:tabular-nums;color:var(--accent);white-space:nowrap}
+.lg-note{margin:0;padding:9px 14px;font-size:12.5px;color:var(--warn);border-top:1px solid var(--line)}
+.lg-off{display:grid;gap:3px;padding:10px 14px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.lg-off b{font-weight:600;color:var(--ink-2,var(--ink))}
+.lg-none{margin:0;padding:14px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line)}
+.settle-bar{position:sticky;bottom:calc(var(--nav-h) + 10px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;align-items:center;gap:10px;padding:7px 7px 7px 16px;border-radius:16px;background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 26px rgba(15,25,40,.2)}
+#p-settle>.settle-bar{grid-column:1/-1}
+.sb-sum{flex:1;min-width:0;display:grid;text-align:left;background:none;border:0;padding:0;color:inherit;cursor:pointer;font:inherit}
+.sb-sum small{font-size:11.5px;opacity:.82}
+.sb-sum b{font-size:19px;font-variant-numeric:tabular-nums;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 86px + env(safe-area-inset-bottom,0px))}
+.settle-bar .btn{flex:none;background:var(--accent-ink);color:var(--accent);border:0;min-height:44px;font-weight:700;padding:0 14px}
 </style>
 <style id="burial-ui">
 .burial-seg{display:flex;gap:3px;padding:3px;border-radius:12px;background:var(--field);border:1px solid var(--line)}
@@ -1851,6 +1895,7 @@ function S(c){
 }
 function pickVal(sel,direct){ return sel==='__direct'?(direct||''):(sel||''); }
 function itemLine(a,pay){ if(!a && !pay) return ''; return `${a||''}${pay?`(${pay})`:''}`; }
+const fullWon=w=>w?`${w<0?'-':''}${Math.abs(w).toLocaleString('ko-KR')}원`:'';
 function settleData(c){
   const f=c.f||{}, s=S(c), v=vals(c), R=rules();
   // 제단: 고정금액까지 정산(받은 금액이 적으면 전부)
@@ -1860,24 +1905,35 @@ function settleData(c){
   const uCol=toWon(s.urnCollect), uCost=toWon(s.urnCost), uDisc=toWon(s.urnDisc);
   const profit=uCol?uCol-uCost:0, share=Math.round(profit*(R.urnShare/100));
   const urn=uCol?`${wonStr(share)}(${wonStr(profit)})수금(${wonStr(uCol)})${uDisc?`할인(${wonStr(uDisc)})`:''}${String(s.urnType||'').trim()}${s.urnPay?`(${s.urnPay})`:''}`:'';
-  const urnSend=uCol && s.urnPay==='현금' ? share+uCost : 0;
+  const urnCash=!!uCol && s.urnPay==='현금';
   const flowerA=money(s.flower||''), flowerP=String(s.flowerPay||'');
   const tribA=money(s.trib||''), tribP=String(s.tribPay||'');
-  const extras=s.extras.filter(x=>x.text.trim()||x.amt).map(x=>({line:`${[x.text.trim(),money(x.amt)].filter(Boolean).join(' ')}${x.pay?` (${x.pay})`:''}`, won:x.pay==='현금'?toWon(x.amt):0}));
+  const extras=s.extras.filter(x=>x.text.trim()||x.amt).map(x=>({text:x.text.trim(), pay:x.pay||'', won:toWon(x.amt),
+    line:`${[x.text.trim(),money(x.amt)].filter(Boolean).join(' ')}${x.pay?`(${x.pay})`:''}`}));
+  const minus=(s.minus||[]).filter(x=>String(x.who||'').trim()||x.amt).map(x=>{ const who=String(x.who||'').trim(), memo=String(x.memo||'').trim(), won=Math.abs(toWon(x.amt));
+    return {who,memo,won,line:`${who||'공제'} : -${wonStr(won)||'0원'}${memo?`(${memo})`:''}`}; });
   const collectWon=toWon(f.collect);
-  const parts=[];
-  if(s.pay==='현금' && collectWon) parts.push(['수금',collectWon]);
-  if(altarSend) parts.push(['제단',altarSend]);
-  if(urnSend) parts.push(['유골함',share],['유골함원가',uCost]);
-  extras.filter(x=>x.won).forEach(x=>parts.push([x.line.replace(/\s*\(현금\)$/,''),x.won]));
-  if(/현금/.test(flowerP)) parts.push(['입관꽃장식',toWon(flowerA)]);
-  if(/현금/.test(tribP)) parts.push(['헌화',toWon(tribA)]);
-  const auto=parts.reduce((a,x)=>a+x[1],0);
-  return {v,s,f,altar,urn,uCost,flower:itemLine(flowerA,flowerP),tribute:itemLine(tribA,tribP),extras,parts,auto,send:s.sendOverride?money(s.sendOverride):wonStr(auto)};
+  // 보내는금액에 들어가는 줄(on) / 안 들어가는 줄(off)
+  const rows=[];
+  if(collectWon) rows.push({k:'수금',note:s.pay||'현금',won:collectWon,on:(s.pay||'현금')==='현금'});
+  if(altarWon) rows.push({k:'제단',note:`받은 ${wonStr(altarWon)} 중`,won:altarSend,on:true});
+  if(uCol){ rows.push({k:'유골함 몫',note:`이익 ${wonStr(profit)||'0원'}의 ${R.urnShare}%`,won:share,on:urnCash,off:s.urnPay}); if(uCost) rows.push({k:'유골함 원가',note:'',won:uCost,on:urnCash,off:s.urnPay}); }
+  extras.forEach(x=>rows.push({k:x.text||'기타추가',note:x.pay,won:x.won,on:x.pay==='현금',off:x.pay||'결제 안 고름'}));
+  minus.forEach(x=>rows.push({k:x.who||'빼는 금액',note:x.memo,won:-x.won,on:true}));
+  if(flowerA) rows.push({k:'입관꽃장식',note:flowerP,won:toWon(flowerA),on:/현금/.test(flowerP),off:flowerP||'결제 안 고름'});
+  if(tribA) rows.push({k:'헌화',note:tribP,won:toWon(tribA),on:/현금/.test(tribP),off:tribP||'결제 안 고름'});
+  const auto=rows.filter(r=>r.on).reduce((a,r)=>a+r.won,0);
+  const ov=String(s.sendOverride||'').trim(), ovWon=ov?toWon(ov):0;
+  const sendWon=ov?ovWon:auto;
+  const send=ov?(ovWon?fullWon(ovWon):ov):fullWon(auto);
+  return {v,s,f,altar,urn,uCost,collectWon,flower:itemLine(flowerA,flowerP),tribute:itemLine(tribA,tribP),extras,minus,rows,auto,sendWon,send,
+    sub:{collect:collectWon&&(s.pay||'현금')==='현금'?collectWon:0, altar:altarSend, urn:urnCash?share+uCost:0,
+      extra:extras.filter(x=>x.pay==='현금').reduce((a,x)=>a+x.won,0), minus:minus.reduce((a,x)=>a+x.won,0),
+      etc:(/현금/.test(flowerP)?toWon(flowerA):0)+(/현금/.test(tribP)?toWon(tribA):0)}};
 }
 function settleText(c){
   const d=settleData(c), g=k=>String(d.s[k]??'').trim(), ind='                 ';
-  const collect=d.f.collect?`${money(d.f.collect)}(${d.s.pay||'현금'})`:'';
+  const collect=d.f.collect?`${d.collectWon?fullWon(d.collectWon):money(d.f.collect)}(${d.s.pay||'현금'})`:'';
   const L=[
     d.v['장소'],
     `도우미 : ${d.v['도우미']}`,
@@ -1889,6 +1945,7 @@ function settleText(c){
     `유골함 : ${d.urn}`,
     `유골함원가 : ${d.uCost?wonStr(d.uCost):''}`,
     ...(d.extras.length?d.extras.map((x,i)=>i?ind+x.line:`기타추가 : ${x.line}`):['기타추가 : ']),
+    ...d.minus.map(x=>x.line),
     `이송 : ${g('transfer')}`,
     `입관꽃장식 : ${d.flower}`,
     `헌화 : ${d.tribute}`,
@@ -1921,13 +1978,21 @@ function pickSel(id,list,sel,dirVal,dirPh){
     <input class="input" data-s="${id}Dir" value="${esc(dirVal||'')}" placeholder="${dirPh}" ${sel==='__direct'?'':'hidden'}></div>`;
 }
 const seg2=(key,val,attr='data-seg')=>`<div class="seg" ${attr}="${key}"><button type="button" data-v="현금" aria-pressed="${val==='현금'}">현금</button><button type="button" data-v="카드" aria-pressed="${val==='카드'}">카드</button></div>`;
+/* 금액 칸: 숫자만 넣으면 만원, 1000 이상이면 원. 옆에 단위, 아래에 실제 금액 */
+function amtUnit(v){ const t=String(v??'').replace(/,/g,'').trim(); if(!t) return '만원'; if(!/^\d+(\.\d+)?$/.test(t)) return ''; return Number(t)>=1000?'원':'만원'; }
+function amtRead(v){ const t=String(v??'').trim(); if(!t) return ''; const w=toWon(t); return w?`= ${w.toLocaleString('ko-KR')}원`:''; }
+function amtIn(attr,val,ph,read=true){
+  return `<div class="amt"><input class="input" ${attr} inputmode="decimal" value="${esc(val||'')}" placeholder="${esc(ph||'')}" autocomplete="off"><span class="amt-u">${amtUnit(val)}</span></div>${read?`<span class="amt-r">${amtRead(val)}</span>`:''}`;
+}
+const sChip=id=>`<span class="s-chip" id="${id}"></span>`;
 function renderSettle(){
   const c=curCase(), el=$('#p-settle');
   if(!c){ el.innerHTML=`<div class="sec"><p class="note">작성 중인 건이 없습니다.</p></div>`; return; }
-  const s=S(c), f=c.f, v=vals(c), R=rules();
+  const s=S(c), f=c.f, R=rules(); if(!s.minus) s.minus=[];
   const sf=(k,label,list,ph,mode='')=>list?`<div class="f-wrap"><label class="f">${label}</label>${chooser({key:k,options:db.lists[list]||[],label})}</div>`:`<label class="f">${label}<input class="input" data-sf="${k}" value="${esc(f[k]||'')}" ${mode} placeholder="${esc(ph||'')}" autocomplete="off"></label>`;
   const autoBurial=[f.burial1,f.burial2].filter(Boolean).join('-');
   el.innerHTML=`
+  <div class="settle-guide settle-wide"><b>숫자만 넣으면 만원</b>입니다. 30 → 30만원<br>칸 아래 실제 금액, 제목 옆 <b>+</b>/<b>−</b>는 보내는금액에 들어가는 몫이에요.</div>
   <div class="sec"><div class="sec-head"><h2>기본 정보</h2></div><div class="fields">
     <p class="note">입력 탭에 넣은 값이 자동으로 들어옵니다. 비어 있으면 여기서 바로 넣으세요. (여기서 고치면 입력 탭에도 반영)</p>
     ${sf('place','장소','', '예: 부산대동 6호')}
@@ -1936,56 +2001,83 @@ function renderSettle(){
     ${sf('mournBrand','상복 업체','mournBrands','예: 한맥')}
     ${sf('burial','장지',  '', autoBurial||'예: 김해화장-부산추모(벽식)')}
   </div></div>
-  <div class="sec"><div class="sec-head"><h2>수금</h2></div><div class="fields">
-    <div class="pair"><label class="f">금액<input class="input" data-sf="collect" inputmode="numeric" value="${esc(f.collect||'')}" placeholder="243 → 243만원"></label>
+  <div class="sec"><div class="sec-head"><h2>수금</h2>${sChip('chCollect')}</div><div class="fields">
+    <div class="pair"><label class="f">금액${amtIn('data-sf="collect"',f.collect,'예: 257.5')}</label>
     <label class="f">결제${seg2('pay',s.pay||'현금')}</label></div>
     <p class="note">카드 수금은 보내는금액에 더하지 않습니다.</p></div></div>
-  <div class="sec"><div class="sec-head"><h2>제단</h2></div><div class="fields">
-    <label class="f">받은 금액<input class="input" data-s="altarAmt" inputmode="numeric" value="${esc(s.altarAmt||'')}" placeholder="44 → 24만원(44만원)"></label>
-    <p class="note">${R.altarFixed}만원까지 정산에 합칩니다. ${R.altarFixed}만원보다 적으면 받은 금액 전부.</p></div></div>
-  <div class="sec"><div class="sec-head"><h2>유골함</h2></div><div class="fields">
-    <div class="pair"><label class="f">수금<input class="input" data-s="urnCollect" inputmode="numeric" value="${esc(s.urnCollect||'')}" placeholder="40"></label>
-    <label class="f">원가<input class="input" data-s="urnCost" inputmode="numeric" value="${esc(s.urnCost||'')}" placeholder="14"></label></div>
-    <div class="pair"><label class="f">할인<input class="input" data-s="urnDisc" inputmode="numeric" value="${esc(s.urnDisc||'')}" placeholder="15"></label>
+  <div class="sec"><div class="sec-head"><h2>제단</h2>${sChip('chAltar')}</div><div class="fields">
+    <label class="f">받은 금액${amtIn('data-s="altarAmt"',s.altarAmt,'예: 100')}</label>
+    <p class="note">${R.altarFixed}만원까지 보내는금액에 더합니다. ${R.altarFixed}만원보다 적게 받으면 받은 금액 전부.</p></div></div>
+  <div class="sec"><div class="sec-head"><h2>유골함</h2>${sChip('chUrn')}</div><div class="fields">
+    <div class="pair"><label class="f">수금${amtIn('data-s="urnCollect"',s.urnCollect,'예: 90')}</label>
+    <label class="f">원가${amtIn('data-s="urnCost"',s.urnCost,'예: 25')}</label></div>
+    <div class="pair"><label class="f">할인${amtIn('data-s="urnDisc"',s.urnDisc,'예: 5')}</label>
     <label class="f">결제${seg2('urnPay',s.urnPay)}</label></div>
     <div class="f-wrap"><label class="f">유골함 종류</label>${chooser({scope:'s',key:'urnType',options:db.lists.urnTypes||[],label:'유골함 종류'})}</div>
-    <p class="calc" id="urnCalc"></p></div></div>
-  <div class="sec"><div class="sec-head"><h2>이송</h2></div><div class="fields">
-    <label class="f">이송<input class="input" data-s="transfer" value="${esc(s.transfer||'')}"></label></div></div>
-  <div class="sec"><div class="sec-head"><h2>기타추가</h2></div><div class="fields">
-    ${s.extras.map(x=>`<div class="ex"><input class="input" data-ex="${x.id}" data-exf="text" value="${esc(x.text)}" placeholder="예: 지도사 1일 추가">
-      <div class="ex-row"><input class="input" data-ex="${x.id}" data-exf="amt" inputmode="numeric" value="${esc(x.amt||'')}" placeholder="금액 (20 → 20만원)">
+    <div class="calc urn-calc" id="urnCalc"></div></div></div>
+  <div class="sec"><div class="sec-head"><h2>기타추가</h2>${sChip('chExtra')}</div><div class="fields">
+    ${s.extras.map(x=>`<div class="ex"><input class="input" data-ex="${x.id}" data-exf="text" value="${esc(x.text)}" placeholder="예: 남상복 6세트 추가">
+      <div class="ex-row">${amtIn(`data-ex="${x.id}" data-exf="amt"`,x.amt,'금액',false)}
       ${seg2(x.id,x.pay,'data-exseg')}
       <button class="x" type="button" data-exdel="${x.id}" aria-label="삭제">✕</button></div></div>`).join('')}
     <button class="btn sm" type="button" data-act="exAdd">+ 기타추가 항목</button>
-    <p class="note">현금 · 카드를 누르면 금액 뒤에 (현금) · (카드)가 붙고, 현금만 보내는금액에 더해집니다.</p></div></div>
-  <div class="sec"><div class="sec-head"><h2>입관꽃장식</h2></div><div class="fields">
-    <div class="f-wrap"><label class="f">업체 · 금액</label>${chooser({scope:'s',key:'flower',options:db.lists.flowers,label:'입관꽃장식',numeric:false,dirPh:'예: 5 → 5만원'})}</div>
-    <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'flowerPay',options:db.lists.flowerPays,label:'입관꽃장식 결제',dirPh:'예: 현금'})}</div></div></div>
-  <div class="sec"><div class="sec-head"><h2>헌화</h2></div><div class="fields">
-    <div class="f-wrap"><label class="f">업체 · 금액</label>${chooser({scope:'s',key:'trib',options:db.lists.tributes,label:'헌화',dirPh:'예: 3 → 3만원'})}</div>
-    <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'tribPay',options:db.lists.tributePays,label:'헌화 결제',dirPh:'예: 현금'})}</div></div></div>
-  <div class="sec"><div class="sec-head"><h2>보내는금액</h2></div><div class="fields">
-    <p class="sum" id="sendSum"></p>
-    <label class="f">직접 입력 (비우면 자동 계산)<input class="input" data-s="sendOverride" inputmode="numeric" value="${esc(s.sendOverride||'')}" placeholder="294 → 294만원"></label></div></div>
+    <p class="note">현금만 보내는금액에 더해집니다. 카드는 카톡에 (카드)로만 적힙니다.</p></div></div>
+  <div class="sec"><div class="sec-head"><h2>빼는 금액</h2>${sChip('chMinus')}</div><div class="fields">
+    ${s.minus.map(x=>`<div class="ex mi"><div class="ex-row mi-top"><input class="input" data-mi="${x.id}" data-mif="who" value="${esc(x.who||'')}" placeholder="누구 · 항목 (예: 이승구실장)"><button class="x" type="button" data-midel="${x.id}" aria-label="삭제">✕</button></div>
+      <div class="pair">${amtIn(`data-mi="${x.id}" data-mif="amt"`,x.amt,'금액',false)}<input class="input" data-mi="${x.id}" data-mif="memo" value="${esc(x.memo||'')}" placeholder="이유 (예: 꽃장식)"></div></div>`).join('')}
+    <button class="btn sm" type="button" data-act="miAdd">+ 빼는 금액</button>
+    <p class="note">보내는금액에서 빼고, 카톡에는 "이승구실장 : -15만원(꽃장식)"처럼 기타추가 다음 줄에 들어갑니다.</p></div></div>
+  <div class="sec"><div class="sec-head"><h2>이송 · 꽃장식 · 헌화</h2>${sChip('chEtc')}</div><div class="fields">
+    <label class="f">이송<input class="input" data-s="transfer" value="${esc(s.transfer||'')}" placeholder="없으면 비워 두세요"></label>
+    <div class="pair"><div class="f-wrap"><label class="f">입관꽃장식</label>${chooser({scope:'s',key:'flower',options:db.lists.flowers,label:'입관꽃장식',numeric:false,dirPh:'예: 경북 5만원'})}</div>
+    <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'flowerPay',options:db.lists.flowerPays,label:'입관꽃장식 결제',dirPh:'예: 현금'})}</div></div>
+    <div class="pair"><div class="f-wrap"><label class="f">헌화</label>${chooser({scope:'s',key:'trib',options:db.lists.tributes,label:'헌화',dirPh:'예: 영호 3만원'})}</div>
+    <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'tribPay',options:db.lists.tributePays,label:'헌화 결제',dirPh:'예: 현금'})}</div></div>
+    <p class="note">법카 결제는 카톡에만 적히고 보내는금액에는 안 들어갑니다. 결제에 "현금"이 들어가면 더해집니다.</p></div></div>
+  <div class="sec settle-wide" id="ledgerSec"><div class="sec-head"><h2>보내는금액 계산서</h2></div><div class="fields">
+    <div class="ledger" id="ledger"></div>
+    <label class="f">직접 입력 (비우면 위 계산대로)${amtIn('data-s="sendOverride"',s.sendOverride,'비워 두면 자동')}</label></div></div>
   <div class="sec settle-wide"><div class="sec-head"><h2>월별 봉투정리</h2><button class="btn primary" type="button" id="openEnvelope">봉투 정리하기</button></div><p class="note">제단·유골함 수익은 실장 봉투에 자동 반영됩니다. 식장·장지·기타 금액을 넣고 월별로 보관하세요.</p></div>
   <div class="out"><div class="out-head"><h2>정산 카톡<small>회사로 보내는 몫</small></h2><button class="btn primary" id="copySettle" type="button">복사</button></div>
-    <textarea class="text-out" id="settleText" rows="16" aria-label="정산 카톡"></textarea></div>
+    <textarea class="text-out" id="settleText" rows="18" aria-label="정산 카톡"></textarea></div>
   <div class="sec settle-wide"><div class="sec-head"><h2>수당 정산</h2></div><div class="fields">
     <label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}"><span>번</span></div></label>
     <p class="calc" id="commAuto"></p>
     ${(()=>{ const ks=COMM_ITEMS.filter(k=>k!=='제단'&&k!=='유골함'), rows=[]; for(let i=0;i<ks.length;i+=2) rows.push(ks.slice(i,i+2)); const m=s.comm||{};
-      return rows.map(r=>`<div class="pair">${r.map(k=>`<label class="f">${k}<input class="input" data-comm="${esc(k)}" value="${esc(m[k]||'')}" inputmode="numeric" placeholder="예: 5"></label>`).join('')}</div>`).join(''); })()}
+      return rows.map(r=>`<div class="pair">${r.map(k=>`<label class="f">${k}${amtIn(`data-comm="${esc(k)}"`,m[k],'',false)}</label>`).join('')}</div>`).join(''); })()}
     <div class="pair"><label class="f">이름<input class="input" data-me="name" value="${esc(me().name)}" placeholder="홍길동"></label><label class="f">직급<input class="input" data-me="rank" value="${esc(me().rank)}" placeholder="주임"></label></div>
     <p class="note">제단 · 유골함은 위에서 넣은 값으로 자동 계산됩니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
   <div class="out"><div class="out-head"><h2>수당 정산<small>내 몫</small></h2><button class="btn primary" id="copyComm" type="button">복사</button></div>
-    <textarea class="text-out" id="commText" rows="20" aria-label="수당 정산"></textarea></div>`;
+    <textarea class="text-out" id="commText" rows="20" aria-label="수당 정산"></textarea></div>
+  <div class="settle-bar" id="settleBar"><button type="button" class="sb-sum" id="sbJump" aria-label="보내는금액 계산서로 이동"><small>보내는금액</small><b id="sbSend">0원</b></button><button class="btn" type="button" id="sbCopy">정산 카톡 복사</button></div>`;
   updSettle();
 }
+const wnum=w=>Math.abs(w).toLocaleString('ko-KR');
+function chipSet(id,won,offText){
+  const el=$('#'+id); if(!el) return;
+  el.className='s-chip'+(won>0?' plus':won<0?' minus':offText?' off':'');
+  el.textContent=won?`${won>0?'+':'−'}${wnum(won)}`:(offText||'');
+}
 function updSettle(){
-  const c=curCase(); if(!c) return; const d=settleData(c), R=rules();
-  const el=$('#sendSum'); if(el) el.innerHTML=`자동 계산 <b>${wonStr(d.auto)||'0원'}</b>${d.parts.length?`<br><small>${esc(d.parts.map(([k,w])=>`${k} ${wonStr(w)}`).join(' + '))}</small>`:''}${d.s.sendOverride?`<br><small>직접 입력한 ${esc(money(d.s.sendOverride))}으로 나갑니다</small>`:''}`;
-  const u=$('#urnCalc'); if(u){ const uc=toWon(d.s.urnCollect), co=toWon(d.s.urnCost); u.textContent=uc?`이익 ${wonStr(uc-co)||'0원'} (수금 ${wonStr(uc)} − 원가 ${wonStr(co)||'0원'}) → ${R.urnShare}% ${wonStr(Math.round((uc-co)*R.urnShare/100))||'0원'}${d.s.urnPay==='현금'?` · 정산에 ${wonStr(Math.round((uc-co)*R.urnShare/100)+co)} 합침`:' · 카드라 정산에 안 합침'}`:'수금 · 원가를 넣으면 계산됩니다'; }
+  const c=curCase(); if(!c) return; const d=settleData(c), R=rules(), s=d.s;
+  chipSet('chCollect',d.sub.collect,d.collectWon&&s.pay==='카드'?'카드 · 안 더함':'');
+  chipSet('chAltar',d.sub.altar);
+  chipSet('chUrn',d.sub.urn,toWon(s.urnCollect)&&s.urnPay!=='현금'?'카드 · 안 더함':'');
+  chipSet('chExtra',d.sub.extra,d.extras.length&&!d.sub.extra?'안 더함':'');
+  chipSet('chMinus',-d.sub.minus);
+  chipSet('chEtc',d.sub.etc,(d.flower||d.tribute)&&!d.sub.etc?'법카 · 안 더함':'');
+  const u=$('#urnCalc'); if(u){ const uc=toWon(s.urnCollect), co=toWon(s.urnCost), pr=uc-co, sh=Math.round(pr*R.urnShare/100);
+    u.innerHTML=uc?`<div><span>이익</span><b>${fullWon(pr)||'0원'}</b><small>수금 ${wnum(uc)} − 원가 ${wnum(co)}</small></div><div><span>회사 몫 ${R.urnShare}%</span><b>${fullWon(sh)||'0원'}</b></div>`
+      +(s.urnPay==='현금'?`<div class="tot"><span>보내는금액에 더함</span><b>${fullWon(sh+co)}</b><small>몫 ${wnum(sh)} + 원가 ${wnum(co)}</small></div>`:`<div class="tot off"><span>카드라 보내는금액에 안 더함</span></div>`)
+      :'<div class="none">수금 · 원가를 넣으면 계산됩니다</div>'; }
+  const lg=$('#ledger'); if(lg){
+    const on=d.rows.filter(r=>r.on), off=d.rows.filter(r=>!r.on);
+    lg.innerHTML=(on.length?on.map(r=>`<div class="lg-row ${r.won<0?'minus':''}"><span class="lg-k">${esc(r.k)}${r.note?`<small>${esc(r.note)}</small>`:''}</span><span class="lg-v">${r.won<0?'−':''}${wnum(r.won)}</span></div>`).join(''):'<p class="lg-none">금액을 넣으면 여기에 한 줄씩 쌓입니다.</p>')
+      +`<div class="lg-total"><span>보내는금액</span><b>${esc(d.send||'0원')}</b></div>`
+      +(String(s.sendOverride||'').trim()?`<p class="lg-note">직접 입력한 금액으로 나갑니다. 자동 계산은 ${fullWon(d.auto)||'0원'}${d.sendWon&&d.sendWon!==d.auto?` (차이 ${d.sendWon>d.auto?'+':'−'}${wnum(d.sendWon-d.auto)})`:''}</p>`:'')
+      +(off.length?`<div class="lg-off"><b>안 더한 것</b>${off.map(r=>`<span>${esc(r.k)} ${wnum(r.won)}${r.off?` (${esc(r.off)})`:''}</span>`).join('')}</div>`:'');
+  }
+  const sb=$('#sbSend'); if(sb) sb.textContent=d.send||'0원';
   const t=$('#settleText'); if(t) t.value=settleText(c);
   const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'} · 총계 ${wonStr(cd.total)||'0원'}`;
   const ct=$('#commText'); if(ct) ct.value=commText(c);
@@ -1997,7 +2089,9 @@ $('#p-settle').addEventListener('input',e=>{
   else if(t.dataset.me){ me()[t.dataset.me]=t.value; }
   else if(t.dataset.s && t.tagName!=='SELECT'){ const k=t.dataset.s; const map={flowerSelDir:'flowerAmt',flowerPayDir:'flowerPayText',tribSelDir:'tribAmt',tribPayDir:'tribPayText'}; s[map[k]||k]=t.value; }
   else if(t.dataset.ex){ const x=s.extras.find(y=>y.id===t.dataset.ex); if(x) x[t.dataset.exf]=t.value; }
+  else if(t.dataset.mi){ const x=(s.minus||[]).find(y=>y.id===t.dataset.mi); if(x) x[t.dataset.mif]=t.value; }
   else return;
+  const box=t.closest('.amt'); if(box){ box.querySelector('.amt-u').textContent=amtUnit(t.value); const r=box.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); }
   touched(); updSettle();
 });
 $('#p-settle').addEventListener('change',e=>{
@@ -2014,6 +2108,10 @@ $('#p-settle').addEventListener('click',e=>{
   const seg=b.closest('[data-seg]'); if(seg){ s[seg.dataset.seg]=b.dataset.v; seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); touched(); updSettle(); return; }
   const xs=b.closest('[data-exseg]'); if(xs){ const x=s.extras.find(y=>y.id===xs.dataset.exseg); if(x){ x.pay=x.pay===b.dataset.v?'':b.dataset.v; xs.querySelectorAll('button').forEach(y=>y.setAttribute('aria-pressed',String(y.dataset.v===x.pay))); touched(); updSettle(); } return; }
   if(b.dataset.exdel){ s.extras=s.extras.filter(x=>x.id!==b.dataset.exdel); touched(); renderSettle(); return; }
+  if(b.dataset.midel){ s.minus=(s.minus||[]).filter(x=>x.id!==b.dataset.midel); touched(); renderSettle(); return; }
+  if(b.dataset.act==='miAdd'){ const x={id:uid(),who:'',amt:'',memo:''}; (s.minus||(s.minus=[])).push(x); touched(); renderSettle(); const el=document.querySelector(`[data-mi="${x.id}"][data-mif="who"]`); if(el) el.focus(); return; }
+  if(b.id==='sbCopy'){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
+  if(b.id==='sbJump'){ $('#ledgerSec')?.scrollIntoView({block:'center',behavior:'smooth'}); return; }
   if(b.dataset.act==='exAdd'){ const x={id:uid(),text:'',amt:'',pay:'현금'}; s.extras.push(x); touched(); renderSettle(); const el=document.querySelector(`[data-ex="${x.id}"][data-exf="text"]`); if(el) el.focus(); }
 });
 
@@ -2030,7 +2128,7 @@ function envelopeRecordMonth(r){ const m=envelopeMeta(r,'month'); return envelop
 function envelopeHasSettlement(c){
   const f=c.f||{},s=c.s||{};
   return [f.collect,s.altarAmt,s.urnCollect,s.urnCost,s.flower,s.trib,s.transfer,s.sendOverride].some(v=>String(v||'').trim()) ||
-    (s.extras||[]).some(x=>x.amt||x.text) || Object.values(s.comm||{}).some(v=>String(v||'').trim());
+    (s.extras||[]).some(x=>x.amt||x.text) || (s.minus||[]).some(x=>x.amt||x.who) || Object.values(s.comm||{}).some(v=>String(v||'').trim());
 }
 function syncEnvelopeRecord(c,force=false){
   if(!c || (!force && db.envelopeSkipped.includes(c.id))) return null;
