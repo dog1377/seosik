@@ -14,7 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-16";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-17";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>회사 관리</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -258,6 +258,24 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .roster-empty{font-size:13px;color:var(--muted);padding:2px}
 .member-head .m-rank{flex:none;width:92px;font-weight:500}
 @media (max-width:360px){.grid2{grid-template-columns:1fr}.local span{display:none}}
+/* ===== 넓은 화면(태블릿 가로 · PC): 입력과 문서를 나란히 ===== */
+.live-pv{display:none}
+.live-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.live-head b{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.live-head b::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.live-doc{display:grid;gap:14px;min-height:240px;background:var(--pv-bg);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:zoom-in}
+.live-doc:empty::before{content:"문서를 만드는 중…";color:var(--muted);font-size:13px;place-self:center}
+.live-doc canvas{display:block;width:100%;height:auto;background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.08)}
+@media (min-width:1000px){
+  .appbar-in,.wrap,.tabbar-in{max-width:1220px}
+  .wrap{padding-inline:28px}
+  .wrap>.banner,.wrap>.install-card,.wrap>.update-bar,#tab-docs,#tab-staff,#tab-settings{width:100%;max-width:860px;margin-inline:auto}
+  .wrap .type-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .live-pv{display:grid;gap:10px;min-width:0;position:sticky;top:0}
+  #docEditor .screen-body,#staffEditor .screen-body{display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr);column-gap:32px;align-items:start;padding-inline:max(24px,calc((100vw - 1320px) / 2))}
+  #docEditor .screen-body>.inner,#staffEditor .screen-body>.inner{margin:0;max-width:none}
+  #previewScreen .inner,#sigScreen .inner{max-width:820px}
+}
 
 /* ---------- 회사 관리 ---------- */
 .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -426,7 +444,7 @@ select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);b
 </div>
 
 <nav class="tabbar" aria-label="메뉴">
-  <div class="tabbar-in">
+  <div class="tabbar-in" style="grid-template-columns:repeat(3,1fr)">
     <button type="button" data-tab="docs" aria-current="page">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>
       서식
@@ -451,6 +469,7 @@ select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);b
   </div>
   <div class="screen-body">
     <div class="inner" id="dForm"></div>
+    <aside class="live-pv" id="dLive" aria-label="미리보기"><div class="live-head"><b>입력하면 바로 바뀌는 문서</b><button class="btn small" type="button" data-live-open>크게 보기 · 저장</button></div><div class="live-doc"></div></aside>
   </div>
   <div class="screen-actions"><div class="inner"><button class="btn primary" type="button" id="dPreview">미리보기 · 저장</button></div></div>
 </div>
@@ -464,6 +483,7 @@ select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);b
   </div>
   <div class="screen-body">
     <div class="inner" id="sForm"></div>
+    <aside class="live-pv" id="sLive" aria-label="미리보기"><div class="live-head"><b>입력하면 바로 바뀌는 인사기록카드</b><button class="btn small" type="button" data-live-open>크게 보기 · 저장</button></div><div class="live-doc"></div></aside>
   </div>
   <div class="screen-actions"><div class="inner"><button class="btn primary" type="button" id="sPreview">인사기록카드 보기 · 저장</button></div></div>
 </div>
@@ -1169,6 +1189,26 @@ function newDoc(type) {
   return { id: uid(), type, f, rows: type === 'appoint' ? [emptyAppointRow()] : [], sig: null, staffId: null, createdAt: Date.now(), updatedAt: Date.now() };
 }
 const emptyAppointRow = () => ({ name: '', kind: '', from: '', toDept: '', toPos: '', note: '', staffId: null });
+/* ----- 넓은 화면 실시간 미리보기 ----- */
+const WIDE_MQ = window.matchMedia ? window.matchMedia('(min-width:1000px)') : { matches: false };
+const isWide = () => WIDE_MQ.matches;
+const liveSeq = {}, liveT = {};
+async function renderLive(boxId, makeJob) {
+  const box = $('#' + boxId); if (!box || !isWide()) return;
+  const seq = (liveSeq[boxId] = (liveSeq[boxId] || 0) + 1);
+  try {
+    const job = makeJob(); if (!job) return;
+    await ensureFonts(job.text);
+    const blocks = await job.build();
+    if (liveSeq[boxId] !== seq) return;
+    const cs = renderDoc(blocks, { mode: 'long', footerLeft: job.footerLeft });
+    if (liveSeq[boxId] !== seq) return;
+    $('.live-doc', box).replaceChildren(...cs);
+  } catch (e) { /* 미리보기는 실패해도 입력은 계속 */ }
+}
+function scheduleLive(boxId, makeJob, ms) { if (!isWide()) return; clearTimeout(liveT[boxId]); liveT[boxId] = setTimeout(() => renderLive(boxId, makeJob), ms == null ? 450 : ms); }
+const liveDoc = (ms) => scheduleLive('dLive', () => S.ed && docJob(clone(S.ed)), ms);
+const liveStaff = (ms) => scheduleLive('sLive', () => S.se && staffJob(clone(S.se)), ms);
 function openDoc(id, type) {
   const ex = id && S.docs.get(id);
   S.ed = ex ? clone(ex) : newDoc(type);
@@ -1178,6 +1218,7 @@ function openDoc(id, type) {
   $('#dTitle').textContent = TYPES[S.ed.type].label;
   $('#dSaveState').textContent = ex ? '저장됨' : '';
   openScreen('docEditor');
+  $('.live-doc', $('#dLive')).replaceChildren(); liveDoc(0);
 }
 function inputHtml(fd, val, attr) {
   const id = `${attr}-${fd.k}`;
@@ -1247,7 +1288,7 @@ async function renderDocSig() {
   $('#dSigDel').hidden = !data;
 }
 let dTimer;
-function saveDocSoon() { S.edDirty = true; $('#dSaveState').textContent = '저장 중…'; clearTimeout(dTimer); dTimer = setTimeout(saveDocNow, 500); }
+function saveDocSoon() { S.edDirty = true; liveDoc(); $('#dSaveState').textContent = '저장 중…'; clearTimeout(dTimer); dTimer = setTimeout(saveDocNow, 500); }
 async function saveDocNow() {
   clearTimeout(dTimer);
   const d = S.ed; if (!d || !S.edDirty) return;
@@ -1326,6 +1367,7 @@ function openStaff(id) {
   $('#sTitle').textContent = ex ? (S.se.f.name || '인사기록카드') : '직원 등록';
   $('#sSaveState').textContent = ex ? '저장됨' : '';
   openScreen('staffEditor');
+  $('.live-doc', $('#sLive')).replaceChildren(); liveStaff(0);
 }
 function renderStaffForm() {
   const s = S.se;
@@ -1362,7 +1404,7 @@ async function renderStaffPhoto() {
   $('#sPhotoDel').hidden = !d;
 }
 let sTimer;
-function saveStaffSoon() { S.seDirty = true; $('#sSaveState').textContent = '저장 중…'; clearTimeout(sTimer); sTimer = setTimeout(saveStaffNow, 500); }
+function saveStaffSoon() { S.seDirty = true; liveStaff(); $('#sSaveState').textContent = '저장 중…'; clearTimeout(sTimer); sTimer = setTimeout(saveStaffNow, 500); }
 async function saveStaffNow() {
   clearTimeout(sTimer);
   const s = S.se; if (!s || !S.seDirty) return;
@@ -1850,6 +1892,9 @@ function bind() {
     const dd = e.target.closest('#dDelete');
     if (dd) armConfirm(dd, '한 번 더 누르면 삭제', async () => { clearTimeout(dTimer); if (d.sig) Store.del('img', d.sig); S.docs.delete(d.id); await Store.del('docs', d.id); S.ed = null; S.edDirty = false; closeScreen('docEditor'); renderDocList(); toast('문서를 삭제했어요'); });
   });
+  $('#dLive').addEventListener('click', async () => { if (!S.ed) return; S.edDirty = true; await saveDocNow(); openPreview(docJob(clone(S.ed))); });
+  $('#sLive').addEventListener('click', async () => { if (!S.se) return; S.seDirty = true; await saveStaffNow(); openPreview(staffJob(clone(S.se))); });
+  if (WIDE_MQ.addEventListener) WIDE_MQ.addEventListener('change', () => { if (!isWide()) return; if (!$('#docEditor').hidden) liveDoc(0); if (!$('#staffEditor').hidden) liveStaff(0); });
   $('#dPreview').addEventListener('click', async () => { if (!S.ed) return; S.edDirty = true; await saveDocNow(); openPreview(docJob(clone(S.ed))); });
   // 직원 고르기
   $('#pickList').addEventListener('click', (e) => { const b = e.target.closest('[data-id]'); if (!b) return; const st = S.staff.get(b.dataset.id); const cb = S.pick; closePick(); if (st && cb) cb(st); });

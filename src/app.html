@@ -240,6 +240,33 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .roster-empty{font-size:13px;color:var(--muted);padding:2px}
 .member-head .m-rank{flex:none;width:92px;font-weight:500}
 @media (max-width:360px){.grid2{grid-template-columns:1fr}.local span{display:none}}
+/* ===== 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ===== */
+.rv-main,.rv-side,.rpt-main{display:contents}
+.live-pv{display:none}
+.live-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.live-head b{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.live-head b::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.live-doc{display:grid;gap:14px;min-height:240px;background:var(--pv-bg);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:zoom-in}
+.live-doc:empty::before{content:"보고서를 만드는 중…";color:var(--muted);font-size:13px;place-self:center}
+.live-doc canvas{display:block;width:100%;height:auto;background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.08)}
+@media (min-width:1000px){
+  .appbar-in,.wrap,.tabbar-in{max-width:1220px}
+  .wrap{padding-inline:28px}
+  .wrap>.banner,.wrap>.install-card,.wrap>.update-bar,#tab-weekly,#tab-settings,#tab-ship>.tab-head,#shipSeg,#shipLog{width:100%;max-width:760px;margin-inline:auto}
+  #tab-review{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:28px;align-items:start}
+  #tab-review>.tab-head{grid-column:1/-1}
+  .rv-main,.rv-side{display:grid;gap:16px;min-width:0}
+  .rv-main{grid-column:1}
+  .rv-side{grid-column:2;position:sticky;top:calc(64px + env(safe-area-inset-top,0px))}
+  #shipReport{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;align-items:start}
+  .rpt-main{display:grid;gap:16px;min-width:0}
+  .live-pv{display:grid;gap:10px;min-width:0}
+  #rptLive{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));max-height:calc(100dvh - 64px - var(--tabbar-h) - 28px);overflow-y:auto;overscroll-behavior:contain}
+  #weeklyEditor .screen-body{display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr);column-gap:32px;align-items:start;padding-inline:max(24px,calc((100vw - 1320px) / 2))}
+  #weeklyEditor .screen-body>.inner{margin:0;max-width:none}
+  #wLive{position:sticky;top:0}
+  #previewScreen .inner,#sigScreen .inner{max-width:820px}
+}
 </style>
 
 <header class="appbar">
@@ -300,6 +327,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       <h1>후기 일일보고</h1>
       <p>출상일별로 적어 두면 이틀치 카톡 보고 문구가 자동으로 만들어져요. 비워 둔 날은 「없습니다.」로 나가요.</p>
     </div>
+    <div class="rv-main">
     <label class="field"><span>보고 제목</span><input id="rvTitle" type="text" placeholder="예: 2파트 후기 일일보고"></label>
     <div class="period">
       <button class="icon-btn" type="button" id="rvPrev" aria-label="하루 앞으로"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
@@ -307,6 +335,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       <button class="icon-btn" type="button" id="rvNext" aria-label="하루 뒤로"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
     </div>
     <div class="list" id="rvDays"></div>
+    </div>
+    <div class="rv-side">
     <div class="sec-h"><h2>카톡 보고 문구</h2><span class="muted small-t" id="rvSaveState"></span></div>
     <pre class="rv-preview" id="rvPreview"></pre>
     <div class="rv-actions" id="rvActions">
@@ -316,6 +346,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     <div class="rv-recent-wrap" id="rvRecentWrap" hidden>
       <div class="sec-h" style="margin-bottom:8px"><h2>최근 기록</h2></div>
       <div class="rv-recent" id="rvRecent"></div>
+    </div>
     </div>
   </section>
 
@@ -350,6 +381,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     </div>
 
     <div class="tab" id="shipReport" hidden>
+      <div class="rpt-main">
       <div class="seg" id="rptType" role="group" aria-label="보고 주기">
         <button type="button" data-v="week" aria-pressed="true">주간</button>
         <button type="button" data-v="month" aria-pressed="false">월간</button>
@@ -367,6 +399,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       </label>
       <button class="btn primary block" type="button" id="rptPreview">보고서 미리보기 · 저장</button>
       <div class="list" id="rptList"></div>
+      </div>
+      <aside class="live-pv" id="rptLive" aria-label="보고서 미리보기"><div class="live-head"><b>보고서 미리보기</b><button class="btn small" type="button" data-live-open>크게 보기 · 저장</button></div><div class="live-doc"></div></aside>
     </div>
   </section>
 
@@ -481,6 +515,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       </label>
       <div class="danger-zone"><button class="btn danger small" type="button" id="wDelete" hidden>이 보고서 삭제</button></div>
     </div>
+    <aside class="live-pv" id="wLive" aria-label="보고서 미리보기"><div class="live-head"><b>입력하면 바로 바뀌는 보고서</b><button class="btn small" type="button" data-live-open>크게 보기 · 저장</button></div><div class="live-doc"></div></aside>
   </div>
   <div class="screen-actions"><div class="inner"><button class="btn primary" type="button" id="wPreview">미리보기 · 저장</button></div></div>
 </div>
@@ -835,6 +870,28 @@ function renderWeeklyList() {
   }).join('');
   $('#weeklyEmpty').hidden = list.length > 0;
 }
+/* ----- 넓은 화면 실시간 미리보기 ----- */
+const WIDE_MQ = window.matchMedia ? window.matchMedia('(min-width:1000px)') : { matches: false };
+const isWide = () => WIDE_MQ.matches;
+const liveSeq = {}, liveT = {};
+async function renderLive(boxId, makeJob) {
+  const box = $('#' + boxId); if (!box || !isWide()) return;
+  const seq = (liveSeq[boxId] = (liveSeq[boxId] || 0) + 1);
+  try {
+    const job = makeJob(); if (!job) return;
+    await ensureFonts(job.text);
+    const blocks = await job.build();
+    if (liveSeq[boxId] !== seq) return;
+    const cs = renderDoc(blocks, { mode: 'long', footerLeft: job.footerLeft });
+    if (liveSeq[boxId] !== seq) return;
+    $('.live-doc', box).replaceChildren(...cs);
+  } catch (e) { /* 미리보기는 실패해도 입력은 계속 */ }
+}
+function scheduleLive(boxId, makeJob, ms) { if (!isWide()) return; clearTimeout(liveT[boxId]); liveT[boxId] = setTimeout(() => renderLive(boxId, makeJob), ms == null ? 450 : ms); }
+const weeklyLiveJob = () => S.ew && weeklyJob(clone(S.ew));
+const shipLiveJob = () => { const p = rptPeriod(); return shipJob(p, shipItemsBetween(p.start, p.end), S.rpt.qr); };
+const liveWeekly = (ms) => scheduleLive('wLive', weeklyLiveJob, ms);
+const liveShip = (ms) => { if (S.shipView === 'report') scheduleLive('rptLive', shipLiveJob, ms == null ? 120 : ms); };
 function openWeekly(id) {
   const existing = id && S.weekly.get(id);
   S.ew = existing ? clone(existing) : newWeeklyFor(mondayOf(new Date()));
@@ -842,6 +899,7 @@ function openWeekly(id) {
   fillRanks();
   renderWeeklyEditor();
   openScreen('weeklyEditor');
+  $('.live-doc', $('#wLive')).replaceChildren(); liveWeekly(0);
 }
 function renderWeekHeader() {
   const wi = weekInfo(fromKey(S.ew.weekStart));
@@ -899,6 +957,7 @@ function loadRosterIntoReport() {
 let wTimer;
 function touchWeekly() {
   S.ewDirty = true;
+  liveWeekly();
   $('#wSaveState').textContent = '저장 중…';
   clearTimeout(wTimer);
   wTimer = setTimeout(saveWeeklyNow, 600);
@@ -929,6 +988,7 @@ function shiftWeek(days) {
   if (clash) { toast(`${weekInfo(fromKey(nk)).label} 보고서가 이미 있어요. 목록에서 열어 주세요.`); return; }
   S.ew.weekStart = nk;
   renderWeekHeader();
+  liveWeekly();
   if (S.weekly.has(S.ew.id) || S.ewDirty) touchWeekly();
 }
 
@@ -992,6 +1052,7 @@ function renderShipReport() {
   $('#rptMgr').textContent = st.managers.length ? '담당자별  ' + st.managers.map(([n, c]) => `${n} ${c}건`).join(' · ') : '이 기간에 등록된 건이 없어요.';
   $('#rptQr').checked = S.rpt.qr;
   $('#rptList').innerHTML = items.slice().reverse().map(shipRowHtml).join('');
+  liveShip();
 }
 function renderShip() {
   $$('#shipSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === S.shipView)));
@@ -1981,7 +2042,11 @@ function bind() {
   };
   $('#rptPrev').addEventListener('click', () => shiftRpt(-1));
   $('#rptNext').addEventListener('click', () => shiftRpt(1));
-  $('#rptQr').addEventListener('change', (e) => { S.rpt.qr = e.target.checked; });
+  $('#rptQr').addEventListener('change', (e) => { S.rpt.qr = e.target.checked; liveShip(0); });
+  $('#wLive').addEventListener('click', async () => { if (!S.ew) return; await flushWeekly(); openPreview(weeklyJob(clone(S.ew))); });
+  $('#rptLive').addEventListener('click', () => openPreview(shipLiveJob()));
+  const onWide = () => { if (!isWide()) return; if (!$('#weeklyEditor').hidden) liveWeekly(0); if (!$('#tab-ship').hidden) liveShip(0); };
+  if (WIDE_MQ.addEventListener) WIDE_MQ.addEventListener('change', onWide);
   $('#rptPreview').addEventListener('click', () => { const p = rptPeriod(); openPreview(shipJob(p, shipItemsBetween(p.start, p.end), S.rpt.qr)); });
   $('#sBack').addEventListener('click', () => closeScreen('shipEditor'));
   $$('#shipEditor .seg.choice').forEach((seg) => seg.addEventListener('click', (e) => {

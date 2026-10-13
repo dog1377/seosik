@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-16">
+<meta name="app-version" content="2026.10.13-17">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="서식함">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -133,7 +133,7 @@ body.duty-mode #newCase{display:none}
 .sn-foot{margin:0;padding:12px 18px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
 @media (prefers-reduced-motion:reduce){ .sidenav,.sn-bg,.acc-b,.acc-h i{transition:none} }
 /* PC: 왼쪽 메뉴 고정, 화면 넓게 */
-@media (min-width:1024px){
+@media (min-width:1200px){
   body{padding-left:272px}
   .sidenav{width:272px;transform:none;box-shadow:none;border-right:1px solid var(--line)}
   .sn-bg{display:none!important}
@@ -423,7 +423,7 @@ body.duty-mode .wrap{padding:0}
   #p-out #reportCards{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
   #reportCards>.out:first-child:last-child{grid-column:1/-1}
   #p-settle{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
-  #p-settle>.out,#p-settle>.settle-wide{grid-column:1/-1}
+  #p-settle .out,#p-settle .settle-wide{grid-column:1/-1}
   #p-admin>.sec{padding:28px}
   #listEdit{grid-template-columns:repeat(2,minmax(0,1fr))}
   .picker,.csheet-bg{align-items:center;padding:24px}
@@ -431,7 +431,7 @@ body.duty-mode .wrap{padding:0}
   .csheet{border-radius:22px;max-width:480px;max-height:76dvh;padding-bottom:0}
   .csheet-grip{display:none}
 }
-@media(min-width:1024px){
+@media(min-width:1200px){
   :root{--nav-h:0px}
   body{padding-left:232px}
   .sidenav{width:232px;transform:none}
@@ -706,6 +706,30 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
 .def-month em.done{background:var(--field);color:var(--muted)}
 .cm-label span.warn{color:var(--warn);font-weight:600}
 </style>
+<style id="wide-ui">
+/* 넓은 화면(본문 900px 이상): 행사 입력 ↔ 보고서, 정산 입력 ↔ 계산서·카톡을 나란히 */
+.sp-main,.sp-side{display:contents}
+.split-label{display:none}
+body.split .wrap{max-width:1480px}
+body.split[data-tab="input"] #mainContent{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,42%);column-gap:22px;align-items:start}
+body.split[data-tab="input"] #mainContent>*{grid-column:1/-1}
+body.split[data-tab="input"] #mainContent>#p-input{grid-column:1}
+body.split[data-tab="input"] #mainContent>#p-out{grid-column:2;position:sticky;top:calc(var(--ab-h) + 14px + env(safe-area-inset-top,0px));max-height:calc(100dvh - var(--ab-h) - var(--nav-h) - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;padding:2px 4px 8px 2px;scrollbar-width:thin}
+body.split[data-tab="input"] #p-out .split-label{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:700;color:var(--muted)}
+body.split[data-tab="input"] #p-out .split-label::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+body.split #inputGrid{grid-template-columns:minmax(0,1fr)}
+body.split[data-tab="input"] #p-out #reportCards{grid-template-columns:minmax(0,1fr)}
+body.split[data-tab="input"] #p-out .text-out{font-size:14px}
+body.split[data-tab="input"] #p-out>.note{display:none}
+body.split #p-settle{grid-template-columns:minmax(0,1fr) minmax(360px,42%);column-gap:22px;align-items:start}
+body.split #p-settle>.sp-main{display:grid;gap:16px;grid-column:1;min-width:0}
+body.split #p-settle>.sp-side{display:grid;gap:16px;grid-column:2;position:sticky;top:calc(var(--ab-h) + 14px + env(safe-area-inset-top,0px));max-height:calc(100dvh - var(--ab-h) - var(--nav-h) - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;padding:2px 4px 8px 2px;scrollbar-width:thin;min-width:0}
+body.split #p-settle>.sp-main>*,body.split #p-settle>.sp-side>*{grid-column:auto}
+body.split #p-settle .settle-bar{display:none}
+@media (min-width:1200px){ body.split .ab-in{max-width:1480px} }
+@media (min-width:1760px){ body.split #inputGrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+body.split[data-tab="input"] #p-out .text-out{resize:none;overflow:hidden}
+</style>
 <style id="burial-ui">
 .burial-seg{display:flex;gap:3px;padding:3px;border-radius:12px;background:var(--field);border:1px solid var(--line)}
 .burial-seg button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-size:15px;font-weight:500;cursor:pointer}
@@ -746,6 +770,7 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
   <section id="p-input" class="stack"></section>
 
   <section id="p-out" class="stack" hidden>
+    <p class="split-label">입력하면 바로 바뀌는 보고서</p>
     <div class="missing" id="missing"></div>
     <div class="out">
       <div class="out-head"><h2>밴드 양식<small id="bandTag"></small></h2><button class="btn" id="copyBand" type="button">전체 복사</button></div>
@@ -1645,7 +1670,7 @@ function updCremPreview(){
   const el=$('#cremPreview'); if(!el) return; const s=cremStr(f); el.textContent=s?'화장 : '+s:'화장장 · 날짜 · 회차 · 시간을 입력하세요';
 }
 let saveT=null, dirty=true;
-function touched(){ const c=curCase(); c.updated=Date.now(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>{ save(); renderCaseSel(); },300); }
+function touched(){ const c=curCase(); c.updated=Date.now(); dirty=true; liveOut(); updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>{ save(); renderCaseSel(); },300); }
 function renumber(){
   let n=0; document.querySelectorAll('#items .item').forEach(row=>{
     const it=curCase().items.find(x=>x.id===row.querySelector('[data-it]').dataset.it); if(!it) return;
@@ -1839,6 +1864,10 @@ $('#delCase').onclick=()=>arm($('#delCase'),'한 번 더',()=>{
 });
 
 /* ---------- 결과 ---------- */
+function fitOutText(){
+  const on=isSplit()&&db.tab==='input';
+  document.querySelectorAll('#p-out textarea.text-out').forEach(t=>{ if(on){ t.style.height='auto'; t.style.height=(t.scrollHeight+4)+'px'; } else t.style.height=''; });
+}
 function renderOut(){
   const c=curCase();
   if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; return; }
@@ -1850,6 +1879,7 @@ function renderOut(){
   const burialOn=used.has('화장')||used.has('하관');
   const miss=Object.entries(REQUIRED).filter(([k])=>(k==='cremDate'?(used.has('화장')&&!isBurial(c.f)):k==='hagwanDate'?(burialOn&&isBurial(c.f)):visible(k,used)) && !String(c.f[k]??'').trim());
   $('#missing').innerHTML=miss.length?`<span>비어 있음</span>${miss.map(([k,l])=>`<button type="button" data-go="${k}">${l}</button>`).join('')}`:'';
+  fitOutText();
 }
 $('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return; setTab('input'); const el=$('#f_'+b.dataset.go); if(el){ const sec=el.closest('[data-group]'); if(sec){ inputGroup=sec.dataset.group; applyInputGroup(); } el.scrollIntoView({block:'center'}); (el.matches('input,select,textarea,button')?el:el.querySelector('input:not([type=hidden]),select,button'))?.focus(); } };
 
@@ -2098,6 +2128,7 @@ function renderSettle(){
   el.innerHTML=`
   <div class="settle-wide" id="defAlert"></div>
   <div class="settle-guide settle-wide"><b>숫자만 넣으면 만원</b>입니다. 30 → 30만원<br>칸 아래 실제 금액, 제목 옆 <b>+</b>/<b>−</b>는 보내는금액에 들어가는 몫이에요.</div>
+  <div class="sp-main">
   <div class="sec"><div class="sec-head"><h2>기본 정보</h2></div><div class="fields">
     <p class="note">입력 탭에 넣은 값이 자동으로 들어옵니다. 비어 있으면 여기서 바로 넣으세요. (여기서 고치면 입력 탭에도 반영)</p>
     ${sf('place','장소','', '예: 부산대동 6호')}
@@ -2146,6 +2177,8 @@ function renderSettle(){
       <div class="pair">${amtIn(`data-mi="${x.id}" data-mif="amt"`,x.amt,'금액',false)}<input class="input" data-mi="${x.id}" data-mif="memo" value="${esc(x.memo||'')}" placeholder="이유 (예: 꽃장식)"></div></div>`).join('')}
     <button class="btn sm" type="button" data-act="miAdd">+ 직접 빼는 금액</button>
     <p class="note">유골함 카드 결제와 관꽃장식 판매의 우리 몫은 자동으로 빠집니다. 그 밖에 뺄 것만 직접 넣으세요. 카톡에는 기타추가 다음 줄에 들어갑니다.</p></div></div>
+  </div>
+  <div class="sp-side">
   <div class="sec settle-wide" id="ledgerSec"><div class="sec-head"><h2>보내는금액 계산서</h2></div><div class="fields">
     <div class="ledger" id="ledger"></div>
     <label class="f">직접 입력 (비우면 위 계산대로)${amtIn('data-s="sendOverride"',s.sendOverride,'비워 두면 자동')}</label></div></div>
@@ -2162,6 +2195,7 @@ function renderSettle(){
     <p class="note">제단 · 유골함 · 꽃관(관꽃장식 판매)은 위에서 넣은 값으로 자동 계산됩니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
   <div class="out"><div class="out-head"><h2>수당 정산<small>내 몫</small></h2><button class="btn primary" id="copyComm" type="button">복사</button></div>
     <textarea class="text-out" id="commText" rows="20" aria-label="수당 정산"></textarea></div>
+  </div>
   <div class="settle-bar" id="settleBar"><button type="button" class="sb-sum" id="sbJump" aria-label="보내는금액 계산서로 이동"><small id="sbLabel">보내는금액</small><b id="sbSend">0원</b></button><button class="btn" type="button" id="sbCopy">정산 카톡 복사</button></div>`;
   updSettle();
 }
@@ -2593,6 +2627,23 @@ $('#copyProv').onclick=()=>{ const s=splitBand($('#bandText').value); if(!s.prov
 $('#reportCards').onclick=e=>{ const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정',data:'데이터 관리'};
 const TAB_TITLES={input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
+/* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
+const isSplit=()=>document.body.classList.contains('split');
+function applySplit(){
+  const t=db.tab;
+  if(['input','out','settle','envelopes','duty','admin'].includes(t)) $('#p-out').hidden=!(t==='out'||(isSplit()&&t==='input'));
+  if(isSplit()&&t==='input') renderOut(); else fitOutText();
+}
+let splitT=null;
+function checkSplit(){
+  const main=$('#mainContent'); if(!main) return;
+  const on=main.clientWidth>=900;
+  if(on!==isSplit()){ document.body.classList.toggle('split',on); applySplit(); }
+}
+if(window.ResizeObserver) new ResizeObserver(()=>{ clearTimeout(splitT); splitT=setTimeout(checkSplit,60); }).observe($('#mainContent'));
+window.addEventListener('resize',()=>{ clearTimeout(splitT); splitT=setTimeout(checkSplit,60); });
+let outT=null;
+function liveOut(){ if(!isSplit()||db.tab!=='input') return; clearTimeout(outT); outT=setTimeout(()=>{ if(isSplit()&&db.tab==='input') renderOut(); },220); }
 function setTab(t,sub){
   if(t==='duty'){ db.dutyView=sub||db.dutyView||'calendar'; }
   db.tab=t; save();
@@ -2607,12 +2658,13 @@ function setTab(t,sub){
   if(t==='input') renderInput();
   if(t==='out') renderOut();
   if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; }
+  checkSplit(); applySplit();
   updateWorkspace(t);
   window.scrollTo(0,0);
 }
 // 왼쪽 메뉴 열기 · 닫기 · 아코디언
 let navCloseTimer=null;
-const desktopNav=()=>window.matchMedia('(min-width:1024px)').matches;
+const desktopNav=()=>window.matchMedia('(min-width:1200px)').matches;
 function syncNavAccessibility(){ const nv=$('#sideNav'), open=desktopNav()||nv.classList.contains('show');nv.inert=!open;nv.setAttribute('aria-hidden',String(!open));if(desktopNav())document.body.classList.remove('nav-open'); }
 function openNav(){ const bg=$('#snBg'),nv=$('#sideNav');clearTimeout(navCloseTimer);bg.hidden=false;nv.inert=false;nv.setAttribute('aria-hidden','false');$('#menuBtn').setAttribute('aria-expanded','true');document.body.classList.add('nav-open');requestAnimationFrame(()=>{bg.classList.add('show');nv.classList.add('show');$('#snClose').focus();}); }
 function closeNav(){ const bg=$('#snBg'),nv=$('#sideNav'),wasOpen=nv.classList.contains('show');bg.classList.remove('show');nv.classList.remove('show');$('#menuBtn').setAttribute('aria-expanded','false');document.body.classList.remove('nav-open');syncNavAccessibility();if(wasOpen&&!desktopNav())$('#menuBtn').focus();navCloseTimer=setTimeout(()=>{bg.hidden=true;},220); }
