@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-15">
+<meta name="app-version" content="2026.10.13-16">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="서식함">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -802,7 +802,7 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
     </div>
     <div class="sec">
       <div class="sec-head"><h2>행사 기록 보관</h2></div>
-      <p class="note">행사 기록은 지우지 않는 한 이 휴대폰에 계속 남고, 발인 날짜 기준으로 월별로 정리됩니다. 휴대폰을 바꾸거나 브라우저 데이터를 지우면 사라지니 한 달에 한 번은 백업 파일을 받아 두세요.</p>
+      <p class="note">행사 기록은 지우지 않는 한 이 기기에 계속 남고, 발인 날짜 기준으로 월별로 정리됩니다. 기기를 바꾸거나 브라우저 데이터를 지우면 사라지니 한 달에 한 번은 백업 파일을 받아 두세요.</p>
       <p class="keep-stats" id="keepStats"></p>
       <div class="row"><button class="btn primary" id="keepBackup" type="button">전체 기록 백업 파일 저장</button><label class="btn" for="keepRestoreFile">백업 불러오기</label></div>
       <input type="file" id="keepRestoreFile" accept=".json,application/json" hidden>
@@ -812,7 +812,7 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
     </div>
     <div class="sec">
       <div class="sec-head"><h2>공유 · 설정 백업</h2></div>
-      <p class="note">앱은 이 휴대폰에만 깔려 있고, 입력한 내용은 밖으로 나가지 않습니다. 필요할 때만 아래로 공유하세요.</p>
+      <p class="note">앱은 이 기기에만 깔려 있고, 입력한 내용은 밖으로 나가지 않습니다. 필요할 때만 아래로 공유하세요.</p>
       <div class="row"><button class="btn" id="shareApp" type="button">앱 주소 공유</button></div>
       <p class="note" id="shareNote"></p>
       <div class="row"><button class="btn" id="exportCfg" type="button">설정 내보내기 (복사)</button><button class="btn" id="importOpen" type="button">설정 가져오기</button></div>
@@ -1428,7 +1428,7 @@ function tpPut(box,h,m,fire){
 }
 let tpBox=null, tpTouch={h:false,m:false}, tpPend='';
 function tpOpen(box){
-  tpBox=box; tpTouch={h:false,m:false}; tpPend='';
+  tpBox=box; tpTouch={h:false,m:false}; tpPend=''; tpKeys='';
   $('#tpTitle').textContent=box.dataset.tplabel||'시간';
   $('#tpMWrap').hidden=box.dataset.tpmode==='h';
   tpRender(); $('#toast').classList.remove('show'); document.body.classList.add('tp-open');
@@ -1445,7 +1445,7 @@ function tpRender(){
   $('#tpH').classList.toggle('next',mode!=='h'&&tpTouch.m&&!tpTouch.h);
   $('#tpM').classList.toggle('next',tpTouch.h&&!tpTouch.m);
   $('#tpClear').hidden=!h;
-  $('#tpHint').textContent=mode==='h'?'누르면 바로 들어갑니다':(tpTouch.h?'바로 들어갔습니다 · 분을 누르면 닫힙니다':(tpTouch.m?'시를 누르면 들어갑니다':'시를 누르면 바로 들어가고, 분을 누르면 닫힙니다'));
+  $('#tpHint').textContent=(matchMedia('(hover:hover) and (pointer:fine)').matches?'키보드 숫자도 됩니다 (1430 → 14:30) · ':'')+(mode==='h'?'누르면 바로 들어갑니다':(tpTouch.h?'바로 들어갔습니다 · 분을 누르면 닫힙니다':(tpTouch.m?'시를 누르면 들어갑니다':'시를 누르면 바로 들어가고, 분을 누르면 닫힙니다')));
 }
 function tpClose(){
   const bg=$('#tpBg'); bg.classList.remove('show'); document.body.classList.remove('tp-open');
@@ -1472,7 +1472,20 @@ $('#tpM').addEventListener('click',e=>{
 $('#tpClear').onclick=()=>{ if(tpBox&&tpBox.isConnected) tpPut(tpBox,'','',true); tpClose(); };
 $('#tpClose').onclick=tpClose;
 $('#tpBg').addEventListener('click',e=>{ if(e.target.id==='tpBg') tpClose(); });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape' && tpBox) tpClose(); });
+let tpKeys='';
+document.addEventListener('keydown',e=>{
+  if(!tpBox) return;
+  if(e.key==='Escape'){ tpClose(); return; }
+  // PC: 숫자로 바로 입력 (1430 → 14:30, 하관은 두 자리 시)
+  if(/^[0-9]$/.test(e.key)){
+    e.preventDefault(); const mode=tpBox.dataset.tpmode; tpKeys=(tpKeys+e.key).slice(-4);
+    if(tpKeys.length>=2){ const h=tpKeys.slice(0,2); if(Number(h)>23){ tpKeys=e.key; return; }
+      if(tpKeys.length===2){ $(`#tpH [data-tph="${h}"]`)?.click(); if(mode==='h') tpKeys=''; return; }
+      if(tpKeys.length===4){ const m=tpKeys.slice(2,4); tpKeys=''; if(Number(m)<60){ const box=tpBox; tpPut(box,h,m,true); tpAfter(box); tpClose(); } } }
+    return;
+  }
+  if(e.key==='Enter'){ e.preventDefault(); tpClose(); }
+});
 
 function dtCtl(k,v,label){
   const d=(v||'').slice(0,10), t=(v||'').length>10?v.slice(11,16):'';

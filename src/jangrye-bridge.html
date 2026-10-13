@@ -19,6 +19,7 @@
   var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   var inApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|FB_IAB|Line\/|DaumApps|BAND\//i.test(ua);
   var ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var desktop = !ios && !/Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(ua);
   var main = document.getElementById('mainContent');
   if (!main || standalone) return;
 
@@ -56,10 +57,13 @@
       } else if (ios) {
         body = '<ol><li>Safari 아래(또는 위)의 <b>공유 버튼</b>을 누르세요.</li><li><b>홈 화면에 추가</b>를 누르세요.</li><li>오른쪽 위 <b>추가</b>를 누르면 끝이에요.</li></ol>' +
           '<p class="jr-note">설치한 뒤에는 홈 화면 아이콘으로만 여세요. 아이폰은 Safari와 설치한 앱의 기록이 따로 보관돼요.</p>';
+      } else if (desktop) {
+        body = '<ol><li>Chrome·엣지 주소창 오른쪽 끝의 <b>설치</b> 아이콘을 누르세요.</li><li>안 보이면 오른쪽 위 메뉴(<b>⋮</b> 또는 <b>…</b>)에서 <b>앱 설치</b>를 찾으세요.</li></ol>' +
+          '<p class="jr-note">PC에 저장한 기록은 휴대폰과 따로 보관돼요. 옮길 때는 설정 → 행사 기록 보관의 백업 파일을 쓰세요.</p>';
       } else {
         body = '<ol><li>Chrome 오른쪽 위 <b>⋮</b> 메뉴를 누르세요.</li><li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르세요.</li></ol>';
       }
-      html = '<div class="jr-head"><b>휴대폰에 앱으로 설치하기</b><button class="jr-x" type="button" data-jr="close" aria-label="설치 안내 닫기">✕</button></div>' + body;
+      html = '<div class="jr-head"><b>앱으로 설치하기</b><button class="jr-x" type="button" data-jr="close" aria-label="설치 안내 닫기">✕</button></div>' + body;
     }
     card.innerHTML = html;
   }
