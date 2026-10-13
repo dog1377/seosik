@@ -14,8 +14,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-21";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-22";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <title>회사 관리</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,6 +88,8 @@ svg{flex:none}
 .bk-banner b{color:var(--accent)}
 .bk-banner span{font-size:13.5px;line-height:1.55}
 .bk-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.pw-out{display:grid;gap:8px}
+.pw-out textarea{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;word-break:break-all}
 .banner b{display:block;margin-bottom:2px}
 
 /* ---------- Buttons ---------- */
@@ -326,11 +329,102 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .kakao-box{display:grid;gap:8px}
 .screen-actions .inner{flex-wrap:wrap}
 .field-hint{font-size:12.5px;color:var(--muted);margin:-4px 0 0}
-input[type="tel"],input[type="email"]{width:100%;min-width:0;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;line-height:1.45}
+input[type="tel"],input[type="email"],input[type="password"]{width:100%;min-width:0;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;line-height:1.45}
 select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);background-color:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:11px 36px 11px 12px;min-height:47px;line-height:1.45;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a939b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .r-head input{flex:1;min-width:0;font-weight:700}
 
 </style>
+<!-- 앱 잠금: 회사가 정한 비밀번호(해시만 앱에 들어 있음)를 넣어야 앱이 열립니다. 해시가 비어 있으면 잠그지 않습니다. -->
+<style id="lock-ui">
+html.app-locked body>*:not(#appLock){visibility:hidden!important}
+#appLock{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:24px;background:var(--bg,#f1f2ef);color:var(--ink,#1c2329);font-family:inherit}
+#appLock[hidden]{display:none!important}
+.lk-card{width:100%;max-width:360px;display:grid;gap:14px;text-align:center}
+.lk-card img{width:64px;height:64px;border-radius:16px;margin:0 auto}
+.lk-card h1{margin:0;font-size:21px;line-height:1.35}
+.lk-card p{margin:0;font-size:14px;color:var(--muted,#6a7279);line-height:1.55}
+.lk-card input{width:100%;box-sizing:border-box;font:inherit;font-size:18px;letter-spacing:.12em;text-align:center;padding:13px 14px;border-radius:12px;border:1px solid var(--line-2,#c9cfd3);background:var(--surface,#fff);color:inherit}
+.lk-card input:focus{outline:none;border-color:var(--accent,#2b4a5c);box-shadow:0 0 0 3px var(--accent-soft,#e3ecf0)}
+.lk-card button{font:inherit;font-size:16px;font-weight:700;min-height:50px;border:0;border-radius:12px;background:var(--accent,#2b4a5c);color:var(--accent-ink,#fff);cursor:pointer}
+.lk-card button:disabled{opacity:.5}
+.lk-err{min-height:20px;font-size:13.5px!important;color:var(--warn,#a4432e)!important;font-weight:600}
+.lk-alt{font-size:13px!important}
+.lk-alt a{color:var(--accent,#2b4a5c);font-weight:600}
+.lk-shake{animation:lk-shake .32s}
+@keyframes lk-shake{0%,100%{transform:none}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@media (prefers-reduced-motion:reduce){.lk-shake{animation:none}}
+</style>
+<script>
+(function () {
+  'use strict';
+  var C = {"hash": "", "key": "ca", "title": "회사 관리", "who": "관리자", "remember": false, "relockMin": 10, "alt": ""};
+  // C = { hash: 'p2$반복$소금$해시' 또는 '', key: 'mf', title: '관리자 서식함', who: '파트장', remember: true, relockMin: 0, alt: '' }
+  if (!C || !C.hash || !window.crypto || !crypto.subtle) return;
+  var TOKEN = C.hash.slice(-20);
+  var store = C.remember ? 'localStorage' : 'sessionStorage';
+  function get(k) { try { return window[store].getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { window[store].setItem(k, v); } catch (e) { /* ignore */ } }
+  var KEY = C.key + '.unlock';
+  var root = document.documentElement;
+  var fails = 0, waitUntil = 0, relockReady = false;
+  function isOpen() { return get(KEY) === TOKEN; }
+  if (isOpen()) { setupRelock(); return; }
+  root.classList.add('app-locked');
+
+  function b64(buf) { var s = '', a = new Uint8Array(buf); for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function unb64(t) { var s = atob(t), a = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+  function check(pw) {
+    var p = C.hash.split('$'); if (p.length !== 4 || p[0] !== 'p2') return Promise.resolve(false);
+    return crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits'])
+      .then(function (k) { return crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: unb64(p[2]), iterations: Number(p[1]) }, k, 256); })
+      .then(function (bits) { return b64(bits) === p[3]; });
+  }
+  function build() {
+    if (document.getElementById('appLock')) return;
+    var box = document.createElement('div'); box.id = 'appLock'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'lkTitle');
+    box.innerHTML = '<form class="lk-card" autocomplete="on"><img src="icons/gukhwa-192.png" alt=""><h1 id="lkTitle"></h1><p id="lkSub"></p>'
+      + '<input type="password" id="lkPw" autocomplete="current-password" aria-label="비밀번호" required>'
+      + '<button type="submit" id="lkGo">열기</button><p class="lk-err" id="lkErr" role="alert"></p>'
+      + (C.alt ? '<p class="lk-alt">' + C.alt + '</p>' : '') + '</form>';
+    document.body.appendChild(box);
+    box.querySelector('#lkTitle').textContent = C.title;
+    box.querySelector('#lkSub').textContent = C.who + ' 비밀번호를 넣어야 열립니다.' + (C.remember ? ' 이 기기에서는 한 번만 넣으면 됩니다.' : '');
+    var form = box.querySelector('form'), pw = box.querySelector('#lkPw'), go = box.querySelector('#lkGo'), err = box.querySelector('#lkErr');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var now = Date.now();
+      if (now < waitUntil) { err.textContent = Math.ceil((waitUntil - now) / 1000) + '초 뒤에 다시 넣어 주세요.'; return; }
+      if (!pw.value) return;
+      go.disabled = true; err.textContent = '';
+      check(pw.value).then(function (ok) {
+        go.disabled = false;
+        if (ok) { set(KEY, TOKEN); fails = 0; pw.value = ''; box.hidden = true; root.classList.remove('app-locked'); setupRelock(); try { window.dispatchEvent(new Event('app-unlocked')); } catch (x) { /* ignore */ } return; }
+        fails++; pw.value = ''; pw.focus();
+        if (fails >= 5) { waitUntil = Date.now() + 30000; fails = 0; err.textContent = '5번 틀렸습니다. 30초 뒤에 다시 넣어 주세요.'; }
+        else err.textContent = '비밀번호가 맞지 않습니다.';
+        form.classList.remove('lk-shake'); void form.offsetWidth; form.classList.add('lk-shake');
+      }, function () { go.disabled = false; err.textContent = '이 화면에서는 확인할 수 없습니다. 주소가 https 인지 확인해 주세요.'; });
+    });
+    setTimeout(function () { pw.focus(); }, 60);
+  }
+  function lock() {
+    root.classList.add('app-locked');
+    var box = document.getElementById('appLock');
+    if (box) { box.hidden = false; var pw = box.querySelector('#lkPw'); if (pw) { pw.value = ''; setTimeout(function () { pw.focus(); }, 60); } }
+    else if (document.body) build();
+  }
+  function setupRelock() {
+    if (relockReady || !C.relockMin) return; relockReady = true;
+    var hiddenAt = 0;
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); return; }
+      if (hiddenAt && Date.now() - hiddenAt > C.relockMin * 60000) { try { window[store].removeItem(KEY); } catch (e) { /* ignore */ } lock(); }
+    });
+  }
+  if (document.body) build(); else document.addEventListener('DOMContentLoaded', build);
+})();
+</script>
+
 </head>
 <body>
 <header class="appbar">
@@ -433,6 +527,20 @@ select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);b
         <button class="btn danger" type="button" id="sealDel">직인 지우기</button>
       </div>
       <input type="file" id="sealFile" accept="image/*" class="vh">
+    </div>
+    <div class="card" id="pwCard">
+      <h2>앱 비밀번호</h2>
+      <p class="small-t muted">회사관리(관리자)와 관리자 서식함(파트장) 비밀번호를 정해요. 여기서 만든 <b>비밀번호 코드</b>를 앱 담당자에게 보내면 앱에 적용돼요. 코드로는 비밀번호를 알아낼 수 없지만, <b>비밀번호 자체는 어디에도 보내지 마세요.</b> 장례일정은 비밀번호 없이 열려요.</p>
+      <p class="small-t" id="pwState"></p>
+      <label class="field"><span>대상</span><select class="sel" id="pwFor"><option value="admin">회사관리 · 관리자 비밀번호</option><option value="forms">관리자 서식함 · 파트장 비밀번호</option></select></label>
+      <label class="field"><span class="field-label">새 비밀번호 <span class="opt">6자 이상, 영문과 숫자를 섞어서</span></span><input type="password" id="pwNew" autocomplete="new-password"></label>
+      <label class="field"><span>한 번 더</span><input type="password" id="pwNew2" autocomplete="new-password"></label>
+      <button class="btn primary" type="button" id="pwMake">비밀번호 코드 만들기</button>
+      <div class="pw-out" id="pwOut" hidden>
+        <p class="small-t">아래 코드를 그대로 복사해서 보내 주세요.</p>
+        <textarea id="pwCode" readonly rows="3"></textarea>
+        <button class="btn" type="button" id="pwCopy">코드 복사</button>
+      </div>
     </div>
     <div class="card" id="installSettings" hidden>
       <h2>앱 설치</h2>
@@ -1892,6 +2000,22 @@ function renderAll() { renderTypeGrid(); renderDocList(); renderStaffList(); ren
 
 /* ================= 이벤트 ================= */
 function bind() {
+  { const st = window.__LOCK_STATE__ || {}; $('#pwState').textContent = `지금: 회사관리 잠금 ${st.admin ? '켜짐' : '꺼짐'} · 서식함 잠금 ${st.forms ? '켜짐' : '꺼짐'}`; }
+  $('#pwMake').addEventListener('click', async () => {
+    const a = $('#pwNew').value, b = $('#pwNew2').value;
+    if (a.length < 6) { toast('비밀번호는 6자 이상으로 정해 주세요'); return; }
+    if (!/[0-9]/.test(a) || !/[^0-9]/.test(a)) { toast('영문(또는 한글)과 숫자를 섞어 주세요'); return; }
+    if (a !== b) { toast('두 번 넣은 비밀번호가 달라요'); return; }
+    if (!window.crypto || !crypto.subtle) { toast('이 화면에서는 만들 수 없어요. https 주소에서 열어 주세요'); return; }
+    const salt = crypto.getRandomValues(new Uint8Array(16)), it = 210000;
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(a), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: it }, key, 256);
+    const b64 = (u) => btoa(String.fromCharCode(...new Uint8Array(u)));
+    $('#pwCode').value = `${$('#pwFor').value}:p2$${it}$${b64(salt)}$${b64(bits)}`;
+    $('#pwOut').hidden = false; $('#pwNew').value = ''; $('#pwNew2').value = '';
+    toast('코드를 만들었어요. 복사해서 보내 주세요');
+  });
+  $('#pwCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#pwCode').value); toast('코드를 복사했어요'); } catch (e) { $('#pwCode').select(); toast('선택된 코드를 길게 눌러 복사해 주세요'); } });
   $('#bkNow').addEventListener('click', () => exportBackup());
   $('#bkLater').addEventListener('click', () => { lsSet(BK_SNOOZE, String(Date.now() + 7 * DAY)); $('#bkBanner').hidden = true; });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBackup(); });

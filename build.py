@@ -16,6 +16,14 @@ CDN_JSPDF = '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jsp
 LOCAL_JSPDF = '<script src="vendor/jspdf.umd.min.js"></script>'
 
 version = sys.argv[1] if len(sys.argv) > 1 else datetime.datetime.now().strftime('%Y.%m.%d-%H%M')
+
+# 앱 잠금: locks.json 에 비밀번호 해시(코드)만 들어 있음. 비어 있으면 잠그지 않음
+LOCKS = json.loads((ROOT / 'locks.json').read_text(encoding='utf-8'))
+LOCK_SNIPPET = (ROOT / 'src' / 'lock.html').read_text(encoding='utf-8')
+
+
+def lock_html(cfg):
+    return LOCK_SNIPPET.replace('__LOCK_CFG__', json.dumps(cfg, ensure_ascii=False))
 src = (ROOT / 'src' / 'app.html').read_text(encoding='utf-8')
 
 split = src.index('<header class="appbar">')
@@ -43,6 +51,7 @@ html = f"""<!doctype html>
 try {{ if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); }} catch (e) {{}}</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
+{lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': '관리자 서식함', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': '장례일정만 쓰실 분은 <a href="jangrye/">장례일정 열기</a>'})}
 </head>
 <body>
 {body_part}
@@ -138,7 +147,9 @@ admin_html = f"""<!doctype html>
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
+<script>window.__LOCK_STATE__ = {json.dumps({k: bool(v) for k, v in LOCKS.items()})};</script>
 {ahead}
+{lock_html({'hash': LOCKS.get('admin', ''), 'key': 'ca', 'title': '회사 관리', 'who': '관리자', 'remember': False, 'relockMin': 10, 'alt': ''})}
 </head>
 <body>
 {abody}
