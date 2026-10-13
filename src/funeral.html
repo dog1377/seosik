@@ -702,6 +702,13 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
 .def-month em.done{background:var(--field);color:var(--muted)}
 .cm-label span.warn{color:var(--warn);font-weight:600}
 </style>
+<style id="backup-ui">
+.bk-banner{display:grid;gap:6px;padding:12px 14px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--ink);font-size:13.5px;line-height:1.55;margin:0 0 14px}
+.bk-banner[hidden]{display:none!important}
+.bk-banner b{color:var(--accent);font-size:14.5px}
+.bk-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+body.duty-mode .bk-banner{display:none!important}
+</style>
 <style id="start-ui">
 .pick-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .pick-x{flex:none;width:40px;height:40px;border:0;border-radius:10px;background:var(--field);color:var(--muted);font-size:17px;cursor:pointer}
@@ -747,6 +754,7 @@ body.split[data-tab="input"] #p-out .text-out{resize:none;overflow:hidden}
   <button class="btn sm primary" id="newCase" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새 행사</button>
 </div></header>
 <main class="wrap" id="mainContent">
+  <div class="bk-banner" id="bkBanner" hidden><b>백업할 때가 됐어요</b><span id="bkText"></span><div class="bk-row"><button class="btn sm primary" type="button" id="bkNow">지금 백업</button><button class="btn sm" type="button" id="bkLater">일주일 뒤에 알림</button></div></div>
   <header class="top">
     <div class="page-intro"><div><h1 id="pageTitle">장례 일정 작성</h1><p id="pageDesc">행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.</p></div><span class="intro-mark" aria-hidden="true">FUNERAL WORKSPACE</span></div>
     <div class="case-panel">
@@ -831,6 +839,7 @@ body.split[data-tab="input"] #p-out .text-out{resize:none;overflow:hidden}
       <div class="sec-head"><h2>행사 기록 보관</h2></div>
       <p class="note">행사 기록은 지우지 않는 한 이 기기에 계속 남고, 발인 날짜 기준으로 월별로 정리됩니다. 기기를 바꾸거나 브라우저 데이터를 지우면 사라지니 한 달에 한 번은 백업 파일을 받아 두세요.</p>
       <p class="keep-stats" id="keepStats"></p>
+      <p class="keep-stats" id="keepLast"></p>
       <div class="row"><button class="btn primary" id="keepBackup" type="button">전체 기록 백업 파일 저장</button><label class="btn" for="keepRestoreFile">백업 불러오기</label></div>
       <input type="file" id="keepRestoreFile" accept=".json,application/json" hidden>
       <label class="f"><span class="field-label">정리할 달</span><select class="input" id="keepMonth"></select></label>
@@ -907,6 +916,29 @@ body.split[data-tab="input"] #p-out .text-out{resize:none;overflow:hidden}
 <script>
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
+/* 브라우저에 "이 기록은 지우지 마" 요청 (저장공간이 부족해도 자동 정리 대상에서 빠짐) */
+let persistAsked=false, persisted=null;
+function askPersist(){
+  if(persistAsked) return; persistAsked=true;
+  try{ const st=navigator.storage; if(!st||!st.persist) return;
+    (st.persisted?st.persisted():Promise.resolve(false)).then(p=>p||st.persist()).then(p=>{ persisted=!!p; if(typeof renderKeep==='function') renderKeep(); }).catch(()=>{});
+  }catch(e){}
+}
+/* 백업 알림: 기록은 이 기기에만 있으니 한 달에 한 번 */
+const BK_KEY='funeral-lastBackup', BK_FIRST='funeral-firstUse', BK_SNOOZE='funeral-bkSnooze', DAY=86400000;
+const lsGet=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const lsSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
+function lastBackupAt(){ return Math.max(Number(lsGet(BK_KEY))||0, Number(lsGet('mf.lastBackup'))||0); }
+function markBackup(){ lsSet(BK_KEY,String(Date.now())); lsSet(BK_SNOOZE,''); checkBackup(); }
+function checkBackup(){
+  const has=!!(db.cases.length||db.envelopes.length), now=Date.now(), last=lastBackupAt();
+  if(has&&!lsGet(BK_FIRST)) lsSet(BK_FIRST,String(now));
+  const first=Number(lsGet(BK_FIRST))||now, days=Math.floor((now-last)/DAY);
+  const kl=$('#keepLast'); if(kl){ const d=new Date(last); kl.textContent=last?`마지막 백업: ${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} (${days}일 전)`:'아직 백업한 적이 없어요.'; }
+  const due=has&&(last?now-last>30*DAY:now-first>7*DAY), snoozed=(Number(lsGet(BK_SNOOZE))||0)>now, bn=$('#bkBanner');
+  if(!bn) return; bn.hidden=!due||snoozed;
+  if(due) $('#bkText').textContent=(last?`마지막 백업이 ${days}일 전이에요. `:'아직 백업한 적이 없어요. ')+'행사 기록이 이 기기에만 있어서 휴대폰을 잃어버리거나 바꾸면 사라져요. 백업 파일을 카톡 「나와의 채팅」이나 드라이브에 보내 두세요.';
+}
 const uid=()=>Math.random().toString(36).slice(2,10);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const WD=['일','월','화','수','목','금','토'];
@@ -1266,7 +1298,7 @@ if(!db.dwVendorAdded){
   else db.companies.push({id:uid(),name:'디더블유',band:GEN_BAND,reports:[],items:[],deduct:[]});
   db.dwVendorAdded=true;
 }
-function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); return ok; }
+function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
 const reportsEnabled=co=>typeof co.reportsEnabled==='boolean'?co.reportsEnabled:(co.reports||[]).length>0;
 const activeReports=co=>reportsEnabled(co)?(co.reports||[]):[];
@@ -1815,7 +1847,8 @@ $('#cmNext').onclick=()=>goMonth(1);
 function renderKeep(){
   const st=$('#keepStats'); if(!st) return;
   const months=caseMonths(), kb=Math.round(storeChars()/1024);
-  st.textContent=`행사 ${db.cases.length}건 · ${months.length}개월 · 봉투 ${db.envelopes.length}건 · 사용량 약 ${kb.toLocaleString('ko-KR')}KB`;
+  st.textContent=`행사 ${db.cases.length}건 · ${months.length}개월 · 봉투 ${db.envelopes.length}건 · 사용량 약 ${kb.toLocaleString('ko-KR')}KB${persisted?' · 자동 삭제 보호됨':''}`;
+  checkBackup();
   const sel=$('#keepMonth'), prev=sel.value;
   sel.innerHTML=months.length?[...months].reverse().map(([k,n])=>`<option value="${k}">${monthLabel(k)} (${n}건)</option>`).join(''):'<option value="">보관된 행사 없음</option>';
   if(months.some(([k])=>k===prev)) sel.value=prev;
@@ -1832,8 +1865,11 @@ $('#keepBackup').onclick=async()=>{
   save();
   const duty={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^hyumu-/.test(k)) duty[k]=localStorage.getItem(k); } }catch(e){}
   const data={app:'funeral-maker-backup',v:1,exportedAt:new Date().toISOString(),db,duty};
-  if(await keepDeliver(`장례일정_전체백업_${seoulToday().replace(/-/g,'')}.json`,JSON.stringify(data))) toast('백업 파일을 만들었습니다. 개인정보가 들어 있으니 본인만 보관하세요');
+  if(await keepDeliver(`장례일정_전체백업_${seoulToday().replace(/-/g,'')}.json`,JSON.stringify(data))){ markBackup(); toast('백업 파일을 만들었습니다. 개인정보가 들어 있으니 본인만 보관하세요'); }
 };
+$('#bkNow').onclick=()=>$('#keepBackup').click();
+$('#bkLater').onclick=()=>{ lsSet(BK_SNOOZE,String(Date.now()+7*DAY)); $('#bkBanner').hidden=true; };
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkBackup(); });
 $('#keepRestoreFile').onchange=async e=>{
   const file=e.target.files&&e.target.files[0]; e.target.value=''; if(!file) return;
   let data; try{ data=JSON.parse(await file.text()); }catch(err){ toast('백업 파일을 읽지 못했습니다'); return; }

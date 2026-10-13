@@ -64,6 +64,11 @@ svg{flex:none}
 .tab-head h1{font-family:var(--font-display);font-size:24px;line-height:1.3;margin:0;text-wrap:balance}
 .tab-head p{margin:4px 0 0;color:var(--muted);font-size:14px}
 .banner{border-radius:12px;padding:12px 14px;font-size:14px;background:var(--warn-soft);color:var(--warn);margin-bottom:16px}
+.bk-banner{display:grid;gap:6px;background:var(--accent-soft);color:var(--ink);border:1px solid var(--accent)}
+.bk-banner[hidden]{display:none}
+.bk-banner b{color:var(--accent)}
+.bk-banner span{font-size:13.5px;line-height:1.55}
+.bk-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
 .banner b{display:block;margin-bottom:2px}
 
 /* ---------- Buttons ---------- */
@@ -297,6 +302,11 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     <b>이 화면에서는 기기 저장이 막혀 있어요</b>
     입력은 할 수 있지만 창을 닫으면 사라집니다. 일반 브라우저 창(비공개 모드 아님)에서 다시 열어 주세요.
   </div>
+  <div class="banner bk-banner" id="bkBanner" hidden>
+    <b>백업할 때가 됐어요</b>
+    <span id="bkText"></span>
+    <div class="bk-row"><button class="btn small primary" type="button" id="bkNow">지금 백업</button><button class="btn small" type="button" id="bkLater">일주일 뒤에 알림</button></div>
+  </div>
   <div class="banner" id="failBanner" hidden>
     <b>저장에 실패했어요</b>
     기기 저장공간이 부족할 수 있어요. 설정에서 백업 파일을 먼저 받아 두세요.
@@ -454,6 +464,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
         <button class="btn" type="button" id="backupBtn">백업 파일 저장</button>
         <label class="btn" for="restoreFile">백업 불러오기</label>
       </div>
+      <p class="small-t muted" id="bkLast"></p>
       <input type="file" id="restoreFile" accept=".json,application/json" class="vh">
       <button class="btn danger block" type="button" id="wipeBtn">모든 기록 삭제</button>
     </div>
@@ -752,11 +763,13 @@ function downloadBlob(blob, name) {
 async function deliver(items, opts) {
   const dl = await getDownloads();
   if (dl || !window.__PWA__) {
-    for (const it of items) { if (!handleSave(await saveFile(dl, it.name, it.blob), opts.okMsg)) break; }
+    let ok = true;
+    for (const it of items) { if (!handleSave(await saveFile(dl, it.name, it.blob), opts.okMsg)) { ok = false; break; } }
+    if (ok && opts.onDone) opts.onDone();
     return;
   }
   const files = items.map((it) => new File([it.blob], it.name, { type: it.blob.type || MIME[it.name.split('.').pop()] || 'application/octet-stream' }));
-  openSheet({ title: opts.title, items, files, hint: opts.hint });
+  openSheet({ title: opts.title, items, files, hint: opts.hint, onDone: opts.onDone });
 }
 let sheetJob = null;
 function openSheet(job) {
@@ -771,13 +784,14 @@ function openSheet(job) {
 function closeSheet() { $('#sheet').hidden = true; }
 async function sheetShare() {
   const j = sheetJob; closeSheet(); if (!j) return;
-  try { await navigator.share({ files: j.files }); }
+  try { await navigator.share({ files: j.files }); if (j.onDone) j.onDone(); }
   catch (e) { if (!e || e.name !== 'AbortError') toast('보내기 창을 열지 못했어요. 「파일로 저장」을 눌러 주세요.'); }
 }
 function sheetSave() {
   const j = sheetJob; closeSheet(); if (!j) return;
   j.items.forEach((it) => downloadBlob(it.blob, it.name));
   toast(isIOS() ? '파일 앱의 「다운로드」 폴더에 저장했어요' : '다운로드 폴더에 저장했어요');
+  if (j.onDone) j.onDone();
 }
 function handleSave(r, okMsg) {
   if (r === 'saved') { toast(okMsg || '저장했어요'); return true; }
@@ -1925,6 +1939,22 @@ async function commitSettings() {
   if (!ok) { S.sd = clone(S.settings); renderSaveBar(); }
 }
 function cancelSettings() { S.sd = null; renderSettings(); toast('저장 전 상태로 되돌렸어요'); }
+/* ----- 백업 알림: 기록은 이 기기에만 있으니 한 달에 한 번 백업 ----- */
+const BK_KEY = 'mf.lastBackup', BK_FIRST = 'mf.firstUse', BK_SNOOZE = 'mf.bkSnooze', DAY = 86400000;
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
+function markBackup() { lsSet(BK_KEY, String(Date.now())); lsSet(BK_SNOOZE, ''); checkBackup(); }
+function checkBackup() {
+  const has = !!(S.weekly.size || S.ship.size || Object.values(S.reviews || {}).some((v) => String(v || '').trim())), now = Date.now();
+  const last = Number(lsGet(BK_KEY)) || 0;
+  if (has && !lsGet(BK_FIRST)) lsSet(BK_FIRST, String(now));
+  const first = Number(lsGet(BK_FIRST)) || now;
+  const lastEl = $('#bkLast'); if (lastEl) lastEl.textContent = last ? `마지막 백업: ${fmtYMD(new Date(last))} (${Math.floor((now - last) / DAY)}일 전)` : '아직 백업한 적이 없어요.';
+  const due = has && (last ? now - last > 30 * DAY : now - first > 7 * DAY);
+  const snoozed = (Number(lsGet(BK_SNOOZE)) || 0) > now;
+  $('#bkBanner').hidden = !due || snoozed;
+  if (due) $('#bkText').textContent = (last ? `마지막 백업이 ${Math.floor((now - last) / DAY)}일 전이에요. ` : '아직 백업한 적이 없어요. ') + '기록이 이 기기에만 있어서 휴대폰을 잃어버리거나 바꾸면 사라져요. 백업 파일을 카톡 「나와의 채팅」이나 드라이브에 보내 두세요.';
+}
 async function exportBackup() {
   const btn = $('#backupBtn'); setBusy(btn, true, '준비 중…');
   try {
@@ -1932,7 +1962,7 @@ async function exportBackup() {
     const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, funeral: funeralStorage() };
     const now = new Date();
     const name = `관리자서식함_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
-    await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요',
+    await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요', onDone: markBackup,
       hint: '백업 파일은 카톡 「나와의 채팅」이나 구글 드라이브로 보내 두면 휴대폰·PC를 바꿔도 되살릴 수 있어요.' });
   } finally { setBusy(btn, false); }
 }
@@ -1989,6 +2019,9 @@ function renderAll() { renderWeeklyList(); renderShip(); renderSettings(); if (S
 
 /* ================= events ================= */
 function bind() {
+  $('#bkNow').addEventListener('click', () => exportBackup());
+  $('#bkLater').addEventListener('click', () => { lsSet(BK_SNOOZE, String(Date.now() + 7 * DAY)); $('#bkBanner').hidden = true; });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBackup(); });
   $$('.tabbar button').forEach((b) => b.addEventListener('click', () => (b.dataset.tab === 'funeral' ? goFuneral() : showTab(b.dataset.tab))));
   // weekly
   $('#newWeekly').addEventListener('click', () => {
@@ -2275,6 +2308,7 @@ async function init() {
     }
   }
   renderAll();
+  checkBackup();
   setTimeout(renderSamples, 200);
 }
 init();
