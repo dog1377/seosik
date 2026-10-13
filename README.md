@@ -4,6 +4,7 @@
 
 - 입력한 기록은 **각자 휴대폰 안에만** 저장되고, 이 저장소나 어떤 서버에도 올라가지 않습니다.
 - 앱 주소를 휴대폰 브라우저(안드로이드 Chrome, 아이폰 Safari)로 열고 **앱 설치** 또는 **홈 화면에 추가**를 누르면 설치됩니다.
+- 주소: 서식함 https://dwfuneral.com · 장례일정 https://dwfuneral.com/jangrye/ · 회사관리 https://dwfuneral.com/admin/
 - 서식 없이 장례 일정 작성기만 쓰는 **장례일정** 앱은 `jangrye/` 주소에 따로 있습니다.
 - 회사 관리자용 **회사 관리** 앱(공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드)은 `admin/` 주소에 따로 있습니다. 소스는 `src/admin.html` 입니다.
 
@@ -14,3 +15,8 @@
    빌드하면 `funeral.html`(서식함 안의 장례업무)과 `jangrye/index.html`(따로 쓰는 장례일정 앱)이 함께 만들어져요.
 2. `python3 build.py` 를 실행합니다.
 3. 커밋하고 `main` 에 올리면 1~2분 뒤 GitHub Pages에 반영되고, 설치된 앱은 다음에 열 때 새 버전으로 바뀝니다.
+
+## 주소(도메인)
+
+- `CNAME` 파일의 dwfuneral.com 으로 GitHub Pages가 연결됩니다. 가비아 DNS: A @ 185.199.108~111.153, CNAME www → dog1377.github.io.
+- 예전 주소(dog1377.github.io/seosik/)는 자동으로 dwfuneral.com 으로 넘어갑니다.
