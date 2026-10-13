@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-13">
+<meta name="app-version" content="2026.10.13-14">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -661,6 +661,50 @@ body.tp-open .toast{top:calc(16px + env(safe-area-inset-top,0px));bottom:auto}
 .sb-sum b{font-size:19px;font-variant-numeric:tabular-nums;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 86px + env(safe-area-inset-bottom,0px))}
 .settle-bar .btn{flex:none;background:var(--accent-ink);color:var(--accent);border:0;min-height:44px;font-weight:700;padding:0 14px}
+.must{margin:0;padding:10px 12px;border-radius:10px;background:var(--warn-soft);color:var(--warn);font-size:13.5px;font-weight:600;line-height:1.55}
+.lbl-sub{font-size:11.5px;font-weight:400;color:var(--muted)}
+.sub-block{display:grid;gap:10px;padding:12px;border:1px dashed var(--edge,var(--line));border-radius:12px}
+.sub-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sub-head b{font-size:14.5px}
+.sub-head small{font-size:12px;color:var(--muted)}
+.urn-calc .tot.minus b{color:var(--warn)}
+.auto-mi{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--warn-soft)}
+.auto-mi .tag{font-size:11px;font-weight:700;color:var(--warn);border:1px solid currentColor;border-radius:6px;padding:1px 6px}
+.auto-mi .who{font-weight:600;min-width:0}
+.auto-mi .who small{font-weight:400;color:var(--muted);margin-left:2px}
+.auto-mi b{color:var(--warn);font-variant-numeric:tabular-nums;font-size:16px}
+.auto-mi .why{grid-column:2/-1;font-size:12px;color:var(--muted)}
+#autoMinus{display:grid;gap:8px}
+#autoMinus:empty{display:none}
+.lg-total.neg{background:var(--warn-soft)}
+.lg-total.neg b{color:var(--warn)}
+.settle-bar.neg{background:var(--warn);color:#fff}
+.settle-bar.neg .btn{background:#fff;color:var(--warn)}
+.def-alert{display:grid;gap:2px;width:100%;text-align:left;border:1px solid var(--warn);background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:11px 14px;font:inherit;cursor:pointer}
+.def-alert b{font-size:14.5px}
+.def-alert span{font-size:12.5px}
+#defAlert:empty{display:none}
+.def-me{display:grid;gap:8px;padding:12px 14px;border-radius:12px;background:var(--warn-soft);color:var(--ink);font-size:13.5px;line-height:1.6}
+.def-me>b{color:var(--warn);font-size:15px}
+.def-h{margin:6px 0 -2px;font-size:13px;font-weight:700;color:var(--muted)}
+.def-row{display:grid;gap:8px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.def-row.on{border-color:var(--warn)}
+.def-main{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.def-main .input{flex:1;min-width:0;font-weight:600}
+.def-tag{font-weight:700;font-size:15px}
+.def-amt{flex:none;color:var(--warn);font-size:16px;font-variant-numeric:tabular-nums}
+.def-sub{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted)}
+.def-sub span{min-width:0}
+.def-sub .btn{flex:none}
+.def-warn{margin:0;font-size:12.5px;color:var(--warn);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.def-month{display:grid;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.def-month>div{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+.def-month>div:last-child{border-bottom:0}
+.def-month b{color:var(--warn);font-variant-numeric:tabular-nums}
+.def-month em{font-style:normal;font-size:12px;padding:2px 8px;border-radius:999px}
+.def-month em.left{background:var(--warn-soft);color:var(--warn);font-weight:700}
+.def-month em.done{background:var(--field);color:var(--muted)}
+.cm-label span.warn{color:var(--warn);font-weight:600}
 </style>
 <style id="burial-ui">
 .burial-seg{display:flex;gap:3px;padding:3px;border-radius:12px;background:var(--field);border:1px solid var(--line)}
@@ -745,7 +789,9 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
         <label class="f">제단 정산 고정 금액<div class="suffix"><input class="input" id="rAltar" inputmode="numeric"><span>만원</span></div></label>
         <label class="f">유골함 이익 나눔<div class="suffix"><input class="input" id="rUrn" inputmode="numeric"><span>%</span></div></label>
       </div>
-      <p class="note">유골함 정산 = 이익(수금 − 원가) × 나눔 비율 + 원가. 예: 수금 40 · 원가 14 → 이익 26 → 13 + 14 = 27만원</p>
+      <p class="note">유골함 정산 = 이익(수금 − 원가) × 나눔 비율 + 원가. 예: 수금 40 · 원가 14 → 이익 26 → 13 + 14 = 27만원. 본부장 몫이 0.5만원으로 끝나면 내려서 보냅니다(32.5 → 32).</p>
+      <label class="f">관꽃장식 추가 판매 · 우리 몫<div class="suffix"><input class="input" id="rFlower" inputmode="numeric"><span>%</span></div></label>
+      <p class="note">받은 금액 × 우리 몫 비율 = 우리 몫, 나머지는 본부장 몫(입관꽃장식 원가 포함). 예: 30만원 · 50% → 본부장 15(원가 5 포함) · 우리 15</p>
       <div class="row"><button class="btn sm primary" id="saveRules" type="button">저장</button></div>
     </div>
     <div class="sec">
@@ -1694,13 +1740,15 @@ window.addEventListener('online',()=>renderTtl()); window.addEventListener('offl
 function renderCaseSel(){
   renderTtl();
   const cur=curCase(), months=caseMonths(), mk=cur?caseMonth(cur):(months[0]?months[0][0]:'');
-  const list=mk?casesOfMonth(mk):[];
-  $('#caseSel').innerHTML=list.length?list.map(c=>{ const d=parseDT(c.f.depart), co=coById(c.companyId);
-    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(c.f.name?'故 '+c.f.name:(c.f.place||'(고인명 미입력)'))} · ${esc(co.name)}${d?` · 발인 ${d.mo}/${d.d}`:''}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
+  const list=mk?casesOfMonth(mk):[], used=carryUse(); let negLeft=0;
+  $('#caseSel').innerHTML=list.length?list.map(c=>{ const d=parseDT(c.f.depart), co=coById(c.companyId), w=settleCalc(c).sendWon, neg=w<0?(used.has(c.id)?' · 마이너스 정리됨':` · 마이너스 ${wonStr(w)}`):'';
+    if(w<0&&!used.has(c.id)) negLeft++;
+    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(c.f.name?'故 '+c.f.name:(c.f.place||'(고인명 미입력)'))} · ${esc(co.name)}${d?` · 발인 ${d.mo}/${d.d}`:''}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
   $('#caseSel').disabled=!list.length; $('#delCase').disabled=!list.length;
   const i=months.findIndex(x=>x[0]===mk);
   $('#cmLabel').textContent=mk?monthLabel(mk):'행사 없음';
-  $('#cmCount').textContent=mk?`${list.length}건${months.length>1?` · ${months.length}개월 보관 중`:''}`:'';
+  $('#cmCount').textContent=mk?`${list.length}건${negLeft?` · 마이너스 ${negLeft}건 남음`:''}${months.length>1?` · ${months.length}개월 보관 중`:''}`:'';
+  $('#cmCount').classList.toggle('warn',negLeft>0);
   $('#cmPrev').disabled=i<0||i>=months.length-1; $('#cmNext').disabled=i<=0;
   renderKeep();
 }
@@ -1872,20 +1920,37 @@ $('#importApply').onclick=()=>{
   });
 };
 
-$('#saveRules').onclick=()=>{ const R=rules(); R.altarFixed=Number($('#rAltar').value)||0; R.urnShare=Number($('#rUrn').value)||0; save(); toast('정산 기준을 저장했습니다'); };
+$('#saveRules').onclick=()=>{ const R=rules(); R.altarFixed=Number($('#rAltar').value)||0; R.urnShare=Number($('#rUrn').value)||0; const fo=Number($('#rFlower').value); R.flowerOur=Number.isFinite(fo)&&$('#rFlower').value!==''?Math.min(100,Math.max(0,fo)):50; save(); toast('정산 기준을 저장했습니다'); };
 /* ---------- 관리: 선택 목록 ---------- */
 function renderLists(){ $('#listEdit').innerHTML=Object.keys(LIST_LABEL).map(k=>`<label class="f">${LIST_LABEL[k]}<textarea class="input" data-list="${k}" rows="4">${esc(db.lists[k].join('\n'))}</textarea></label>`).join(''); }
 $('#saveLists').onclick=()=>{ document.querySelectorAll('[data-list]').forEach(t=>{ db.lists[t.dataset.list]=t.value.split('\n').map(s=>s.trim()).filter(Boolean); }); save(); toast('선택 목록을 저장했습니다'); };
 
 /* ---------- 정산 보고 ---------- */
-// 금액 → 원: 1000 미만 숫자는 만원 단위, 그 이상은 원 단위, "5만원" 같은 글도 읽음
+// 금액 → 원: 1000 미만 숫자는 만원 단위, 그 이상은 원 단위, "5만원" 같은 글도 읽음. 앞에 -가 있으면 마이너스
 function toWon(v){
-  v=String(v??'').replace(/,/g,'').trim(); if(!v) return 0;
-  let m=v.match(/(\d+(?:\.\d+)?)\s*만\s*(\d+)?/); if(m) return Math.round(Number(m[1])*10000+(m[2]?Number(m[2]):0));
-  m=v.match(/(\d+(?:\.\d+)?)/); if(!m) return 0; const n=Number(m[1]); return n<1000?Math.round(n*10000):Math.round(n);
+  v=String(v??'').replace(/,/g,'').replace(/−/g,'-').trim(); if(!v) return 0;
+  const neg=/^-/.test(v); if(neg) v=v.slice(1).trim();
+  let w; let m=v.match(/(\d+(?:\.\d+)?)\s*만\s*(\d+)?/);
+  if(m) w=Math.round(Number(m[1])*10000+(m[2]?Number(m[2]):0));
+  else { m=v.match(/(\d+(?:\.\d+)?)/); if(!m) return 0; const n=Number(m[1]); w=n<1000?Math.round(n*10000):Math.round(n); }
+  return neg?-w:w;
 }
 function wonStr(w){ if(!w) return ''; const neg=w<0; w=Math.abs(w); const s=w%10000===0?`${(w/10000).toLocaleString('ko-KR')}만원`:`${w.toLocaleString('ko-KR')}원`; return (neg?'-':'')+s; }
-function rules(){ if(!db.settleRules) db.settleRules={altarFixed:24, urnShare:50}; return db.settleRules; }
+function rules(){ if(!db.settleRules) db.settleRules={altarFixed:24, urnShare:50}; const R=db.settleRules; if(R.flowerOur==null) R.flowerOur=50; if(R.mgrName==null) R.mgrName=''; return R; }
+const mgrName=()=>String(rules().mgrName||'').trim()||'실장';
+// 본부장 몫이 0.5만원(5,000원)으로 끝나면 내림: 32.5만 → 32만
+function hqRound(w){ w=Math.round(w); return Math.abs(w%10000)===5000?w-5000*Math.sign(w):w; }
+function urnSplit(s,R){
+  const uCol=toWon(s.urnCollect), uCost=toWon(s.urnCost), uDisc=toWon(s.urnDisc), profit=uCol?uCol-uCost:0;
+  const share=uCol?hqRound(profit*(R.urnShare/100)):0;
+  return {uCol,uCost,uDisc,profit,share,keep:profit-share};
+}
+// 관꽃장식 추가 판매: 받은 금액을 본부장/우리로 나눔. 원가(입관꽃장식 업체 금액)는 본부장 몫에 포함
+function flowerSplit(s,R){
+  const sale=toWon(s.flowerSale), cost=toWon(s.flower); if(!sale) return {sale:0,cost,hq:0,our:0,pay:''};
+  const hq=hqRound(sale*(100-R.flowerOur)/100);
+  return {sale,cost,hq,our:sale-hq,pay:s.flowerSalePay||'현금'};
+}
 function S(c){
   if(!c.s) c.s={pay:'현금',extras:[],urnPay:'현금'}; const s=c.s; if(!s.extras) s.extras=[]; if(!s.urnPay) s.urnPay='현금';
   if(s.flower===undefined && (s.flowerSel||s.flowerAmt)) s.flower=s.flowerSel==='__direct'?(s.flowerAmt||''):(s.flowerSel||'');
@@ -1896,44 +1961,53 @@ function S(c){
 function pickVal(sel,direct){ return sel==='__direct'?(direct||''):(sel||''); }
 function itemLine(a,pay){ if(!a && !pay) return ''; return `${a||''}${pay?`(${pay})`:''}`; }
 const fullWon=w=>w?`${w<0?'-':''}${Math.abs(w).toLocaleString('ko-KR')}원`:'';
-function settleData(c){
-  const f=c.f||{}, s=S(c), v=vals(c), R=rules();
-  // 제단: 고정금액까지 정산(받은 금액이 적으면 전부)
+// 숫자 계산만 (다른 행사 마이너스 확인할 때도 씀 · 저장된 값은 바꾸지 않음)
+function settleCalc(c){
+  const f=c.f||{}, s=c.s?S(c):{pay:'현금',extras:[],urnPay:'현금'}, R=rules(), mg=mgrName();
   const altarWon=toWon(s.altarAmt), altarSend=altarWon?Math.min(altarWon, R.altarFixed*10000):0;
   const altar=altarWon?`${wonStr(altarSend)}(${wonStr(altarWon)})`:'';
-  // 유골함: 이익(수금-원가)의 나눔 비율만큼 + 원가를 정산
-  const uCol=toWon(s.urnCollect), uCost=toWon(s.urnCost), uDisc=toWon(s.urnDisc);
-  const profit=uCol?uCol-uCost:0, share=Math.round(profit*(R.urnShare/100));
-  const urn=uCol?`${wonStr(share)}(${wonStr(profit)})수금(${wonStr(uCol)})${uDisc?`할인(${wonStr(uDisc)})`:''}${String(s.urnType||'').trim()}${s.urnPay?`(${s.urnPay})`:''}`:'';
-  const urnCash=!!uCol && s.urnPay==='현금';
+  const U=urnSplit(s,R), urnCash=!!U.uCol && s.urnPay==='현금';
+  const urn=U.uCol?`${wonStr(U.share)}(${wonStr(U.profit)})수금(${wonStr(U.uCol)})${U.uDisc?`할인(${wonStr(U.uDisc)})`:''}${String(s.urnType||'').trim()}${s.urnPay?`(${s.urnPay})`:''}`:'';
+  const FL=flowerSplit(s,R);
   const flowerA=money(s.flower||''), flowerP=String(s.flowerPay||'');
   const tribA=money(s.trib||''), tribP=String(s.tribPay||'');
-  const extras=s.extras.filter(x=>x.text.trim()||x.amt).map(x=>({text:x.text.trim(), pay:x.pay||'', won:toWon(x.amt),
-    line:`${[x.text.trim(),money(x.amt)].filter(Boolean).join(' ')}${x.pay?`(${x.pay})`:''}`}));
+  const extras=(s.extras||[]).filter(x=>String(x.text||'').trim()||x.amt).map(x=>({text:String(x.text||'').trim(), pay:x.pay||'', won:toWon(x.amt),
+    line:`${[String(x.text||'').trim(),money(x.amt)].filter(Boolean).join(' ')}${x.pay?`(${x.pay})`:''}`}));
+  if(FL.sale) extras.push({text:'관꽃장식 추가',pay:FL.pay,won:FL.sale,flower:true,line:`관꽃장식 추가 ${wonStr(FL.sale)}(${FL.pay})`});
+  // 실장 몫 자동 줄: 유골함을 카드로 받으면 본부장이 전부 받았으니 우리 몫을 돌려받음 · 관꽃장식 판매는 우리 몫을 뺌
+  const autoMinus=[];
+  if(U.uCol && !urnCash && U.keep>0) autoMinus.push({who:mg,memo:'',won:U.keep,why:'유골함 카드 · 우리 몫',line:`${mg} : -${wonStr(U.keep)}`});
+  if(FL.our>0) autoMinus.push({who:mg,memo:'꽃장식',won:FL.our,why:'관꽃장식 · 우리 몫',line:`${mg} : -${wonStr(FL.our)}(꽃장식)`});
   const minus=(s.minus||[]).filter(x=>String(x.who||'').trim()||x.amt).map(x=>{ const who=String(x.who||'').trim(), memo=String(x.memo||'').trim(), won=Math.abs(toWon(x.amt));
     return {who,memo,won,line:`${who||'공제'} : -${wonStr(won)||'0원'}${memo?`(${memo})`:''}`}; });
+  const carry=(s.carry||[]).map(r=>({...r,line:`${String(r.label||'').trim()} ${wonStr(-Math.abs(r.won))}`}));
   const collectWon=toWon(f.collect);
   // 보내는금액에 들어가는 줄(on) / 안 들어가는 줄(off)
   const rows=[];
-  if(collectWon) rows.push({k:'수금',note:s.pay||'현금',won:collectWon,on:(s.pay||'현금')==='현금'});
+  if(collectWon) rows.push({k:'상품 수금',note:s.pay||'현금',won:collectWon,on:(s.pay||'현금')==='현금',off:s.pay});
   if(altarWon) rows.push({k:'제단',note:`받은 ${wonStr(altarWon)} 중`,won:altarSend,on:true});
-  if(uCol){ rows.push({k:'유골함 몫',note:`이익 ${wonStr(profit)||'0원'}의 ${R.urnShare}%`,won:share,on:urnCash,off:s.urnPay}); if(uCost) rows.push({k:'유골함 원가',note:'',won:uCost,on:urnCash,off:s.urnPay}); }
+  if(U.uCol){ rows.push({k:'유골함 본부장 몫',note:`이익 ${wonStr(U.profit)||'0원'}의 ${R.urnShare}%`,won:U.share,on:urnCash,off:s.urnPay}); if(U.uCost) rows.push({k:'유골함 원가',note:'',won:U.uCost,on:urnCash,off:s.urnPay}); }
   extras.forEach(x=>rows.push({k:x.text||'기타추가',note:x.pay,won:x.won,on:x.pay==='현금',off:x.pay||'결제 안 고름'}));
+  autoMinus.forEach(x=>rows.push({k:x.who,note:x.why,won:-x.won,on:true}));
   minus.forEach(x=>rows.push({k:x.who||'빼는 금액',note:x.memo,won:-x.won,on:true}));
   if(flowerA) rows.push({k:'입관꽃장식',note:flowerP,won:toWon(flowerA),on:/현금/.test(flowerP),off:flowerP||'결제 안 고름'});
   if(tribA) rows.push({k:'헌화',note:tribP,won:toWon(tribA),on:/현금/.test(tribP),off:tribP||'결제 안 고름'});
+  carry.forEach(r=>rows.push({k:String(r.label||'').trim()||'지난 마이너스',note:'지난 마이너스 빼기',won:-Math.abs(r.won),on:true,carry:true}));
   const auto=rows.filter(r=>r.on).reduce((a,r)=>a+r.won,0);
   const ov=String(s.sendOverride||'').trim(), ovWon=ov?toWon(ov):0;
   const sendWon=ov?ovWon:auto;
-  const send=ov?(ovWon?fullWon(ovWon):ov):fullWon(auto);
-  return {v,s,f,altar,urn,uCost,collectWon,flower:itemLine(flowerA,flowerP),tribute:itemLine(tribA,tribP),extras,minus,rows,auto,sendWon,send,
-    sub:{collect:collectWon&&(s.pay||'현금')==='현금'?collectWon:0, altar:altarSend, urn:urnCash?share+uCost:0,
-      extra:extras.filter(x=>x.pay==='현금').reduce((a,x)=>a+x.won,0), minus:minus.reduce((a,x)=>a+x.won,0),
-      etc:(/현금/.test(flowerP)?toWon(flowerA):0)+(/현금/.test(tribP)?toWon(tribA):0)}};
+  const send=ov?(ovWon?wonStr(ovWon):ov):(wonStr(auto)||'0원');
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+  return {s,f,R,U,FL,altar,urn,uCost:U.uCost,collectWon,flower:itemLine(flowerA,flowerP),tribute:itemLine(tribA,tribP),extras,autoMinus,minus,carry,rows,auto,sendWon,send,
+    sub:{collect:collectWon&&(s.pay||'현금')==='현금'?collectWon:0, altar:altarSend, urn:urnCash?U.share+U.uCost:0,
+      extra:sum(extras.filter(x=>!x.flower&&x.pay==='현금').map(x=>x.won)), minus:sum(autoMinus.map(x=>x.won))+sum(minus.map(x=>x.won)),
+      etc:(FL.sale&&FL.pay==='현금'?FL.sale:0)+(/현금/.test(flowerP)?toWon(flowerA):0)+(/현금/.test(tribP)?toWon(tribA):0),
+      carry:sum(carry.map(r=>Math.abs(r.won)))}};
 }
+function settleData(c){ return {...settleCalc(c), v:vals(c)}; }
 function settleText(c){
   const d=settleData(c), g=k=>String(d.s[k]??'').trim(), ind='                 ';
-  const collect=d.f.collect?`${d.collectWon?fullWon(d.collectWon):money(d.f.collect)}(${d.s.pay||'현금'})`:'';
+  const collect=d.f.collect?`${d.collectWon?wonStr(d.collectWon):money(d.f.collect)}(${d.s.pay||'현금'})`:'';
   const L=[
     d.v['장소'],
     `도우미 : ${d.v['도우미']}`,
@@ -1945,13 +2019,28 @@ function settleText(c){
     `유골함 : ${d.urn}`,
     `유골함원가 : ${d.uCost?wonStr(d.uCost):''}`,
     ...(d.extras.length?d.extras.map((x,i)=>i?ind+x.line:`기타추가 : ${x.line}`):['기타추가 : ']),
+    ...d.autoMinus.map(x=>x.line),
     ...d.minus.map(x=>x.line),
     `이송 : ${g('transfer')}`,
     `입관꽃장식 : ${d.flower}`,
     `헌화 : ${d.tribute}`,
+    ...d.carry.map(x=>x.line),
     `보내는금액 : ${d.send}`,
   ];
   return L.map(l=>l.replace(/\s+$/,'')).join('\n');
+}
+/* ---------- 마이너스 정산: 보내는금액이 -면 다른 행사 정산에서 뺌 ---------- */
+function caseTag(c){
+  const f=c.f||{}, m=Number(caseMonth(c).slice(5,7)), no=String(f.eventNo||'').trim();
+  if(no) return `${m}월${no}번행사`;
+  const who=String(f.place||'').trim()||(f.name?'故 '+String(f.name).trim():'');
+  return `${m}월 ${who} 행사`.replace(/\s+/g,' ');
+}
+function carryUse(){ const m=new Map(); db.cases.forEach(t=>((t.s&&t.s.carry)||[]).forEach(r=>{ if(!m.has(r.from)) m.set(r.from,t); })); return m; }
+function deficits(){
+  const used=carryUse();
+  return db.cases.map(c=>{ const w=settleCalc(c).sendWon; return w<0?{c,won:w,tag:caseTag(c),used:used.get(c.id)||null}:null; }).filter(Boolean)
+    .sort((a,b)=>caseSortKey(a.c)<caseSortKey(b.c)?-1:1);
 }
 // 수당 정산: 회사로 보내고 남은 내 몫
 const COMM_ITEMS=['사진','검안','각인','바다장','납골','수목장','유골함','도시락','개장','산일','제단','꽃관','키트','초도','경비'];
@@ -1960,12 +2049,13 @@ function me(){ if(!db.me) db.me={name:'',rank:''}; return db.me; }
 function commData(c){
   const s=S(c), R=rules();
   const altarWon=toWon(s.altarAmt), altarKeep=altarWon?altarWon-Math.min(altarWon,R.altarFixed*10000):0;
-  const uCol=toWon(s.urnCollect), uCost=toWon(s.urnCost), profit=uCol?uCol-uCost:0, urnKeep=profit-Math.round(profit*(R.urnShare/100));
-  const auto={'제단':altarKeep?{text:`${wonStr(altarKeep)}(${man(altarWon)})`,won:altarKeep}:null, '유골함':uCol&&urnKeep?{text:`${wonStr(urnKeep)}(${man(profit)})`,won:urnKeep}:null};
+  const U=urnSplit(s,R), urnKeep=U.uCol?U.keep:0, FL=flowerSplit(s,R);
+  const auto={'제단':altarKeep?{text:`${wonStr(altarKeep)}(${man(altarWon)})`,won:altarKeep}:null, '유골함':U.uCol&&urnKeep?{text:`${wonStr(urnKeep)}(${man(U.profit)})`,won:urnKeep}:null};
+  if(FL.our) auto['꽃관']={text:`${wonStr(FL.our)}(${man(FL.sale)})`,won:FL.our};
   const m=s.comm||{};
   const rows=COMM_ITEMS.map(k=>auto[k]!==undefined?{k,text:auto[k]?auto[k].text:'',won:auto[k]?auto[k].won:0,auto:true}:{k,text:money(m[k]),won:toWon(m[k])});
   const total=rows.reduce((a,r)=>a+r.won,0);
-  return {rows,total,altarKeep,urnKeep};
+  return {rows,total,altarKeep,urnKeep,flowerKeep:FL.our};
 }
 function commText(c){
   const d=commData(c), f=c.f||{}, p=parseDT(f.depart), who=me();
@@ -1988,10 +2078,11 @@ const sChip=id=>`<span class="s-chip" id="${id}"></span>`;
 function renderSettle(){
   const c=curCase(), el=$('#p-settle');
   if(!c){ el.innerHTML=`<div class="sec"><p class="note">작성 중인 건이 없습니다.</p></div>`; return; }
-  const s=S(c), f=c.f, R=rules(); if(!s.minus) s.minus=[];
+  const s=S(c), f=c.f, R=rules(); if(!s.minus) s.minus=[]; if(!s.flowerSalePay) s.flowerSalePay='현금';
   const sf=(k,label,list,ph,mode='')=>list?`<div class="f-wrap"><label class="f">${label}</label>${chooser({key:k,options:db.lists[list]||[],label})}</div>`:`<label class="f">${label}<input class="input" data-sf="${k}" value="${esc(f[k]||'')}" ${mode} placeholder="${esc(ph||'')}" autocomplete="off"></label>`;
   const autoBurial=[f.burial1,f.burial2].filter(Boolean).join('-');
   el.innerHTML=`
+  <div class="settle-wide" id="defAlert"></div>
   <div class="settle-guide settle-wide"><b>숫자만 넣으면 만원</b>입니다. 30 → 30만원<br>칸 아래 실제 금액, 제목 옆 <b>+</b>/<b>−</b>는 보내는금액에 들어가는 몫이에요.</div>
   <div class="sec"><div class="sec-head"><h2>기본 정보</h2></div><div class="fields">
     <p class="note">입력 탭에 넣은 값이 자동으로 들어옵니다. 비어 있으면 여기서 바로 넣으세요. (여기서 고치면 입력 탭에도 반영)</p>
@@ -2001,8 +2092,9 @@ function renderSettle(){
     ${sf('mournBrand','상복 업체','mournBrands','예: 한맥')}
     ${sf('burial','장지',  '', autoBurial||'예: 김해화장-부산추모(벽식)')}
   </div></div>
-  <div class="sec"><div class="sec-head"><h2>수금</h2>${sChip('chCollect')}</div><div class="fields">
-    <div class="pair"><label class="f">금액${amtIn('data-sf="collect"',f.collect,'예: 257.5')}</label>
+  <div class="sec"><div class="sec-head"><h2>상품 수금</h2>${sChip('chCollect')}</div><div class="fields">
+    <p class="must">상품 수금 금액만 넣으세요. 제단 · 유골함 · 추가 항목은 아래 각 칸에 따로 넣습니다.</p>
+    <div class="pair"><label class="f">상품 수금 금액${amtIn('data-sf="collect"',f.collect,'예: 257.5')}</label>
     <label class="f">결제${seg2('pay',s.pay||'현금')}</label></div>
     <p class="note">카드 수금은 보내는금액에 더하지 않습니다.</p></div></div>
   <div class="sec"><div class="sec-head"><h2>제단</h2>${sChip('chAltar')}</div><div class="fields">
@@ -2021,22 +2113,29 @@ function renderSettle(){
       ${seg2(x.id,x.pay,'data-exseg')}
       <button class="x" type="button" data-exdel="${x.id}" aria-label="삭제">✕</button></div></div>`).join('')}
     <button class="btn sm" type="button" data-act="exAdd">+ 기타추가 항목</button>
-    <p class="note">현금만 보내는금액에 더해집니다. 카드는 카톡에 (카드)로만 적힙니다.</p></div></div>
-  <div class="sec"><div class="sec-head"><h2>빼는 금액</h2>${sChip('chMinus')}</div><div class="fields">
-    ${s.minus.map(x=>`<div class="ex mi"><div class="ex-row mi-top"><input class="input" data-mi="${x.id}" data-mif="who" value="${esc(x.who||'')}" placeholder="누구 · 항목 (예: 이승구실장)"><button class="x" type="button" data-midel="${x.id}" aria-label="삭제">✕</button></div>
-      <div class="pair">${amtIn(`data-mi="${x.id}" data-mif="amt"`,x.amt,'금액',false)}<input class="input" data-mi="${x.id}" data-mif="memo" value="${esc(x.memo||'')}" placeholder="이유 (예: 꽃장식)"></div></div>`).join('')}
-    <button class="btn sm" type="button" data-act="miAdd">+ 빼는 금액</button>
-    <p class="note">보내는금액에서 빼고, 카톡에는 "이승구실장 : -15만원(꽃장식)"처럼 기타추가 다음 줄에 들어갑니다.</p></div></div>
+    <p class="note">현금만 보내는금액에 더해집니다. 카드는 카톡에 (카드)로만 적힙니다. 관꽃장식 판매는 아래 「관꽃장식 추가 판매」 칸에 넣으면 실장 몫까지 계산됩니다.</p></div></div>
   <div class="sec"><div class="sec-head"><h2>이송 · 꽃장식 · 헌화</h2>${sChip('chEtc')}</div><div class="fields">
     <label class="f">이송<input class="input" data-s="transfer" value="${esc(s.transfer||'')}" placeholder="없으면 비워 두세요"></label>
-    <div class="pair"><div class="f-wrap"><label class="f">입관꽃장식</label>${chooser({scope:'s',key:'flower',options:db.lists.flowers,label:'입관꽃장식',numeric:false,dirPh:'예: 경북 5만원'})}</div>
+    <div class="pair"><div class="f-wrap"><label class="f">입관꽃장식 (업체 · 원가)</label>${chooser({scope:'s',key:'flower',options:db.lists.flowers,label:'입관꽃장식',numeric:false,dirPh:'예: 경북 5만원'})}</div>
     <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'flowerPay',options:db.lists.flowerPays,label:'입관꽃장식 결제',dirPh:'예: 현금'})}</div></div>
+    <div class="sub-block"><div class="sub-head"><b>관꽃장식 추가 판매</b><small>고객에게 따로 받았을 때만</small></div>
+      <div class="pair"><label class="f">받은 금액${amtIn('data-s="flowerSale"',s.flowerSale,'예: 30')}</label>
+      <label class="f">결제${seg2('flowerSalePay',s.flowerSalePay||'현금')}</label></div>
+      <div class="calc urn-calc" id="flowerCalc"></div></div>
     <div class="pair"><div class="f-wrap"><label class="f">헌화</label>${chooser({scope:'s',key:'trib',options:db.lists.tributes,label:'헌화',dirPh:'예: 영호 3만원'})}</div>
     <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'tribPay',options:db.lists.tributePays,label:'헌화 결제',dirPh:'예: 현금'})}</div></div>
     <p class="note">법카 결제는 카톡에만 적히고 보내는금액에는 안 들어갑니다. 결제에 "현금"이 들어가면 더해집니다.</p></div></div>
+  <div class="sec"><div class="sec-head"><h2>빼는 금액</h2>${sChip('chMinus')}</div><div class="fields">
+    <label class="f">실장 이름 <span class="lbl-sub">자동으로 빼는 줄에 씀 · 모든 행사 공통</span><input class="input" data-rule="mgrName" value="${esc(R.mgrName||'')}" placeholder="예: 이승구실장" autocomplete="off"></label>
+    <div id="autoMinus"></div>
+    ${s.minus.map(x=>`<div class="ex mi"><div class="ex-row mi-top"><input class="input" data-mi="${x.id}" data-mif="who" value="${esc(x.who||'')}" placeholder="누구 · 항목 (예: 이승구실장)"><button class="x" type="button" data-midel="${x.id}" aria-label="삭제">✕</button></div>
+      <div class="pair">${amtIn(`data-mi="${x.id}" data-mif="amt"`,x.amt,'금액',false)}<input class="input" data-mi="${x.id}" data-mif="memo" value="${esc(x.memo||'')}" placeholder="이유 (예: 꽃장식)"></div></div>`).join('')}
+    <button class="btn sm" type="button" data-act="miAdd">+ 직접 빼는 금액</button>
+    <p class="note">유골함 카드 결제와 관꽃장식 판매의 우리 몫은 자동으로 빠집니다. 그 밖에 뺄 것만 직접 넣으세요. 카톡에는 기타추가 다음 줄에 들어갑니다.</p></div></div>
   <div class="sec settle-wide" id="ledgerSec"><div class="sec-head"><h2>보내는금액 계산서</h2></div><div class="fields">
     <div class="ledger" id="ledger"></div>
     <label class="f">직접 입력 (비우면 위 계산대로)${amtIn('data-s="sendOverride"',s.sendOverride,'비워 두면 자동')}</label></div></div>
+  <div class="sec settle-wide" id="defSec"><div class="sec-head"><h2>마이너스 정리</h2>${sChip('chDef')}</div><div class="fields" id="defBody"></div></div>
   <div class="sec settle-wide"><div class="sec-head"><h2>월별 봉투정리</h2><button class="btn primary" type="button" id="openEnvelope">봉투 정리하기</button></div><p class="note">제단·유골함 수익은 실장 봉투에 자동 반영됩니다. 식장·장지·기타 금액을 넣고 월별로 보관하세요.</p></div>
   <div class="out"><div class="out-head"><h2>정산 카톡<small>회사로 보내는 몫</small></h2><button class="btn primary" id="copySettle" type="button">복사</button></div>
     <textarea class="text-out" id="settleText" rows="18" aria-label="정산 카톡"></textarea></div>
@@ -2046,10 +2145,10 @@ function renderSettle(){
     ${(()=>{ const ks=COMM_ITEMS.filter(k=>k!=='제단'&&k!=='유골함'), rows=[]; for(let i=0;i<ks.length;i+=2) rows.push(ks.slice(i,i+2)); const m=s.comm||{};
       return rows.map(r=>`<div class="pair">${r.map(k=>`<label class="f">${k}${amtIn(`data-comm="${esc(k)}"`,m[k],'',false)}</label>`).join('')}</div>`).join(''); })()}
     <div class="pair"><label class="f">이름<input class="input" data-me="name" value="${esc(me().name)}" placeholder="홍길동"></label><label class="f">직급<input class="input" data-me="rank" value="${esc(me().rank)}" placeholder="주임"></label></div>
-    <p class="note">제단 · 유골함은 위에서 넣은 값으로 자동 계산됩니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
+    <p class="note">제단 · 유골함 · 꽃관(관꽃장식 판매)은 위에서 넣은 값으로 자동 계산됩니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
   <div class="out"><div class="out-head"><h2>수당 정산<small>내 몫</small></h2><button class="btn primary" id="copyComm" type="button">복사</button></div>
     <textarea class="text-out" id="commText" rows="20" aria-label="수당 정산"></textarea></div>
-  <div class="settle-bar" id="settleBar"><button type="button" class="sb-sum" id="sbJump" aria-label="보내는금액 계산서로 이동"><small>보내는금액</small><b id="sbSend">0원</b></button><button class="btn" type="button" id="sbCopy">정산 카톡 복사</button></div>`;
+  <div class="settle-bar" id="settleBar"><button type="button" class="sb-sum" id="sbJump" aria-label="보내는금액 계산서로 이동"><small id="sbLabel">보내는금액</small><b id="sbSend">0원</b></button><button class="btn" type="button" id="sbCopy">정산 카톡 복사</button></div>`;
   updSettle();
 }
 const wnum=w=>Math.abs(w).toLocaleString('ko-KR');
@@ -2058,50 +2157,95 @@ function chipSet(id,won,offText){
   el.className='s-chip'+(won>0?' plus':won<0?' minus':offText?' off':'');
   el.textContent=won?`${won>0?'+':'−'}${wnum(won)}`:(offText||'');
 }
-function updSettle(){
-  const c=curCase(); if(!c) return; const d=settleData(c), R=rules(), s=d.s;
+const depDay=c=>{ const p=parseDT((c.f||{}).depart); return p?`발인 ${p.mo}/${p.d}`:''; };
+const caseWho=c=>{ const f=c.f||{}; return [String(f.place||'').trim(), f.name?'故 '+String(f.name).trim():''].filter(Boolean).join(' · '); };
+function renderDef(c,d){
+  const body=$('#defBody'); if(!body) return;
+  const list=deficits(), mine=list.find(x=>x.c.id===c.id), mk=caseMonth(c), M=Number(mk.slice(5,7));
+  const open=list.filter(x=>!x.used && x.c.id!==c.id), carry=d.s.carry||[];
+  const monthList=list.filter(x=>caseMonth(x.c)===mk);
+  const openSum=open.reduce((a,x)=>a+x.won,0)+(mine&&!mine.used?mine.won:0);
+  const dc=$('#chDef'); if(dc){ dc.className='s-chip'+(openSum?' minus':''); dc.textContent=openSum?`남은 ${wonStr(openSum)}`:''; }
+  const h=[];
+  if(mine){
+    h.push(`<div class="def-me"><b>이 행사는 보내는금액이 ${esc(wonStr(mine.won))}입니다.</b>
+      ${mine.used?`<span>${esc(caseTag(mine.used))} 정산에서 뺐습니다.</span>`:`<span>수익이 충분한 다른 행사 정산에서 빼세요. 그 정산 카톡에 <b>${esc(mine.tag)} ${esc(wonStr(mine.won))}</b>로 들어갑니다.</span>`}
+      ${String(c.f.eventNo||'').trim()?'':`<label class="f">행사번호 <span class="lbl-sub">넣으면 "${M}월N번행사"로 표시</span><div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value=""><span>번</span></div></label>`}</div>`);
+  }
+  h.push(`<h3 class="def-h">이 정산에서 빼는 마이너스</h3>`);
+  h.push(carry.length?carry.map(r=>{ const src=db.cases.find(x=>x.id===r.from), live=src?settleCalc(src).sendWon:null, changed=live!=null&&live<0&&live!==-Math.abs(r.won);
+    return `<div class="def-row on"><div class="def-main"><input class="input" data-cl="${r.id}" value="${esc(r.label||'')}" aria-label="카톡에 적을 이름"><b class="def-amt">${esc(wonStr(-Math.abs(r.won)))}</b></div>
+      <div class="def-sub"><span>${src?esc(caseWho(src)+(depDay(src)?' · '+depDay(src):'')):'원래 행사 기록은 지워짐'}</span><button class="btn sm" type="button" data-carry-del="${r.id}">빼기 취소</button></div>
+      ${changed?`<p class="def-warn">원래 행사 금액이 ${esc(wonStr(live))}(으)로 바뀌었습니다. <button class="btn sm" type="button" data-carry-fix="${r.id}">바뀐 금액으로</button></p>`:''}</div>`; }).join('')
+    :'<p class="note">없음. 아래 남은 마이너스에서 「이 정산에서 빼기」를 누르면 보내는금액 바로 위 줄에 들어갑니다.</p>');
+  h.push(`<h3 class="def-h">아직 안 뺀 마이너스</h3>`);
+  h.push(open.length?open.map(x=>`<div class="def-row"><div class="def-main"><span class="def-tag">${esc(x.tag)}</span><b class="def-amt">${esc(wonStr(x.won))}</b></div>
+      <div class="def-sub"><span>${esc(caseWho(x.c))}${depDay(x.c)?' · '+depDay(x.c):''}</span><button class="btn sm primary" type="button" data-carry-add="${x.c.id}">이 정산에서 빼기</button></div></div>`).join('')
+    :'<p class="note">남은 마이너스가 없습니다.</p>');
+  h.push(`<h3 class="def-h">${M}월 마이너스 행사</h3>`);
+  h.push(monthList.length?`<div class="def-month">${monthList.map(x=>`<div><span>${esc(x.tag)}${x.c.id===c.id?' (지금 행사)':''}</span><b>${esc(wonStr(x.won))}</b><em class="${x.used?'done':'left'}">${x.used?esc(caseTag(x.used))+'에서 뺌':'남음'}</em></div>`).join('')}</div>`
+    :`<p class="note">${M}월에는 마이너스 난 행사가 없습니다.</p>`);
+  body.innerHTML=h.join('');
+  const al=$('#defAlert'); if(al){ const n=open.length+(mine&&!mine.used?1:0);
+    al.innerHTML=n?`<button type="button" class="def-alert" data-go-def><b>아직 안 뺀 마이너스 ${n}건 · ${esc(wonStr(openSum))}</b><span>수익이 충분한 행사 정산에서 빼세요 ›</span></button>`:''; }
+}
+function updSettle(skipDef){
+  const c=curCase(); if(!c) return; const d=settleData(c), R=d.R, s=d.s;
   chipSet('chCollect',d.sub.collect,d.collectWon&&s.pay==='카드'?'카드 · 안 더함':'');
   chipSet('chAltar',d.sub.altar);
-  chipSet('chUrn',d.sub.urn,toWon(s.urnCollect)&&s.urnPay!=='현금'?'카드 · 안 더함':'');
-  chipSet('chExtra',d.sub.extra,d.extras.length&&!d.sub.extra?'안 더함':'');
+  chipSet('chUrn',d.sub.urn,d.U.uCol&&s.urnPay!=='현금'?'카드 · 우리 몫 빼기':'');
+  chipSet('chExtra',d.sub.extra,d.extras.some(x=>!x.flower)&&!d.sub.extra?'안 더함':'');
   chipSet('chMinus',-d.sub.minus);
-  chipSet('chEtc',d.sub.etc,(d.flower||d.tribute)&&!d.sub.etc?'법카 · 안 더함':'');
-  const u=$('#urnCalc'); if(u){ const uc=toWon(s.urnCollect), co=toWon(s.urnCost), pr=uc-co, sh=Math.round(pr*R.urnShare/100);
-    u.innerHTML=uc?`<div><span>이익</span><b>${fullWon(pr)||'0원'}</b><small>수금 ${wnum(uc)} − 원가 ${wnum(co)}</small></div><div><span>회사 몫 ${R.urnShare}%</span><b>${fullWon(sh)||'0원'}</b></div>`
-      +(s.urnPay==='현금'?`<div class="tot"><span>보내는금액에 더함</span><b>${fullWon(sh+co)}</b><small>몫 ${wnum(sh)} + 원가 ${wnum(co)}</small></div>`:`<div class="tot off"><span>카드라 보내는금액에 안 더함</span></div>`)
+  chipSet('chEtc',d.sub.etc,(d.flower||d.tribute||d.FL.sale)&&!d.sub.etc?'법카·카드 · 안 더함':'');
+  const U=d.U, u=$('#urnCalc'); if(u){
+    u.innerHTML=U.uCol?`<div><span>이익</span><b>${fullWon(U.profit)||'0원'}</b><small>수금 ${wnum(U.uCol)} − 원가 ${wnum(U.uCost)}</small></div><div><span>본부장 몫 ${R.urnShare}%</span><b>${fullWon(U.share)||'0원'}</b>${Math.abs(Math.round(U.profit*R.urnShare/100)%10000)===5000?'<small>0.5만원은 내려서 보냄</small>':''}</div><div><span>우리 몫</span><b>${fullWon(U.keep)||'0원'}</b></div>`
+      +(s.urnPay==='현금'?`<div class="tot"><span>보내는금액에 더함</span><b>${fullWon(U.share+U.uCost)}</b><small>본부장 몫 ${wnum(U.share)} + 원가 ${wnum(U.uCost)}</small></div>`
+        :`<div class="tot minus"><span>카드라 본부장이 다 받음 → 우리 몫 빼기</span><b>${U.keep>0?'−'+wnum(U.keep):'0'}</b><small>"${esc(mgrName())} : ${esc(wonStr(-U.keep))}" 줄이 자동으로 들어갑니다</small></div>`)
       :'<div class="none">수금 · 원가를 넣으면 계산됩니다</div>'; }
+  const FL=d.FL, fc=$('#flowerCalc'); if(fc){
+    fc.innerHTML=FL.sale?`<div><span>본부장 몫</span><b>${fullWon(FL.hq)}</b><small>${FL.cost?`원가 ${wnum(FL.cost)} 포함 · 실제 ${wnum(FL.hq-FL.cost)}`:'원가는 위 입관꽃장식 금액에서 가져옵니다'}</small></div><div><span>우리 몫</span><b>${fullWon(FL.our)}</b>${FL.cost&&FL.sale>FL.cost?`<small>이익 ${wnum(FL.sale-FL.cost)} 기준 본부장 ${Math.round((FL.hq-FL.cost)/(FL.sale-FL.cost)*100)} : 우리 ${Math.round(FL.our/(FL.sale-FL.cost)*100)}</small>`:''}</div>`
+      +`<div class="tot"><span>카톡에 들어가는 줄</span><small>기타추가 "관꽃장식 추가 ${esc(wonStr(FL.sale))}(${esc(FL.pay)})"${FL.pay==='현금'?' → 보내는금액에 더함':' → 카드라 안 더함'}<br>"${esc(mgrName())} : ${esc(wonStr(-FL.our))}(꽃장식)" → 보내는금액에서 뺌</small></div>`
+      :'<div class="none">관꽃장식을 따로 팔았으면 받은 금액만 넣으세요. 본부장 · 우리 몫이 자동으로 나뉩니다.</div>'; }
+  const am=$('#autoMinus'); if(am) am.innerHTML=d.autoMinus.map(x=>`<div class="auto-mi"><span class="tag">자동</span><span class="who">${esc(x.who)}${x.memo?`<small>(${esc(x.memo)})</small>`:''}</span><b>−${wnum(x.won)}</b><small class="why">${esc(x.why)}</small></div>`).join('');
   const lg=$('#ledger'); if(lg){
-    const on=d.rows.filter(r=>r.on), off=d.rows.filter(r=>!r.on);
+    const on=d.rows.filter(r=>r.on), off=d.rows.filter(r=>!r.on), neg=d.sendWon<0;
     lg.innerHTML=(on.length?on.map(r=>`<div class="lg-row ${r.won<0?'minus':''}"><span class="lg-k">${esc(r.k)}${r.note?`<small>${esc(r.note)}</small>`:''}</span><span class="lg-v">${r.won<0?'−':''}${wnum(r.won)}</span></div>`).join(''):'<p class="lg-none">금액을 넣으면 여기에 한 줄씩 쌓입니다.</p>')
-      +`<div class="lg-total"><span>보내는금액</span><b>${esc(d.send||'0원')}</b></div>`
-      +(String(s.sendOverride||'').trim()?`<p class="lg-note">직접 입력한 금액으로 나갑니다. 자동 계산은 ${fullWon(d.auto)||'0원'}${d.sendWon&&d.sendWon!==d.auto?` (차이 ${d.sendWon>d.auto?'+':'−'}${wnum(d.sendWon-d.auto)})`:''}</p>`:'')
+      +`<div class="lg-total ${neg?'neg':''}"><span>보내는금액</span><b>${esc(d.send||'0원')}</b></div>`
+      +(neg?`<p class="lg-note">마이너스입니다. 이 금액은 수익이 충분한 다른 행사 정산에서 빼야 합니다. 아래 「마이너스 정리」에서 확인하세요.</p>`:'')
+      +(String(s.sendOverride||'').trim()?`<p class="lg-note">직접 입력한 금액으로 나갑니다. 자동 계산은 ${wonStr(d.auto)||'0원'}${d.sendWon!==d.auto?` (차이 ${d.sendWon>d.auto?'+':'−'}${wnum(d.sendWon-d.auto)})`:''}</p>`:'')
       +(off.length?`<div class="lg-off"><b>안 더한 것</b>${off.map(r=>`<span>${esc(r.k)} ${wnum(r.won)}${r.off?` (${esc(r.off)})`:''}</span>`).join('')}</div>`:'');
   }
-  const sb=$('#sbSend'); if(sb) sb.textContent=d.send||'0원';
+  if(!skipDef) renderDef(c,d);
+  const bar=$('#settleBar'); if(bar){ bar.classList.toggle('neg',d.sendWon<0); $('#sbLabel').textContent=d.sendWon<0?'보내는금액 · 마이너스':'보내는금액'; $('#sbSend').textContent=d.send||'0원'; }
   const t=$('#settleText'); if(t) t.value=settleText(c);
-  const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'} · 총계 ${wonStr(cd.total)||'0원'}`;
+  const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
+  const fk=document.querySelector('#p-settle [data-comm="꽃관"]'); if(fk){ fk.disabled=!!cd.flowerKeep; if(cd.flowerKeep){ fk.value=''; fk.placeholder='자동 '+wonStr(cd.flowerKeep); } else fk.placeholder=''; }
   const ct=$('#commText'); if(ct) ct.value=commText(c);
 }
 $('#p-settle').addEventListener('input',e=>{
   const t=e.target, c=curCase(); if(!c) return; const s=S(c);
-  if(t.dataset.sf){ c.f[t.dataset.sf]=t.value; c.f['_d_'+t.dataset.sf]=false; }
+  if(t.dataset.sf){ c.f[t.dataset.sf]=t.value; c.f['_d_'+t.dataset.sf]=false; document.querySelectorAll(`#p-settle [data-sf="${t.dataset.sf}"]`).forEach(x=>{ if(x!==t) x.value=t.value; }); }
   else if(t.dataset.comm){ if(!s.comm) s.comm={}; s.comm[t.dataset.comm]=t.value; }
   else if(t.dataset.me){ me()[t.dataset.me]=t.value; }
+  else if(t.dataset.rule){ rules()[t.dataset.rule]=t.value; }
+  else if(t.dataset.cl){ const r=(s.carry||[]).find(y=>y.id===t.dataset.cl); if(r) r.label=t.value; }
   else if(t.dataset.s && t.tagName!=='SELECT'){ const k=t.dataset.s; const map={flowerSelDir:'flowerAmt',flowerPayDir:'flowerPayText',tribSelDir:'tribAmt',tribPayDir:'tribPayText'}; s[map[k]||k]=t.value; }
   else if(t.dataset.ex){ const x=s.extras.find(y=>y.id===t.dataset.ex); if(x) x[t.dataset.exf]=t.value; }
   else if(t.dataset.mi){ const x=(s.minus||[]).find(y=>y.id===t.dataset.mi); if(x) x[t.dataset.mif]=t.value; }
   else return;
   const box=t.closest('.amt'); if(box){ box.querySelector('.amt-u').textContent=amtUnit(t.value); const r=box.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); }
-  touched(); updSettle();
+  touched(); updSettle(!!t.closest('#defSec'));
 });
 $('#p-settle').addEventListener('change',e=>{
-  const t=e.target, c=curCase(); if(!c||t.tagName!=='SELECT'||!t.dataset.s) return; const s=S(c);
+  const t=e.target, c=curCase(); if(!c) return;
+  if(t.tagName!=='SELECT'||!t.dataset.s) return; const s=S(c);
   s[t.dataset.s]=t.value; const dir=t.parentElement.querySelector('[data-s$="Dir"]'); if(dir){ dir.hidden=t.value!=='__direct'; if(t.value==='__direct') dir.focus(); }
   touched(); updSettle();
 });
 $('#p-settle').addEventListener('click',e=>{
   const c=curCase(); if(!c) return; const s=S(c), b=e.target.closest('button'); if(!b) return;
   if(b.hasAttribute('data-go-input')){ setTab('input'); return; }
+  if(b.hasAttribute('data-go-def')){ $('#defSec')?.scrollIntoView({block:'start',behavior:'smooth'}); return; }
   if(b.id==='openEnvelope'){openCurrentEnvelope();return;}
   if(b.id==='copySettle'){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
   if(b.id==='copyComm'){ copyFrom($('#commText'),'수당 정산을 복사했습니다'); return; }
@@ -2109,7 +2253,13 @@ $('#p-settle').addEventListener('click',e=>{
   const xs=b.closest('[data-exseg]'); if(xs){ const x=s.extras.find(y=>y.id===xs.dataset.exseg); if(x){ x.pay=x.pay===b.dataset.v?'':b.dataset.v; xs.querySelectorAll('button').forEach(y=>y.setAttribute('aria-pressed',String(y.dataset.v===x.pay))); touched(); updSettle(); } return; }
   if(b.dataset.exdel){ s.extras=s.extras.filter(x=>x.id!==b.dataset.exdel); touched(); renderSettle(); return; }
   if(b.dataset.midel){ s.minus=(s.minus||[]).filter(x=>x.id!==b.dataset.midel); touched(); renderSettle(); return; }
-  if(b.dataset.act==='miAdd'){ const x={id:uid(),who:'',amt:'',memo:''}; (s.minus||(s.minus=[])).push(x); touched(); renderSettle(); const el=document.querySelector(`[data-mi="${x.id}"][data-mif="who"]`); if(el) el.focus(); return; }
+  if(b.dataset.act==='miAdd'){ const x={id:uid(),who:mgrName()==='실장'?'':mgrName(),amt:'',memo:''}; (s.minus||(s.minus=[])).push(x); touched(); renderSettle(); const el=document.querySelector(`[data-mi="${x.id}"][data-mif="${x.who?'amt':'who'}"]`); if(el) el.focus(); return; }
+  if(b.dataset.carryAdd){
+    const src=db.cases.find(x=>x.id===b.dataset.carryAdd); if(!src) return; const w=settleCalc(src).sendWon; if(w>=0){ updSettle(); return; }
+    (s.carry||(s.carry=[])).push({id:uid(),from:src.id,label:caseTag(src),won:w}); touched(); updSettle();
+    const after=settleCalc(c).sendWon; toast(after<0?`이 정산도 ${wonStr(after)} 마이너스가 됩니다. 수익이 더 큰 행사에서 빼는 게 좋아요`:`${caseTag(src)} ${wonStr(w)}을 이 정산에서 뺍니다`); return; }
+  if(b.dataset.carryDel){ s.carry=(s.carry||[]).filter(r=>r.id!==b.dataset.carryDel); touched(); updSettle(); toast('빼기를 취소했습니다. 다시 「아직 안 뺀 마이너스」에 나옵니다'); return; }
+  if(b.dataset.carryFix){ const r=(s.carry||[]).find(x=>x.id===b.dataset.carryFix), src=r&&db.cases.find(x=>x.id===r.from); if(r&&src){ r.won=settleCalc(src).sendWon; touched(); updSettle(); } return; }
   if(b.id==='sbCopy'){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
   if(b.id==='sbJump'){ $('#ledgerSec')?.scrollIntoView({block:'center',behavior:'smooth'}); return; }
   if(b.dataset.act==='exAdd'){ const x={id:uid(),text:'',amt:'',pay:'현금'}; s.extras.push(x); touched(); renderSettle(); const el=document.querySelector(`[data-ex="${x.id}"][data-exf="text"]`); if(el) el.focus(); }
@@ -2128,7 +2278,7 @@ function envelopeRecordMonth(r){ const m=envelopeMeta(r,'month'); return envelop
 function envelopeHasSettlement(c){
   const f=c.f||{},s=c.s||{};
   return [f.collect,s.altarAmt,s.urnCollect,s.urnCost,s.flower,s.trib,s.transfer,s.sendOverride].some(v=>String(v||'').trim()) ||
-    (s.extras||[]).some(x=>x.amt||x.text) || (s.minus||[]).some(x=>x.amt||x.who) || Object.values(s.comm||{}).some(v=>String(v||'').trim());
+    (s.extras||[]).some(x=>x.amt||x.text) || (s.minus||[]).some(x=>x.amt||x.who) || (s.carry||[]).length>0 || String(s.flowerSale||'').trim()!=='' || Object.values(s.comm||{}).some(v=>String(v||'').trim());
 }
 function syncEnvelopeRecord(c,force=false){
   if(!c || (!force && db.envelopeSkipped.includes(c.id))) return null;
@@ -2440,7 +2590,7 @@ function setTab(t,sub){
   if(t==='envelopes') renderEnvelopes();
   if(t==='input') renderInput();
   if(t==='out') renderOut();
-  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; }
+  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerOur; }
   updateWorkspace(t);
   window.scrollTo(0,0);
 }
