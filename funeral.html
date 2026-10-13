@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-14">
+<meta name="app-version" content="2026.10.13-15">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="서식함">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -790,8 +790,8 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
         <label class="f">유골함 이익 나눔<div class="suffix"><input class="input" id="rUrn" inputmode="numeric"><span>%</span></div></label>
       </div>
       <p class="note">유골함 정산 = 이익(수금 − 원가) × 나눔 비율 + 원가. 예: 수금 40 · 원가 14 → 이익 26 → 13 + 14 = 27만원. 본부장 몫이 0.5만원으로 끝나면 내려서 보냅니다(32.5 → 32).</p>
-      <label class="f">관꽃장식 추가 판매 · 우리 몫<div class="suffix"><input class="input" id="rFlower" inputmode="numeric"><span>%</span></div></label>
-      <p class="note">받은 금액 × 우리 몫 비율 = 우리 몫, 나머지는 본부장 몫(입관꽃장식 원가 포함). 예: 30만원 · 50% → 본부장 15(원가 5 포함) · 우리 15</p>
+      <label class="f">관꽃장식 추가 판매 · 이익 중 우리 몫<div class="suffix"><input class="input" id="rFlower" inputmode="numeric"><span>%</span></div></label>
+      <p class="note">이익 = 받은 금액 − 입관꽃장식 원가. 우리 60% · 본부장 40%, 원가는 본부장 몫에 더합니다. 예: 30만원 · 원가 5 → 이익 25 → 우리 15 · 본부장 10 + 원가 5 = 15</p>
       <div class="row"><button class="btn sm primary" id="saveRules" type="button">저장</button></div>
     </div>
     <div class="sec">
@@ -1275,7 +1275,7 @@ function cremStr(f){
   return `${pad(p.mo)}월 ${pad(p.d)}일${p.h!=null?' '+hm(p):''}${ex?` (${ex})`:''}`;
 }
 // 숫자만 넣으면: 1000 미만은 만원 단위(70 → 70만원), 1000 이상은 원 단위(2880100 → 2,880,100원)
-function money(v){ v=String(v??'').trim(); if(!v) return ''; const n=v.replace(/,/g,''); if(!/^\d+(\.\d+)?$/.test(n)) return v; const x=Number(n); return x>=1000?`${x.toLocaleString('ko-KR')}원`:`${n}만원`; }
+function money(v){ v=String(v??'').trim(); if(!v) return ''; const n=v.replace(/,/g,''); if(!/^\d+(\.\d+)?$/.test(n)) return v; const x=Number(n); if(x>=1000) return `${x.toLocaleString('ko-KR')}원`; const w=Math.round(x*10000); return w%10000===0?`${(w/10000).toLocaleString('ko-KR')}만원`:`${w.toLocaleString('ko-KR')}원`; }
 function addDaysAt(v,days,hh,mm){ const p=parseDT(v); const t=new Date(p.y,p.mo-1,p.d+days); return `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}T${pad(hh)}:${pad(mm)}`; }
 function fullDT(v){ const p=parseDT(v); if(!p) return ''; return `${p.mo}월 ${pad(p.d)}일(${wdOf(p)})${p.h==null?'':' '+hm(p)}`; }
 
@@ -1376,14 +1376,14 @@ const F=(k,l,t='text',o)=>({k,l,t,o});
 const SECTIONS=[
   {t:'장례', key:'sched', rows:[[F('place','장소 · 빈소 (예: 동래봉생 2호)')],[F('recv','접수','datetime-local')],[F('arrive','도착','datetime-local')],[F('death','임종','datetime-local')],[F('casket','입관','datetime-local')],[F('depart','발인','datetime-local')]]},
   {t:'고객 · 회원', key:'cust', rows:[[F('affiliate','계열사 (예: 농협은행 다대포지점)')],[F('rank','직급')],[F('company','회사명 (고객 소속)')],[F('customer','고객 · 회원명'),F('custRel','관계')],[F('custTel','연락처','tel')]]},
-  {t:'고인', rows:[[F('name','고인명'),F('mourn','상 구분 (예: 장인상)')],[F('gender','성별','select',['','남자','여자']),F('age','나이','num','세')],[F('origin','본관'),F('religion','종교','select',['','유교','무교','불교','기독교','천주교','기타'])],[F('cause','사망 사유','pick','causes')],[F('addr','주소')]]},
+  {t:'고인', key:'name', rows:[[F('eventNo','행사번호','num','번')],[F('name','고인명'),F('mourn','상 구분 (예: 장인상)')],[F('gender','성별','select',['','남자','여자']),F('age','나이','num','세')],[F('origin','본관'),F('religion','종교','select',['','유교','무교','불교','기독교','천주교','기타'])],[F('cause','사망 사유','pick','causes')],[F('addr','주소')]]},
   {t:'상주', rows:[[F('chief','상주명'),F('chiefRel','관계')],[F('chiefTel','연락처','tel')]]},
   {t:'장지', rows:[[F('method','장법','select',['','화장','매장','수목장'])],[F('burial1','1차 장지'),F('burial2','2차 장지')],[F('burial','장지 (밴드 표기)')]]},
   {t:'상품 · 금액', rows:[[F('product','상품','prod')],[F('altarSup','제단지원 (예: 100만원 공제)')],[F('productShort','상품 약칭 (보고용, 비우면 상품)','combo','productShorts')],[F('support','회사지원','money'),F('paid','납입','money')],[F('balance','잔액','money'),F('collect','수금액','money')]]},
   {t:'담당', rows:[[F('staffOrg','소속 (예: 부산본부)')],[F('staff','담당 · 팀장'),F('staffTel','연락처','tel')],[F('note','특이사항','textarea')]]},
   {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','num','세트'),F('mournW','상복 여','num','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('provNote','특이사항 (번호 없는 메모)')]]},
   {t:'확인 사항', rows:[[F('coupon','할인권 사용','select',['','O','X']),F('cardBack','회원증 회수','select',['','O','X'])],[F('certSub','확인서 대체')]]},
-  {t:'관리사 배치', key:'mgr', rows:[[F('eventNo','행사번호','num','번')]]},
+  {t:'관리사 배치', key:'mgr', rows:[]},
   {t:'공제 · 추가 항목', key:'deduct', rows:[]},
   {t:'화장', key:'crem', rows:[]},
 ];
@@ -1395,7 +1395,7 @@ const FIELD_PH={place:['장소'],recv:['접수일시','접수'],death:['임종',
   helper:['도우미','도우미이름'],helperHours:['도우미'],mourning:['상복'],vehicle:['차량'],mournM:['상복'],mournW:['상복'],mournBrand:['상복'],vehType:['차량'],vehCo:['차량'],altar:['제단공제'],shroud:['수의대체'],provNote:['제공특이사항'],
   mourn:['상구분'],staffOrg:['소속'],productShort:['상품약칭'],eventNo:['행사번호'],
   arrive:['도착'],cause:['사망사유'],addr:['주소'],method:['장법'],altarSup:['제단지원'],coupon:['할인권사용'],cardBack:['회원증회수'],certSub:['확인서대체'],affiliate:['계열사'],rank:['직급']};
-const ALWAYS=['place','death','casket','depart','name','chief'];   // 부고에 필요한 칸은 항상
+const ALWAYS=['eventNo','place','death','casket','depart','name','chief'];   // 부고에 필요한 칸은 항상
 function usedPH(co){ return new Set([...[co.band,...activeReports(co).map(r=>r.body)].join('\n').matchAll(/\{([^}]+)\}/g)].map(m=>m[1].split(':')[0])); }
 function visible(k,used){ return ALWAYS.includes(k) || (FIELD_PH[k]||[]).some(p=>used.has(p)); }
 const REQUIRED={place:'장소',death:'임종',depart:'발인',customer:'고객 · 회원명',name:'고인명',chief:'상주명',staff:'담당',cremDate:'화장 날짜',hagwanDate:'하관 날짜'};
@@ -1545,8 +1545,8 @@ function ctl(fd){
   if(fd.t==='combo') return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" list="dl_${fd.o}" value="${esc(v)}" autocomplete="off" placeholder="${esc((db.lists[fd.o]||[]).join(', '))}"><datalist id="dl_${fd.o}">${(db.lists[fd.o]||[]).map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`;
   if(fd.t==='select') return `<select class="input" id="f_${fd.k}" data-k="${fd.k}">${fd.o.map(o=>`<option value="${o}" ${o===v?'selected':''}>${o||'선택'}</option>`).join('')}</select>`;
   if(fd.t==='textarea') return `<textarea class="input" id="f_${fd.k}" data-k="${fd.k}" rows="3">${esc(v)}</textarea>`;
-  if(fd.t==='money') return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="numeric" value="${esc(v)}" placeholder="금액 입력">`;
-  if(fd.t==='num') return `<div class="suffix"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="decimal" value="${esc(v)}"><span>${fd.o}</span></div>`;
+  if(fd.t==='money') return amtIn(`id="f_${fd.k}" data-k="${fd.k}"`,v,'예: 120.5');
+  if(fd.t==='num') return `<div class="suffix"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="${fd.k==='eventNo'?'numeric':'decimal'}" value="${esc(v)}" ${fd.k==='eventNo'?'placeholder="예: 3" autocomplete="off"':''}><span>${fd.o}</span></div>`;
   return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="${fd.t}" value="${esc(v)}" ${fd.t==='tel'?'inputmode="tel" autocomplete="off"':''}>`;
 }
 const lab=fd=>{
@@ -1612,7 +1612,7 @@ function renderInput(){
   });
   const place=$('#f_place');if(place)place.placeholder='예: 동래봉생 2호';
   const hint=$('#f_productShort');if(hint)hint.closest('label').insertAdjacentHTML('beforeend','<span class="field-hint">비우면 상품명이 사용됩니다.</span>');
-  const product=$('#f_product');if(product)product.closest('label').insertAdjacentHTML('afterend','<p class="note" style="grid-column:1/-1">금액: 70 → 70만원 · 9900 → 9,900원</p>');
+  const product=$('#f_product');if(product)product.closest('label').insertAdjacentHTML('afterend','<p class="note" style="grid-column:1/-1">금액은 숫자만 넣으면 만원입니다. 120 → 120만원 · 120.5 → 1,205,000원</p>');
   applyInputGroup();
   const bp=$('#f_burial'); if(bp) bp.placeholder=[c.f.burial1,c.f.burial2].filter(Boolean).join('-')||'비우면 1차-2차 장지로 채움';
   schedInfo(); updCremPreview();
@@ -1643,6 +1643,7 @@ $('#p-input').addEventListener('input',e=>{
   const t=e.target, c=curCase(); if(!c) return;
   if(updateHagwanInput(t,c)||updateCremInput(t,c)) return;
   if(t.closest('[data-dt]')) return;
+  { const box=t.closest('.amt'); if(box){ box.querySelector('.amt-u').textContent=amtUnit(t.value); const r=box.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); } }
   if(t.dataset.pd){ c.f[t.dataset.pd]=t.value; touched(); return; }
   if(t.type==='tel' && t.dataset.k){ const nv=fmtTel(t.value); if(nv!==t.value) t.value=nv; }
   if(t.dataset.k && t.tagName!=='SELECT'){ c.f[t.dataset.k]=t.value; if(Object.values(SAME_MAP).includes(t.dataset.k)) syncChief(c); if(['death','casket','depart','cremDate'].includes(t.dataset.k)) schedInfo(); if(t.dataset.k.startsWith('crem')) updCremPreview(); touched(); }
@@ -1724,7 +1725,7 @@ $('#coList').onclick=e=>{
     closePicker(); renderAll(); toast(`${co.name}(으)로 바꾸고 제공 항목을 그 업체 기본으로 채웠습니다`); return;
   }
   const c=makeCase(id); db.cases.push(c); db.cur=c.id; save(); dirty=true; closePicker(); setTab('input'); renderAll();
-  inputGroup='basic'; applyInputGroup(); const el=$('#f_name'); if(el) el.focus(); toast(`${co.name} 행사건을 시작했습니다`);
+  inputGroup='basic'; applyInputGroup(); const el=$('#f_eventNo')||$('#f_name'); if(el) el.focus(); toast(`${co.name} 행사건을 시작했습니다`);
 };
 $('#pickCancel').onclick=closePicker;
 $('#pickEnvelope').onclick=()=>newManualEnvelope();
@@ -1920,7 +1921,7 @@ $('#importApply').onclick=()=>{
   });
 };
 
-$('#saveRules').onclick=()=>{ const R=rules(); R.altarFixed=Number($('#rAltar').value)||0; R.urnShare=Number($('#rUrn').value)||0; const fo=Number($('#rFlower').value); R.flowerOur=Number.isFinite(fo)&&$('#rFlower').value!==''?Math.min(100,Math.max(0,fo)):50; save(); toast('정산 기준을 저장했습니다'); };
+$('#saveRules').onclick=()=>{ const R=rules(); R.altarFixed=Number($('#rAltar').value)||0; R.urnShare=Number($('#rUrn').value)||0; const fo=Number($('#rFlower').value); R.flowerPct=Number.isFinite(fo)&&$('#rFlower').value!==''?Math.min(100,Math.max(0,fo)):60; save(); toast('정산 기준을 저장했습니다'); };
 /* ---------- 관리: 선택 목록 ---------- */
 function renderLists(){ $('#listEdit').innerHTML=Object.keys(LIST_LABEL).map(k=>`<label class="f">${LIST_LABEL[k]}<textarea class="input" data-list="${k}" rows="4">${esc(db.lists[k].join('\n'))}</textarea></label>`).join(''); }
 $('#saveLists').onclick=()=>{ document.querySelectorAll('[data-list]').forEach(t=>{ db.lists[t.dataset.list]=t.value.split('\n').map(s=>s.trim()).filter(Boolean); }); save(); toast('선택 목록을 저장했습니다'); };
@@ -1936,7 +1937,7 @@ function toWon(v){
   return neg?-w:w;
 }
 function wonStr(w){ if(!w) return ''; const neg=w<0; w=Math.abs(w); const s=w%10000===0?`${(w/10000).toLocaleString('ko-KR')}만원`:`${w.toLocaleString('ko-KR')}원`; return (neg?'-':'')+s; }
-function rules(){ if(!db.settleRules) db.settleRules={altarFixed:24, urnShare:50}; const R=db.settleRules; if(R.flowerOur==null) R.flowerOur=50; if(R.mgrName==null) R.mgrName=''; return R; }
+function rules(){ if(!db.settleRules) db.settleRules={altarFixed:24, urnShare:50}; const R=db.settleRules; if(R.flowerPct==null) R.flowerPct=60; delete R.flowerOur; if(R.mgrName==null) R.mgrName=''; return R; }
 const mgrName=()=>String(rules().mgrName||'').trim()||'실장';
 // 본부장 몫이 0.5만원(5,000원)으로 끝나면 내림: 32.5만 → 32만
 function hqRound(w){ w=Math.round(w); return Math.abs(w%10000)===5000?w-5000*Math.sign(w):w; }
@@ -1945,11 +1946,11 @@ function urnSplit(s,R){
   const share=uCol?hqRound(profit*(R.urnShare/100)):0;
   return {uCol,uCost,uDisc,profit,share,keep:profit-share};
 }
-// 관꽃장식 추가 판매: 받은 금액을 본부장/우리로 나눔. 원가(입관꽃장식 업체 금액)는 본부장 몫에 포함
+// 관꽃장식 추가 판매: 이익(받은 금액 − 입관꽃장식 원가)을 본부장 40 : 우리 60. 원가는 본부장 몫에 더함
 function flowerSplit(s,R){
-  const sale=toWon(s.flowerSale), cost=toWon(s.flower); if(!sale) return {sale:0,cost,hq:0,our:0,pay:''};
-  const hq=hqRound(sale*(100-R.flowerOur)/100);
-  return {sale,cost,hq,our:sale-hq,pay:s.flowerSalePay||'현금'};
+  const sale=toWon(s.flowerSale), cost=toWon(s.flower); if(!sale) return {sale:0,cost,profit:0,hqP:0,hq:0,our:0,pay:''};
+  const profit=sale-cost, hqP=hqRound(profit*(100-R.flowerPct)/100);
+  return {sale,cost,profit,hqP,hq:cost+hqP,our:profit-hqP,pay:s.flowerSalePay||'현금'};
 }
 function S(c){
   if(!c.s) c.s={pay:'현금',extras:[],urnPay:'현금'}; const s=c.s; if(!s.extras) s.extras=[]; if(!s.urnPay) s.urnPay='현금';
@@ -2203,7 +2204,9 @@ function updSettle(skipDef){
         :`<div class="tot minus"><span>카드라 본부장이 다 받음 → 우리 몫 빼기</span><b>${U.keep>0?'−'+wnum(U.keep):'0'}</b><small>"${esc(mgrName())} : ${esc(wonStr(-U.keep))}" 줄이 자동으로 들어갑니다</small></div>`)
       :'<div class="none">수금 · 원가를 넣으면 계산됩니다</div>'; }
   const FL=d.FL, fc=$('#flowerCalc'); if(fc){
-    fc.innerHTML=FL.sale?`<div><span>본부장 몫</span><b>${fullWon(FL.hq)}</b><small>${FL.cost?`원가 ${wnum(FL.cost)} 포함 · 실제 ${wnum(FL.hq-FL.cost)}`:'원가는 위 입관꽃장식 금액에서 가져옵니다'}</small></div><div><span>우리 몫</span><b>${fullWon(FL.our)}</b>${FL.cost&&FL.sale>FL.cost?`<small>이익 ${wnum(FL.sale-FL.cost)} 기준 본부장 ${Math.round((FL.hq-FL.cost)/(FL.sale-FL.cost)*100)} : 우리 ${Math.round(FL.our/(FL.sale-FL.cost)*100)}</small>`:''}</div>`
+    fc.innerHTML=FL.sale?`<div><span>이익</span><b>${fullWon(FL.profit)||'0원'}</b><small>받은 ${wnum(FL.sale)} − 원가 ${wnum(FL.cost)}${FL.cost?'':' · 위 입관꽃장식 업체 · 원가를 고르면 정확해집니다'}</small></div>`
+      +`<div><span>본부장 몫 ${100-R.flowerPct}%</span><b>${fullWon(FL.hq)||'0원'}</b><small>이익 ${wnum(FL.hqP)}${FL.cost?` + 원가 ${wnum(FL.cost)}`:''}${Math.abs(Math.round(FL.profit*(100-R.flowerPct)/100)%10000)===5000?' · 0.5만원은 내림':''}</small></div>`
+      +`<div><span>우리 몫 ${R.flowerPct}%</span><b>${fullWon(FL.our)||'0원'}</b></div>`
       +`<div class="tot"><span>카톡에 들어가는 줄</span><small>기타추가 "관꽃장식 추가 ${esc(wonStr(FL.sale))}(${esc(FL.pay)})"${FL.pay==='현금'?' → 보내는금액에 더함':' → 카드라 안 더함'}<br>"${esc(mgrName())} : ${esc(wonStr(-FL.our))}(꽃장식)" → 보내는금액에서 뺌</small></div>`
       :'<div class="none">관꽃장식을 따로 팔았으면 받은 금액만 넣으세요. 본부장 · 우리 몫이 자동으로 나뉩니다.</div>'; }
   const am=$('#autoMinus'); if(am) am.innerHTML=d.autoMinus.map(x=>`<div class="auto-mi"><span class="tag">자동</span><span class="who">${esc(x.who)}${x.memo?`<small>(${esc(x.memo)})</small>`:''}</span><b>−${wnum(x.won)}</b><small class="why">${esc(x.why)}</small></div>`).join('');
@@ -2590,7 +2593,7 @@ function setTab(t,sub){
   if(t==='envelopes') renderEnvelopes();
   if(t==='input') renderInput();
   if(t==='out') renderOut();
-  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerOur; }
+  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; }
   updateWorkspace(t);
   window.scrollTo(0,0);
 }
