@@ -702,6 +702,18 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
 .def-month em.done{background:var(--field);color:var(--muted)}
 .cm-label span.warn{color:var(--warn);font-weight:600}
 </style>
+<style id="fold-ui">
+.sub-fold{border:1px dashed var(--edge,var(--line));border-radius:12px;padding:0 12px}
+.sub-fold>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:46px;cursor:pointer;list-style:none;font-size:14px}
+.sub-fold>summary::-webkit-details-marker{display:none}
+.sub-fold>summary span{font-size:12.5px;color:var(--accent);white-space:nowrap}
+.sub-fold>summary span::after{content:" ▾"}
+.sub-fold[open]>summary span::after{content:" ▴"}
+.sub-fold[open]{display:grid;gap:10px;padding-bottom:12px}
+.fold-ex{margin:0;font-size:12.5px;line-height:1.6;color:var(--muted);background:var(--field);border-radius:10px;padding:10px 12px}
+.fold-ex b{color:var(--ink)}
+.co-name-f{margin:-6px 0 4px}
+</style>
 <style id="backup-ui">
 .bk-banner{display:grid;gap:6px;padding:12px 14px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--ink);font-size:13.5px;line-height:1.55;margin:0 0 14px}
 .bk-banner[hidden]{display:none!important}
@@ -1300,6 +1312,8 @@ if(!db.dwVendorAdded){
 }
 function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
+// 기타 업체로 작성한 건은 직접 넣은 업체명을 씀
+const caseCoName=c=>{ const co=coById(c&&c.companyId); return co.id===ETC&&String((c.f||{}).coName||'').trim()?String(c.f.coName).trim():co.name; };
 const reportsEnabled=co=>typeof co.reportsEnabled==='boolean'?co.reportsEnabled:(co.reports||[]).length>0;
 const activeReports=co=>reportsEnabled(co)?(co.reports||[]):[];
 function cremById(id){ return db.crems.find(c=>c.id===id)||LEGACY_CREMS.find(c=>c.id===id); }
@@ -1343,7 +1357,7 @@ function vals(c){
   const f=c.f||{}, g=k=>(f[k]??'').toString().trim();
   const deceased=[g('name'), g('gender'), g('age')?g('age')+'세':''].filter(Boolean).join(' ')+(g('origin')?`(본관/${g('origin')})`:'');
   return {
-    '장소':g('place'), '기간':period(f.death,f.depart), '회사명':g('company'), '업체명':coById(c.companyId).name, '고객명':g('customer'), '관계':g('custRel'), '고객연락처':g('custTel'),
+    '장소':g('place'), '기간':period(f.death,f.depart), '회사명':g('company'), '업체명':caseCoName(c), '고객명':g('customer'), '관계':g('custRel'), '고객연락처':g('custTel'),
     '고인명':deceased, '고인이름':g('name'), '상주명':g('chief'), '상주연락처':g('chiefTel'), '종교':g('religion'),
     '성별':g('gender'), '나이':g('age'), '상주관계':g('chiefRel'),
     '임종':dayTime(f.death), '입관':dayTime(f.casket), '발인':dayTime(f.depart), '장지':g('burial')||[g('burial1'),g('burial2')].filter(Boolean).join('-'), '상품':g('product'),
@@ -1657,12 +1671,14 @@ function renderInput(){
   const c=curCase();
   if(!c){ $('#p-input').innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>새 행사 시작</h2></div><p class="note">진행 업체를 누르면 그 업체 양식으로 바로 시작합니다. 행사 없이도 아래 메뉴(봉투 · 휴무 · 설정)는 그대로 쓸 수 있어요.</p><div class="co-list">${coButtons('data-start')}</div></div>`; return; }
   const co=coById(c.companyId);
-  let h=`<div class="co-card"><div class="co-identity"><span class="co-symbol">${uiIcon('building')}</span><div><small>진행 업체</small><b>${esc(co.name)}</b></div></div><button class="btn sm" type="button" data-act="changeCo">업체 변경</button></div>
+  let h=`<div class="co-card"><div class="co-identity"><span class="co-symbol">${uiIcon('building')}</span><div><small>진행 업체${co.id===ETC?' · 기본 양식':''}</small><b>${esc(caseCoName(c))}</b></div></div><button class="btn sm" type="button" data-act="changeCo">업체 변경</button></div>
+    ${co.id===ETC?`<label class="f co-name-f"><span class="field-label">업체명 <span class="lbl-sub">기타 업체로 작성할 때 보고서에 들어갈 업체 이름</span></span><input class="input" id="f_coName" data-k="coName" value="${esc(c.f.coName||'')}" placeholder="예: ○○상조" autocomplete="off"></label>`:''}
     <div class="input-controls" id="inputControls"><nav class="group-tabs" aria-label="입력 항목">${INPUT_GROUPS.map(g=>`<button type="button" data-input-group="${g.id}" aria-pressed="${g.id===inputGroup}">${g.label}</button>`).join('')}</nav><span class="input-progress" id="inputProgress"></span></div><div class="input-grid" id="inputGrid">`;
   const used=usedPH(co);
   SECTIONS.forEach(s=>{
-    const rows=s.rows.map(r=>r.filter(fd=>fd.k==='recv'?isGoi(co):visible(fd.k,used))).filter(r=>r.length);   // 접수는 고이장례연구소만
-    const extra = s.key==='mgr'?used.has('관리사배치') : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')) : false;
+    const filled=k=>String(c.f[k]??'').trim()!=='';
+    const rows=s.rows.map(r=>r.filter(fd=>(fd.k==='recv'?isGoi(co):visible(fd.k,used))||filled(fd.k))).filter(r=>r.length);   // 접수는 고이장례연구소만 (이미 넣은 값은 항상 보임)
+    const extra = s.key==='mgr'?(used.has('관리사배치')||(c.mgr||[]).length>0) : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')||(c.deductions||[]).some(d=>String(d.text||'').trim())) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')||['cremName','cremDate','cremTime','hagwanDate'].some(filled)) : false;
     if(!rows.length && !extra) return;
     const sectionKey=s.key||s.rows[0][0].k, meta=SECTION_UI[sectionKey]||{group:'basic',title:s.t};
     h+=`<div class="sec" data-section="${sectionKey}" data-group="${meta.group}" ${meta.group===inputGroup?'':'hidden'}><div class="sec-head"><h2>${meta.title}</h2>${s.key==='sched'?'<button class="btn link" type="button" data-act="threeDay">3일장 자동 입력</button>':''}</div><div class="fields">`;
@@ -1713,6 +1729,7 @@ function renumber(){
 }
 $('#p-input').addEventListener('input',e=>{
   const t=e.target, c=curCase(); if(!c) return;
+  if(t.id==='f_coName'){ c.f.coName=t.value; const b=document.querySelector('#p-input .co-identity b'); if(b) b.textContent=caseCoName(c); touched(); return; }
   if(updateHagwanInput(t,c)||updateCremInput(t,c)) return;
   if(t.closest('[data-dt]')) return;
   { const box=t.closest('.amt'); if(box){ box.querySelector('.amt-u').textContent=amtUnit(t.value); const r=box.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); } }
@@ -1792,14 +1809,22 @@ function closePicker(){ $('#picker').hidden=true; }
 $('#coList').onclick=e=>{
   const b=e.target.closest('[data-pick]'); if(!b) return; const id=b.dataset.pick, co=coById(id);
   if(pickMode==='change'){
-    const c=curCase(); c.companyId=co.id; c.items=co.items.map(t=>({id:uid(),text:t,on:true})); touched(); save();
-    closePicker(); renderAll(); toast(`${co.name}(으)로 바꾸고 제공 항목을 그 업체 기본으로 채웠습니다`); return;
+    const c=curCase(); if(!c){ closePicker(); return; }
+    const old=coById(c.companyId), items=c.items||[];
+    // 제공 항목: 손대지 않은 기본값이면 새 업체 기본으로, 고친 게 있으면 그대로 두고 새 업체 항목만 '제외' 상태로 덧붙임
+    const untouched=items.length===old.items.length && items.every((it,i)=>it.on && it.text===old.items[i]);
+    if(untouched) c.items=co.items.map(t=>({id:uid(),text:t,on:true}));
+    else { const have=new Set(items.map(it=>it.text.trim())); co.items.forEach(t=>{ if(!have.has(t.trim())) items.push({id:uid(),text:t,on:false}); }); c.items=items; }
+    c.companyId=co.id; touched(); save();
+    closePicker(); renderAll();
+    if(co.id===ETC){ const el=$('#f_coName'); if(el) el.focus(); }
+    toast(`${co.id===ETC?'기타 업체':co.name}(으)로 바꿨습니다. 입력한 내용은 그대로 남아 있습니다`); return;
   }
   startCase(id);
 };
 function startCase(id){
   const co=coById(id), c=makeCase(co.id); db.cases.push(c); db.cur=c.id; save(); dirty=true; closePicker(); setTab('input'); renderAll();
-  inputGroup='basic'; applyInputGroup(); const el=$('#f_eventNo')||$('#f_name'); if(el) el.focus(); toast(`${co.name} 행사건을 시작했습니다`);
+  inputGroup='basic'; applyInputGroup(); const el=(co.id===ETC&&$('#f_coName'))||$('#f_eventNo')||$('#f_name'); if(el) el.focus(); toast(co.id===ETC?'기타 업체 행사건을 시작했습니다. 업체명을 넣어 주세요':`${co.name} 행사건을 시작했습니다`);
 }
 function coButtons(attr){
   const cos=db.companies.filter(x=>x.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
@@ -1824,7 +1849,7 @@ function renderCaseSel(){
   const list=mk?casesOfMonth(mk):[], used=carryUse(); let negLeft=0;
   $('#caseSel').innerHTML=list.length?list.map(c=>{ const d=parseDT(c.f.depart), co=coById(c.companyId), w=settleCalc(c).sendWon, neg=w<0?(used.has(c.id)?' · 마이너스 정리됨':` · 마이너스 ${wonStr(w)}`):'';
     if(w<0&&!used.has(c.id)) negLeft++;
-    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(c.f.name?'故 '+c.f.name:(c.f.place||'(고인명 미입력)'))} · ${esc(co.name)}${d?` · 발인 ${d.mo}/${d.d}`:''}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
+    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(c.f.name?'故 '+c.f.name:(c.f.place||'(고인명 미입력)'))} · ${esc(caseCoName(c))}${d?` · 발인 ${d.mo}/${d.d}`:''}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
   $('#caseSel').disabled=!list.length; $('#delCase').disabled=!list.length;
   const i=months.findIndex(x=>x[0]===mk);
   $('#cmLabel').textContent=mk?monthLabel(mk):'행사 없음';
@@ -1918,8 +1943,8 @@ function renderOut(){
   const c=curCase();
   if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
-  $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${co.name} 양식`;
-  $('#reportCards').innerHTML=reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(co.name)} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
+  $('#reportCards').innerHTML=reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   reports.forEach((r,i)=>{ $('#rep_'+i).value=fillTpl(r.body,c); });
   const used=usedPH(co);
   const burialOn=used.has('화장')||used.has('하관');
@@ -2209,10 +2234,11 @@ function renderSettle(){
     <label class="f">이송<input class="input" data-s="transfer" value="${esc(s.transfer||'')}" placeholder="없으면 비워 두세요"></label>
     <div class="pair"><div class="f-wrap"><label class="f">입관꽃장식 (업체 · 원가)</label>${chooser({scope:'s',key:'flower',options:db.lists.flowers,label:'입관꽃장식',numeric:false,dirPh:'예: 경북 5만원'})}</div>
     <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'flowerPay',options:db.lists.flowerPays,label:'입관꽃장식 결제',dirPh:'예: 현금'})}</div></div>
-    <div class="sub-block"><div class="sub-head"><b>관꽃장식 추가 판매</b><small>고객에게 따로 받았을 때만</small></div>
+    <details class="sub-fold" ${String(s.flowerSale||'').trim()?'open':''}><summary><b>관꽃장식 추가 판매</b><span>예시 · 입력</span></summary>
+      <p class="fold-ex">예: 관꽃장식을 30만원에 팔고 원가가 5만원(경북)이면 → 이익 25만원을 본부장 40 : 우리 60 → <b>본부장 15만원</b>(원가 포함) · <b>우리 15만원</b>. 카톡에 "관꽃장식 추가 30만원(현금)"과 "실장 : -15만원(꽃장식)"이 자동으로 들어갑니다.</p>
       <div class="pair"><label class="f">받은 금액${amtIn('data-s="flowerSale"',s.flowerSale,'예: 30')}</label>
       <label class="f">결제${seg2('flowerSalePay',s.flowerSalePay||'현금')}</label></div>
-      <div class="calc urn-calc" id="flowerCalc"></div></div>
+      <div class="calc urn-calc" id="flowerCalc"></div></details>
     <div class="pair"><div class="f-wrap"><label class="f">헌화</label>${chooser({scope:'s',key:'trib',options:db.lists.tributes,label:'헌화',dirPh:'예: 영호 3만원'})}</div>
     <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'tribPay',options:db.lists.tributePays,label:'헌화 결제',dirPh:'예: 현금'})}</div></div>
     <p class="note">법카 결제는 카톡에만 적히고 보내는금액에는 안 들어갑니다. 결제에 "현금"이 들어가면 더해집니다.</p></div></div>
@@ -2301,7 +2327,7 @@ function updSettle(skipDef){
       +`<div><span>본부장 몫 ${100-R.flowerPct}%</span><b>${fullWon(FL.hq)||'0원'}</b><small>이익 ${wnum(FL.hqP)}${FL.cost?` + 원가 ${wnum(FL.cost)}`:''}${Math.abs(Math.round(FL.profit*(100-R.flowerPct)/100)%10000)===5000?' · 0.5만원은 내림':''}</small></div>`
       +`<div><span>우리 몫 ${R.flowerPct}%</span><b>${fullWon(FL.our)||'0원'}</b></div>`
       +`<div class="tot"><span>카톡에 들어가는 줄</span><small>기타추가 "관꽃장식 추가 ${esc(wonStr(FL.sale))}(${esc(FL.pay)})"${FL.pay==='현금'?' → 보내는금액에 더함':' → 카드라 안 더함'}<br>"${esc(mgrName())} : ${esc(wonStr(-FL.our))}(꽃장식)" → 보내는금액에서 뺌</small></div>`
-      :'<div class="none">관꽃장식을 따로 팔았으면 받은 금액만 넣으세요. 본부장 · 우리 몫이 자동으로 나뉩니다.</div>'; }
+      :''; fc.hidden=!FL.sale; }
   const am=$('#autoMinus'); if(am) am.innerHTML=d.autoMinus.map(x=>`<div class="auto-mi"><span class="tag">자동</span><span class="who">${esc(x.who)}${x.memo?`<small>(${esc(x.memo)})</small>`:''}</span><b>−${wnum(x.won)}</b><small class="why">${esc(x.why)}</small></div>`).join('');
   const lg=$('#ledger'); if(lg){
     const on=d.rows.filter(r=>r.on), off=d.rows.filter(r=>!r.on), neg=d.sendWon<0;
