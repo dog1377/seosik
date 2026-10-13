@@ -108,4 +108,47 @@ JR.mkdir(exist_ok=True)
     './', './index.html', './manifest.webmanifest',
     './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
 ]), encoding='utf-8')
+
+# 회사 관리 앱 (admin/): 공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드
+import shutil
+AD = ROOT / 'admin'
+(AD / 'vendor').mkdir(parents=True, exist_ok=True)
+shutil.copyfile(ROOT / 'vendor' / 'jspdf.umd.min.js', AD / 'vendor' / 'jspdf.umd.min.js')
+asrc = (ROOT / 'src' / 'admin.html').read_text(encoding='utf-8')
+asplit = asrc.index('<header class="appbar">')
+ahead, abody = asrc[:asplit].strip(), asrc[asplit:].strip()
+if CDN_JSPDF not in abody:
+    raise SystemExit('jsPDF script tag not found in src/admin.html')
+abody = abody.replace(CDN_JSPDF, LOCAL_JSPDF)
+admin_html = f"""<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="회사 관리자용 공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드. 기록은 이 휴대폰에만 저장됩니다.">
+<meta name="theme-color" content="#f1f2ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111518" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="회사관리">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
+<link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
+<style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
+{ahead}
+</head>
+<body>
+{abody}
+</body>
+</html>
+"""
+(AD / 'index.html').write_text(admin_html, encoding='utf-8')
+(AD / 'sw.js').write_text(make_sw('admin-app-', [
+    './', './index.html', './manifest.webmanifest', './vendor/jspdf.umd.min.js',
+    './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
+]), encoding='utf-8')
+(AD / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
 print('built version', version)
