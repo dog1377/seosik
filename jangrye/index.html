@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-17">
+<meta name="app-version" content="2026.10.13-18">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -706,6 +706,12 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
 .def-month em.done{background:var(--field);color:var(--muted)}
 .cm-label span.warn{color:var(--warn);font-weight:600}
 </style>
+<style id="start-ui">
+.pick-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pick-x{flex:none;width:40px;height:40px;border:0;border-radius:10px;background:var(--field);color:var(--muted);font-size:17px;cursor:pointer}
+.start-card .co-list{margin-top:4px}
+@media (min-width:700px){ .start-card .co-list{grid-template-columns:repeat(2,minmax(0,1fr))} }
+</style>
 <style id="wide-ui">
 /* 넓은 화면(본문 900px 이상): 행사 입력 ↔ 보고서, 정산 입력 ↔ 계산서·카톡을 나란히 */
 .sp-main,.sp-side{display:contents}
@@ -885,7 +891,7 @@ body.split[data-tab="input"] #p-out .text-out{resize:none;overflow:hidden}
 
 <div class="picker" id="picker" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
-    <div><div class="picker-kicker"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5"/></svg>진행 업체 선택</div><h2 id="pickTitle">어느 업체 행사인가요?</h2><p class="note" style="margin-top:4px">업체를 고르면 그 업체의 밴드 · 보고 양식과 제공내역이 준비됩니다.</p></div>
+    <div class="pick-head"><div><div class="picker-kicker"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5"/></svg>진행 업체 선택</div><h2 id="pickTitle">어느 업체 행사인가요?</h2><p class="note" style="margin-top:4px">업체를 고르면 그 업체의 밴드 · 보고 양식과 제공내역이 준비됩니다.</p></div><button class="x pick-x" type="button" id="pickX" aria-label="닫기">✕</button></div>
     <div class="co-list" id="coList"></div>
     <button class="btn primary" id="pickEnvelope" type="button">행사 등록 없이 봉투 1건 추가</button>
     <button class="btn" id="pickCancel" type="button">닫기</button>
@@ -1621,7 +1627,7 @@ function deductHtml(c){
 }
 function renderInput(){
   const c=curCase();
-  if(!c){ $('#p-input').innerHTML=`<div class="sec"><p class="note">작성 중인 건이 없습니다.</p><button class="btn primary block" type="button" data-act="new">새 건 등록</button></div>`; return; }
+  if(!c){ $('#p-input').innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>새 행사 시작</h2></div><p class="note">진행 업체를 누르면 그 업체 양식으로 바로 시작합니다. 행사 없이도 아래 메뉴(봉투 · 휴무 · 설정)는 그대로 쓸 수 있어요.</p><div class="co-list">${coButtons('data-start')}</div></div>`; return; }
   const co=coById(c.companyId);
   let h=`<div class="co-card"><div class="co-identity"><span class="co-symbol">${uiIcon('building')}</span><div><small>진행 업체</small><b>${esc(co.name)}</b></div></div><button class="btn sm" type="button" data-act="changeCo">업체 변경</button></div>
     <div class="input-controls" id="inputControls"><nav class="group-tabs" aria-label="입력 항목">${INPUT_GROUPS.map(g=>`<button type="button" data-input-group="${g.id}" aria-pressed="${g.id===inputGroup}">${g.label}</button>`).join('')}</nav><span class="input-progress" id="inputProgress"></span></div><div class="input-grid" id="inputGrid">`;
@@ -1715,6 +1721,7 @@ $('#p-input').addEventListener('change',e=>{
 });
 $('#p-input').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return; const c=curCase();
+  if(b.dataset.start){ startCase(b.dataset.start); return; }
   const a=b.dataset.act;
   if(a==='new'){ openPicker('new'); return; }
   if(!c) return;
@@ -1747,11 +1754,9 @@ $('#p-input').addEventListener('click',e=>{
 let pickMode='new';
 function openPicker(mode){
   pickMode=mode;
-  const cos=db.companies.filter(x=>x.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
-  $('#coList').innerHTML=cos.map(x=>`<button class="co-btn" type="button" data-pick="${x.id}">${esc(x.name)}<small>${activeReports(x).length?'제공 '+x.items.length+'항목':'회사 보고 없음'}</small></button>`).join('')
-    +`<button class="co-btn etc" type="button" data-pick="${ETC}">기타 업체 (기본 양식)</button>`;
+  $('#coList').innerHTML=coButtons('data-pick');
   $('#pickTitle').textContent=mode==='change'?'업체 변경':'어느 업체 행사인가요?';
-  $('#pickCancel').hidden=mode==='first';
+  $('#pickCancel').hidden=false;
   $('#pickEnvelope').hidden=mode==='change';
   $('#picker').hidden=false;
 }
@@ -1762,12 +1767,21 @@ $('#coList').onclick=e=>{
     const c=curCase(); c.companyId=co.id; c.items=co.items.map(t=>({id:uid(),text:t,on:true})); touched(); save();
     closePicker(); renderAll(); toast(`${co.name}(으)로 바꾸고 제공 항목을 그 업체 기본으로 채웠습니다`); return;
   }
-  const c=makeCase(id); db.cases.push(c); db.cur=c.id; save(); dirty=true; closePicker(); setTab('input'); renderAll();
-  inputGroup='basic'; applyInputGroup(); const el=$('#f_eventNo')||$('#f_name'); if(el) el.focus(); toast(`${co.name} 행사건을 시작했습니다`);
+  startCase(id);
 };
+function startCase(id){
+  const co=coById(id), c=makeCase(co.id); db.cases.push(c); db.cur=c.id; save(); dirty=true; closePicker(); setTab('input'); renderAll();
+  inputGroup='basic'; applyInputGroup(); const el=$('#f_eventNo')||$('#f_name'); if(el) el.focus(); toast(`${co.name} 행사건을 시작했습니다`);
+}
+function coButtons(attr){
+  const cos=db.companies.filter(x=>x.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  return cos.map(x=>`<button class="co-btn" type="button" ${attr}="${x.id}">${esc(x.name)}<small>${activeReports(x).length?'제공 '+x.items.length+'항목':'회사 보고 없음'}</small></button>`).join('')
+    +`<button class="co-btn etc" type="button" ${attr}="${ETC}">기타 업체 (기본 양식)</button>`;
+}
 $('#pickCancel').onclick=closePicker;
 $('#pickEnvelope').onclick=()=>newManualEnvelope();
-$('#picker').onclick=e=>{ if(e.target.id==='picker' && pickMode!=='first') closePicker(); };
+$('#picker').onclick=e=>{ if(e.target.id==='picker') closePicker(); };
+$('#pickX').onclick=closePicker;
 
 /* ---------- 건 관리 ---------- */
 function renderTtl(){
@@ -2121,7 +2135,7 @@ function amtIn(attr,val,ph,read=true){
 const sChip=id=>`<span class="s-chip" id="${id}"></span>`;
 function renderSettle(){
   const c=curCase(), el=$('#p-settle');
-  if(!c){ el.innerHTML=`<div class="sec"><p class="note">작성 중인 건이 없습니다.</p></div>`; return; }
+  if(!c){ el.innerHTML=`<div class="sec"><p class="note">작성 중인 행사가 없습니다. 행사 입력에서 업체를 고르면 정산도 함께 시작됩니다.</p><button class="btn primary" type="button" data-go-input>행사 입력으로</button></div>`; return; }
   const s=S(c), f=c.f, R=rules(); if(!s.minus) s.minus=[]; if(!s.flowerSalePay) s.flowerSalePay='현금';
   const sf=(k,label,list,ph,mode='')=>list?`<div class="f-wrap"><label class="f">${label}</label>${chooser({key:k,options:db.lists[list]||[],label})}</div>`:`<label class="f">${label}<input class="input" data-sf="${k}" value="${esc(f[k]||'')}" ${mode} placeholder="${esc(ph||'')}" autocomplete="off"></label>`;
   const autoBurial=[f.burial1,f.burial2].filter(Boolean).join('-');
@@ -2293,8 +2307,8 @@ $('#p-settle').addEventListener('change',e=>{
   touched(); updSettle();
 });
 $('#p-settle').addEventListener('click',e=>{
+  const b0=e.target.closest('button'); if(b0&&b0.hasAttribute('data-go-input')){ setTab('input'); return; }
   const c=curCase(); if(!c) return; const s=S(c), b=e.target.closest('button'); if(!b) return;
-  if(b.hasAttribute('data-go-input')){ setTab('input'); return; }
   if(b.hasAttribute('data-go-def')){ $('#defSec')?.scrollIntoView({block:'start',behavior:'smooth'}); return; }
   if(b.id==='openEnvelope'){openCurrentEnvelope();return;}
   if(b.id==='copySettle'){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
@@ -2688,7 +2702,7 @@ function restoreAcc(){ const a=db.acc||{}; document.querySelectorAll('.acc').for
 let toastT=null;
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400); }
 function renderAll(){ renderCaseSel(); restoreAcc(); setTab(['input','out','settle','envelopes','duty','admin'].includes(db.tab)?db.tab:(db.tab==='card'?'out':'input'), db.dutyView); }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#picker').hidden && pickMode!=='first') closePicker(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#picker').hidden) closePicker(); });
 
 window.addEventListener('pagehide',()=>save());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});
@@ -2696,7 +2710,6 @@ const purged=purge();
 if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].includes(db.tab))db.tab='envelopes';
 save();
 renderAll();
-if(!db.cases.length&&!db.envelopes.length) openPicker('first');
 setInterval(()=>renderTtl(), 10*60*1000);
 </script>
 <!-- 장례 일정 작성기 공통 디자인: build.py가 funeral.html과 jangrye/index.html 맨 끝에 넣습니다. 서식함과 같은 색·글꼴·양식, 오프라인 저장. -->
