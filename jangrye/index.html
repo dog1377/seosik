@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.14-2">
+<meta name="app-version" content="2026.10.14-3">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -798,6 +798,16 @@ body.split[data-tab="input"] #p-out .text-out{resize:none;overflow:hidden}
 .wz-choice button:active{transform:scale(.97)}
 .wz-choice button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .wz-quick{display:flex;flex-wrap:wrap;gap:8px}
+.wz-dest{flex:none;font-size:12px;font-weight:700;color:var(--bronze,var(--accent));background:var(--accent-soft);border-radius:999px;padding:4px 10px}
+.wz-split{font-size:12.5px;line-height:1.6}
+.wz-split b{color:var(--ink);font-weight:700}
+.env-prev{display:grid;gap:8px;padding:12px 14px;border-radius:14px;background:var(--accent-soft);font-size:13.5px}
+.env-prev[hidden]{display:none}
+.ep-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ep-row{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline}
+.ep-row b{font-size:16px;font-variant-numeric:tabular-nums;color:var(--accent)}
+.ep-row small{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.wz-panel[data-step="recv"] .wz-body>.env-prev{grid-column:1/-1}
 .wz-quick .chip{font-weight:600;color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft)}
 .wz-clear{justify-self:start;color:var(--warn)}
 .wz-clear.armed{background:var(--warn);color:#fff;border-color:var(--warn)}
@@ -932,6 +942,8 @@ body.split #p-settle .wz .settle-bar{display:flex}
         <label class="f">유골함 이익 나눔<div class="suffix"><input class="input" id="rUrn" inputmode="numeric"><span>%</span></div></label>
       </div>
       <p class="note">유골함 정산 = 이익(수금 − 원가) × 나눔 비율 + 원가. 예: 수금 40 · 원가 14 → 이익 26 → 13 + 14 = 27만원. 본부장 몫이 0.5만원으로 끝나면 내려서 보냅니다(32.5 → 32).</p>
+      <label class="f">장지 · 본부장이 먼저 받는 금액<div class="suffix"><input class="input" id="rBurial" inputmode="decimal"><span>만원</span></div></label>
+      <p class="note">장지 봉투 = (받은 금액 − 이 금액)을 반으로 나눠 본부장 몫에 이 금액을 더합니다. 0.5만원은 본부장 내림 · 실장 올림. 예: 300 → 295 → 본부장 147 + 5 = 152 · 실장 148. 식장은 전부 본부장, 초도는 전부 실장, 키트 · 도시락은 반반.</p>
       <label class="f">관꽃장식 추가 판매 · 이익 중 우리 몫<div class="suffix"><input class="input" id="rFlower" inputmode="numeric"><span>%</span></div></label>
       <p class="note">이익 = 받은 금액 − 입관꽃장식 원가. 우리 60% · 본부장 40%, 원가는 본부장 몫에 더합니다. 예: 30만원 · 원가 5 → 이익 25 → 우리 15 · 본부장 10 + 원가 5 = 15</p>
       <div class="row"><button class="btn sm primary" id="saveRules" type="button">저장</button></div>
@@ -2130,7 +2142,7 @@ $('#importApply').onclick=()=>{
   });
 };
 
-$('#saveRules').onclick=()=>{ const R=rules(); R.altarFixed=Number($('#rAltar').value)||0; R.urnShare=Number($('#rUrn').value)||0; const fo=Number($('#rFlower').value); R.flowerPct=Number.isFinite(fo)&&$('#rFlower').value!==''?Math.min(100,Math.max(0,fo)):60; save(); toast('정산 기준을 저장했습니다'); };
+$('#saveRules').onclick=()=>{ const R=rules(); R.altarFixed=Number($('#rAltar').value)||0; R.urnShare=Number($('#rUrn').value)||0; const fo=Number($('#rFlower').value); R.flowerPct=Number.isFinite(fo)&&$('#rFlower').value!==''?Math.min(100,Math.max(0,fo)):60; const bf=Number($('#rBurial').value); R.burialFee=Number.isFinite(bf)&&$('#rBurial').value!==''?Math.max(0,bf):5; save(); toast('정산 기준을 저장했습니다'); };
 /* ---------- 관리: 선택 목록 ---------- */
 function renderLists(){ $('#listEdit').innerHTML=Object.keys(LIST_LABEL).map(k=>`<label class="f">${LIST_LABEL[k]}<textarea class="input" data-list="${k}" rows="4">${esc(db.lists[k].join('\n'))}</textarea></label>`).join(''); }
 $('#saveLists').onclick=()=>{ document.querySelectorAll('[data-list]').forEach(t=>{ db.lists[t.dataset.list]=t.value.split('\n').map(s=>s.trim()).filter(Boolean); }); save(); toast('선택 목록을 저장했습니다'); };
@@ -2146,7 +2158,7 @@ function toWon(v){
   return neg?-w:w;
 }
 function wonStr(w){ if(!w) return ''; const neg=w<0; w=Math.abs(w); const s=w%10000===0?`${(w/10000).toLocaleString('ko-KR')}만원`:`${w.toLocaleString('ko-KR')}원`; return (neg?'-':'')+s; }
-function rules(){ if(!db.settleRules) db.settleRules={altarFixed:24, urnShare:50}; const R=db.settleRules; if(R.flowerPct==null) R.flowerPct=60; delete R.flowerOur; if(R.mgrName==null) R.mgrName=''; return R; }
+function rules(){ if(!db.settleRules) db.settleRules={altarFixed:24, urnShare:50}; const R=db.settleRules; if(R.flowerPct==null) R.flowerPct=60; delete R.flowerOur; if(R.mgrName==null) R.mgrName=''; if(R.burialFee==null) R.burialFee=5; return R; }
 const mgrName=()=>String(rules().mgrName||'').trim()||'실장';
 // 본부장 몫이 0.5만원(5,000원)으로 끝나면 내림: 32.5만 → 32만
 function hqRound(w){ w=Math.round(w); return Math.abs(w%10000)===5000?w-5000*Math.sign(w):w; }
@@ -2171,15 +2183,22 @@ function S(c){
 function pickVal(sel,direct){ return sel==='__direct'?(direct||''):(sel||''); }
 function itemLine(a,pay){ if(!a && !pay) return ''; return `${a||''}${pay?`(${pay})`:''}`; }
 const fullWon=w=>w?`${w<0?'-':''}${Math.abs(w).toLocaleString('ko-KR')}원`:'';
-const RECV=[['hall','식장'],['chodo','초도'],['kit','키트']];
+/* 봉투로 나누는 돈 (보내는금액엔 안 들어감)
+   식장 → 전부 본부장 · 장지 → 5만원 빼고 반반, 본부장 몫에 5만원 더함 · 초도 → 전부 실장 · 키트 · 도시락 → 반반
+   반 나눌 때 0.5만원은 본부장 내림 · 실장 올림 (300 → 295 → 본부장 147 + 5 = 152 · 실장 148) */
+function envSplit(s,R){
+  const hall=toWon(s.hall), burial=toWon(s.burialAmt), chodo=toWon(s.chodo), kit=toWon(s.kit), lunch=toWon(s.lunch);
+  const fee=Math.max(0,Math.min(burial,(Number(R.burialFee)||0)*10000)), base=burial-fee, bHq=hqRound(base/2), kHq=hqRound(kit/2), lHq=hqRound(lunch/2);
+  return {hall,burial,fee,base,bHalf:bHq,burialHq:bHq+fee,burialMg:base-bHq,chodo,kit,kitHq:kHq,kitMg:kit-kHq,lunch,lunchHq:lHq,lunchMg:lunch-lHq,
+    otherHq:kHq+lHq,otherMg:chodo+(kit-kHq)+(lunch-lHq)};
+}
 // 숫자 계산만 (다른 행사 마이너스 확인할 때도 씀 · 저장된 값은 바꾸지 않음)
 function settleCalc(c){
   const f=c.f||{}, s=c.s?S(c):{pay:'현금',extras:[],urnPay:'현금'}, R=rules(), mg=mgrName();
   const altarWon=toWon(s.altarAmt), altarSend=altarWon?Math.min(altarWon, R.altarFixed*10000):0;
   const altarPay=s.altarPay||'현금', altarCash=altarPay==='현금', altarKeep=altarWon-altarSend;
   const altar=altarWon?`${wonStr(altarSend)}(${wonStr(altarWon)})${altarCash?'':`(${altarPay})`}`:'';
-  // 식장에서 받은 것: 식장 · 초도 · 키트 (현금이면 보내는금액에 더함)
-  const recv=RECV.map(([key,label])=>{ const won=toWon(s[key]); if(!won) return null; const pay=s[key+'Pay']||'현금'; return {key,label,won,pay,cash:pay==='현금',line:`${label} : ${wonStr(won)}(${pay})`}; }).filter(Boolean);
+  const E=envSplit(s,R);
   const U=urnSplit(s,R), urnCash=!!U.uCol && s.urnPay==='현금';
   const urn=U.uCol?`${wonStr(U.share)}(${wonStr(U.profit)})수금(${wonStr(U.uCol)})${U.uDisc?`할인(${wonStr(U.uDisc)})`:''}${String(s.urnType||'').trim()}${s.urnPay?`(${s.urnPay})`:''}`:'';
   const FL=flowerSplit(s,R);
@@ -2200,10 +2219,7 @@ function settleCalc(c){
   // 보내는금액에 들어가는 줄(on) / 안 들어가는 줄(off)
   const rows=[];
   if(collectWon) rows.push({k:'상품 수금',note:s.pay||'현금',won:collectWon,on:(s.pay||'현금')==='현금',off:s.pay});
-  const recvRow=x=>rows.push({k:x.label,note:x.pay,won:x.won,on:x.cash,off:x.pay});
-  recv.filter(x=>x.key==='hall').forEach(recvRow);
   if(altarWon) rows.push({k:'제단',note:`받은 ${wonStr(altarWon)} 중`,won:altarSend,on:altarCash,off:altarPay});
-  recv.filter(x=>x.key!=='hall').forEach(recvRow);
   if(U.uCol){ rows.push({k:'유골함 본부장 몫',note:`이익 ${wonStr(U.profit)||'0원'}의 ${R.urnShare}%`,won:U.share,on:urnCash,off:s.urnPay}); if(U.uCost) rows.push({k:'유골함 원가',note:'',won:U.uCost,on:urnCash,off:s.urnPay}); }
   extras.forEach(x=>rows.push({k:x.text||'기타추가',note:x.pay,won:x.won,on:x.pay==='현금',off:x.pay||'결제 안 고름'}));
   autoMinus.forEach(x=>rows.push({k:x.who,note:x.why,won:-x.won,on:true}));
@@ -2217,8 +2233,8 @@ function settleCalc(c){
   const send=ov?(ovWon?wonStr(ovWon):ov):(wonStr(auto)||'0원');
   const sum=a=>a.reduce((x,y)=>x+y,0);
   const altarSub=altarCash?altarSend:0;
-  return {s,f,R,U,FL,altar,altarWon,altarSend,altarKeep,altarCash,altarPay,recv,urn,uCost:U.uCost,collectWon,flower:itemLine(flowerA,flowerP),tribute:itemLine(tribA,tribP),extras,autoMinus,minus,carry,rows,auto,sendWon,send,
-    sub:{collect:collectWon&&(s.pay||'현금')==='현금'?collectWon:0, altar:altarSub, recv:altarSub+sum(recv.filter(x=>x.cash).map(x=>x.won)), urn:urnCash?U.share+U.uCost:0,
+  return {s,f,R,U,FL,altar,altarWon,altarSend,altarKeep,altarCash,altarPay,env:E,urn,uCost:U.uCost,collectWon,flower:itemLine(flowerA,flowerP),tribute:itemLine(tribA,tribP),extras,autoMinus,minus,carry,rows,auto,sendWon,send,
+    sub:{collect:collectWon&&(s.pay||'현금')==='현금'?collectWon:0, altar:altarSub, recv:altarSub, urn:urnCash?U.share+U.uCost:0,
       extra:sum(extras.filter(x=>!x.flower&&x.pay==='현금').map(x=>x.won)), minus:sum(autoMinus.map(x=>x.won))+sum(minus.map(x=>x.won)),
       etc:(FL.sale&&FL.pay==='현금'?FL.sale:0)+(/현금/.test(flowerP)?toWon(flowerA):0)+(/현금/.test(tribP)?toWon(tribA):0),
       carry:sum(carry.map(r=>Math.abs(r.won)))}};
@@ -2234,9 +2250,7 @@ function settleText(c){
     `상복 : ${String(d.f.mournBrand||'').trim()}`,
     `장지 : ${d.v['장지']}`,
     `수금 : ${collect}`,
-    ...d.recv.filter(x=>x.key==='hall').map(x=>x.line),
     `제단 : ${d.altar}`,
-    ...d.recv.filter(x=>x.key!=='hall').map(x=>x.line),
     `유골함 : ${d.urn}`,
     `유골함원가 : ${d.uCost?wonStr(d.uCost):''}`,
     ...(d.extras.length?d.extras.map((x,i)=>i?ind+x.line:`기타추가 : ${x.line}`):['기타추가 : ']),
@@ -2273,13 +2287,14 @@ function commData(c){
   const U=urnSplit(s,R), urnKeep=U.uCol?U.keep:0, FL=flowerSplit(s,R);
   const auto={'제단':altarKeep?{text:`${wonStr(altarKeep)}(${man(altarWon)})`,won:altarKeep}:null, '유골함':U.uCol&&urnKeep?{text:`${wonStr(urnKeep)}(${man(U.profit)})`,won:urnKeep}:null};
   if(FL.our) auto['꽃관']={text:`${wonStr(FL.our)}(${man(FL.sale)})`,won:FL.our};
-  const chodo=toWon(s.chodo), kit=toWon(s.kit);
+  const E=envSplit(s,R), chodo=E.chodo, kit=E.kitMg, lunch=E.lunchMg;
   if(chodo) auto['초도']={text:wonStr(chodo),won:chodo};
-  if(kit) auto['키트']={text:wonStr(kit),won:kit};
+  if(E.kit) auto['키트']={text:`${wonStr(kit)||'0원'}(${man(E.kit)})`,won:kit};
+  if(E.lunch) auto['도시락']={text:`${wonStr(lunch)||'0원'}(${man(E.lunch)})`,won:lunch};
   const m=s.comm||{};
   const rows=COMM_ITEMS.map(k=>auto[k]!==undefined?{k,text:auto[k]?auto[k].text:'',won:auto[k]?auto[k].won:0,auto:true}:{k,text:money(m[k]),won:toWon(m[k])});
   const total=rows.reduce((a,r)=>a+r.won,0);
-  return {rows,total,altarKeep,urnKeep,flowerKeep:FL.our,chodo,kit};
+  return {rows,total,altarKeep,urnKeep,flowerKeep:FL.our,chodo,kit,lunch};
 }
 function commText(c){
   const d=commData(c), f=c.f||{}, p=parseDT(f.depart), who=me();
@@ -2301,7 +2316,7 @@ function amtIn(attr,val,ph,read=true){
 const sChip=id=>`<span class="s-chip" id="${id}"></span>`;
 /* ---------- 정산: 은행 앱 가입처럼 한 단계씩 ---------- */
 const WZ=[
-  {id:'recv',t:'식장에서 받은 것',chip:'chRecv',q:'식장에서 받은 금액이 있나요?',sub:'받은 것만 넣고 현금인지 카드인지 눌러 주세요. 숫자만 넣으면 만원이에요. (30 → 30만원)'},
+  {id:'recv',t:'식장 · 장지에서 받은 것',chip:'chRecv',q:'식장 · 장지에서 받은 금액이 있나요?',sub:'받은 것만 넣으세요. 숫자만 넣으면 만원이에요. (30 → 30만원)<br>식장 · 장지 · 초도 · 키트 · 도시락은 <b>봉투정리로만</b> 나눠 들어가고, 제단만 보내는금액에 들어가요.'},
   {id:'collect',t:'상품 수금',chip:'chCollect',q:'상품 수금액은 얼마인가요?',sub:'현금인지 카드인지도 눌러 주세요.'},
   {id:'urn',t:'유골함',chip:'chUrn',q:'유골함 판매가 있나요?',sub:''},
   {id:'etc',t:'꽃장식 · 헌화 · 이송',chip:'chEtc',q:'입관꽃장식 · 헌화 · 이송이 있나요?',sub:'없으면 비워 두고 다음으로 넘어가세요.'},
@@ -2317,7 +2332,7 @@ const wzPos=new Map();
 const urnHas=s=>['urnCollect','urnCost','urnDisc','urnType'].some(k=>String(s[k]||'').trim())||s.urnAsk==='yes';
 function hasSettleData(c){
   const s=c.s||{};
-  return ['hall','altarAmt','chodo','kit','urnCollect','urnCost','flower','trib','transfer','flowerSale','sendOverride'].some(k=>String(s[k]||'').trim())
+  return ['hall','burialAmt','altarAmt','chodo','kit','lunch','urnCollect','urnCost','flower','trib','transfer','flowerSale','sendOverride'].some(k=>String(s[k]||'').trim())
     || (s.extras||[]).some(x=>x.text||x.amt) || (s.minus||[]).some(x=>x.amt||x.memo) || (s.carry||[]).length>0;
 }
 function wzAt(c){ if(!wzPos.has(c.id)) wzPos.set(c.id, hasSettleData(c)?WZ.length-1:0); return wzPos.get(c.id); }
@@ -2342,12 +2357,14 @@ function miRow(x,all){
 function stepBody(id,c,all){
   const s=S(c), f=c.f, R=rules();
   if(id==='recv'){
-    const it=(key,payKey,label,ph,extra='')=>`<div class="wz-item"><div class="wz-item-h"><b>${label}</b>${seg2(payKey,s[payKey]||'현금')}</div>${amtIn(`data-s="${key}"`,s[key],ph)}${extra}</div>`;
-    return it('hall','hallPay','식장','예: 10')
-      +it('altarAmt','altarPay','제단','예: 100',`<p class="note" id="altarNote"></p>`)
-      +it('chodo','chodoPay','초도','예: 5')
-      +it('kit','kitPay','키트','예: 3')
-      +`<p class="note">현금은 보내는금액에 더하고, 카드는 카톡에 (카드)로만 적어요. 식장은 봉투정리 본부장 봉투, 초도 · 키트는 수당 정산에도 자동으로 들어가요.</p>`;
+    const env=(key,label,ph,tag)=>`<div class="wz-item"><div class="wz-item-h"><b>${label}</b><span class="wz-dest">${tag}</span></div>${amtIn(`data-s="${key}"`,s[key],ph)}<p class="note wz-split" id="sp_${key}"></p></div>`;
+    return env('hall','식장','예: 10','본부장 봉투')
+      +env('burialAmt','장지','예: 300','본부장 · 실장 봉투')
+      +`<div class="wz-item"><div class="wz-item-h"><b>제단</b>${seg2('altarPay',s.altarPay||'현금')}</div>${amtIn('data-s="altarAmt"',s.altarAmt,'예: 100')}<p class="note" id="altarNote"></p></div>`
+      +env('chodo','초도','예: 5','실장 봉투')
+      +env('kit','키트','예: 4','반반')
+      +env('lunch','도시락','예: 6','반반')
+      +`<div class="calc env-prev" id="envPrev" hidden></div>`;
   }
   if(id==='collect') return `<p class="must">상품 수금 금액만 넣으세요. 제단 · 유골함 · 추가 항목은 각 단계에서 따로 넣습니다.</p>
     <label class="f wz-big">상품 수금 금액${amtIn('data-sf="collect"',f.collect,'예: 257.5')}</label>
@@ -2389,6 +2406,7 @@ function stepBody(id,c,all){
   if(id==='def') return `<div class="def-body" id="defBody"></div>`;
   if(id==='done') return `<div class="wz-total" id="wzTotal"><span id="wzTotL">보내는금액</span><b id="wzSend">0원</b><small id="wzSendNote"></small></div>
     <div class="wz-review" id="wzReview"></div>
+    <div class="env-prev wz-env" id="wzEnv" hidden></div>
     <details class="sub-fold" id="wzBasic"><summary><div class="wb-t"><b>카톡 윗부분 · 기본 정보</b><small id="wzBasicState"></small></div><span>고치기</span></summary><div class="fields">${basicFields(c)}</div></details>
     <button class="btn sm wz-restart" type="button" data-wz-go="0">처음부터 다시 보기</button>`;
   return '';
@@ -2443,8 +2461,8 @@ function wzGo(n){
 function setSettleMode(m){ settleMode=m; try{ localStorage.setItem(SM_KEY,m); }catch(e){ /* 저장 못 해도 이번엔 바뀜 */ } renderSettle(); const p=$('#p-settle'); if(p&&p.getBoundingClientRect().top<0) p.scrollIntoView({block:'start'}); }
 function wzReview(c,d){
   const s=d.s, sg=w=>w?`${w>0?'+':'−'}${wnum(w)}`:'0';
-  const recvBits=[...d.recv.filter(x=>x.key==='hall'), ...(d.altarWon?[{label:'제단',won:d.altarWon,cash:d.altarCash,pay:d.altarPay}]:[]), ...d.recv.filter(x=>x.key!=='hall')]
-    .map(x=>`${x.label} ${wonStr(x.won)}${x.cash?'':`(${x.pay})`}`);
+  const E=d.env, recvBits=[E.hall&&`식장 ${wonStr(E.hall)}`, E.burial&&`장지 ${wonStr(E.burial)}`, d.altarWon&&`제단 ${wonStr(d.altarWon)}${d.altarCash?'':`(${d.altarPay})`}`,
+    E.chodo&&`초도 ${wonStr(E.chodo)}`, E.kit&&`키트 ${wonStr(E.kit)}`, E.lunch&&`도시락 ${wonStr(E.lunch)}`].filter(Boolean);
   const etcBits=[d.flower&&'입관꽃장식', d.FL.sale&&'관꽃장식 판매', d.tribute&&'헌화', String(s.transfer||'').trim()&&'이송'].filter(Boolean);
   const ex=d.extras.filter(x=>!x.flower), mi=[...d.autoMinus,...d.minus];
   const rows=[
@@ -2478,14 +2496,14 @@ function renderSettle(){
     <label class="f">직접 입력 (비우면 위 계산대로)${amtIn('data-s="sendOverride"',s.sendOverride,'비워 두면 자동')}</label></div></div>
   <div class="out"><div class="out-head"><h2>정산 카톡<small>회사로 보내는 몫</small></h2><button class="btn primary" id="copySettle" type="button">복사</button></div>
     <textarea class="text-out" id="settleText" rows="18" aria-label="정산 카톡"></textarea></div>
-  <div class="sec settle-wide"><div class="sec-head"><h2>월별 봉투정리</h2><button class="btn primary" type="button" id="openEnvelope">봉투 정리하기</button></div><p class="note">식장은 본부장 봉투에, 제단·유골함 수익은 실장 봉투에 자동 반영됩니다. 장지·기타 금액을 넣고 월별로 보관하세요.</p></div>
+  <div class="sec settle-wide"><div class="sec-head"><h2>월별 봉투정리</h2><button class="btn primary" type="button" id="openEnvelope">봉투 정리하기</button></div><p class="note">식장 · 장지 · 초도 · 키트 · 도시락과 제단 · 유골함 수익이 본부장 · 실장 봉투에 자동으로 나눠 들어갑니다. 월별로 보관하세요.</p></div>
   <div class="sec settle-wide"><div class="sec-head"><h2>수당 정산</h2></div><div class="fields">
     <label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}"><span>번</span></div></label>
     <p class="calc" id="commAuto"></p>
     ${(()=>{ const ks=COMM_ITEMS.filter(k=>k!=='제단'&&k!=='유골함'), rows=[]; for(let i=0;i<ks.length;i+=2) rows.push(ks.slice(i,i+2)); const m=s.comm||{};
       return rows.map(r=>`<div class="pair">${r.map(k=>`<label class="f">${k}${amtIn(`data-comm="${esc(k)}"`,m[k],'',false)}</label>`).join('')}</div>`).join(''); })()}
     <div class="pair"><label class="f">이름<input class="input" data-me="name" value="${esc(me().name)}" placeholder="홍길동"></label><label class="f">직급<input class="input" data-me="rank" value="${esc(me().rank)}" placeholder="주임"></label></div>
-    <p class="note">제단 · 유골함 · 꽃관(관꽃장식 판매) · 초도 · 키트는 정산에서 넣은 값으로 자동 계산됩니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
+    <p class="note">제단 · 유골함 · 꽃관(관꽃장식 판매) · 초도 · 키트 · 도시락(실장 몫 반)은 정산에서 넣은 값으로 자동 계산됩니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
   <div class="out"><div class="out-head"><h2>수당 정산<small>내 몫</small></h2><button class="btn primary" id="copyComm" type="button">복사</button></div>
     <textarea class="text-out" id="commText" rows="20" aria-label="수당 정산"></textarea></div>
   </div>
@@ -2534,7 +2552,19 @@ function renderDef(c,d){
 function updSettle(skipDef){
   const c=curCase(); if(!c) return; const d=settleData(c), R=d.R, s=d.s;
   chipSet('chCollect',d.sub.collect,d.collectWon&&s.pay==='카드'?'카드 · 안 더함':'');
-  chipSet('chRecv',d.sub.recv,(d.recv.length||d.altarWon)&&!d.sub.recv?'카드 · 안 더함':'');
+  chipSet('chRecv',d.sub.recv,d.altarWon&&!d.sub.recv?'카드 · 안 더함':'');
+  { const E=d.env, mw=w=>wonStr(w)||'0원', put=(k,t)=>{ const el=$('#sp_'+k); if(el) el.innerHTML=t; };
+    put('hall',E.hall?`→ 본부장 봉투 <b>${mw(E.hall)}</b>`:'전부 본부장 봉투로 들어가요.');
+    put('burialAmt',E.burial?`${man(E.burial)} − ${man(E.fee)} = ${man(E.base)} → 반으로 나눠 <b>본부장 ${man(E.bHalf)} + ${man(E.fee)} = ${mw(E.burialHq)}</b> · <b>실장 ${mw(E.burialMg)}</b>`
+      :`${R.burialFee}만원 빼고 반으로 나눠요. 본부장 몫에 ${R.burialFee}만원을 더해요. (0.5만원은 본부장 내림)`);
+    put('chodo',E.chodo?`→ 전부 실장 봉투 <b>${mw(E.chodo)}</b>`:'전부 실장 봉투로 들어가요.');
+    put('kit',E.kit?`반반 → <b>본부장 ${mw(E.kitHq)}</b> · <b>실장 ${mw(E.kitMg)}</b>`:'본부장 · 실장 반반 (0.5만원은 실장 쪽)');
+    put('lunch',E.lunch?`반반 → <b>본부장 ${mw(E.lunchHq)}</b> · <b>실장 ${mw(E.lunchMg)}</b>`:'본부장 · 실장 반반 (0.5만원은 실장 쪽)');
+    const ev=(['envPrev','wzEnv'].some(id=>$('#'+id)))?caseEnvelope(c):null;
+    ['envPrev','wzEnv'].forEach(id=>{ const el=$('#'+id); if(!el||!ev) return; const any=ev.part||ev.manager; el.hidden=!any;
+      el.innerHTML=any?`<div class="ep-h"><b>봉투정리로 가는 돈</b><button class="btn sm" type="button" data-act="openEnv">봉투 보기</button></div>
+        <div class="ep-row"><span>본부장 봉투</span><b>${mw(ev.part)}</b><small>${[ev.partHall&&`식장 ${wonStr(ev.partHall)}`,ev.partBurial&&`장지 ${wonStr(ev.partBurial)}`,ev.partOther&&`기타 ${wonStr(ev.partOther)}`].filter(Boolean).join(' · ')||'없음'}</small></div>
+        <div class="ep-row"><span>실장 봉투</span><b>${mw(ev.manager)}</b><small>${[ev.managerAltar&&`제단 ${wonStr(ev.managerAltar)}`,ev.managerBurial&&`장지 ${wonStr(ev.managerBurial)}`,ev.managerUrn&&`유골함 ${wonStr(ev.managerUrn)}`,ev.managerOther&&`기타 ${wonStr(ev.managerOther)}`].filter(Boolean).join(' · ')||'없음'}</small></div>`:''; }); }
   const an=$('#altarNote'); if(an) an.textContent=!d.altarWon?`${R.altarFixed}만원까지 보내는금액에 더하고, 나머지는 실장 몫이에요.`
     :d.altarCash?`${wonStr(d.altarSend)}은 보내는금액에 · ${d.altarKeep?`${wonStr(d.altarKeep)}은 실장 몫`:'실장 몫 없음'}`
     :`${d.altarPay}라 회사가 다 받음 → 실장 몫 ${wonStr(d.altarKeep)||'0원'}을 보내는금액에서 빼요`;
@@ -2572,8 +2602,8 @@ function updSettle(skipDef){
   const bs=$('#wzBasicState'); if(bs){ const miss=[['장소',d.f.place],['도우미',d.f.helper],['차량',d.f.vehType||d.f.vehCo],['상복',d.f.mournBrand],['장지',d.v['장지']]].filter(x=>!String(x[1]||'').trim()).map(x=>x[0]); bs.textContent=miss.length?`비어 있음: ${miss.join(' · ')}`:'모두 채움'; bs.classList.toggle('miss',!!miss.length); }
   const bar=$('#settleBar'); if(bar){ bar.classList.toggle('neg',d.sendWon<0); $('#sbLabel').textContent=d.sendWon<0?'보내는금액 · 마이너스':'보내는금액'; $('#sbSend').textContent=d.send||'0원'; }
   const t=$('#settleText'); if(t) t.value=settleText(c);
-  const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''}${cd.chodo?` · 초도 ${wonStr(cd.chodo)}`:''}${cd.kit?` · 키트 ${wonStr(cd.kit)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
-  [['꽃관',cd.flowerKeep],['초도',cd.chodo],['키트',cd.kit]].forEach(([k,w])=>{ const el=document.querySelector(`#p-settle [data-comm="${k}"]`); if(!el) return; el.disabled=!!w; el.placeholder=w?'자동 '+wonStr(w):'';
+  const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''}${cd.chodo?` · 초도 ${wonStr(cd.chodo)}`:''}${cd.kit?` · 키트 ${wonStr(cd.kit)}`:''}${cd.lunch?` · 도시락 ${wonStr(cd.lunch)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
+  [['꽃관',cd.flowerKeep],['초도',cd.chodo],['키트',cd.kit],['도시락',cd.lunch]].forEach(([k,w])=>{ const el=document.querySelector(`#p-settle [data-comm="${k}"]`); if(!el) return; el.disabled=!!w; el.placeholder=w?'자동 '+wonStr(w):'';
     const want=w?'':String((s.comm||{})[k]??''); if(el.value!==want) el.value=want; const u=el.closest('.amt')?.querySelector('.amt-u'); if(u) u.textContent=w?'':amtUnit(want); });
   const ct=$('#commText'); if(ct) ct.value=commText(c);
 }
@@ -2622,7 +2652,7 @@ $('#p-settle').addEventListener('click',e=>{
     return; }
   if(b.dataset.exQuick!==undefined){ const x={id:uid(),text:b.dataset.exQuick,amt:'',pay:'현금'}; s.extras.push(x); touched(); renderSettle(); const el=document.querySelector(`[data-ex="${x.id}"][data-exf="text"]`); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } return; }
   if(b.dataset.miQuick!==undefined){ const x={id:uid(),who:'',amt:'',memo:b.dataset.miQuick}; (s.minus||(s.minus=[])).push(x); touched(); renderSettle(); const el=document.querySelector(`[data-mi="${x.id}"][data-mif="${x.memo?'amt':'memo'}"]`); if(el) el.focus(); return; }
-  if(b.id==='openEnvelope'){openCurrentEnvelope();return;}
+  if(b.id==='openEnvelope'||b.dataset.act==='openEnv'){openCurrentEnvelope();return;}
   if(b.id==='copySettle'){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
   if(b.id==='copyComm'){ copyFrom($('#commText'),'수당 정산을 복사했습니다'); return; }
   const seg=b.closest('[data-seg]'); if(seg){ s[seg.dataset.seg]=b.dataset.v; seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); touched(); updSettle(); return; }
@@ -2653,7 +2683,7 @@ function envelopeMeta(r,k){ return String(r.edits&&r.edits[k]!==undefined?r.edit
 function envelopeRecordMonth(r){ const m=envelopeMeta(r,'month'); return envelopeMonthOK(m)?m:seoulToday().slice(0,7); }
 function envelopeHasSettlement(c){
   const f=c.f||{},s=c.s||{};
-  return [f.collect,s.hall,s.chodo,s.kit,s.altarAmt,s.urnCollect,s.urnCost,s.flower,s.trib,s.transfer,s.sendOverride].some(v=>String(v||'').trim()) ||
+  return [f.collect,s.hall,s.burialAmt,s.chodo,s.kit,s.lunch,s.altarAmt,s.urnCollect,s.urnCost,s.flower,s.trib,s.transfer,s.sendOverride].some(v=>String(v||'').trim()) ||
     (s.extras||[]).some(x=>x.amt||x.text) || (s.minus||[]).some(x=>x.amt||x.who) || (s.carry||[]).length>0 || String(s.flowerSale||'').trim()!=='' || Object.values(s.comm||{}).some(v=>String(v||'').trim());
 }
 function syncEnvelopeRecord(c,force=false){
@@ -2664,10 +2694,24 @@ function syncEnvelopeRecord(c,force=false){
   if(!r){ r={id:'env_'+c.id,sourceCaseId:c.id,auto:{},edits:{},amounts:{},notes:{},created:Date.now(),updated:Date.now()}; db.envelopes.push(r); }
   const f=c.f||{},who=me(),profit=commData(c),date=String(f.depart||f.cremDate||f.death||f.recv||'');
   const sourceMonth=envelopeMonthOK(date.slice(0,7))?date.slice(0,7):(r.auto.month||seoulToday().slice(0,7));
-  const hallWon=toWon((c.s||{}).hall);
-  const next={month:sourceMonth,date:date.slice(0,10),eventNo:String(f.eventNo||''),place:String(f.place||''),name:who.name||'서영우',rank:who.rank||'파트장',altar:profit.altarKeep,urn:profit.urnKeep,...(hallWon?{hall:hallWon}:{}),settlement:settleText(c)};
+  const next={month:sourceMonth,date:date.slice(0,10),eventNo:String(f.eventNo||''),place:String(f.place||''),name:who.name||'서영우',rank:who.rank||'파트장',altar:profit.altarKeep,urn:profit.urnKeep,...envelopeSplitAuto(c),settlement:settleText(c)};
   if(JSON.stringify(r.auto)!==JSON.stringify(next)){ r.auto=next; r.updated=Date.now(); }
   return r;
+}
+// 정산 1단계 금액 → 봉투 자동 칸 (값이 있는 것만 넣음)
+function envelopeSplitAuto(c){
+  const E=envSplit(c.s||{},rules()), o={};
+  if(E.hall) o.hall=E.hall;
+  if(E.burial){ o.burialHq=E.burialHq; o.burialMg=E.burialMg; }
+  if(E.otherHq){ o.otherHq=E.otherHq; o.otherHqNote=[E.kitHq&&`키트 ${wonStr(E.kitHq)}`,E.lunchHq&&`도시락 ${wonStr(E.lunchHq)}`].filter(Boolean).join(' · '); }
+  if(E.otherMg){ o.otherMg=E.otherMg; o.otherMgNote=[E.chodo&&`초도 ${wonStr(E.chodo)}`,E.kitMg&&`키트 ${wonStr(E.kitMg)}`,E.lunchMg&&`도시락 ${wonStr(E.lunchMg)}`].filter(Boolean).join(' · '); }
+  return o;
+}
+// 이 행사의 봉투 금액 (봉투 기록이 있으면 그 값 · 직접 고친 값 포함)
+function caseEnvelope(c){
+  const r=db.envelopes.find(x=>x.sourceCaseId===c.id);
+  if(r){ syncEnvelopeRecord(c); return envelopeValues(r); }
+  return envelopeValues({auto:{altar:commData(c).altarKeep,urn:commData(c).urnKeep,...envelopeSplitAuto(c)},amounts:{},notes:{}});
 }
 function syncEnvelopeArchives(){ db.cases.forEach(c=>syncEnvelopeRecord(c)); }
 function envelopeMoney(v){
@@ -2679,9 +2723,10 @@ function envelopeValues(r){
   const a=r.amounts||{},auto=r.auto||{},n=k=>envelopeMoney(a[k]);
   const altar=a.managerAltar!==undefined&&a.managerAltar!==''?n('managerAltar'):Number(auto.altar)||0;
   const urn=a.managerUrn!==undefined&&a.managerUrn!==''?n('managerUrn'):Number(auto.urn)||0;
-  const hall=a.partHall!==undefined&&a.partHall!==''?n('partHall'):Number(auto.hall)||0;
-  return {partHall:hall,partBurial:n('partBurial'),partOther:n('partOther'),managerAltar:altar,managerBurial:n('managerBurial'),managerUrn:urn,managerOther:n('managerOther'),
-    part:hall+n('partBurial')+n('partOther'),manager:altar+n('managerBurial')+urn+n('managerOther')};
+  const pick=(k,ak)=>a[k]!==undefined&&a[k]!==''?n(k):Number(auto[ak])||0;
+  const hall=pick('partHall','hall'), pBur=pick('partBurial','burialHq'), pOth=pick('partOther','otherHq'), mBur=pick('managerBurial','burialMg'), mOth=pick('managerOther','otherMg');
+  return {partHall:hall,partBurial:pBur,partOther:pOth,managerAltar:altar,managerBurial:mBur,managerUrn:urn,managerOther:mOth,
+    part:hall+pBur+pOth,manager:altar+mBur+urn+mOth};
 }
 function envelopeTitle(r,role){
   const event=envelopeMeta(r,'eventNo').trim().replace(/번$/,'');
@@ -2689,11 +2734,14 @@ function envelopeTitle(r,role){
   return ['행사번호 '+(event?event+'번':'미입력'),envelopeMeta(r,'place')||'장례식장·호실 미입력',envelopeMeta(r,'name'),rank+(role==='manager'?'(실장)':'')].filter(Boolean).join(' ');
 }
 function envelopeText(r,role){
-  const v=envelopeValues(r),notes=r.notes||{},show=w=>w?wonStr(w):'';
+  const v=envelopeValues(r),notes=r.notes||{},a=r.amounts||{},auto=r.auto||{},show=w=>w?wonStr(w):'';
+  // 기타: 직접 고친 게 없으면 자동 내역(키트 2만원 · 도시락 3만원)을 그대로, 고쳤으면 "내역 금액"
+  const otherText=(nk,ak,autoNote,w)=>{ const note=String(notes[nk]||'').trim(), amtAuto=a[ak]===undefined||a[ak]==='';
+    return !note&&amtAuto&&autoNote?autoNote:[note,show(w)].filter(Boolean).join(' '); };
   let rows;
-  if(role==='part') rows=['식장 : '+show(v.partHall),'장지 : '+show(v.partBurial),'기타 : '+[notes.partOtherNote,show(v.partOther)].filter(Boolean).join(' '),'합계 : '+(wonStr(v.part)||'0원')];
+  if(role==='part') rows=['식장 : '+show(v.partHall),'장지 : '+show(v.partBurial),'기타 : '+otherText('partOtherNote','partOther',auto.otherHqNote,v.partOther),'합계 : '+(wonStr(v.part)||'0원')];
   else {
-    const other=[v.managerUrn?'유골함 '+show(v.managerUrn):'', [notes.managerOtherNote,show(v.managerOther)].filter(Boolean).join(' ')].filter(Boolean).join(' / ');
+    const other=[v.managerUrn?'유골함 '+show(v.managerUrn):'', otherText('managerOtherNote','managerOther',auto.otherMgNote,v.managerOther)].filter(Boolean).join(' · ');
     rows=['제단 : '+show(v.managerAltar),'장지 : '+show(v.managerBurial),'기타 : '+other,'합계 : '+(wonStr(v.manager)||'0원')];
   }
   return [envelopeTitle(r,role),...rows].join('\n\n');
@@ -2770,15 +2818,16 @@ function envelopeAmountField(r,k,label,auto){
   const value=(r.amounts||{})[k]??'';
   return '<label class="f">'+label+'<div class="suffix"><input class="input" type="number" min="0" max="999999999" step="0.0001" inputmode="decimal" data-env-amount="'+k+'" value="'+esc(value)+'" placeholder="'+(auto===undefined?'0':esc(String(auto/10000))+' · 자동')+'"><span>만원</span></div>'+(auto===undefined?'':'<span class="field-hint">비우면 정산에서 넣은 '+esc(wonStr(auto)||'0원')+' 자동 반영</span>')+'</label>';
 }
-function envelopeNoteField(r,k){
-  return '<label class="f">기타 내역<input class="input" data-env-note="'+k+'" value="'+esc((r.notes||{})[k]||'')+'" placeholder="필요한 내역 직접 입력"></label>';
+function envelopeNoteField(r,k,autoNote){
+  return '<label class="f">기타 내역<input class="input" data-env-note="'+k+'" value="'+esc((r.notes||{})[k]||'')+'" placeholder="'+esc(autoNote?autoNote+' · 자동':'필요한 내역 직접 입력')+'"></label>';
 }
 function envelopeEditor(r){
+  const autoW=k=>r.sourceCaseId&&Number((r.auto||{})[k])?Number(r.auto[k]):undefined;
   const a=r.auto||{},v=envelopeValues(r),meta=k=>envelopeMeta(r,k);
   let h='<details class="env-event" data-env-id="'+esc(r.id)+'"'+(envelopeOpenId===r.id?' open':'')+'><summary><div><b data-env-caption>'+esc(meta('eventNo')?'행사 '+meta('eventNo').replace(/번$/,'')+'번':'행사번호 미입력')+' · '+esc(meta('place')||'장례식장·호실 미입력')+'</b><small data-env-person>'+esc([meta('name'),meta('rank')].filter(Boolean).join(' '))+'</small></div><span class="env-total" data-env-total>'+esc(wonStr(v.part+v.manager)||'0원')+'</span></summary><div class="env-detail">';
   h+='<div class="env-meta-grid">'+envelopeMetaField(r,'month','정산월','month')+envelopeMetaField(r,'eventNo','행사번호')+envelopeMetaField(r,'place','장례식장 · 호실')+envelopeMetaField(r,'name','이름')+envelopeMetaField(r,'rank','직급')+'</div>';
-  h+='<div class="env-columns"><section class="env-form"><div class="out-head"><h2>본부장 봉투</h2><button class="btn sm" type="button" data-env-copy="part">복사</button></div><div class="pair">'+envelopeAmountField(r,'partHall','식장',r.sourceCaseId&&Number(a.hall)?Number(a.hall):undefined)+envelopeAmountField(r,'partBurial','장지')+'</div><div class="pair">'+envelopeNoteField(r,'partOtherNote')+envelopeAmountField(r,'partOther','기타 금액')+'</div><textarea class="text-out" data-env-text="part" rows="10" readonly aria-label="본부장 봉투 양식"></textarea></section>';
-  h+='<section class="env-form"><div class="out-head"><h2>실장 봉투</h2><button class="btn sm" type="button" data-env-copy="manager">복사</button></div><div class="pair">'+envelopeAmountField(r,'managerAltar','제단 수익',r.sourceCaseId?(Number(a.altar)||0):undefined)+envelopeAmountField(r,'managerBurial','장지')+'</div>'+envelopeAmountField(r,'managerUrn','유골함 수익 · 기타에 포함',r.sourceCaseId?(Number(a.urn)||0):undefined)+'<div class="pair">'+envelopeNoteField(r,'managerOtherNote')+envelopeAmountField(r,'managerOther','기타 추가 금액')+'</div><textarea class="text-out" data-env-text="manager" rows="10" readonly aria-label="실장 봉투 양식"></textarea></section></div>';
+  h+='<div class="env-columns"><section class="env-form"><div class="out-head"><h2>본부장 봉투</h2><button class="btn sm" type="button" data-env-copy="part">복사</button></div><div class="pair">'+envelopeAmountField(r,'partHall','식장',autoW('hall'))+envelopeAmountField(r,'partBurial','장지',autoW('burialHq'))+'</div><div class="pair">'+envelopeNoteField(r,'partOtherNote',a.otherHqNote)+envelopeAmountField(r,'partOther','기타 금액',autoW('otherHq'))+'</div><textarea class="text-out" data-env-text="part" rows="10" readonly aria-label="본부장 봉투 양식"></textarea></section>';
+  h+='<section class="env-form"><div class="out-head"><h2>실장 봉투</h2><button class="btn sm" type="button" data-env-copy="manager">복사</button></div><div class="pair">'+envelopeAmountField(r,'managerAltar','제단 수익',r.sourceCaseId?(Number(a.altar)||0):undefined)+envelopeAmountField(r,'managerBurial','장지',autoW('burialMg'))+'</div>'+envelopeAmountField(r,'managerUrn','유골함 수익 · 기타에 포함',r.sourceCaseId?(Number(a.urn)||0):undefined)+'<div class="pair">'+envelopeNoteField(r,'managerOtherNote',a.otherMgNote)+envelopeAmountField(r,'managerOther','기타 추가 금액',autoW('otherMg'))+'</div><textarea class="text-out" data-env-text="manager" rows="10" readonly aria-label="실장 봉투 양식"></textarea></section></div>';
   h+='<div class="row"><button class="btn primary" type="button" data-env-copy="both">봉투 2개 복사</button><button class="btn danger" type="button" data-env-action="delete">이 기록 삭제</button></div>';
   if(a.settlement) h+='<details class="env-source"><summary>기준 정산카톡 보기</summary><textarea class="text-out" rows="12" readonly aria-label="기준 정산카톡">'+esc(a.settlement)+'</textarea></details>';
   return h+'</div></details>';
@@ -2794,7 +2843,7 @@ function updateEnvelopeCard(r){
 function renderEnvelopes(){
   syncEnvelopeArchives();
   const rows=envelopeMonthRows(),months=[...new Set([seoulToday().slice(0,7),envelopeMonth,...db.envelopes.map(envelopeRecordMonth)])].sort().reverse();
-  $('#p-envelopes').innerHTML='<div class="sec"><div class="sec-head"><h2>월별 봉투정리</h2><span class="env-badge">자동 저장</span></div><div class="env-month-row"><button class="btn" type="button" data-env-shift="-1" aria-label="이전 달">‹</button><label class="f"><span class="visually-hidden">조회할 정산월</span><input class="input" id="envelopeMonth" type="month" value="'+envelopeMonth+'"></label><button class="btn" type="button" data-env-shift="1" aria-label="다음 달">›</button></div><div class="env-months">'+months.map(m=>'<button class="chip" type="button" data-env-month="'+m+'" aria-pressed="'+(m===envelopeMonth)+'">'+m.replace('-','.')+'</button>').join('')+'</div><p class="note">봉투 기록은 행사 기록을 지워도 남습니다. 달이 바뀌어도 이전 기록을 계속 볼 수 있습니다. 식장은 정산에서 넣은 금액이 본부장 봉투에, 제단·유골함 수익은 실장 봉투에 자동 반영합니다. 장지·기타는 직접 입력하세요.</p><div class="row"><button class="btn primary" type="button" data-env-action="new">+ 봉투 1건 추가</button><button class="btn" type="button" data-env-action="current" '+(curCase()?'':'disabled')+'>현재 행사 가져오기</button></div><p class="note">행사 입력 없이 봉투만 한 건씩 추가할 수 있습니다.</p></div><div id="envelopeSummary" class="stack"></div>'+envelopeListTools()+'<div class="stack" id="envelopeList">'+(rows.length?rows.map(envelopeEditor).join(''):'<div class="sec env-empty"><h2>이달의 봉투 기록이 없습니다</h2><p class="note">정산 내용을 입력하면 자동으로 모입니다. 이전 행사는 직접 추가할 수 있습니다.</p></div>')+'</div><div class="sec"><div class="sec-head"><h2>봉투 기록 백업</h2></div><p class="note">이 기기에 자동 저장됩니다. 기기를 바꾸거나 브라우저 데이터를 지우기 전에 전체 기록을 파일로 보관하세요.</p><div class="row"><button class="btn" type="button" data-env-action="export">전체 기록 백업</button><button class="btn" type="button" data-env-action="import">백업 불러오기</button><input id="envelopeImport" type="file" accept=".json,application/json" hidden></div></div>';
+  $('#p-envelopes').innerHTML='<div class="sec"><div class="sec-head"><h2>월별 봉투정리</h2><span class="env-badge">자동 저장</span></div><div class="env-month-row"><button class="btn" type="button" data-env-shift="-1" aria-label="이전 달">‹</button><label class="f"><span class="visually-hidden">조회할 정산월</span><input class="input" id="envelopeMonth" type="month" value="'+envelopeMonth+'"></label><button class="btn" type="button" data-env-shift="1" aria-label="다음 달">›</button></div><div class="env-months">'+months.map(m=>'<button class="chip" type="button" data-env-month="'+m+'" aria-pressed="'+(m===envelopeMonth)+'">'+m.replace('-','.')+'</button>').join('')+'</div><p class="note">봉투 기록은 행사 기록을 지워도 남습니다. 달이 바뀌어도 이전 기록을 계속 볼 수 있습니다. 정산 1단계에서 넣은 식장 · 장지 · 초도 · 키트 · 도시락과 제단 · 유골함 수익이 본부장 · 실장 봉투에 자동으로 나눠 들어갑니다. 칸에 직접 넣으면 그 값이 우선합니다.</p><div class="row"><button class="btn primary" type="button" data-env-action="new">+ 봉투 1건 추가</button><button class="btn" type="button" data-env-action="current" '+(curCase()?'':'disabled')+'>현재 행사 가져오기</button></div><p class="note">행사 입력 없이 봉투만 한 건씩 추가할 수 있습니다.</p></div><div id="envelopeSummary" class="stack"></div>'+envelopeListTools()+'<div class="stack" id="envelopeList">'+(rows.length?rows.map(envelopeEditor).join(''):'<div class="sec env-empty"><h2>이달의 봉투 기록이 없습니다</h2><p class="note">정산 내용을 입력하면 자동으로 모입니다. 이전 행사는 직접 추가할 수 있습니다.</p></div>')+'</div><div class="sec"><div class="sec-head"><h2>봉투 기록 백업</h2></div><p class="note">이 기기에 자동 저장됩니다. 기기를 바꾸거나 브라우저 데이터를 지우기 전에 전체 기록을 파일로 보관하세요.</p><div class="row"><button class="btn" type="button" data-env-action="export">전체 기록 백업</button><button class="btn" type="button" data-env-action="import">백업 불러오기</button><input id="envelopeImport" type="file" accept=".json,application/json" hidden></div></div>';
   rows.forEach(updateEnvelopeCard); updateEnvelopeSummary();
 }
 function showEnvelopeMonth(month){
@@ -2985,7 +3034,7 @@ function setTab(t,sub){
   if(t==='envelopes') renderEnvelopes();
   if(t==='input') renderInput();
   if(t==='out') renderOut();
-  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; }
+  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; }
   checkSplit(); applySplit();
   updateWorkspace(t);
   window.scrollTo(0,0);
