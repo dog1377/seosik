@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.14-5">
+<meta name="app-version" content="2026.10.14-6">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="관리자 서식">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -269,6 +269,34 @@ svg.ui-icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.
 .ab-menu{width:40px;height:44px;margin-left:-8px}
 .save-state{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);white-space:nowrap;margin-right:8px}
 .save-dot{width:6px;height:6px;border-radius:50%;background:#62897c}
+.snap-h{margin:8px 0 0;font-size:14px}
+.wz-compare>div{display:grid!important;gap:2px;justify-content:start!important}
+.wz-compare span{font-size:12.5px;color:var(--muted)}
+.wz-compare b{font-size:16px}
+.cnt-quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:-2px}
+.cnt-quick .chip{min-height:30px;padding:4px 10px;font-size:12px;border-radius:999px}
+.cnt-quick .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.suffix.cnt span[hidden]{display:none}
+.snap-list{display:grid;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.snap-list>.note{padding:12px 14px}
+.snap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.snap-row:last-child{border-bottom:0}
+.snap-row div{display:grid;gap:2px}
+.snap-row small{font-size:12px;color:var(--muted)}
+.env-lock{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:var(--field);font-size:13px;color:var(--muted)}
+.env-lock.on{background:var(--accent-soft);color:var(--ink)}
+.env-lock b{color:var(--accent);margin-right:4px}
+.env-event:not(.editing) .input:disabled{background:var(--field);border-color:transparent;color:var(--ink);-webkit-text-fill-color:var(--ink);opacity:1;cursor:default}
+.env-event:not(.editing) .input:disabled::placeholder{color:var(--ink-2,var(--ink));-webkit-text-fill-color:var(--ink-2,var(--ink));opacity:.75}
+.env-event:not(.editing) .field-hint{display:none}
+.env-event.editing{box-shadow:0 0 0 2px var(--accent)}
+.ab-save{flex:none;height:40px;min-height:40px;padding:0 14px;border-radius:10px;gap:6px;border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);font-weight:700}
+.ab-save.saved{border-color:var(--line);color:var(--muted);font-weight:600;background:transparent}
+.ab-save .sv-dot{width:7px;height:7px;border-radius:50%;background:var(--warn)}
+.ab-save.pop{animation:svPop .45s ease}
+@keyframes svPop{0%{transform:scale(1)}35%{transform:scale(1.08)}100%{transform:scale(1)}}
+body[data-tab="out"] #saveNow,body[data-tab="admin"] #saveNow,body.duty-mode #saveNow{display:none}
+@media (prefers-reduced-motion:reduce){.ab-save.pop{animation:none}}
 .save-state[data-state="pending"] .save-dot{background:#a48a57}
 .save-state[data-state="error"] .save-dot{background:var(--warn)}
 #newCase{height:40px;padding:0 16px;border-radius:10px;gap:8px}
@@ -919,6 +947,7 @@ body.split #p-settle .wz{max-width:none}
   <button class="ab-menu" type="button" id="menuBtn" aria-label="메뉴 열기" aria-controls="sideNav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <div class="ab-title"><small id="abSub">장례 행사</small><b id="abTitle">행사 입력</b></div>
   <span class="save-state" id="saveState" role="status"><i class="save-dot"></i><span>이 기기에 보관</span></span>
+  <button class="btn sm ab-save saved" id="saveNow" type="button" aria-live="polite">✓ 저장됨</button>
   <button class="btn sm primary" id="newCase" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새 행사</button>
 </div></header>
 <main class="wrap" id="mainContent">
@@ -994,7 +1023,7 @@ body.split #p-settle .wz{max-width:none}
       </div>
       <p class="note">유골함 정산 = 이익(수금 − 원가) × 나눔 비율 + 원가. 예: 수금 40 · 원가 14 → 이익 26 → 13 + 14 = 27만원. 본부장 몫이 0.5만원으로 끝나면 내려서 보냅니다(32.5 → 32).</p>
       <label class="f">장지 · 본부장이 먼저 받는 금액<div class="suffix"><input class="input" id="rBurial" inputmode="decimal"><span>만원</span></div></label>
-      <p class="note">장지 봉투 = (받은 금액 − 이 금액)을 반으로 나눠 본부장 몫에 이 금액을 더합니다. 0.5만원은 본부장 내림 · 실장 올림. 예: 300 → 295 → 본부장 147 + 5 = 152 · 실장 148. 식장은 전부 본부장, 초도는 전부 실장, 키트 · 도시락은 반반.</p>
+      <p class="note">장지 봉투 = (받은 금액 − 이 금액)을 반으로 나눠 본부장 몫에 이 금액을 더합니다. 해양장은 빼지 않고 그냥 반반. 0.5만원은 본부장 내림 · 실장 올림. 예: 300 → 295 → 본부장 147 + 5 = 152 · 실장 148. 식장은 전부 본부장, 초도는 전부 실장, 키트 · 도시락은 반반.</p>
       <label class="f">관꽃장식 추가 판매 · 이익 중 우리 몫<div class="suffix"><input class="input" id="rFlower" inputmode="numeric"><span>%</span></div></label>
       <p class="note">이익 = 받은 금액 − 입관꽃장식 원가. 우리 60% · 본부장 40%, 원가는 본부장 몫에 더합니다. 예: 30만원 · 원가 5 → 이익 25 → 우리 15 · 본부장 10 + 원가 5 = 15</p>
       <div class="row"><button class="btn sm primary" id="saveRules" type="button">저장</button></div>
@@ -1015,6 +1044,9 @@ body.split #p-settle .wz{max-width:none}
       <label class="f"><span class="field-label">정리할 달</span><select class="input" id="keepMonth"></select></label>
       <div class="row"><button class="btn danger" id="keepDelMonth" type="button">이 달 행사 지우기</button></div>
       <p class="note">오래된 달을 지워도 봉투정리 기록은 남습니다. 지우기 전에 백업 파일을 먼저 받아 두세요.</p>
+      <h3 class="snap-h">자동 보관본</h3>
+      <p class="note">앱이 업데이트될 때(고치기 전 그대로)와 하루 한 번, 이 기기 안에 자동으로 따로 보관합니다. 기록이 사라지거나 이상하면 「되살리기」를 누르세요. 지금 기록은 지우지 않고 빠진 것만 합칩니다.</p>
+      <div id="snapList" class="snap-list"></div>
     </div>
     <div class="sec">
       <div class="sec-head"><h2>공유 · 설정 백업</h2></div>
@@ -1404,6 +1436,8 @@ function setBurial(c,v){
 const ETC='etc';
 
 /* ---------- 저장소 (이전 버전 호환) ---------- */
+// 새 버전이 손대기 전의 원본 그대로 (업데이트 전 자동 보관본에 씀)
+const RAW0=(()=>{ try{ return localStorage.getItem(KEY); }catch(e){ return null; } })();
 let db=store.get(null) || {};
 db.cases=Array.isArray(db.cases)?db.cases:[];
 db.envelopes=Array.isArray(db.envelopes)?db.envelopes:[];
@@ -1439,9 +1473,12 @@ if(!db.v5){
   db.v5=true;
 }
 if(!db.v6){ db.companies.forEach(x=>{ x.deduct=[]; }); db.v6=true; }
-const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스+리무진'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],urnTypes:['천향사각합골함']};
+const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],urnTypes:['천향사각합골함']};
 if(!db.lists) db.lists=JSON.parse(JSON.stringify(DEFAULT_LISTS));
 Object.keys(DEFAULT_LISTS).forEach(k=>{ if(!db.lists[k]) db.lists[k]=DEFAULT_LISTS[k].slice(); });
+// 차종 "버스+리무진" → "버스 리무진" (목록 · 기존 행사 모두)
+const noPlus=v=>String(v??'').replace(/\s*\+\s*/g,' ').trim();
+if(!db.vVeh){ db.lists.vehTypes=[...new Set((db.lists.vehTypes||[]).map(noPlus))]; db.cases.forEach(c=>{ if(c.f&&/\+/.test(c.f.vehType||'')) c.f.vehType=noPlus(c.f.vehType); }); db.vVeh=true; }
 if(db.lists && db.lists.tributes && !db.v9){ if(!db.lists.tributes.includes('영호 5만원')){ const i=db.lists.tributes.indexOf('영호 3만원'); db.lists.tributes.splice(i<0?db.lists.tributes.length:i+1,0,'영호 5만원'); } db.v9=true; }
 const LIST_LABEL={causes:'사망 사유',helpers:'도우미',mournBrands:'상복 업체',vehCos:'장의차 업체',vehTypes:'차종',productShorts:'상품 약칭',flowers:'입관꽃장식 (업체 금액)',flowerPays:'입관꽃장식 결제',tributes:'헌화 (업체 금액)',tributePays:'헌화 결제',urnTypes:'유골함 종류'};
 function addVendorsV8(){
@@ -1522,8 +1559,8 @@ function vals(c){
     '접수일시':longDT(f.recv||f.death), '입관일시':longDT(f.casket), '발인일시':longDT(f.depart), '1차장지':g('burial1'), '2차장지':g('burial2'),
     '납입':money(f.paid), '잔액':money(f.balance),
     '회사지원':money(f.support), '수금액':money(f.collect), '담당':g('staff'), '담당연락처':g('staffTel'), '특이사항':g('note'),
-    '도우미':[g('helper'), g('helperHours')?g('helperHours')+'시간':''].filter(Boolean).join(' '), '상복':(g('mournM')||g('mournW')||g('mournBrand'))?[g('mournM')?`남 ${g('mournM')}세트`:'', g('mournW')?`여 ${g('mournW')}벌`:'', g('mournBrand')].filter(Boolean).join(' '):g('mourning'),
-    '차량':(g('vehType')||g('vehCo'))?[g('vehType'),g('vehCo')].filter(Boolean).join(' '):g('vehicle'),
+    '도우미':[g('helper'), g('helperHours')?g('helperHours')+'시간':''].filter(Boolean).join(' '), '상복':(g('mournM')||g('mournW')||g('mournBrand'))?[g('mournM')?`남 ${cntText(g('mournM'),'세트')}`:'', g('mournW')?`여 ${cntText(g('mournW'),'벌')}`:'', g('mournBrand')].filter(Boolean).join(' '):g('mourning'),
+    '차량':(g('vehType')||g('vehCo'))?[noPlus(g('vehType')),g('vehCo')].filter(Boolean).join(' '):g('vehicle'),
     '제단공제':g('altar'), '수의대체':g('shroud'), '제공특이사항':g('provNote'),
     '제공항목':(c.items||[]).filter(it=>it.on&&it.text.trim()).map((it,i)=>`${i+1}.${it.text.trim()}`).join('\n'),
     '상구분':g('mourn'), '소속':g('staffOrg'), '상품약칭':g('productShort')||g('product'), '도우미이름':g('helper'), '행사번호':g('eventNo'),
@@ -1580,6 +1617,17 @@ function applyInputGroup(scroll=false){
   const foot=$('#groupFooter'); if(foot) foot.innerHTML=`<button class="btn" type="button" data-group-prev ${i===0?'disabled':''}>${uiIcon('left')}이전</button><p>${i+1} / 4</p><button class="btn primary" type="button" data-group-next>${i===3?'보고서 확인':INPUT_GROUPS[i+1].label}${uiIcon('right')}</button>`;
   if(scroll) $('#inputControls')?.scrollIntoView({block:'start',behavior:'auto'});
 }
+// 저장 버튼: 고치면 「저장」, 누르면 바로 저장하고 「저장됨」 (뒤에서도 자동 저장은 계속됨)
+let unsaved=false;
+function renderSaveBtn(){ const b=$('#saveNow'); if(!b) return; b.classList.toggle('saved',!unsaved); b.innerHTML=unsaved?'<i class="sv-dot" aria-hidden="true"></i>저장':'✓ 저장됨'; b.setAttribute('aria-label',unsaved?'저장하기':'저장되어 있음'); }
+function markUnsaved(){ if(unsaved) return; unsaved=true; renderSaveBtn(); }
+function saveNow(msg){
+  clearTimeout(saveT); const ok=save(); if(db.tab!=='settle') renderCaseSel(); else renderTtl();
+  unsaved=!ok; renderSaveBtn();
+  const b=$('#saveNow'); if(b&&ok){ b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+  const n=new Date(); toast(ok?`${msg||'저장했습니다'} · ${pad(n.getHours())}:${pad(n.getMinutes())} · 이 기기에 보관돼요`:'저장하지 못했습니다. 설정에서 백업 후 오래된 달을 정리해 주세요');
+  return ok;
+}
 function updateSaveState(state){
   const el=$('#saveState');if(!el)return;
   el.dataset.state=state;
@@ -1612,7 +1660,7 @@ const SECTIONS=[
   {t:'장지', rows:[[F('method','장법','select',['','화장','매장','수목장'])],[F('burial1','1차 장지'),F('burial2','2차 장지')],[F('burial','장지 (밴드 표기)')]]},
   {t:'상품 · 금액', rows:[[F('product','상품','prod')],[F('altarSup','제단지원 (예: 100만원 공제)')],[F('productShort','상품 약칭 (보고용, 비우면 상품)','combo','productShorts')],[F('support','회사지원','money'),F('paid','납입','money')],[F('balance','잔액','money'),F('collect','수금액','money')]]},
   {t:'담당', rows:[[F('staffOrg','소속 (예: 부산본부)')],[F('staff','담당 · 팀장'),F('staffTel','연락처','tel')],[F('note','특이사항','textarea')]]},
-  {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','num','세트'),F('mournW','상복 여','num','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('provNote','특이사항 (번호 없는 메모)')]]},
+  {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','cnt','세트'),F('mournW','상복 여','cnt','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('provNote','특이사항 (번호 없는 메모)')]]},
   {t:'확인 사항', rows:[[F('coupon','할인권 사용','select',['','O','X']),F('cardBack','회원증 회수','select',['','O','X'])],[F('certSub','확인서 대체')]]},
   {t:'관리사 배치', key:'mgr', rows:[]},
   {t:'공제 · 추가 항목', key:'deduct', rows:[]},
@@ -1774,6 +1822,13 @@ function fmtTel(v){
   if(d.length<=10) return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`;
   return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
 }
+// 상복 벌수: 숫자면 "6세트", 글이면 그대로 ("직계제공")
+const CNT_WORDS=['필요량 제공','직계제공'];
+const isNum=v=>/^\d+(\.\d+)?$/.test(String(v??'').trim());
+const cntText=(v,u)=>isNum(v)?`${String(v).trim()}${u}`:String(v??'').trim();
+document.addEventListener('input',e=>{ const t=e.target; if(t.closest&&t.closest('.suffix.cnt')){ const sp=t.parentElement.querySelector('span'); if(sp) sp.hidden=!(isNum(t.value)||!t.value.trim()); const q=t.parentElement.nextElementSibling; if(q&&q.classList.contains('cnt-quick')) q.querySelectorAll('[data-cnt]').forEach(b=>b.setAttribute('aria-pressed',String(t.value.trim()===b.dataset.v))); } });
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-cnt]'); if(!b) return; const inp=document.getElementById('f_'+b.dataset.cnt); if(!inp) return;
+  inp.value=inp.value.trim()===b.dataset.v?'':b.dataset.v; inp.dispatchEvent(new Event('input',{bubbles:true})); });
 function ctl(fd){
   const v=(curCase().f||{})[fd.k]??'';
   if(curCase().f.sameChief && SAME_MAP[fd.k]) return `<input class="input" id="f_${fd.k}" type="${fd.t==='tel'?'tel':'text'}" value="${esc(v)}" disabled title="회원과 동일">`;
@@ -1790,6 +1845,8 @@ function ctl(fd){
   if(fd.t==='select') return `<select class="input" id="f_${fd.k}" data-k="${fd.k}">${fd.o.map(o=>`<option value="${o}" ${o===v?'selected':''}>${o||'선택'}</option>`).join('')}</select>`;
   if(fd.t==='textarea') return `<textarea class="input" id="f_${fd.k}" data-k="${fd.k}" rows="3">${esc(v)}</textarea>`;
   if(fd.t==='money') return amtIn(`id="f_${fd.k}" data-k="${fd.k}"`,v,'예: 120.5');
+  if(fd.t==='cnt') return `<div class="suffix cnt"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" value="${esc(v)}" placeholder="숫자 또는 글" autocomplete="off"><span ${isNum(v)||!String(v).trim()?'':'hidden'}>${fd.o}</span></div>
+    <div class="cnt-quick">${CNT_WORDS.map(w=>`<button type="button" class="chip" data-cnt="${fd.k}" data-v="${w}" aria-pressed="${String(v).trim()===w}">${w}</button>`).join('')}</div>`;
   if(fd.t==='num') return `<div class="suffix"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="${fd.k==='eventNo'?'numeric':'decimal'}" value="${esc(v)}" ${fd.k==='eventNo'?'placeholder="예: 3" autocomplete="off"':''}><span>${fd.o}</span></div>`;
   return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="${fd.t}" value="${esc(v)}" ${fd.t==='tel'?'inputmode="tel" autocomplete="off"':''}>`;
 }
@@ -1878,7 +1935,7 @@ function updCremPreview(){
   const el=$('#cremPreview'); if(!el) return; const s=cremStr(f); el.textContent=s?'화장 : '+s:'화장장 · 날짜 · 회차 · 시간을 입력하세요';
 }
 let saveT=null, dirty=true;
-function touched(){ const c=curCase(); c.updated=Date.now(); dirty=true; liveOut(); updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>{ save(); renderCaseSel(); },300); }
+function touched(){ markUnsaved(); const c=curCase(); c.updated=Date.now(); dirty=true; liveOut(); updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>{ save(); renderCaseSel(); },300); }
 function renumber(){
   let n=0; document.querySelectorAll('#items .item').forEach(row=>{
     const it=curCase().items.find(x=>x.id===row.querySelector('[data-it]').dataset.it); if(!it) return;
@@ -2056,9 +2113,13 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 $('#keepRestoreFile').onchange=async e=>{
   const file=e.target.files&&e.target.files[0]; e.target.value=''; if(!file) return;
   let data; try{ data=JSON.parse(await file.text()); }catch(err){ toast('백업 파일을 읽지 못했습니다'); return; }
-  const b=data&&data.db;
-  if(!data||data.app!=='funeral-maker-backup'||!b||!Array.isArray(b.cases)){ toast('이 앱의 전체 백업 파일이 아닙니다'); return; }
-  let nc=0, ne=0;
+  if(!data||data.app!=='funeral-maker-backup'||!data.db||!Array.isArray(data.db.cases)){ toast('이 앱의 전체 백업 파일이 아닙니다'); return; }
+  const {nc,ne}=mergeBackup(data);
+  save(); dirty=true; renderAll(); toast(`행사 ${nc}건, 봉투 ${ne}건을 불러왔습니다`);
+};
+// 백업(파일 · 자동 보관본)을 지금 기록에 합침: 없는 건 넣고, 더 최근에 고친 건 바꿈. 지금 기록은 지우지 않음
+function mergeBackup(data){
+  const b=data.db; let nc=0, ne=0;
   const ids=new Set(b.cases.map(c=>c.id));
   db.cases=db.cases.filter(c=>ids.has(c.id)||Object.values(c.f||{}).some(v=>String(v??'').trim()));
   if(!db.cases.length&&!db.envelopes.length){
@@ -2069,8 +2130,31 @@ $('#keepRestoreFile').onchange=async e=>{
   }
   Object.entries(data.duty||{}).forEach(([k,v])=>{ try{ if(/^hyumu-/.test(k)&&!localStorage.getItem(k)) localStorage.setItem(k,v); }catch(err){} });
   if(!db.cases.find(c=>c.id===db.cur)) db.cur=db.cases.length?[...db.cases].sort((a,c)=>c.updated-a.updated)[0].id:null;
-  save(); dirty=true; renderAll(); toast(`행사 ${nc}건, 봉투 ${ne}건을 불러왔습니다`);
-};
+  return {nc,ne};
+}
+/* ---------- 자동 보관본: 앱이 업데이트될 때(고치기 전 그대로)와 하루 한 번, 이 기기 안에 따로 보관 ---------- */
+const SNAP_DB='funeral-safe', SNAP_MAX=12;
+function snapOpen(){ return new Promise((ok,no)=>{ try{ const q=indexedDB.open(SNAP_DB,1); q.onupgradeneeded=()=>q.result.createObjectStore('snaps',{keyPath:'id'}); q.onsuccess=()=>ok(q.result); q.onerror=()=>no(q.error); }catch(e){ no(e); } }); }
+async function snapAll(){ try{ const d=await snapOpen(); return await new Promise(ok=>{ const q=d.transaction('snaps').objectStore('snaps').getAll(); q.onsuccess=()=>ok((q.result||[]).sort((a,b)=>b.id-a.id)); q.onerror=()=>ok([]); }); }catch(e){ return []; } }
+async function snapPut(rec){ const d=await snapOpen(); await new Promise((ok,no)=>{ const t=d.transaction('snaps','readwrite'); t.objectStore('snaps').put(rec); t.oncomplete=ok; t.onerror=()=>no(t.error); });
+  const all=await snapAll(); if(all.length>SNAP_MAX){ await new Promise(ok=>{ const t=d.transaction('snaps','readwrite'), st=t.objectStore('snaps'); all.slice(SNAP_MAX).forEach(x=>st.delete(x.id)); t.oncomplete=ok; t.onerror=ok; }); } }
+const APP_VER=(document.querySelector('meta[name="app-version"]')||{}).content||'';
+async function autoSnapshot(){
+  if(!RAW0||!window.indexedDB) return;
+  let parsed; try{ parsed=JSON.parse(RAW0); }catch(e){ return; }
+  const nc=(parsed.cases||[]).length, ne=(parsed.envelopes||[]).length; if(!nc&&!ne) return;
+  const lastVer=lsGet('funeral-snapVer')||'', lastDay=lsGet('funeral-snapDay')||'', today=seoulToday();
+  const reason=APP_VER&&lastVer!==APP_VER?'업데이트 전':lastDay!==today?'하루 보관':''; if(!reason) return;
+  try{ await snapPut({id:Date.now(),at:new Date().toISOString(),reason,ver:lastVer,cases:nc,envs:ne,raw:RAW0}); lsSet('funeral-snapVer',APP_VER); lsSet('funeral-snapDay',today); renderSnaps(); }catch(e){ /* 보관 실패해도 앱은 그대로 */ }
+}
+async function renderSnaps(){
+  const box=$('#snapList'); if(!box) return; const all=await snapAll();
+  box.innerHTML=all.length?all.map(x=>{ const t=new Date(x.at); return `<div class="snap-row"><div><b>${t.getMonth()+1}/${t.getDate()} ${pad(t.getHours())}:${pad(t.getMinutes())}</b><small>${esc(x.reason)} · 행사 ${x.cases}건 · 봉투 ${x.envs}건</small></div><button class="btn sm" type="button" data-snap="${x.id}">되살리기</button></div>`; }).join('')
+    :'<p class="note">아직 자동 보관본이 없습니다. 기록이 생기면 하루 한 번, 그리고 앱이 업데이트될 때마다 자동으로 만들어집니다.</p>';
+}
+document.addEventListener('click',async e=>{ const b=e.target.closest&&e.target.closest('[data-snap]'); if(!b) return;
+  arm(b,'한 번 더 누르면 합칩니다',async()=>{ const x=(await snapAll()).find(y=>String(y.id)===b.dataset.snap); if(!x) return; let d; try{ d=JSON.parse(x.raw); }catch(err){ toast('보관본을 읽지 못했습니다'); return; }
+    const {nc,ne}=mergeBackup({app:'funeral-maker-backup',db:{...d,cases:d.cases||[],envelopes:d.envelopes||[]}}); save(); dirty=true; renderAll(); toast(`보관본에서 행사 ${nc}건, 봉투 ${ne}건을 되살렸습니다. 지금 기록은 그대로 있어요`); }); });
 $('#keepDelMonth').onclick=()=>{
   const k=$('#keepMonth').value; if(!k) return;
   arm($('#keepDelMonth'),`${monthLabel(k)} 지우기`,()=>{
@@ -2080,6 +2164,7 @@ $('#keepDelMonth').onclick=()=>{
     save(); dirty=true; renderAll(); toast(`${monthLabel(k)} 행사 ${before-db.cases.length}건을 지웠습니다. 봉투 기록은 남아 있습니다`);
   });
 };
+$('#saveNow').onclick=()=>saveNow();
 $('#newCase').onclick=()=>db.tab==='envelopes'?newManualEnvelope():openPicker('new');
 $('#caseSel').onchange=e=>{ db.cur=e.target.value; save(); dirty=true; renderAll(); };
 function arm(btn,label,fn){
@@ -2235,12 +2320,12 @@ function pickVal(sel,direct){ return sel==='__direct'?(direct||''):(sel||''); }
 function itemLine(a,pay){ if(!a && !pay) return ''; return `${a||''}${pay?`(${pay})`:''}`; }
 const fullWon=w=>w?`${w<0?'-':''}${Math.abs(w).toLocaleString('ko-KR')}원`:'';
 /* 봉투로 나누는 돈 (보내는금액엔 안 들어감)
-   식장 → 전부 본부장 · 장지 → 5만원 빼고 반반, 본부장 몫에 5만원 더함 · 초도 → 전부 실장 · 키트 · 도시락 → 반반
+   식장 → 전부 본부장 · 장지 → 5만원 빼고 반반, 본부장 몫에 5만원 더함 (해양장은 안 빼고 그냥 반반) · 초도 → 전부 실장 · 키트 · 도시락 → 반반
    반 나눌 때 0.5만원은 본부장 내림 · 실장 올림 (300 → 295 → 본부장 147 + 5 = 152 · 실장 148) */
 function envSplit(s,R){
   const hall=toWon(s.hall), burial=toWon(s.burialAmt), chodo=toWon(s.chodo), kit=toWon(s.kit), lunch=toWon(s.lunch);
-  const fee=Math.max(0,Math.min(burial,(Number(R.burialFee)||0)*10000)), base=burial-fee, bHq=hqRound(base/2), kHq=hqRound(kit/2), lHq=hqRound(lunch/2);
-  return {hall,burial,fee,base,bHalf:bHq,burialHq:bHq+fee,burialMg:base-bHq,chodo,kit,kitHq:kHq,kitMg:kit-kHq,lunch,lunchHq:lHq,lunchMg:lunch-lHq,
+  const sea=s.burialSea==='yes', fee=sea?0:Math.max(0,Math.min(burial,(Number(R.burialFee)||0)*10000)), base=burial-fee, bHq=hqRound(base/2), kHq=hqRound(kit/2), lHq=hqRound(lunch/2);
+  return {hall,burial,sea,fee,base,bHalf:bHq,burialHq:bHq+fee,burialMg:base-bHq,chodo,kit,kitHq:kHq,kitMg:kit-kHq,lunch,lunchHq:lHq,lunchMg:lunch-lHq,
     otherHq:kHq+lHq,otherMg:chodo+(kit-kHq)+(lunch-lHq)};
 }
 // 숫자 계산만 (다른 행사 마이너스 확인할 때도 씀 · 저장된 값은 바꾸지 않음)
@@ -2329,8 +2414,8 @@ function deficits(){
     .sort((a,b)=>caseSortKey(a.c)<caseSortKey(b.c)?-1:1);
 }
 // 수당 정산: 회사로 보내고 남은 내 몫
-const COMM_ITEMS=['사진','검안','각인','바다장','납골','수목장','유골함','도시락','개장','산일','제단','장지','꽃관','키트','초도','경비'];
-// 수당 정산(내 몫) = 실장 몫: 제단 · 장지 · 유골함 · 꽃관 · 초도 · 키트 · 도시락은 정산에서 넣은 값으로 자동
+const COMM_ITEMS=['사진','검안','각인','바다장','납골','수목장','유골함','도시락','개장','산일','제단','꽃관','키트','초도','경비'];
+// 수당 정산(내 몫) = 실장 몫: 제단 · 유골함 · 꽃관 · 초도 · 키트 · 도시락은 정산에서 넣은 값으로 자동 (장지는 봉투에만)
 const man=w=>{ const x=w/10000; return Number.isInteger(x)?String(x):String(Math.round(x*10)/10); };
 function me(){ if(!db.me) db.me={name:'',rank:''}; return db.me; }
 function commData(c){
@@ -2340,14 +2425,13 @@ function commData(c){
   const auto={'제단':altarKeep?{text:`${wonStr(altarKeep)}(${man(altarWon)})`,won:altarKeep}:null, '유골함':U.uCol&&urnKeep?{text:`${wonStr(urnKeep)}(${man(U.profit)})`,won:urnKeep}:null};
   if(FL.our) auto['꽃관']={text:`${wonStr(FL.our)}(${man(FL.sale)})`,won:FL.our};
   const E=envSplit(s,R), chodo=E.chodo, kit=E.kitMg, lunch=E.lunchMg;
-  auto['장지']=E.burialMg?{text:`${wonStr(E.burialMg)}(${man(E.burial)})`,won:E.burialMg}:null;
   if(chodo) auto['초도']={text:wonStr(chodo),won:chodo};
   if(E.kit) auto['키트']={text:`${wonStr(kit)||'0원'}(${man(E.kit)})`,won:kit};
   if(E.lunch) auto['도시락']={text:`${wonStr(lunch)||'0원'}(${man(E.lunch)})`,won:lunch};
   const m=s.comm||{};
   const rows=COMM_ITEMS.map(k=>auto[k]!==undefined?{k,text:auto[k]?auto[k].text:'',won:auto[k]?auto[k].won:0,auto:true}:{k,text:money(m[k]),won:toWon(m[k])});
   const total=rows.reduce((a,r)=>a+r.won,0);
-  return {rows,total,altarKeep,urnKeep,burialKeep:E.burialMg,flowerKeep:FL.our,chodo,kit,lunch};
+  return {rows,total,altarKeep,urnKeep,flowerKeep:FL.our,chodo,kit,lunch};
 }
 function commText(c){
   const d=commData(c), f=c.f||{}, p=parseDT(f.depart), who=me();
@@ -2395,6 +2479,7 @@ const openDefs=c=>deficits().filter(x=>!x.used && x.c.id!==c.id);
 const SCR=[
   {id:'hall',g:'recv',kind:'amt',key:'hall',ph:'예: 10',q:'식장에서 받은 금액이 있나요?',sub:'전부 본부장 봉투로 들어가요. 보내는금액에는 안 들어가요.'},
   {id:'burial',g:'recv',kind:'amt',key:'burialAmt',ph:'예: 300',q:'장지에서 받은 금액은 얼마인가요?',sub:()=>`${rules().burialFee}만원을 먼저 빼고 반으로 나눠요. 본부장 몫에 ${rules().burialFee}만원을 더해요.`},
+  {id:'sea',g:'recv',kind:'pick',key:'burialSea',opts:[['yes','네, 해양장'],['no','아니요']],q:'해양장인가요?',sub:()=>`해양장이면 ${rules().burialFee}만원을 빼지 않고 본부장 · 실장 그냥 반반이에요.`,when:c=>toWon(S(c).burialAmt)>0},
   {id:'altar',g:'recv',kind:'amt',key:'altarAmt',ph:'예: 100',q:'제단은 얼마 받았나요?',sub:()=>`${rules().altarFixed}만원까지 보내는금액에 들어가고, 나머지는 실장 몫이에요.`},
   {id:'altarPay',g:'recv',kind:'pay',key:'altarPay',q:'제단은 어떻게 받았나요?',sub:'카드면 회사가 다 받은 거라, 실장 몫을 보내는금액에서 빼요.',when:c=>toWon(S(c).altarAmt)>0},
   {id:'chodo',g:'recv',kind:'amt',key:'chodo',ph:'예: 5',q:'초도는 얼마 받았나요?',sub:'전부 실장 봉투로 들어가요.'},
@@ -2464,7 +2549,7 @@ function stepBody(id,c,all){
   if(id==='recv'){
     const env=(key,label,ph,tag)=>`<div class="wz-item"><div class="wz-item-h"><b>${label}</b><span class="wz-dest">${tag}</span></div>${amtIn(`data-s="${key}"`,s[key],ph)}<p class="note wz-split" id="sp_${key}"></p></div>`;
     return env('hall','식장','예: 10','본부장 봉투')
-      +env('burialAmt','장지','예: 300','본부장 · 실장 봉투')
+      +env('burialAmt','장지','예: 300','본부장 · 실장 봉투').replace('<p class="note wz-split"',`<div class="seg sea-seg" data-seg="burialSea"><button type="button" data-v="no" aria-pressed="${s.burialSea!=='yes'}">일반 장지</button><button type="button" data-v="yes" aria-pressed="${s.burialSea==='yes'}">해양장</button></div><p class="note wz-split"`)
       +`<div class="wz-item"><div class="wz-item-h"><b>제단</b>${seg2('altarPay',s.altarPay||'현금')}</div>${amtIn('data-s="altarAmt"',s.altarAmt,'예: 100')}<p class="note" id="altarNote"></p></div>`
       +env('chodo','초도','예: 5','실장 봉투')
       +env('kit','키트','예: 4','반반')
@@ -2526,6 +2611,10 @@ function wzScreen(c,id){
     body=`<div class="wz-amt">${amtIn(attr,x.scope==='f'?f[x.key]:s[x.key],x.ph)}</div><div class="wz-result" id="wzResult" hidden></div>${go()}`; }
   else if(x.kind==='text') body=`<input class="input wz-text" data-s="${x.key}" value="${esc(s[x.key]||'')}" placeholder="${esc(x.ph||'')}" autocomplete="off" aria-label="${esc(x.q)}">${go()}`;
   else if(x.kind==='pay') body=choice('data-wz-pick',x.key,[['현금','현금'],['카드','카드']],s[x.key]||'현금');
+  else if(x.kind==='pick'){
+    if(x.id==='sea'){ const b=toWon(s.burialAmt), fee=Math.min(b,(Number(R.burialFee)||0)*10000), h1=hqRound((b-fee)/2), h2=hqRound(b/2), mw=w=>wonStr(w)||'0원';
+      body=`<div class="wz-result wz-compare"><div><span>일반 장지</span><b>본부장 ${mw(h1+fee)} · 실장 ${mw(b-fee-h1)}</b></div><div><span>해양장</span><b>본부장 ${mw(h2)} · 실장 ${mw(b-h2)}</b></div></div>`; }
+    body+=choice('data-wz-pick',x.key,x.opts,s[x.key]||''); }
   else if(x.kind==='yn'){ const yes=x.yes(c), no=!yes&&s[x.key]==='no';
     if(x.id==='mgAsk' && settleCalc(c).autoMinus.length){ q='그 밖에 실장님한테 따로 줄 금액이 있나요?'; body=`<div class="wz-auto"><p>자동으로 빠지는 실장 몫</p><div id="autoMinus"></div></div>`; }
     body+=choice('data-wz-yn',x.key,[['yes','있어요'],['no','없어요']],yes?'yes':no?'no':''); }
@@ -2587,7 +2676,7 @@ function wzGo(to){
 function setSettleMode(m){ settleMode=m; try{ localStorage.setItem(SM_KEY,m); }catch(e){ /* 저장 못 해도 이번엔 바뀜 */ } renderSettle(); const p=$('#p-settle'); if(p&&p.getBoundingClientRect().top<0) p.scrollIntoView({block:'start'}); }
 function wzReview(c,d){
   const s=d.s, sg=w=>w?`${w>0?'+':'−'}${wnum(w)}`:'0';
-  const E=d.env, recvBits=[E.hall&&`식장 ${wonStr(E.hall)}`, E.burial&&`장지 ${wonStr(E.burial)}`, d.altarWon&&`제단 ${wonStr(d.altarWon)}${d.altarCash?'':`(${d.altarPay})`}`,
+  const E=d.env, recvBits=[E.hall&&`식장 ${wonStr(E.hall)}`, E.burial&&`장지 ${wonStr(E.burial)}${E.sea?'(해양장)':''}`, d.altarWon&&`제단 ${wonStr(d.altarWon)}${d.altarCash?'':`(${d.altarPay})`}`,
     E.chodo&&`초도 ${wonStr(E.chodo)}`, E.kit&&`키트 ${wonStr(E.kit)}`, E.lunch&&`도시락 ${wonStr(E.lunch)}`].filter(Boolean);
   const etcBits=[d.flower&&'입관꽃장식', d.FL.sale&&'관꽃장식 판매', d.tribute&&'헌화', String(s.transfer||'').trim()&&'이송'].filter(Boolean);
   const ex=d.extras.filter(x=>!x.flower), mi=[...d.autoMinus,...d.minus];
@@ -2626,10 +2715,10 @@ function renderSettle(){
   <div class="sec settle-wide"><div class="sec-head"><h2>수당 정산</h2></div><div class="fields">
     <label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}"><span>번</span></div></label>
     <p class="calc" id="commAuto"></p>
-    ${(()=>{ const ks=COMM_ITEMS.filter(k=>k!=='제단'&&k!=='유골함'&&k!=='장지'), rows=[]; for(let i=0;i<ks.length;i+=2) rows.push(ks.slice(i,i+2)); const m=s.comm||{};
+    ${(()=>{ const ks=COMM_ITEMS.filter(k=>k!=='제단'&&k!=='유골함'), rows=[]; for(let i=0;i<ks.length;i+=2) rows.push(ks.slice(i,i+2)); const m=s.comm||{};
       return rows.map(r=>`<div class="pair">${r.map(k=>`<label class="f">${k}${amtIn(`data-comm="${esc(k)}"`,m[k],'',false)}</label>`).join('')}</div>`).join(''); })()}
     <div class="pair"><label class="f">이름<input class="input" data-me="name" value="${esc(me().name)}" placeholder="홍길동"></label><label class="f">직급<input class="input" data-me="rank" value="${esc(me().rank)}" placeholder="주임"></label></div>
-    <p class="note">내 몫 = 실장 몫입니다. 제단 · 장지 · 유골함 · 꽃관(관꽃장식 판매) · 초도 · 키트 · 도시락은 정산에서 넣은 값의 실장 몫으로 자동 계산됩니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
+    <p class="note">내 몫 = 실장 몫입니다. 제단 · 유골함 · 꽃관(관꽃장식 판매) · 초도 · 키트 · 도시락은 정산에서 넣은 값의 실장 몫으로 자동 계산됩니다. 장지는 봉투에만 기록되고 여기에는 안 나옵니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
   <div class="out"><div class="out-head"><h2>수당 정산<small>내 몫</small></h2><button class="btn primary" id="copyComm" type="button">복사</button></div>
     <textarea class="text-out" id="commText" rows="20" aria-label="수당 정산"></textarea></div>
   </div>
@@ -2681,7 +2770,7 @@ function updSettle(skipDef){
   chipSet('chRecv',d.sub.recv,d.altarWon&&!d.sub.recv?'카드 · 안 더함':'');
   { const E=d.env, mw=w=>wonStr(w)||'0원', put=(k,t)=>{ const el=$('#sp_'+k); if(el) el.innerHTML=t; };
     put('hall',E.hall?`→ 본부장 봉투 <b>${mw(E.hall)}</b>`:'전부 본부장 봉투로 들어가요.');
-    put('burialAmt',E.burial?`${man(E.burial)} − ${man(E.fee)} = ${man(E.base)} → 반으로 나눠 <b>본부장 ${man(E.bHalf)} + ${man(E.fee)} = ${mw(E.burialHq)}</b> · <b>실장 ${mw(E.burialMg)}</b>`
+    put('burialAmt',E.burial&&E.sea?`해양장 → 그냥 반반 <b>본부장 ${mw(E.burialHq)}</b> · <b>실장 ${mw(E.burialMg)}</b>`:E.burial?`${man(E.burial)} − ${man(E.fee)} = ${man(E.base)} → 반으로 나눠 <b>본부장 ${man(E.bHalf)} + ${man(E.fee)} = ${mw(E.burialHq)}</b> · <b>실장 ${mw(E.burialMg)}</b>`
       :`${R.burialFee}만원 빼고 반으로 나눠요. 본부장 몫에 ${R.burialFee}만원을 더해요. (0.5만원은 본부장 내림)`);
     put('chodo',E.chodo?`→ 전부 실장 봉투 <b>${mw(E.chodo)}</b>`:'전부 실장 봉투로 들어가요.');
     put('kit',E.kit?`반반 → <b>본부장 ${mw(E.kitHq)}</b> · <b>실장 ${mw(E.kitMg)}</b>`:'본부장 · 실장 반반 (0.5만원은 실장 쪽)');
@@ -2723,7 +2812,7 @@ function updSettle(skipDef){
   if(!skipDef) renderDef(c,d);
   const wtt=$('#wzTot'); if(wtt){ wtt.classList.toggle('neg',d.sendWon<0); wtt.innerHTML=`보내는금액 <b>${esc(d.send||'0원')}</b>`; }
   const wres=$('#wzResult'); if(wres){ const id=wzAt(c), E=d.env, U=d.U, FL=d.FL, mw=w=>wonStr(w)||'0원', row=(k,w)=>`<div><span>${k}</span><b>${mw(w)}</b></div>`; let h='';
-    if(id==='burial'&&E.burial) h=row('본부장 봉투',E.burialHq)+row('실장 봉투',E.burialMg)+`<small>${man(E.burial)} − ${man(E.fee)} = ${man(E.base)} → 반 ${man(E.bHalf)} · 본부장은 ${man(E.fee)}만원 더해서</small>`;
+    if(id==='burial'&&E.burial) h=row('본부장 봉투',E.burialHq)+row('실장 봉투',E.burialMg)+`<small>${E.sea?'해양장이라 빼지 않고 그냥 반반':`${man(E.burial)} − ${man(E.fee)} = ${man(E.base)} → 반 ${man(E.bHalf)} · 본부장은 ${man(E.fee)}만원 더해서`}${s.burialSea?'':' · 해양장인지는 다음에 물어봐요'}</small>`;
     else if(id==='altar'&&d.altarWon) h=row('보내는금액에',d.altarSend)+row('실장 몫',d.altarKeep);
     else if(id==='kit'&&E.kit) h=row('본부장',E.kitHq)+row('실장',E.kitMg);
     else if(id==='lunch'&&E.lunch) h=row('본부장',E.lunchHq)+row('실장',E.lunchMg);
@@ -2737,7 +2826,7 @@ function updSettle(skipDef){
   const bs=$('#wzBasicState'); if(bs){ const miss=[['장소',d.f.place],['도우미',d.f.helper],['차량',d.f.vehType||d.f.vehCo],['상복',d.f.mournBrand],['장지',d.v['장지']]].filter(x=>!String(x[1]||'').trim()).map(x=>x[0]); bs.textContent=miss.length?`비어 있음: ${miss.join(' · ')}`:'모두 채움'; bs.classList.toggle('miss',!!miss.length); }
   const bar=$('#settleBar'); if(bar){ bar.classList.toggle('neg',d.sendWon<0); $('#sbLabel').textContent=d.sendWon<0?'보내는금액 · 마이너스':'보내는금액'; $('#sbSend').textContent=d.send||'0원'; }
   const t=$('#settleText'); if(t) t.value=settleText(c);
-  const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'}${cd.burialKeep?` · 장지 ${wonStr(cd.burialKeep)}`:''} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''}${cd.chodo?` · 초도 ${wonStr(cd.chodo)}`:''}${cd.kit?` · 키트 ${wonStr(cd.kit)}`:''}${cd.lunch?` · 도시락 ${wonStr(cd.lunch)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
+  const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''}${cd.chodo?` · 초도 ${wonStr(cd.chodo)}`:''}${cd.kit?` · 키트 ${wonStr(cd.kit)}`:''}${cd.lunch?` · 도시락 ${wonStr(cd.lunch)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
   [['꽃관',cd.flowerKeep],['초도',cd.chodo],['키트',cd.kit],['도시락',cd.lunch]].forEach(([k,w])=>{ const el=document.querySelector(`#p-settle [data-comm="${k}"]`); if(!el) return; el.disabled=!!w; el.placeholder=w?'자동 '+wonStr(w):'';
     const want=w?'':String((s.comm||{})[k]??''); if(el.value!==want) el.value=want; const u=el.closest('.amt')?.querySelector('.amt-u'); if(u) u.textContent=w?'':amtUnit(want); });
   const ct=$('#commText'); if(ct) ct.value=commText(c);
@@ -2822,6 +2911,7 @@ const seoulToday=()=>new Date(Date.now()+9*60*60*1000).toISOString().slice(0,10)
 const envelopeMonthOK=v=>/^\d{4}-(0[1-9]|1[0-2])$/.test(String(v||''));
 let envelopeMonth=envelopeMonthOK(db.envelopeMonth)?db.envelopeMonth:seoulToday().slice(0,7);
 let envelopeOpenId=null;
+let envelopeEditId=null, envelopeEditSnap=null;  // 수정 중인 봉투 하나만 칸이 열림
 function envelopeMeta(r,k){ return String(r.edits&&r.edits[k]!==undefined?r.edits[k]:(r.auto||{})[k]||''); }
 function envelopeRecordMonth(r){ const m=envelopeMeta(r,'month'); return envelopeMonthOK(m)?m:seoulToday().slice(0,7); }
 function envelopeHasSettlement(c){
@@ -2969,12 +3059,17 @@ function envelopeNoteField(r,k,autoNote){
 function envelopeEditor(r){
   const autoW=k=>r.sourceCaseId&&Number((r.auto||{})[k])?Number(r.auto[k]):undefined;
   const a=r.auto||{},v=envelopeValues(r),meta=k=>envelopeMeta(r,k);
-  let h='<details class="env-event" data-env-id="'+esc(r.id)+'"'+(envelopeOpenId===r.id?' open':'')+'><summary><div><b data-env-caption>'+esc(meta('eventNo')?'행사 '+meta('eventNo').replace(/번$/,'')+'번':'행사번호 미입력')+' · '+esc(meta('place')||'장례식장·호실 미입력')+'</b><small data-env-person>'+esc([meta('name'),meta('rank')].filter(Boolean).join(' '))+'</small></div><span class="env-total" data-env-total>'+esc(wonStr(v.part+v.manager)||'0원')+'</span></summary><div class="env-detail">';
+  const ed=envelopeEditId===r.id;
+  let h='<details class="env-event'+(ed?' editing':'')+'" data-env-id="'+esc(r.id)+'"'+(envelopeOpenId===r.id?' open':'')+'><summary><div><b data-env-caption>'+esc(meta('eventNo')?'행사 '+meta('eventNo').replace(/번$/,'')+'번':'행사번호 미입력')+' · '+esc(meta('place')||'장례식장·호실 미입력')+'</b><small data-env-person>'+esc([meta('name'),meta('rank')].filter(Boolean).join(' '))+'</small></div><span class="env-total" data-env-total>'+esc(wonStr(v.part+v.manager)||'0원')+'</span></summary><div class="env-detail">';
+  h+=ed?'<div class="env-lock on"><span><b>수정 중</b> 고친 뒤 「저장」을 눌러 주세요</span><button class="btn sm primary" type="button" data-env-action="save">저장</button></div>'
+       :'<div class="env-lock"><span>저장된 기록 · 보기 전용</span><button class="btn sm" type="button" data-env-action="edit">수정</button></div>';
   h+='<div class="env-meta-grid">'+envelopeMetaField(r,'month','정산월','month')+envelopeMetaField(r,'eventNo','행사번호')+envelopeMetaField(r,'place','장례식장 · 호실')+envelopeMetaField(r,'name','이름')+envelopeMetaField(r,'rank','직급')+'</div>';
   h+='<div class="env-columns"><section class="env-form"><div class="out-head"><h2>본부장 봉투</h2><button class="btn sm" type="button" data-env-copy="part">복사</button></div><div class="pair">'+envelopeAmountField(r,'partHall','식장',autoW('hall'))+envelopeAmountField(r,'partBurial','장지',autoW('burialHq'))+'</div><div class="pair">'+envelopeNoteField(r,'partOtherNote',a.otherHqNote)+envelopeAmountField(r,'partOther','기타 금액',autoW('otherHq'))+'</div><textarea class="text-out" data-env-text="part" rows="10" readonly aria-label="본부장 봉투 양식"></textarea></section>';
   h+='<section class="env-form"><div class="out-head"><h2>실장 봉투</h2><button class="btn sm" type="button" data-env-copy="manager">복사</button></div><div class="pair">'+envelopeAmountField(r,'managerAltar','제단 수익',r.sourceCaseId?(Number(a.altar)||0):undefined)+envelopeAmountField(r,'managerBurial','장지',autoW('burialMg'))+'</div>'+envelopeAmountField(r,'managerUrn','유골함 수익 · 기타에 포함',r.sourceCaseId?(Number(a.urn)||0):undefined)+'<div class="pair">'+envelopeNoteField(r,'managerOtherNote',a.otherMgNote)+envelopeAmountField(r,'managerOther','기타 추가 금액',autoW('otherMg'))+'</div><textarea class="text-out" data-env-text="manager" rows="10" readonly aria-label="실장 봉투 양식"></textarea></section></div>';
-  h+='<div class="row"><button class="btn primary" type="button" data-env-copy="both">봉투 2개 복사</button><button class="btn danger" type="button" data-env-action="delete">이 기록 삭제</button></div>';
+  h+=ed?'<div class="row"><button class="btn primary" type="button" data-env-action="save">저장</button><button class="btn" type="button" data-env-action="cancel">취소</button><button class="btn danger" type="button" data-env-action="delete">이 기록 삭제</button></div>'
+     :'<div class="row"><button class="btn primary" type="button" data-env-copy="both">봉투 2개 복사</button><button class="btn" type="button" data-env-action="edit">수정</button></div>';
   if(a.settlement) h+='<details class="env-source"><summary>기준 정산카톡 보기</summary><textarea class="text-out" rows="12" readonly aria-label="기준 정산카톡">'+esc(a.settlement)+'</textarea></details>';
+  if(!ed) h=h.replace(/<input class="input"/g,'<input class="input" disabled');
   return h+'</div></details>';
 }
 function updateEnvelopeCard(r){
@@ -3001,7 +3096,7 @@ function openCurrentEnvelope(){
 }
 function newManualEnvelope(){
   const who=me(),r={id:'manual_'+uid(),auto:{month:envelopeMonth,name:who.name||'서영우',rank:who.rank||'파트장',altar:0,urn:0},edits:{},amounts:{},notes:{},created:Date.now(),updated:Date.now()};
-  db.envelopes.push(r);envelopeOpenId=r.id;db.envelopeMonth=envelopeMonth;closePicker();setTab('envelopes');
+  db.envelopes.push(r);envelopeOpenId=r.id;envelopeEditId=r.id;envelopeEditSnap=JSON.stringify({edits:{},amounts:{},notes:{}});db.envelopeMonth=envelopeMonth;closePicker();setTab('envelopes');
   const card=[...document.querySelectorAll('[data-env-id]')].find(el=>el.dataset.envId===r.id);
   card?.scrollIntoView({block:'start',behavior:'auto'});
   card?.querySelector('[data-env-meta="eventNo"]')?.focus();
@@ -3044,7 +3139,7 @@ $('#p-envelopes').addEventListener('input',e=>{
   else if(t.dataset.envAmount){t.setAttribute('aria-invalid',String(!t.validity.valid));if(!t.validity.valid)return;r.amounts[t.dataset.envAmount]=t.value===''?'':String(Number(t.value));}
   else if(t.dataset.envNote)r.notes[t.dataset.envNote]=t.value;
   else return;
-  r.updated=Date.now();save();updateEnvelopeCard(r);updateEnvelopeSummary();
+  markUnsaved(); r.updated=Date.now();save();updateEnvelopeCard(r);updateEnvelopeSummary();
 });
 $('#p-envelopes').addEventListener('change',async e=>{
   const t=e.target;
@@ -3074,6 +3169,10 @@ $('#p-envelopes').addEventListener('click',e=>{
   if(action==='copyMonth'){copyEnvelopeText(envelopeSummaryText()+'\n\n'+envelopeMonthRows().map(x=>envelopeText(x,'part')+'\n\n'+envelopeText(x,'manager')).join('\n\n──────────\n\n'));return;}
   if(action==='export'){envelopeBackup();return;}
   if(action==='import'){$('#envelopeImport').click();return;}
+  if(action==='edit'&&r){ envelopeEditId=r.id; envelopeEditSnap=JSON.stringify({edits:r.edits||{},amounts:r.amounts||{},notes:r.notes||{}}); envelopeOpenId=r.id; renderEnvelopes();
+    const card=[...document.querySelectorAll('[data-env-id]')].find(el=>el.dataset.envId===r.id); card?.querySelector('[data-env-amount]')?.focus({preventScroll:true}); return; }
+  if(action==='save'&&r){ envelopeEditId=null; envelopeEditSnap=null; r.updated=Date.now(); envelopeOpenId=r.id; saveNow('봉투를 저장했습니다'); renderEnvelopes(); return; }
+  if(action==='cancel'&&r){ if(envelopeEditSnap){ const o=JSON.parse(envelopeEditSnap); r.edits=o.edits; r.amounts=o.amounts; r.notes=o.notes; } envelopeEditId=null; envelopeEditSnap=null; save(); renderEnvelopes(); toast('수정을 취소했습니다'); return; }
   if(action==='delete'&&r)arm(b,'한 번 더 누르면 삭제',()=>{if(r.sourceCaseId&&!db.envelopeSkipped.includes(r.sourceCaseId))db.envelopeSkipped.push(r.sourceCaseId);db.envelopes=db.envelopes.filter(x=>x.id!==r.id);save();renderEnvelopes();toast('봉투 기록을 삭제했습니다.');});
 });
 $('#p-envelopes').addEventListener('toggle',e=>{
@@ -3179,7 +3278,7 @@ function setTab(t,sub){
   if(t==='envelopes') renderEnvelopes();
   if(t==='input') renderInput();
   if(t==='out') renderOut();
-  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; }
+  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; renderSnaps(); }
   checkSplit(); applySplit();
   updateWorkspace(t);
   window.scrollTo(0,0);
@@ -3219,6 +3318,7 @@ if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].inc
 save();
 renderAll();
 setInterval(()=>renderTtl(), 10*60*1000);
+autoSnapshot();
 </script>
 <!-- 장례 일정 작성기 공통 디자인: build.py가 funeral.html과 jangrye/index.html 맨 끝에 넣습니다. 서식함과 같은 색·글꼴·양식, 오프라인 저장. -->
 <style id="mf-theme">
