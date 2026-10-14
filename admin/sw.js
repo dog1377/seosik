@@ -1,5 +1,5 @@
 /* Service worker for 관리자 서식함. Generated into sw.js by build.py; edit this template. */
-const VERSION = '2026.10.14-1';
+const VERSION = '2026.10.14-2';
 const PREFIX = 'admin-app-';
 const CACHE = PREFIX + VERSION;
 const FONT_CACHE = 'seosik-fonts-v1';
