@@ -22,8 +22,8 @@
     var home = document.createElement('button');
     home.type = 'button';
     home.className = 'mf-home';
-    home.setAttribute('aria-label', '관리자 서식함으로 가기');
-    home.innerHTML = DOC + '<span>서식함</span>';
+    home.setAttribute('aria-label', '관리자 서식으로 가기');
+    home.innerHTML = DOC + '<span>관리자 서식</span>';
     home.addEventListener('click', function () { toForms('weekly'); });
     bar.insertBefore(home, document.getElementById('newCase'));
   }
@@ -35,12 +35,12 @@
     acc.className = 'acc';
     acc.setAttribute('data-acc', 'forms');
     acc.innerHTML =
-      '<button class="acc-h" type="button" aria-expanded="true"><span>' + DOC + '서식함</span><i></i></button>' +
+      '<button class="acc-h" type="button" aria-expanded="true"><span>' + DOC + '관리자 서식</span><i></i></button>' +
       '<div class="acc-b"><div>' +
       '<button type="button" data-mf="weekly">주간 파트 보고</button>' +
       '<button type="button" data-mf="review">후기 일일보고</button>' +
       '<button type="button" data-mf="ship">용품 · 근조기 탁송</button>' +
-      '<button type="button" data-mf="settings">서식함 설정 · 백업</button>' +
+      '<button type="button" data-mf="settings">관리자 서식 설정 · 백업</button>' +
       '</div></div>';
     acc.addEventListener('click', function (e) {
       var b = e.target.closest('[data-mf]');

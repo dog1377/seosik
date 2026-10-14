@@ -8,11 +8,11 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.13-22">
+<meta name="app-version" content="2026.10.14-1">
 <meta name="theme-color" content="#293f65">
-<meta name="apple-mobile-web-app-title" content="서식함">
+<meta name="apple-mobile-web-app-title" content="관리자 서식">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>장례 일정 작성기</title>
+<title>장례업무 · 관리자 서식</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap">
@@ -2019,7 +2019,7 @@ function renderShare(){ $('#shareNote').textContent=isWebApp()?`주소: ${APP_UR
 $('#shareApp').onclick=async()=>{
   if(!isWebApp()){ toast('홈 화면 앱으로 열었을 때 공유할 수 있습니다'); return; }
   const url=APP_URL();
-  try{ if(navigator.share){ await navigator.share({title:'관리자 서식함',url}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ if(navigator.share){ await navigator.share({title:'관리자 서식',url}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
   if(await doCopy(url)) toast('앱 주소를 복사했습니다'); else toast(url);
 };
 $('#exportCfg').onclick=async()=>{
@@ -2915,8 +2915,8 @@ label.f>.field-label{color:var(--muted)}
     var home = document.createElement('button');
     home.type = 'button';
     home.className = 'mf-home';
-    home.setAttribute('aria-label', '관리자 서식함으로 가기');
-    home.innerHTML = DOC + '<span>서식함</span>';
+    home.setAttribute('aria-label', '관리자 서식으로 가기');
+    home.innerHTML = DOC + '<span>관리자 서식</span>';
     home.addEventListener('click', function () { toForms('weekly'); });
     bar.insertBefore(home, document.getElementById('newCase'));
   }
@@ -2928,12 +2928,12 @@ label.f>.field-label{color:var(--muted)}
     acc.className = 'acc';
     acc.setAttribute('data-acc', 'forms');
     acc.innerHTML =
-      '<button class="acc-h" type="button" aria-expanded="true"><span>' + DOC + '서식함</span><i></i></button>' +
+      '<button class="acc-h" type="button" aria-expanded="true"><span>' + DOC + '관리자 서식</span><i></i></button>' +
       '<div class="acc-b"><div>' +
       '<button type="button" data-mf="weekly">주간 파트 보고</button>' +
       '<button type="button" data-mf="review">후기 일일보고</button>' +
       '<button type="button" data-mf="ship">용품 · 근조기 탁송</button>' +
-      '<button type="button" data-mf="settings">서식함 설정 · 백업</button>' +
+      '<button type="button" data-mf="settings">관리자 서식 설정 · 백업</button>' +
       '</div></div>';
     acc.addEventListener('click', function (e) {
       var b = e.target.closest('[data-mf]');

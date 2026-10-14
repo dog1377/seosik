@@ -42,7 +42,7 @@ html = f"""<!doctype html>
 <meta name="theme-color" content="#111518" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="서식함">
+<meta name="apple-mobile-web-app-title" content="관리자 서식">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
@@ -51,7 +51,7 @@ html = f"""<!doctype html>
 try {{ if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); }} catch (e) {{}}</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
-{lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': '관리자 서식함', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': '장례일정만 쓰실 분은 <a href="jangrye/">장례일정 열기</a>'})}
+{lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': '관리자 서식', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': '장례일정만 쓰실 분은 <a href="jangrye/">장례일정 열기</a>'})}
 </head>
 <body>
 {body_part}
@@ -67,8 +67,10 @@ FUNERAL_SRC = (ROOT / 'src' / 'funeral.html').read_text(encoding='utf-8')
 THEME = (ROOT / 'src' / 'funeral-theme.html').read_text(encoding='utf-8')
 
 
-def make_funeral(title, extras, share_title=None):
+def make_funeral(title, extras, share_title=None, page_title=None):
     fsrc = FUNERAL_SRC
+    if page_title:
+        fsrc = fsrc.replace('<title>장례 일정 작성기</title>', '<title>' + page_title + '</title>', 1)
     head = (
         '<link rel="manifest" href="manifest.webmanifest">\n'
         '<link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">\n'
@@ -99,7 +101,7 @@ def make_sw(prefix, core):
 
 # 서식함 안의 장례업무
 (ROOT / 'funeral.html').write_text(
-    make_funeral('서식함', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8')], share_title='관리자 서식함'),
+    make_funeral('관리자 서식', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8')], share_title='관리자 서식', page_title='장례업무 · 관리자 서식'),
     encoding='utf-8')
 (ROOT / 'sw.js').write_text(make_sw('seosik-app-', [
     './', './index.html', './funeral.html', './manifest.webmanifest', './vendor/jspdf.umd.min.js',
@@ -111,7 +113,7 @@ def make_sw(prefix, core):
 JR = ROOT / 'jangrye'
 JR.mkdir(exist_ok=True)
 (JR / 'index.html').write_text(
-    make_funeral('장례일정', [(ROOT / 'src' / 'jangrye-bridge.html').read_text(encoding='utf-8')]),
+    make_funeral('장례일정', [(ROOT / 'src' / 'jangrye-bridge.html').read_text(encoding='utf-8')], page_title='장례일정'),
     encoding='utf-8')
 (JR / 'sw.js').write_text(make_sw('jangrye-app-', [
     './', './index.html', './manifest.webmanifest',
@@ -134,12 +136,12 @@ admin_html = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="회사 관리자용 공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드. 기록은 이 휴대폰에만 저장됩니다.">
+<meta name="description" content="DW관리 · 회사 관리자용 공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드. 기록은 이 휴대폰에만 저장됩니다.">
 <meta name="theme-color" content="#f1f2ef" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111518" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="회사관리">
+<meta name="apple-mobile-web-app-title" content="DW관리">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="robots" content="noindex">
 <link rel="manifest" href="manifest.webmanifest">
@@ -149,7 +151,7 @@ admin_html = f"""<!doctype html>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 <script>window.__LOCK_STATE__ = {json.dumps({k: bool(v) for k, v in LOCKS.items()})};</script>
 {ahead}
-{lock_html({'hash': LOCKS.get('admin', ''), 'key': 'ca', 'title': '회사 관리', 'who': '관리자', 'remember': False, 'relockMin': 10, 'alt': ''})}
+{lock_html({'hash': LOCKS.get('admin', ''), 'key': 'ca', 'title': 'DW관리', 'who': '관리자', 'remember': False, 'relockMin': 10, 'alt': ''})}
 </head>
 <body>
 {abody}

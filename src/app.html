@@ -1,4 +1,4 @@
-<title>관리자 서식함</title>
+<title>관리자 서식</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@700&display=swap">
@@ -276,7 +276,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 
 <header class="appbar">
   <div class="appbar-in">
-    <div class="brand">관리자 서식함</div>
+    <div class="brand">관리자 서식</div>
     <div class="local" title="입력한 내용은 이 기기 안에만 저장됩니다">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
       <span>이 기기에만 저장</span>
@@ -1961,7 +1961,7 @@ async function exportBackup() {
     const img = await Store.getAll('img');
     const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, funeral: funeralStorage() };
     const now = new Date();
-    const name = `관리자서식함_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
+    const name = `관리자서식_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
     await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요', onDone: markBackup,
       hint: '백업 파일은 카톡 「나와의 채팅」이나 구글 드라이브로 보내 두면 휴대폰·PC를 바꿔도 되살릴 수 있어요.' });
   } finally { setBusy(btn, false); }
@@ -2013,7 +2013,7 @@ async function wipeAll() {
   S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
-  toast(window.__PWA__ ? '서식함 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.' : '모든 기록을 삭제했어요');
+  toast(window.__PWA__ ? '관리자 서식 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.' : '모든 기록을 삭제했어요');
 }
 function renderAll() { renderWeeklyList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
 
@@ -2244,7 +2244,7 @@ function setupPwa() {
   }
   renderInstall();
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; renderInstall(); });
-  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「서식함」 아이콘으로 열어 주세요.'); });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「관리자 서식」 아이콘으로 열어 주세요.'); });
   if ('serviceWorker' in navigator) {
     const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.register('./sw.js').then((reg) => {

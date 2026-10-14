@@ -1,4 +1,4 @@
-<title>회사 관리</title>
+<title>DW관리</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@700&display=swap">
@@ -318,7 +318,7 @@ select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);b
 
 <header class="appbar">
   <div class="appbar-in">
-    <div class="brand">회사 관리</div>
+    <div class="brand">DW관리</div>
     <div class="local" title="입력한 내용은 이 기기 안에만 저장됩니다">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
       <span>이 기기에만 저장</span>
@@ -419,9 +419,9 @@ select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);b
     </div>
     <div class="card" id="pwCard">
       <h2>앱 비밀번호</h2>
-      <p class="small-t muted">회사관리(관리자)와 관리자 서식함(파트장) 비밀번호를 정해요. 여기서 만든 <b>비밀번호 코드</b>를 앱 담당자에게 보내면 앱에 적용돼요. 코드로는 비밀번호를 알아낼 수 없지만, <b>비밀번호 자체는 어디에도 보내지 마세요.</b> 장례일정은 비밀번호 없이 열려요.</p>
+      <p class="small-t muted">DW관리(관리자)와 관리자 서식(파트장) 비밀번호를 정해요. 여기서 만든 <b>비밀번호 코드</b>를 앱 담당자에게 보내면 앱에 적용돼요. 코드로는 비밀번호를 알아낼 수 없지만, <b>비밀번호 자체는 어디에도 보내지 마세요.</b> 장례일정은 비밀번호 없이 열려요.</p>
       <p class="small-t" id="pwState"></p>
-      <label class="field"><span>대상</span><select class="sel" id="pwFor"><option value="admin">회사관리 · 관리자 비밀번호</option><option value="forms">관리자 서식함 · 파트장 비밀번호</option></select></label>
+      <label class="field"><span>대상</span><select class="sel" id="pwFor"><option value="admin">DW관리 · 관리자 비밀번호</option><option value="forms">관리자 서식 · 파트장 비밀번호</option></select></label>
       <label class="field"><span class="field-label">새 비밀번호 <span class="opt">6자 이상, 영문과 숫자를 섞어서</span></span><input type="password" id="pwNew" autocomplete="new-password"></label>
       <label class="field"><span>한 번 더</span><input type="password" id="pwNew2" autocomplete="new-password"></label>
       <button class="btn primary" type="button" id="pwMake">비밀번호 코드 만들기</button>
@@ -1864,7 +1864,7 @@ async function exportBackup() {
     const img = await Store.getAll('img');
     const data = { app: 'company-admin', version: 1, exportedAt: new Date().toISOString(), company: S.co, staff: [...S.staff.values()], docs: [...S.docs.values()], img };
     const now = new Date();
-    const name = `회사관리_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
+    const name = `DW관리_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
     await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요', onDone: markBackup,
       hint: '백업 파일에는 직원 개인정보가 들어 있어요. 「나와의 채팅」이나 본인 드라이브에만 보관하세요.' });
   } finally { setBusy(btn, false); }
@@ -1889,7 +1889,7 @@ function renderAll() { renderTypeGrid(); renderDocList(); renderStaffList(); ren
 
 /* ================= 이벤트 ================= */
 function bind() {
-  { const st = window.__LOCK_STATE__ || {}; $('#pwState').textContent = `지금: 회사관리 잠금 ${st.admin ? '켜짐' : '꺼짐'} · 서식함 잠금 ${st.forms ? '켜짐' : '꺼짐'}`; }
+  { const st = window.__LOCK_STATE__ || {}; $('#pwState').textContent = `지금: DW관리 잠금 ${st.admin ? '켜짐' : '꺼짐'} · 관리자 서식 잠금 ${st.forms ? '켜짐' : '꺼짐'}`; }
   $('#pwMake').addEventListener('click', async () => {
     const a = $('#pwNew').value, b = $('#pwNew2').value;
     if (a.length < 6) { toast('비밀번호는 6자 이상으로 정해 주세요'); return; }
@@ -2042,7 +2042,7 @@ function setupPwa() {
   }
   renderInstall();
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; renderInstall(); });
-  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「회사관리」 아이콘으로 열어 주세요.'); });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「DW관리」 아이콘으로 열어 주세요.'); });
   if ('serviceWorker' in navigator) {
     const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.register('./sw.js').then((reg) => {

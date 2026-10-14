@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="회사 관리자용 공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드. 기록은 이 휴대폰에만 저장됩니다.">
+<meta name="description" content="DW관리 · 회사 관리자용 공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드. 기록은 이 휴대폰에만 저장됩니다.">
 <meta name="theme-color" content="#f1f2ef" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111518" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="회사관리">
+<meta name="apple-mobile-web-app-title" content="DW관리">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="robots" content="noindex">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.13-22";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.14-1";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
-<title>회사 관리</title>
+<title>DW관리</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@700&display=swap">
@@ -357,7 +357,7 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
 <script>
 (function () {
   'use strict';
-  var C = {"hash": "", "key": "ca", "title": "회사 관리", "who": "관리자", "remember": false, "relockMin": 10, "alt": ""};
+  var C = {"hash": "", "key": "ca", "title": "DW관리", "who": "관리자", "remember": false, "relockMin": 10, "alt": ""};
   // C = { hash: 'p2$반복$소금$해시' 또는 '', key: 'mf', title: '관리자 서식함', who: '파트장', remember: true, relockMin: 0, alt: '' }
   if (!C || !C.hash || !window.crypto || !crypto.subtle) return;
   var TOKEN = C.hash.slice(-20);
@@ -429,7 +429,7 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
 <body>
 <header class="appbar">
   <div class="appbar-in">
-    <div class="brand">회사 관리</div>
+    <div class="brand">DW관리</div>
     <div class="local" title="입력한 내용은 이 기기 안에만 저장됩니다">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
       <span>이 기기에만 저장</span>
@@ -530,9 +530,9 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
     </div>
     <div class="card" id="pwCard">
       <h2>앱 비밀번호</h2>
-      <p class="small-t muted">회사관리(관리자)와 관리자 서식함(파트장) 비밀번호를 정해요. 여기서 만든 <b>비밀번호 코드</b>를 앱 담당자에게 보내면 앱에 적용돼요. 코드로는 비밀번호를 알아낼 수 없지만, <b>비밀번호 자체는 어디에도 보내지 마세요.</b> 장례일정은 비밀번호 없이 열려요.</p>
+      <p class="small-t muted">DW관리(관리자)와 관리자 서식(파트장) 비밀번호를 정해요. 여기서 만든 <b>비밀번호 코드</b>를 앱 담당자에게 보내면 앱에 적용돼요. 코드로는 비밀번호를 알아낼 수 없지만, <b>비밀번호 자체는 어디에도 보내지 마세요.</b> 장례일정은 비밀번호 없이 열려요.</p>
       <p class="small-t" id="pwState"></p>
-      <label class="field"><span>대상</span><select class="sel" id="pwFor"><option value="admin">회사관리 · 관리자 비밀번호</option><option value="forms">관리자 서식함 · 파트장 비밀번호</option></select></label>
+      <label class="field"><span>대상</span><select class="sel" id="pwFor"><option value="admin">DW관리 · 관리자 비밀번호</option><option value="forms">관리자 서식 · 파트장 비밀번호</option></select></label>
       <label class="field"><span class="field-label">새 비밀번호 <span class="opt">6자 이상, 영문과 숫자를 섞어서</span></span><input type="password" id="pwNew" autocomplete="new-password"></label>
       <label class="field"><span>한 번 더</span><input type="password" id="pwNew2" autocomplete="new-password"></label>
       <button class="btn primary" type="button" id="pwMake">비밀번호 코드 만들기</button>
@@ -1975,7 +1975,7 @@ async function exportBackup() {
     const img = await Store.getAll('img');
     const data = { app: 'company-admin', version: 1, exportedAt: new Date().toISOString(), company: S.co, staff: [...S.staff.values()], docs: [...S.docs.values()], img };
     const now = new Date();
-    const name = `회사관리_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
+    const name = `DW관리_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
     await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요', onDone: markBackup,
       hint: '백업 파일에는 직원 개인정보가 들어 있어요. 「나와의 채팅」이나 본인 드라이브에만 보관하세요.' });
   } finally { setBusy(btn, false); }
@@ -2000,7 +2000,7 @@ function renderAll() { renderTypeGrid(); renderDocList(); renderStaffList(); ren
 
 /* ================= 이벤트 ================= */
 function bind() {
-  { const st = window.__LOCK_STATE__ || {}; $('#pwState').textContent = `지금: 회사관리 잠금 ${st.admin ? '켜짐' : '꺼짐'} · 서식함 잠금 ${st.forms ? '켜짐' : '꺼짐'}`; }
+  { const st = window.__LOCK_STATE__ || {}; $('#pwState').textContent = `지금: DW관리 잠금 ${st.admin ? '켜짐' : '꺼짐'} · 관리자 서식 잠금 ${st.forms ? '켜짐' : '꺼짐'}`; }
   $('#pwMake').addEventListener('click', async () => {
     const a = $('#pwNew').value, b = $('#pwNew2').value;
     if (a.length < 6) { toast('비밀번호는 6자 이상으로 정해 주세요'); return; }
@@ -2153,7 +2153,7 @@ function setupPwa() {
   }
   renderInstall();
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; renderInstall(); });
-  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「회사관리」 아이콘으로 열어 주세요.'); });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「DW관리」 아이콘으로 열어 주세요.'); });
   if ('serviceWorker' in navigator) {
     const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.register('./sw.js').then((reg) => {
