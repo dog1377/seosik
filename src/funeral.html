@@ -911,6 +911,9 @@ body.split #p-settle .wz{max-width:none}
 .wz-amt .amt-u{right:18px;font-size:16px}
 .wz-amt .amt-r{margin:0;padding-left:4px;font-size:13px;font-weight:500;color:var(--muted)}
 .wz-text{min-height:58px;font-size:18px;border-radius:14px}
+.wz-no .suffix span{right:18px;font-size:16px}
+.wz-read{margin:-10px 0 0;padding-left:4px;font-size:13px;line-height:1.5;color:var(--muted)}
+.quick-start .row{gap:10px}
 .wz-result{display:grid;gap:8px;padding:14px 16px;border-radius:14px;background:var(--field)}
 .wz-result[hidden]{display:none}
 .wz-result>div{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -1096,7 +1099,8 @@ body.split #p-settle .wz{max-width:none}
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
     <div class="pick-head"><div><div class="picker-kicker"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5"/></svg>진행 업체 선택</div><h2 id="pickTitle">어느 업체 행사인가요?</h2><p class="note" style="margin-top:4px">업체를 고르면 그 업체의 밴드 · 보고 양식과 제공내역이 준비됩니다.</p></div><button class="x pick-x" type="button" id="pickX" aria-label="닫기">✕</button></div>
     <div class="co-list" id="coList"></div>
-    <button class="btn primary" id="pickEnvelope" type="button">행사 등록 없이 봉투 1건 추가</button>
+    <button class="btn primary" id="pickSettle" type="button" data-quick-settle>행사 입력 없이 정산만</button>
+    <button class="btn" id="pickEnvelope" type="button">행사 등록 없이 봉투 1건 추가</button>
     <button class="btn" id="pickCancel" type="button">닫기</button>
   </div>
 </div>
@@ -1634,7 +1638,7 @@ function updateWorkspace(t){
   const titles={input:['장례 일정 작성','행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.'],out:['보고서 · 복사','완성된 내용을 확인하고 필요한 양식을 복사하세요.'],settle:['정산 · 수당','수금 내역과 회사 정산금, 개인 수당을 확인하세요.'],envelopes:['월별 봉투정리','행사별 봉투를 모아 월 합계와 출금할 지폐 장수를 확인하세요.'],admin:['업무 설정','업체 양식과 선택 목록을 내 업무에 맞게 관리하세요.']};
   const info=titles[t]||['휴무 · 당직',''];
   $('#pageTitle').textContent=info[0];$('#pageDesc').textContent=info[1];
-  $('#newCase').innerHTML=uiIcon('plus')+(t==='envelopes'?'봉투 1건 추가':'새 행사');
+  $('#newCase').innerHTML=uiIcon('plus')+(t==='envelopes'?'봉투 1건 추가':t==='settle'?'새 정산':'새 행사');
   document.querySelectorAll('[data-ui-go]').forEach(b=>{ if(b.dataset.uiGo===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current'); });
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>{if(b.classList.contains('on')){b.setAttribute('aria-current','page');b.closest('.acc').querySelector('.acc-h').setAttribute('aria-expanded','true');}else b.removeAttribute('aria-current');});
 }
@@ -1880,9 +1884,10 @@ function deductHtml(c){
 }
 function renderInput(){
   const c=curCase();
-  if(!c){ $('#p-input').innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>새 행사 시작</h2></div><p class="note">진행 업체를 누르면 그 업체 양식으로 바로 시작합니다. 행사 없이도 아래 메뉴(봉투 · 휴무 · 설정)는 그대로 쓸 수 있어요.</p><div class="co-list">${coButtons('data-start')}</div></div>`; return; }
+  if(!c){ $('#p-input').innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>새 행사 시작</h2></div><p class="note">진행 업체를 누르면 그 업체 양식으로 바로 시작합니다. 행사 없이도 아래 메뉴(봉투 · 휴무 · 설정)는 그대로 쓸 수 있어요.</p><div class="co-list">${coButtons('data-start')}</div></div>
+    <div class="sec quick-start"><div class="sec-head"><h2>행사 입력 없이 정산만</h2></div><p class="note">정산 카톡과 봉투만 필요하면 업체를 고르지 않고 바로 시작하세요. 행사번호 · 장소 · 발인일부터 하나씩 물어봐요.</p><div class="row"><button class="btn primary" type="button" data-quick-settle>정산만 바로 시작</button></div></div>`; return; }
   const co=coById(c.companyId);
-  let h=`<div class="co-card"><div class="co-identity"><span class="co-symbol">${uiIcon('building')}</span><div><small>진행 업체${co.id===ETC?' · 기본 양식':''}</small><b>${esc(caseCoName(c))}</b></div></div><button class="btn sm" type="button" data-act="changeCo">업체 변경</button></div>
+  let h=`<div class="co-card"><div class="co-identity"><span class="co-symbol">${uiIcon('building')}</span><div><small>진행 업체${co.id===ETC?' · 기본 양식':''}${c.quick?' · 정산에서 바로 만든 행사':''}</small><b>${esc(caseCoName(c))}</b></div></div><button class="btn sm" type="button" data-act="changeCo">업체 변경</button></div>
     ${co.id===ETC?`<label class="f co-name-f"><span class="field-label">업체명 <span class="lbl-sub">기타 업체로 작성할 때 보고서에 들어갈 업체 이름</span></span><input class="input" id="f_coName" data-k="coName" value="${esc(c.f.coName||'')}" placeholder="예: ○○상조" autocomplete="off"></label>`:''}
     <div class="input-controls" id="inputControls"><nav class="group-tabs" aria-label="입력 항목">${INPUT_GROUPS.map(g=>`<button type="button" data-input-group="${g.id}" aria-pressed="${g.id===inputGroup}">${g.label}</button>`).join('')}</nav><span class="input-progress" id="inputProgress"></span></div><div class="input-grid" id="inputGrid">`;
   const used=usedPH(co);
@@ -2013,7 +2018,7 @@ function openPicker(mode){
   $('#coList').innerHTML=coButtons('data-pick');
   $('#pickTitle').textContent=mode==='change'?'업체 변경':'어느 업체 행사인가요?';
   $('#pickCancel').hidden=false;
-  $('#pickEnvelope').hidden=mode==='change';
+  $('#pickEnvelope').hidden=$('#pickSettle').hidden=mode==='change';
   $('#picker').hidden=false;
 }
 function closePicker(){ $('#picker').hidden=true; }
@@ -2060,7 +2065,8 @@ function renderCaseSel(){
   const list=mk?casesOfMonth(mk):[], used=carryUse(); let negLeft=0;
   $('#caseSel').innerHTML=list.length?list.map(c=>{ const d=parseDT(c.f.depart), co=coById(c.companyId), w=settleCalc(c).sendWon, neg=w<0?(used.has(c.id)?' · 마이너스 정리됨':` · 마이너스 ${wonStr(w)}`):'';
     if(w<0&&!used.has(c.id)) negLeft++;
-    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(c.f.name?'故 '+c.f.name:(c.f.place||'(고인명 미입력)'))} · ${esc(caseCoName(c))}${d?` · 발인 ${d.mo}/${d.d}`:''}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
+    const no=String(c.f.eventNo||'').trim(), who=c.f.name?'故 '+c.f.name:(c.f.place||(no?`${no}번 행사`:(c.quick?'(장소 미입력)':'(고인명 미입력)')));
+    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(who)} · ${esc(c.quick?'정산만':caseCoName(c))}${d?` · 발인 ${d.mo}/${d.d}`:''}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
   $('#caseSel').disabled=!list.length; $('#delCase').disabled=!list.length;
   const i=months.findIndex(x=>x[0]===mk);
   $('#cmLabel').textContent=mk?monthLabel(mk):'행사 없음';
@@ -2161,7 +2167,7 @@ $('#keepDelMonth').onclick=()=>{
   });
 };
 $('#saveNow').onclick=()=>saveNow();
-$('#newCase').onclick=()=>db.tab==='envelopes'?newManualEnvelope():openPicker('new');
+$('#newCase').onclick=()=>db.tab==='envelopes'?newManualEnvelope():db.tab==='settle'?startQuickSettle():openPicker('new');
 $('#caseSel').onchange=e=>{ db.cur=e.target.value; save(); dirty=true; renderAll(); };
 function arm(btn,label,fn){
   if(!btn.classList.contains('armed')){ btn.classList.add('armed'); btn.dataset.label=btn.textContent; btn.textContent=label; clearTimeout(btn._t); btn._t=setTimeout(()=>{ btn.classList.remove('armed'); btn.textContent=btn.dataset.label; },3000); return; }
@@ -2458,7 +2464,7 @@ const GRP=[
   {id:'mgr',t:'실장님 몫',chip:'chMinus'},
   {id:'def',t:'지난 마이너스',chip:'chDef'},
 ];
-const GRP_T=Object.fromEntries([...GRP.map(g=>[g.id,g.t]),['done','확인']]);
+const GRP_T=Object.fromEntries([['info','행사 정보'],...GRP.map(g=>[g.id,g.t]),['done','확인']]);
 const SM_KEY='funeral-settleMode';
 let settleMode=(()=>{ try{ return localStorage.getItem(SM_KEY)==='all'?'all':'wizard'; }catch(e){ return 'wizard'; } })();
 const wzPos=new Map();
@@ -2471,8 +2477,17 @@ const exYes=c=>exData(c)||S(c).extraAsk==='yes';
 const miData=c=>(S(c).minus||[]).some(x=>String(x.memo||'').trim()||String(x.amt||'').trim());
 const miYes=c=>miData(c)||S(c).mgrAsk==='yes';
 const openDefs=c=>deficits().filter(x=>!x.used && x.c.id!==c.id);
+// 행사 입력 없이 정산만 하는 행사(c.quick): 처음에 행사번호 · 장소 · 발인일과 카톡 윗부분(도우미 · 차량 · 상복 · 장지)을 물음
+const quickOn=c=>!!(c&&c.quick);
 // 질문 하나 = 화면 하나. when이 있으면 해당될 때만 물음
 const SCR=[
+  {id:'qNo',g:'info',kind:'no',scope:'f',key:'eventNo',q:'행사번호는 몇 번인가요?',sub:'봉투 · 수당 카톡 맨 위에 들어가요. 모르면 넘어가세요.',when:quickOn},
+  {id:'qPlace',g:'info',kind:'text',scope:'f',key:'place',ph:'예: 부산착한 VIP2호',q:'장소는 어디인가요?',sub:'정산 카톡 · 봉투 맨 위에 들어가요.',when:quickOn},
+  {id:'qDate',g:'info',kind:'date',scope:'f',key:'depart',q:'발인일은 언제인가요?',sub:'이 날짜가 있는 달로 행사 기록과 봉투가 정리돼요.',when:quickOn},
+  {id:'qHelper',g:'info',kind:'helper',keys:['helper','helperHours'],q:'도우미는 누구였나요?',sub:'정산 카톡 윗부분에 들어가요. 없으면 넘어가세요.',when:quickOn},
+  {id:'qVeh',g:'info',kind:'veh',keys:['vehType','vehCo'],q:'장의차는 어떤 차였나요?',sub:'차종과 업체를 골라 주세요. 없으면 넘어가세요.',when:quickOn},
+  {id:'qMourn',g:'info',kind:'mourn',keys:['mournBrand'],q:'상복은 어느 업체였나요?',sub:'없으면 넘어가세요.',when:quickOn},
+  {id:'qBurial',g:'info',kind:'text',scope:'f',key:'burial',ph:'예: 창원상복-부산추모(벽식)',q:'장지는 어디였나요?',sub:'장지 장소 이름이에요. 받은 금액은 다음에 따로 물어봐요.',when:quickOn},
   {id:'hall',g:'recv',kind:'amt',key:'hall',ph:'예: 10',q:'식장에서 받은 금액이 있나요?',sub:'전부 본부장 봉투로 들어가요. 보내는금액에는 안 들어가요.'},
   {id:'burial',g:'recv',kind:'amt',key:'burialAmt',ph:'예: 300',q:'장지에서 받은 금액은 얼마인가요?',sub:()=>`${rules().burialFee}만원을 먼저 빼고 반으로 나눠요. 본부장 몫에 ${rules().burialFee}만원을 더해요.`},
   {id:'sea',g:'recv',kind:'pick',key:'burialSea',opts:[['yes','네, 해양장'],['no','아니요']],q:'해양장인가요?',sub:()=>`해양장이면 ${rules().burialFee}만원을 빼지 않고 본부장 · 실장 그냥 반반이에요.`,when:c=>toWon(S(c).burialAmt)>0},
@@ -2523,11 +2538,43 @@ function wzAt(c){
   wzPos.set(c.id,id); return id;
 }
 const SV_L='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>', SV_R='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
+function dateRead(v){ const p=parseDT(v); return p?`${p.y}년 ${p.mo}월 ${p.d}일(${wdOf(p)}) · ${p.mo}월 기록으로 정리돼요`:'비워 두면 이번 달 기록으로 정리돼요'; }
+// 날짜 칸: 날짜만 바꾸고, 입력 탭에서 넣은 시간은 그대로 둠
+function setDateField(c,t){
+  const k=t.dataset.sfdate, old=String(c.f[k]||''), d=String(t.value||'');
+  const next=d?d+(old.length>10?old.slice(10):''):'';
+  if(next===old) return false;
+  c.f[k]=next;
+  document.querySelectorAll(`#p-settle [data-sfdate="${k}"]`).forEach(x=>{ if(x!==t) x.value=d; });
+  const r=$('#wzDateRead'); if(r) r.textContent=dateRead(next);
+  return true;
+}
+/* 행사 입력 없이 정산만: 업체를 고르지 않고 바로 정산 질문으로 감. 아무것도 안 넣은 「정산만」 행사가 있으면 그걸 다시 씀 */
+function quickEmpty(c){
+  const f=c.f||{};
+  return !!c.quick && !hasSettleData(c) && !envelopeHasSettlement(c) && !['eventNo','place','name','helper','helperHours','vehType','vehCo','mournBrand','burial'].some(k=>String(f[k]||'').trim());
+}
+function startQuickSettle(){
+  closePicker();
+  let c=db.cases.find(quickEmpty);
+  if(c) c.f.depart=seoulToday();
+  else {
+    const dw=db.companies.find(x=>String(x.name||'').replace(/\s/g,'')==='디더블유');
+    c=makeCase(dw?dw.id:ETC); c.quick=true; c.f.depart=seoulToday(); db.cases.push(c);
+  }
+  c.updated=Date.now(); db.cur=c.id; wzPos.set(c.id,scrFirst(c)); dirty=true;
+  setTab('settle'); renderCaseSel();
+  if(settleMode==='wizard') $('#p-settle .wz-card input')?.focus({preventScroll:true});
+  toast('행사 입력 없이 정산을 시작합니다');
+}
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-quick-settle]'); if(b) startQuickSettle(); });
 function basicFields(c){
   const f=c.f;
   const sf=(k,label,list,ph,mode='')=>list?`<div class="f-wrap"><label class="f">${label}</label>${chooser({key:k,options:db.lists[list]||[],label})}</div>`:`<label class="f">${label}<input class="input" data-sf="${k}" value="${esc(f[k]||'')}" ${mode} placeholder="${esc(ph||'')}" autocomplete="off"></label>`;
   const autoBurial=[f.burial1,f.burial2].filter(Boolean).join('-');
-  return `<p class="note">입력 탭에 넣은 값이 자동으로 들어옵니다. 비어 있으면 여기서 바로 넣으세요. (여기서 고치면 입력 탭에도 반영)</p>
+  return `<p class="note">${c.quick?'행사 입력 없이 정산에서 바로 만든 행사예요. 여기 넣은 값이 정산 카톡 · 봉투 · 수당에 들어갑니다.':'입력 탭에 넣은 값이 자동으로 들어옵니다. 비어 있으면 여기서 바로 넣으세요. (여기서 고치면 입력 탭에도 반영)'}</p>
+    <div class="pair"><label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}" placeholder="예: 3" autocomplete="off"><span>번</span></div></label>
+    <label class="f">발인일<input class="input" type="date" data-sfdate="depart" value="${esc(String(f.depart||'').slice(0,10))}"></label></div>
     ${sf('place','장소','', '예: 부산대동 6호')}
     <div class="pair">${sf('helper','도우미','helpers','목록에서 고르거나 입력')}${sf('helperHours','시간','','20','inputmode="numeric"')}</div>
     <div class="pair">${sf('vehType','차종','vehTypes','예: 버스')}${sf('vehCo','장의차 업체','vehCos','예: 한맥장의차')}</div>
@@ -2605,7 +2652,12 @@ function wzScreen(c,id){
   const ch=(label,o)=>`<div class="f-wrap"><label class="f">${label}</label>${chooser({scope:'s',...o})}</div>`;
   if(x.kind==='amt'){ const attr=x.scope==='f'?`data-sf="${x.key}"`:`data-s="${x.key}"`;
     body=`<div class="wz-amt">${amtIn(attr,x.scope==='f'?f[x.key]:s[x.key],x.ph)}</div><div class="wz-result" id="wzResult" hidden></div>${go()}`; }
-  else if(x.kind==='text') body=`<input class="input wz-text" data-s="${x.key}" value="${esc(s[x.key]||'')}" placeholder="${esc(x.ph||'')}" autocomplete="off" aria-label="${esc(x.q)}">${go()}`;
+  else if(x.kind==='text') body=`<input class="input wz-text" ${x.scope==='f'?'data-sf':'data-s'}="${x.key}" value="${esc((x.scope==='f'?f:s)[x.key]||'')}" placeholder="${esc(x.ph||'')}" autocomplete="off" aria-label="${esc(x.q)}">${go()}`;
+  else if(x.kind==='no') body=`<div class="wz-amt wz-no"><div class="suffix"><input class="input" data-sf="${x.key}" inputmode="numeric" value="${esc(f[x.key]||'')}" placeholder="예: 3" autocomplete="off" aria-label="행사번호"><span>번</span></div></div>${go()}`;
+  else if(x.kind==='date') body=`<input class="input wz-text" type="date" data-sfdate="${x.key}" value="${esc(String(f[x.key]||'').slice(0,10))}" aria-label="발인일"><p class="wz-read" id="wzDateRead">${esc(dateRead(f[x.key]))}</p>${go()}`;
+  else if(x.kind==='helper') body=`${ch('도우미',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})}<label class="f">시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" placeholder="예: 50" autocomplete="off"><span>시간</span></div></label>${go()}`;
+  else if(x.kind==='veh') body=`${ch('차종',{scope:'f',key:'vehType',options:db.lists.vehTypes||[],label:'차종'})}${ch('장의차 업체',{scope:'f',key:'vehCo',options:db.lists.vehCos||[],label:'장의차 업체'})}${go()}`;
+  else if(x.kind==='mourn') body=`${ch('상복 업체',{scope:'f',key:'mournBrand',options:db.lists.mournBrands||[],label:'상복 업체'})}${go()}`;
   else if(x.kind==='pay') body=choice('data-wz-pick',x.key,[['현금','현금'],['카드','카드']],s[x.key]||'현금');
   else if(x.kind==='pick'){
     if(x.id==='sea'){ const b=toWon(s.burialAmt), fee=Math.min(b,(Number(R.burialFee)||0)*10000), h1=hqRound((b-fee)/2), h2=hqRound(b/2), mw=w=>wonStr(w)||'0원';
@@ -2641,12 +2693,14 @@ function wzFrame(c){
 }
 function wzGoLabel(c){
   const b=$('#wzGo'); if(!b) return; const id=wzAt(c), x=SCR[SCR_I(id)];
-  const empty=(x.kind==='amt'&&!String((x.scope==='f'?c.f:S(c))[x.key]??'').trim())||(x.kind==='text'&&!sv(c,x.key));
+  const src=x.scope==='f'||x.keys?c.f:S(c), has=k=>!!String(src[k]??'').trim();
+  const empty=x.keys?!x.keys.some(has):(['amt','text','no'].includes(x.kind)&&!has(x.key));
   b.textContent=empty?'없어요':scrStep(c,id,1)==='done'?'확인하기':'다음';
 }
 function wzChrome(c){
   const id=wzAt(c), vis=SCR.filter(x=>scrOn(c,x)), i=Math.max(0,vis.findIndex(x=>x.id===id)), x=SCR[SCR_I(id)];
-  const p=$('#wzProg'); if(p) p.style.width=`${Math.round(SCR_I(id)/(SCR.length-1)*100)}%`;  // 건너뛴 질문이 있어도 앞으로만 차오름
+  const base=quickOn(c)?0:SCR.filter(y=>y.g==='info').length;  // 행사 정보 질문은 정산만 하는 행사에서만 셈
+  const p=$('#wzProg'); if(p) p.style.width=`${Math.round(Math.max(0,SCR_I(id)-base)/(SCR.length-1-base)*100)}%`;  // 건너뛴 질문이 있어도 앞으로만 차오름
   const g=$('#wzGroup'); if(g) g.textContent=GRP_T[x.g]||'';
   const bk=$('#wzBack'); if(bk) bk.disabled=i===0;
   $('#p-settle').classList.toggle('wz-end',id==='done');
@@ -2666,7 +2720,7 @@ function wzGo(to){
   // 질문이 늘 같은 자리(화면 맨 위)에 오도록
   if(Math.abs(r.top-(ab+12))>8) window.scrollTo({top:Math.max(0,scrollY+r.top-ab-12),behavior:anim?'smooth':'auto'});
   // 앞으로 가면서 빈 금액 칸이면 바로 키패드 · 아니면 질문에 초점
-  const x=SCR[SCR_I(to)], inp=(x.kind==='amt'||x.kind==='text')?card.querySelector('input'):null;
+  const x=SCR[SCR_I(to)], inp=['amt','text','no'].includes(x.kind)?card.querySelector('input'):null;
   (inp&&dir==='next'&&!inp.value?inp:card.querySelector('.wz-q'))?.focus({preventScroll:true});
 }
 function setSettleMode(m){ settleMode=m; try{ localStorage.setItem(SM_KEY,m); }catch(e){ /* 저장 못 해도 이번엔 바뀜 */ } renderSettle(); const p=$('#p-settle'); if(p&&p.getBoundingClientRect().top<0) p.scrollIntoView({block:'start'}); }
@@ -2685,12 +2739,14 @@ function wzReview(c,d){
     ['mgr', -d.sub.minus, mi.length?mi.map(x=>`${x.short||x.memo||'기타'} ${wonStr(x.won)}`).join(' · '):'없음'],
     ['def', -d.sub.carry, d.carry.length?d.carry.map(r=>String(r.label||'').trim()||'지난 마이너스').join(' · '):'없음'],
   ];
-  return rows.map(([g,w,note])=>`<button type="button" class="wz-rv" data-wz-to="${scrFirst(c,g)}"><span class="wz-rv-k"><b>${esc(GRP_T[g])}</b><small>${esc(note)}</small></span><span class="wz-rv-v ${w<0?'minus':w?'':'zero'}">${sg(w)}</span>${SV_R}</button>`).join('');
+  if(quickOn(c)){ const f=d.f, p=parseDT(f.depart), no=String(f.eventNo||'').trim();
+    rows.unshift(['info', null, [no&&`${no}번`, String(f.place||'').trim(), p&&`발인 ${p.mo}/${p.d}`].filter(Boolean).join(' · ')||'안 넣음']); }
+  return rows.map(([g,w,note])=>`<button type="button" class="wz-rv" data-wz-to="${scrFirst(c,g)}"><span class="wz-rv-k"><b>${esc(GRP_T[g])}</b><small>${esc(note)}</small></span><span class="wz-rv-v ${w==null?'zero':w<0?'minus':w?'':'zero'}">${w==null?'':sg(w)}</span>${SV_R}</button>`).join('');
 }
 function renderSettle(){
   const c=curCase(), el=$('#p-settle');
   el.classList.remove('wz-on','wz-end');
-  if(!c){ el.innerHTML=`<div class="sec"><p class="note">작성 중인 행사가 없습니다. 행사 입력에서 업체를 고르면 정산도 함께 시작됩니다.</p><button class="btn primary" type="button" data-go-input>행사 입력으로</button></div>`; return; }
+  if(!c){ el.innerHTML=`<div class="sec quick-start"><div class="sec-head"><h2>정산 시작</h2></div><p class="note">행사 입력 없이도 정산 카톡과 봉투를 바로 만들 수 있어요. 행사번호 · 장소 · 발인일부터 하나씩 물어봐요.</p><div class="row"><button class="btn primary" type="button" data-quick-settle>정산만 바로 시작</button><button class="btn" type="button" data-go-input>행사 입력으로</button></div></div>`; return; }
   const s=S(c), f=c.f; if(!s.minus) s.minus=[]; if(!s.flowerSalePay) s.flowerSalePay='현금';
   const wiz=settleMode==='wizard';
   el.classList.toggle('wz-on',wiz);
@@ -2819,7 +2875,7 @@ function updSettle(skipDef){
   const wt=$('#wzTotal'); if(wt){ wt.classList.toggle('neg',d.sendWon<0); $('#wzSend').textContent=d.send||'0원';
     $('#wzSendNote').textContent=d.sendWon<0?'수익이 충분한 다른 행사 정산에서 빼야 해요':String(s.sendOverride||'').trim()?`직접 입력한 금액 · 자동 계산 ${wonStr(d.auto)||'0원'}`:'아래 「카톡 복사」를 눌러 보내세요'; }
   const wr=$('#wzReview'); if(wr) wr.innerHTML=wzReview(c,d);
-  const bs=$('#wzBasicState'); if(bs){ const miss=[['장소',d.f.place],['도우미',d.f.helper],['차량',d.f.vehType||d.f.vehCo],['상복',d.f.mournBrand],['장지',d.v['장지']]].filter(x=>!String(x[1]||'').trim()).map(x=>x[0]); bs.textContent=miss.length?`비어 있음: ${miss.join(' · ')}`:'모두 채움'; bs.classList.toggle('miss',!!miss.length); }
+  const bs=$('#wzBasicState'); if(bs){ const miss=[['행사번호',d.f.eventNo],['장소',d.f.place],['도우미',d.f.helper],['차량',d.f.vehType||d.f.vehCo],['상복',d.f.mournBrand],['장지',d.v['장지']]].filter(x=>!String(x[1]||'').trim()).map(x=>x[0]); bs.textContent=miss.length?`비어 있음: ${miss.join(' · ')}`:'모두 채움'; bs.classList.toggle('miss',!!miss.length); }
   const bar=$('#settleBar'); if(bar){ bar.classList.toggle('neg',d.sendWon<0); $('#sbLabel').textContent=d.sendWon<0?'보내는금액 · 마이너스':'보내는금액'; $('#sbSend').textContent=d.send||'0원'; }
   const t=$('#settleText'); if(t) t.value=settleText(c);
   const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''}${cd.chodo?` · 초도 ${wonStr(cd.chodo)}`:''}${cd.kit?` · 키트 ${wonStr(cd.kit)}`:''}${cd.lunch?` · 도시락 ${wonStr(cd.lunch)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
@@ -2830,6 +2886,7 @@ function updSettle(skipDef){
 $('#p-settle').addEventListener('input',e=>{
   const t=e.target, c=curCase(); if(!c) return; const s=S(c);
   if(t.dataset.sf){ c.f[t.dataset.sf]=t.value; c.f['_d_'+t.dataset.sf]=false; document.querySelectorAll(`#p-settle [data-sf="${t.dataset.sf}"]`).forEach(x=>{ if(x!==t) x.value=t.value; }); }
+  else if(t.dataset.sfdate){ if(!setDateField(c,t)) return; }
   else if(t.dataset.comm){ if(!s.comm) s.comm={}; s.comm[t.dataset.comm]=t.value; }
   else if(t.dataset.me){ me()[t.dataset.me]=t.value; }
   else if(t.dataset.rule){ rules()[t.dataset.rule]=t.value; }
@@ -2852,6 +2909,7 @@ $('#p-settle').addEventListener('keydown',e=>{
 });
 $('#p-settle').addEventListener('change',e=>{
   const t=e.target, c=curCase(); if(!c) return;
+  if(t.dataset.sfdate){ if(setDateField(c,t)){ touched(); updSettle(); } return; }  // 일부 휴대폰은 날짜를 고를 때 change만 보냄
   if(t.tagName!=='SELECT'||!t.dataset.s) return; const s=S(c);
   s[t.dataset.s]=t.value; const dir=t.parentElement.querySelector('[data-s$="Dir"]'); if(dir){ dir.hidden=t.value!=='__direct'; if(t.value==='__direct') dir.focus(); }
   touched(); updSettle();
