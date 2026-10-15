@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.15-2">
+<meta name="app-version" content="2026.10.15-3">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -207,6 +207,8 @@ body.duty-mode .wrap{max-width:none;padding-inline:0;padding-block:0}
 .item.is-off .tog{color:var(--muted);font-weight:400}
 .item.is-off .input{color:var(--muted);text-decoration:line-through}
 .item .input{min-height:44px;padding:9px 11px;font-size:15px}
+.item textarea.it-text{min-height:44px;resize:none;line-height:1.5;overflow:hidden;display:block}
+.item{align-items:start}
 .x{width:36px;height:36px;border:0;background:none;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:var(--muted);font-size:16px}
 .x:hover{color:var(--warn);background:var(--warn-soft)}
 .dd{display:grid;grid-template-columns:28px minmax(0,1fr) 36px;gap:8px;align-items:center}
@@ -1022,7 +1024,7 @@ body.split #p-settle .wz{max-width:none}
         <div id="coReports" class="stack"></div>
       </div>
       <div class="stack" style="gap:6px"><p class="note">눌러서 넣기 · 마지막으로 누른 양식 칸에 들어갑니다</p><div class="ph" id="phList"></div></div>
-      <label class="f">제공내역 기본 항목 · 한 줄에 하나<textarea class="input" id="coItems" rows="7"></textarea></label>
+      <label class="f">제공내역 기본 항목 · 한 줄에 하나<textarea class="input" id="coItems" rows="12"></textarea><span class="field-hint">앞에 띄어쓰기를 두 칸 넣은 줄은 위 항목에 번호 없이 이어집니다. 새로 만드는 행사부터 적용됩니다.</span></label>
       <div class="row">
         <button class="btn primary" id="coSave" type="button">저장</button>
         <button class="btn danger" id="coDel" type="button">업체 삭제</button>
@@ -1360,6 +1362,8 @@ const HJ_REPORTS=[
 ];
 const GOI_ITEMS=['전삼베(남) 제공','헌화30송이 5만원공제','생화꽃관장식 10만원 공제','관리사 2명 24만 공제','상복 페이백 예정','영정사진 서비스','앰블관내 제공','장의차량 배차완료','장의차량 70km(실제운행거리)'];
 const GOI_DEDUCT=[];
+// 밴드 제공내역 기본 17개 (모든 업체 공통 · 행사마다 고쳐 씀). 12번처럼 줄바꿈 뒤 줄은 번호 없이 이어짐
+const BAND_ITEMS=['예다함 진행중 패키지 전환 예시','장례식장 진행중 패키지 전환 예시','개인장의 홍길동 진행중 패키지 전환','현진저마수의','사전상담 진행','바구니2개 헌화30송이','생화꽃관장식 제공','영정사진 서비스','앰블관내 제공','장지관리사 배치','장의차량 배차완료','장의차량 70km(실제운행거리)\n장의차량 거리추가시\n장의차량 200km(100km추가)20만원','일회용품2박스.편의용품1개','자택 및 종교시설등 경유시 필히기재','그외 서비스 및 추가된 부분 정확하게 보고','장지 행사팀 알선 장지산역 알선.개장알선.납골당알선등 이부분도 정확하게 보고','09시 입실예정'];
 const LEGACY_CREMS=[{"id":"seoul","name":"서울추모공원","short":"서울추모"},{"id":"seoul-seunghwa","name":"서울시립승화원","short":"서울승화"},{"id":"busan","name":"부산영락공원","short":"부산"},{"id":"daegu","name":"대구명복공원","short":"대구"},{"id":"incheon","name":"인천가족공원 승화원","short":"인천"},{"id":"gwangju","name":"광주영락공원","short":"광주"},{"id":"daejeon","name":"대전시정수원","short":"대전"},{"id":"ulsan","name":"울산하늘공원","short":"울산"},{"id":"sejong","name":"세종은하수공원","short":"세종"},{"id":"seongnam","name":"성남시장례문화사업소","short":"성남"},{"id":"suwon","name":"수원시연화장 승화원","short":"수원"},{"id":"yongin","name":"용인평온의숲 나래원","short":"용인"},{"id":"hwaseong","name":"화성함백산추모공원","short":"함백산"},{"id":"gangneung","name":"강릉 솔향하늘길","short":"강릉"},{"id":"donghae","name":"동해삼척 공동화장장 승화원","short":"동해삼척"},{"id":"sokcho","name":"속초시승화원","short":"속초"},{"id":"wonju","name":"원주추모공원 하늘나래원","short":"원주"},{"id":"inje","name":"인제 하늘내린도리안","short":"인제"},{"id":"jeongseon","name":"정선하늘터","short":"정선"},{"id":"chuncheon","name":"춘천안식원","short":"춘천"},{"id":"taebaek","name":"태백시화장장","short":"태백"},{"id":"jecheon","name":"제천시영원한쉼터","short":"제천"},{"id":"cheongju","name":"청주시목련공원","short":"청주"},{"id":"chungju","name":"충주시하늘나라","short":"충주"},{"id":"gongju","name":"공주나래원","short":"공주"},{"id":"cheonan","name":"천안추모공원","short":"천안"},{"id":"hongseong","name":"홍성추모공원","short":"홍성"},{"id":"gunsan","name":"군산시승화원","short":"군산"},{"id":"namwon","name":"남원시승화원","short":"남원"},{"id":"iksan","name":"익산하늘공원 정수원","short":"익산"},{"id":"jeonju","name":"전주시승화원","short":"전주"},{"id":"jeongeup","name":"서남권추모공원","short":"서남권"},{"id":"sorokdo","name":"국립소록도병원화장장","short":"소록도"},{"id":"gokseong","name":"아름다운청계공원","short":"곡성청계"},{"id":"gwangyang","name":"광양시화장장","short":"광양"},{"id":"mokpo","name":"목포추모공원","short":"목포"},{"id":"suncheon","name":"순천시립추모공원","short":"순천"},{"id":"yeosu","name":"여수시승화원","short":"여수"},{"id":"haenam","name":"남도광역추모공원","short":"남도광역"},{"id":"gyeongju","name":"경주하늘마루","short":"경주"},{"id":"gumi","name":"구미시추모공원","short":"구미"},{"id":"gimcheon","name":"김천시립추모공원","short":"김천"},{"id":"mungyeong","name":"문경예송원","short":"문경"},{"id":"sangju","name":"상주시승천원","short":"상주"},{"id":"andong","name":"안동장사문화공원","short":"안동"},{"id":"yeongju","name":"영주시화장장","short":"영주"},{"id":"ulleung","name":"울릉하늘섬공원","short":"울릉"},{"id":"uljin","name":"울진군립추모원","short":"울진"},{"id":"uiseong","name":"의성군공설화장장","short":"의성"},{"id":"pohang-guryongpo","name":"포항시립구룡포화장장","short":"구룡포"},{"id":"pohang-uhyeon","name":"포항시우현화장장","short":"포항우현"},{"id":"goseong","name":"고성군공설화장장","short":"고성"},{"id":"gimhae","name":"김해추모의공원","short":"김해"},{"id":"namhae","name":"남해추모누리 영화원","short":"남해"},{"id":"miryang","name":"밀양시공설화장시설","short":"밀양"},{"id":"sacheon","name":"사천시누리원","short":"사천"},{"id":"jinju","name":"진주시안락공원","short":"진주"},{"id":"masan","name":"창원시립마산화장장","short":"마산"},{"id":"changwon","name":"창원시립상복공원","short":"창원"},{"id":"tongyeong","name":"통영시추모공원","short":"통영"},{"id":"haman","name":"함안하늘공원","short":"함안"},{"id":"jeju","name":"제주양지공원","short":"제주"}];
 function cremName(f){
   if(f.cremName!==undefined) return String(f.cremName||'').trim();
@@ -1519,6 +1523,7 @@ if(!db.dwVendorAdded){
   else db.companies.push({id:uid(),name:'디더블유',band:GEN_BAND,reports:[],items:[],deduct:[]});
   db.dwVendorAdded=true;
 }
+if(!db.vItems17){ db.companies.forEach(x=>{ x.items=BAND_ITEMS.slice(); }); db.vItems17=true; }
 function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
 // 기타 업체로 작성한 건은 직접 넣은 업체명을 씀
@@ -1576,7 +1581,7 @@ function vals(c){
     '도우미':[g('helper'), g('helperHours')?g('helperHours')+'시간':''].filter(Boolean).join(' '), '상복':(g('mournM')||g('mournW')||g('mournBrand'))?[g('mournM')?`남 ${cntText(g('mournM'),'세트')}`:'', g('mournW')?`여 ${cntText(g('mournW'),'벌')}`:'', g('mournBrand')].filter(Boolean).join(' '):g('mourning'),
     '차량':(g('vehType')||g('vehCo'))?[noPlus(g('vehType')),g('vehCo')].filter(Boolean).join(' '):g('vehicle'),
     '제단공제':g('altar'), '수의대체':g('shroud'), '제공특이사항':g('provNote'),
-    '제공항목':(c.items||[]).filter(it=>it.on&&it.text.trim()).map((it,i)=>`${i+1}.${it.text.trim()}`).join('\n'),
+    '제공항목':(c.items||[]).filter(it=>it.on&&it.text.trim()).map((it,i)=>`${i+1}.${itemLines(it.text).join('\n')}`).join('\n'),
     '상구분':g('mourn'), '소속':g('staffOrg'), '상품약칭':g('productShort')||g('product'), '도우미이름':g('helper'), '행사번호':g('eventNo'),
     '접수월일':(p=>p?`${pad(p.mo)}/${pad(p.d)}`:'')(parseDT(f.recv||f.death)),
     '관리사배치':(c.mgr||[]).filter(m=>m.date).map(m=>{ const p=parseDT(m.date), t=(hh,mm)=>hh?`${hh}시${mm&&mm!=='00'?' '+mm+'분':''}`:'';
@@ -1589,6 +1594,9 @@ function vals(c){
     '화장':isBurial(f)?'':cremStr(f), '화장장':isBurial(f)?'':cremName(f), '하관':hagwanStr(f),
   };
 }
+// 설정 칸 → 항목: 한 줄에 하나, 앞에 띄어쓰기(들여쓰기)한 줄은 위 항목에 번호 없이 이어짐
+function parseItems(v){ const out=[]; String(v||'').split('\n').forEach(l=>{ if(!l.trim()) return; if(/^\s/.test(l)&&out.length) out[out.length-1]+='\n'+l.trim(); else out.push(l.trim()); }); return out; }
+function itemLines(t){ return String(t||'').split('\n').map(l=>l.trim()).filter(Boolean); }
 const PH_KEYS=Object.keys(vals({f:{},items:[],deductions:[],companyId:ETC}));
 // 날짜 형식: {접수:dot} 2026.09.15. 08:00 · {접수:short} 26-09-25 15:20 · {접수:iso} 2026-09-24 02:35 · {접수:day} 16일 13시 · {접수:long} 09월 16일 13시 00분
 function dtRaw(c){ const f=c.f||{}; return {'접수':f.recv||f.death,'도착':f.arrive,'임종':f.death,'발생':f.death,'입관':f.casket,'발인':f.depart,'화장':!isBurial(f)&&f.cremDate?(f.cremDate+(f.cremTime?'T'+f.cremTime:'')):'','하관':isBurial(f)&&f.hagwanDate?(f.hagwanDate+(f.hagwanFrom?'T'+f.hagwanFrom+':00':'')):''}; }
@@ -1629,8 +1637,13 @@ function applyInputGroup(scroll=false){
   document.querySelectorAll('#inputGrid>[data-group]').forEach(el=>el.hidden=el.dataset.group!==inputGroup);
   const count=$('#inputProgress'); if(count) count.textContent=`${i+1} / 4 항목`;
   const foot=$('#groupFooter'); if(foot) foot.innerHTML=`<button class="btn" type="button" data-group-prev ${i===0?'disabled':''}>${uiIcon('left')}이전</button><p>${i+1} / 4</p><button class="btn primary" type="button" data-group-next>${i===3?'보고서 확인':INPUT_GROUPS[i+1].label}${uiIcon('right')}</button>`;
+  fitItemTexts();
   if(scroll) $('#inputControls')?.scrollIntoView({block:'start',behavior:'auto'});
 }
+// 제공 항목 칸: 글 길이(꺾인 줄 포함)만큼 높이를 늘림. 숨겨진 칸은 보일 때 맞춤
+function fitItemText(el){ if(!el||!el.offsetParent) return; el.style.height='auto'; el.style.height=(el.scrollHeight+el.offsetHeight-el.clientHeight)+'px'; }
+function fitItemTexts(){ document.querySelectorAll('#items textarea.it-text').forEach(fitItemText); }
+window.addEventListener('resize',()=>{ clearTimeout(fitItemTexts.t); fitItemTexts.t=setTimeout(fitItemTexts,80); });
 // 저장 버튼: 고치면 「저장」, 누르면 바로 저장하고 「저장됨」 (뒤에서도 자동 저장은 계속됨)
 let unsaved=false;
 function renderSaveBtn(){ const b=$('#saveNow'); if(!b) return; b.classList.toggle('saved',!unsaved); b.innerHTML=unsaved?'<i class="sv-dot" aria-hidden="true"></i>저장':'✓ 저장됨'; b.setAttribute('aria-label',unsaved?'저장하기':'저장되어 있음'); }
@@ -1875,9 +1888,9 @@ const fieldRow=r=>r.length>1?`<div class="pair">${r.map(fd=>`<label class="f">${
 function itemsHtml(c){
   let n=0;
   return `<div class="items" id="items">${(c.items||[]).map(it=>{ const no=it.on&&it.text.trim()?++n:0;
-    return `<div class="item ${it.on?'':'is-off'}"><label class="tog" title="포함/제외"><input type="checkbox" data-it="${it.id}" data-itf="on" ${it.on?'checked':''}><span>${no?no+'.':'제외'}</span></label><input class="input" data-it="${it.id}" data-itf="text" value="${esc(it.text)}" aria-label="제공 항목"><button class="x" type="button" data-itdel="${it.id}" aria-label="항목 삭제">✕</button></div>`; }).join('')}</div>
+    return `<div class="item ${it.on?'':'is-off'}"><label class="tog" title="포함/제외"><input type="checkbox" data-it="${it.id}" data-itf="on" ${it.on?'checked':''}><span>${no?no+'.':'제외'}</span></label><textarea class="input it-text" data-it="${it.id}" data-itf="text" rows="1" aria-label="제공 항목">${esc(it.text)}</textarea><button class="x" type="button" data-itdel="${it.id}" aria-label="항목 삭제">✕</button></div>`; }).join('')}</div>
     <button class="btn sm" type="button" data-act="addItem">+ 항목 추가</button>
-    <p class="note">번호를 누르면 제외 · 포함이 바뀝니다. 포함한 항목만 번호가 붙습니다.</p>`;
+    <p class="note">번호를 누르면 제외 · 포함이 바뀝니다. 포함한 항목만 번호가 붙습니다. 칸 안에서 줄을 바꾸면 그 줄은 번호 없이 이어집니다 (예: 장의차량 거리추가).</p>`;
 }
 function mgrHtml(c){
   const rows=(c.mgr||[]).map(m=>`<div class="mg">
@@ -1966,7 +1979,7 @@ $('#p-input').addEventListener('input',e=>{
   if(t.dataset.pd){ c.f[t.dataset.pd]=t.value; touched(); return; }
   if(t.type==='tel' && t.dataset.k){ const nv=fmtTel(t.value); if(nv!==t.value) t.value=nv; }
   if(t.dataset.k && t.tagName!=='SELECT'){ c.f[t.dataset.k]=t.value; if(Object.values(SAME_MAP).includes(t.dataset.k)) syncChief(c); if(['death','casket','depart','cremDate'].includes(t.dataset.k)) schedInfo(); if(t.dataset.k.startsWith('crem')) updCremPreview(); touched(); }
-  if(t.dataset.it && t.dataset.itf==='text'){ const it=c.items.find(x=>x.id===t.dataset.it); if(it){ it.text=t.value; renumber(); touched(); } }
+  if(t.dataset.it && t.dataset.itf==='text'){ const it=c.items.find(x=>x.id===t.dataset.it); if(it){ it.text=t.value; if(t.tagName==='TEXTAREA') fitItemText(t); renumber(); touched(); } }
   if(t.dataset.mgf==='n'){ const m=(c.mgr||[]).find(x=>x.id===t.dataset.mg); if(m){ m.n=t.value; touched(); } }
   if(t.dataset.dd){ const d=(c.deductions||[]).find(x=>x.id===t.dataset.dd); if(d){ d.text=t.value; touched(); } }
   if(t.dataset.k==='burial1'||t.dataset.k==='burial2'){ const bp=$('#f_burial'); if(bp) bp.placeholder=[c.f.burial1,c.f.burial2].filter(Boolean).join('-')||'비우면 1차-2차 장지로 채움'; }
@@ -2226,7 +2239,7 @@ function renderCompanies(){
   const co=coById(coSel);
   $('#coName').value=co.name; $('#coName').disabled=co.id===ETC;
   $('#coBand').value=co.band; $('#coReportsEnabled').checked=reportsEnabled(co);
-  renderReportEditors(co); updateReportEditorVisibility(); lastTpl='coBand'; $('#coItems').value=co.items.join('\n');
+  renderReportEditors(co); updateReportEditorVisibility(); lastTpl='coBand'; $('#coItems').value=co.items.map(t=>String(t).split('\n').map((l,i)=>i?'  '+l.trim():l).join('\n')).join('\n');
   $('#coDel').hidden=co.id===ETC;
 }
 $('#phList').innerHTML=PH_KEYS.map(k=>`<button type="button" data-ph="${k}">{${k}}</button>`).join('');
@@ -2245,7 +2258,7 @@ $('#addReport').onclick=()=>{ const id=uid(); $('#coReports').insertAdjacentHTML
 $('#coReports').onclick=e=>{ const b=e.target.closest('[data-rpdel]'); if(!b) return; arm(b,'한 번 더',()=>{ b.closest('.rp').remove(); updateReportEditorVisibility(); toast('저장을 누르면 삭제가 적용됩니다'); }); };
 $('#coChips').onclick=e=>{
   const b=e.target.closest('[data-co]'); if(!b) return;
-  if(b.dataset.co==='__new'){ const co={id:uid(),name:'새 업체',band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:GOI_REPORT}],items:GOI_ITEMS.slice(),deduct:[]}; db.companies.push(co); coSel=co.id; save(); renderCompanies(); $('#coName').focus(); $('#coName').select(); return; }
+  if(b.dataset.co==='__new'){ const co={id:uid(),name:'새 업체',band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:GOI_REPORT}],items:BAND_ITEMS.slice(),deduct:[]}; db.companies.push(co); coSel=co.id; save(); renderCompanies(); $('#coName').focus(); $('#coName').select(); return; }
   coSel=b.dataset.co; renderCompanies();
 };
 $('#phList').onclick=e=>{
@@ -2261,7 +2274,7 @@ $('#coSave').onclick=()=>{
     co.name=nm;
   }
   co.band=$('#coBand').value; co.reportsEnabled=$('#coReportsEnabled').checked;
-  co.reports=[...document.querySelectorAll('#coReports .rp')].map(el=>({id:el.dataset.rid,name:el.querySelector('.rp-name').value.trim()||'보고 양식',body:el.querySelector('.rp-body').value})); co.items=$('#coItems').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  co.reports=[...document.querySelectorAll('#coReports .rp')].map(el=>({id:el.dataset.rid,name:el.querySelector('.rp-name').value.trim()||'보고 양식',body:el.querySelector('.rp-body').value})); co.items=parseItems($('#coItems').value);
   save(); renderCompanies(); renderCaseSel(); dirty=true; toast(`${co.name} 양식을 저장했습니다`);
 };
 $('#coDel').onclick=()=>arm($('#coDel'),'한 번 더 누르면 삭제',()=>{
@@ -2291,7 +2304,7 @@ $('#importApply').onclick=()=>{
   if(!cfg || cfg.app!=='funeral-maker' || !Array.isArray(cfg.companies)){ toast('이 앱에서 내보낸 설정이 아닙니다'); return; }
   arm($('#importApply'),'한 번 더 누르면 바꿉니다',()=>{
     db.companies=cfg.companies; if(cfg.lists) db.lists=cfg.lists; if(Array.isArray(cfg.crems)) db.crems=cfg.crems;
-    if(!db.companies.find(x=>x.id===ETC)) db.companies.push({id:ETC,name:'기타 업체',band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:GOI_REPORT}],items:GOI_ITEMS.slice(),deduct:[]});
+    if(!db.companies.find(x=>x.id===ETC)) db.companies.push({id:ETC,name:'기타 업체',band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:GOI_REPORT}],items:BAND_ITEMS.slice(),deduct:[]});
     db.cases.forEach(c=>{ if(!db.companies.find(x=>x.id===c.companyId)) c.companyId=ETC; });
     save(); $('#importBox').hidden=true; coSel=null; renderCompanies(); renderLists(); renderCaseSel(); renderInput(); dirty=true; toast('설정을 가져왔습니다');
   });
