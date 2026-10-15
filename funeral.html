@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.16-1">
+<meta name="app-version" content="2026.10.16-2">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="관리자 서식">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -2097,10 +2097,10 @@ function renderTtl(){
   el.textContent=(navigator.onLine===false?'오프라인 사용 중 · ':'')+`이 기기에 계속 보관 · 전체 ${db.cases.length}건`+(full?' · 저장 공간이 많이 찼어요. 설정에서 백업 후 오래된 달을 정리해 주세요':' · 지우기 전까지 사라지지 않아요');
 }
 window.addEventListener('online',()=>renderTtl()); window.addEventListener('offline',()=>renderTtl());
-// 행사 기록 이름: 행사번호 장례식장 업체명 고인명 (예: 15번 부산전문 현진시닝 고 홍길동)
+// 행사 기록 이름: 행사번호 장례식장 업체명 고인명 (예: 15번 부산전문 현진시닝 故 홍길동)
 function caseLabel(c){
   const f=c.f||{}, no=String(f.eventNo||'').trim().replace(/번$/,''), nm=String(f.name||'').trim();
-  return [no&&`${no}번`, String(f.place||'').trim(), c.quick&&!c.coPicked?'정산만':caseCoName(c), nm&&`고 ${nm}`].filter(Boolean).join(' ');
+  return [no&&`${no}번`, String(f.place||'').trim(), c.quick&&!c.coPicked?'정산만':caseCoName(c), nm&&`故 ${nm}`].filter(Boolean).join(' ');
 }
 function renderCaseSel(){
   renderTtl();
