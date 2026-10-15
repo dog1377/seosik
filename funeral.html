@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.15-1">
+<meta name="app-version" content="2026.10.15-2">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="관리자 서식">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -918,6 +918,16 @@ body.split #p-settle .wz{max-width:none}
 .wz-no .suffix span{right:18px;font-size:16px}
 .wz-read{margin:-10px 0 0;padding-left:4px;font-size:13px;line-height:1.5;color:var(--muted)}
 .quick-start .row{gap:10px}
+.wz-card .wz-choice.wz-co{gap:10px}
+.wz-card .wz-choice.wz-co button{min-height:58px;border-radius:14px;padding:8px 10px}
+.wz-card .wz-choice.wz-co button b{font-size:16px;word-break:keep-all}
+.rc-box{display:grid;gap:8px;padding:14px 16px;border-radius:14px;background:var(--field);min-width:0}
+.rc-box-h{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--muted)}
+.rc-box pre{margin:0;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;font:inherit;font-size:15px;line-height:1.7;color:var(--ink)}
+.rc-box pre:empty::before{content:"비어 있음";color:var(--muted)}
+.rc-auto{margin-top:-6px}
+.rc-auto b{color:var(--ink);font-variant-numeric:tabular-nums}
+.wz-go2{margin-top:-12px}
 .wz-result{display:grid;gap:8px;padding:14px 16px;border-radius:14px;background:var(--field)}
 .wz-result[hidden]{display:none}
 .wz-result>div{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -1477,14 +1487,14 @@ if(!db.v5){
   db.v5=true;
 }
 if(!db.v6){ db.companies.forEach(x=>{ x.deduct=[]; }); db.v6=true; }
-const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],urnTypes:['천향사각합골함']};
+const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],urnTypes:['천향사각합골함'],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
 if(!db.lists) db.lists=JSON.parse(JSON.stringify(DEFAULT_LISTS));
 Object.keys(DEFAULT_LISTS).forEach(k=>{ if(!db.lists[k]) db.lists[k]=DEFAULT_LISTS[k].slice(); });
 // 차종 "버스+리무진" → "버스 리무진" (목록 · 기존 행사 모두)
 const noPlus=v=>String(v??'').replace(/\s*\+\s*/g,' ').trim();
 if(!db.vVeh){ db.lists.vehTypes=[...new Set((db.lists.vehTypes||[]).map(noPlus))]; db.cases.forEach(c=>{ if(c.f&&/\+/.test(c.f.vehType||'')) c.f.vehType=noPlus(c.f.vehType); }); db.vVeh=true; }
 if(db.lists && db.lists.tributes && !db.v9){ if(!db.lists.tributes.includes('영호 5만원')){ const i=db.lists.tributes.indexOf('영호 3만원'); db.lists.tributes.splice(i<0?db.lists.tributes.length:i+1,0,'영호 5만원'); } db.v9=true; }
-const LIST_LABEL={causes:'사망 사유',helpers:'도우미',mournBrands:'상복 업체',vehCos:'장의차 업체',vehTypes:'차종',productShorts:'상품 약칭',flowers:'입관꽃장식 (업체 금액)',flowerPays:'입관꽃장식 결제',tributes:'헌화 (업체 금액)',tributePays:'헌화 결제',urnTypes:'유골함 종류'};
+const LIST_LABEL={causes:'사망 사유',helpers:'도우미',mournBrands:'상복 업체',vehCos:'장의차 업체',vehTypes:'차종',productShorts:'상품 약칭',flowers:'입관꽃장식 (업체 금액)',flowerPays:'입관꽃장식 결제',tributes:'헌화 (업체 금액)',tributePays:'헌화 결제',urnTypes:'유골함 종류',cardCos:'카드사 (카드결제 양식)'};
 function addVendorsV8(){
   const add=(name,report,extra={})=>{ if(db.companies.some(x=>x.name===name)) return; db.companies.push({id:uid(),name,band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:report}],items:GOI_ITEMS.slice(),deduct:[],...extra}); };
   add('The자빈',JABIN_REPORT,{labels:{custRel:'회원과의 관계 (예: 모)',customer:'회원명'}});
@@ -2026,16 +2036,19 @@ function openPicker(mode){
   $('#picker').hidden=false;
 }
 function closePicker(){ $('#picker').hidden=true; }
+// 업체 바꾸기: 입력한 내용은 그대로. 제공 항목은 손대지 않은 기본값이면 새 업체 기본으로, 고친 게 있으면 그대로 두고 새 업체 항목만 '제외' 상태로 덧붙임
+function changeCaseCo(c,co){
+  const old=coById(c.companyId), items=c.items||[];
+  const untouched=items.length===old.items.length && items.every((it,i)=>it.on && it.text===old.items[i]);
+  if(untouched) c.items=co.items.map(t=>({id:uid(),text:t,on:true}));
+  else { const have=new Set(items.map(it=>it.text.trim())); co.items.forEach(t=>{ if(!have.has(t.trim())) items.push({id:uid(),text:t,on:false}); }); c.items=items; }
+  c.companyId=co.id;
+}
 $('#coList').onclick=e=>{
   const b=e.target.closest('[data-pick]'); if(!b) return; const id=b.dataset.pick, co=coById(id);
   if(pickMode==='change'){
     const c=curCase(); if(!c){ closePicker(); return; }
-    const old=coById(c.companyId), items=c.items||[];
-    // 제공 항목: 손대지 않은 기본값이면 새 업체 기본으로, 고친 게 있으면 그대로 두고 새 업체 항목만 '제외' 상태로 덧붙임
-    const untouched=items.length===old.items.length && items.every((it,i)=>it.on && it.text===old.items[i]);
-    if(untouched) c.items=co.items.map(t=>({id:uid(),text:t,on:true}));
-    else { const have=new Set(items.map(it=>it.text.trim())); co.items.forEach(t=>{ if(!have.has(t.trim())) items.push({id:uid(),text:t,on:false}); }); c.items=items; }
-    c.companyId=co.id; touched(); save();
+    changeCaseCo(c,co); touched(); save();
     closePicker(); renderAll();
     if(co.id===ETC){ const el=$('#f_coName'); if(el) el.focus(); }
     toast(`${co.id===ETC?'기타 업체':co.name}(으)로 바꿨습니다. 입력한 내용은 그대로 남아 있습니다`); return;
@@ -2070,7 +2083,7 @@ function renderCaseSel(){
   $('#caseSel').innerHTML=list.length?list.map(c=>{ const d=parseDT(c.f.depart), co=coById(c.companyId), w=settleCalc(c).sendWon, neg=w<0?(used.has(c.id)?' · 마이너스 정리됨':` · 마이너스 ${wonStr(w)}`):'';
     if(w<0&&!used.has(c.id)) negLeft++;
     const no=String(c.f.eventNo||'').trim(), who=c.f.name?'故 '+c.f.name:(c.f.place||(no?`${no}번 행사`:(c.quick?'(장소 미입력)':'(고인명 미입력)')));
-    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(who)} · ${esc(c.quick?'정산만':caseCoName(c))}${d?` · 발인 ${d.mo}/${d.d}`:''}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
+    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(who)} · ${esc(c.quick?(c.coPicked?caseCoName(c)+' 정산만':'정산만'):caseCoName(c))}${d?` · 발인 ${d.mo}/${d.d}`:''}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
   $('#caseSel').disabled=!list.length; $('#delCase').disabled=!list.length;
   const i=months.findIndex(x=>x[0]===mk);
   $('#cmLabel').textContent=mk?monthLabel(mk):'행사 없음';
@@ -2445,6 +2458,69 @@ function commText(c){
     [who.name,who.rank,p?`${pad(p.mo)}월 ${pad(p.d)}일`:''].filter(Boolean).join(' ')];
   return L.map(l=>l.replace(/\s+$/,'')).join('\n');
 }
+/* ---------- 현금영수증 · 카드결제 양식 ----------
+   금액 = 손님한테 받은 돈 합계(제단 빼고): 상품 수금 · 유골함 수금 · 추가내역 · 관꽃장식 판매
+   현금으로 받은 것 → 현금영수증 발행금액, 카드로 받은 것 → 카드결제 금액. 카드결제 양식은 현진시닝만 (일반상조는 카드 양식 없음)
+   예: 상품 257.5 + 유골함 90 + 남상복 30 + 여상복 12 + 관꽃장식 30 (모두 현금) = 4,195,000원 */
+const isHJ=c=>caseCoName(c).replace(/\s/g,'')==='현진시닝';
+function rcptSums(c){
+  const s=c.s?S(c):{pay:'현금',extras:[],urnPay:'현금'}, f=c.f||{}, R=rules(), U=urnSplit(s,R), FL=flowerSplit(s,R);
+  const parts={'현금':[],'카드':[]}, put=(pay,k,w)=>{ if(w>0&&parts[pay]) parts[pay].push({k,w}); };
+  put(s.pay||'현금','상품 수금',toWon(f.collect));
+  if(U.uCol) put(s.urnPay||'현금','유골함',U.uCol);
+  (s.extras||[]).forEach(x=>put(x.pay,String(x.text||'').trim()||'추가',toWon(x.amt)));
+  if(FL.sale) put(FL.pay,'관꽃장식',FL.sale);
+  const sum=a=>a.reduce((t,x)=>t+x.w,0);
+  return {cash:sum(parts['현금']),card:sum(parts['카드']),cashParts:parts['현금'],cardParts:parts['카드']};
+}
+const rcHas=(c,ks)=>ks.some(k=>String((c.s||{})[k]||'').trim());
+const rcCashOn=c=>rcptSums(c).cash>0||rcHas(c,['rcCashNo','rcCashAppr','rcCashAmt']);
+const rcCardOn=c=>isHJ(c)&&(rcptSums(c).card>0||rcHas(c,['rcCardCo','rcCardAppr','rcCardAmt']));
+const rcOn=c=>rcCashOn(c)||rcCardOn(c);
+const rcMoney=c=>{ const r=rcptSums(c); return r.cash>0||r.card>0; };
+// 날짜: 넣은 날짜, 없으면 발인일
+const rcDay=(c,k)=>String((c.s||{})[k]||'').trim()||String((c.f||{}).depart||'').slice(0,10);
+const rcDateText=v=>{ const p=parseDT(v); return p?`${pad(p.mo)}월 ${pad(p.d)}일`:''; };
+function rcAmt(c,kind){ const ov=String((c.s||{})[kind==='card'?'rcCardAmt':'rcCashAmt']||'').trim(); return ov?toWon(ov):rcptSums(c)[kind]; }
+// 둘째 줄: 현진시닝 = 고객 회사 + 이름 (넥센타이어 서재원) · 일반상조 = 업체명 + 이름 (The자빈 손소영)
+function rcWho(c){ const f=c.f||{}, noName=coById(c.companyId).id===ETC&&!String(f.coName||'').trim();  // 업체명 안 넣은 기타 업체는 이름만
+  return [isHJ(c)?String(f.company||'').trim():(noName?'':caseCoName(c)), String(f.customer||'').trim()].filter(Boolean).join(' '); }
+function rcptForms(c){
+  const f=c.f||{}, g=k=>String((c.s||{})[k]||'').trim(), place=String(f.place||'').trim(), who=rcWho(c), out=[];
+  // [이름표, 값] · 이름표 없는 줄은 비면 뺌, 이름표 있는 줄은 비어도 남김
+  const txt=rows=>rows.map(([l,v])=>l?`${l} ${v||''}`.trim():String(v||'').trim()).filter((t,i)=>rows[i][0]||t).join('\n');
+  if(rcCardOn(c)) out.push({kind:'card',title:'카드결제',text:txt([[null,place],[null,who],['카드결제',fullWon(rcAmt(c,'card'))],[null,g('rcCardCo')],['승인번호',g('rcCardAppr')],['결제일',rcDateText(rcDay(c,'rcCardDate'))]])});
+  if(rcCashOn(c)) out.push({kind:'cash',title:'현금영수증',text:txt(isHJ(c)
+    ?[[null,place],[null,who],['발행번호',g('rcCashNo')],['승인번호',g('rcCashAppr')],['발행일',rcDateText(rcDay(c,'rcCashDate'))],['발행금액',fullWon(rcAmt(c,'cash'))]]
+    :[[null,place],[null,who],['발행번호',g('rcCashNo')],['발행일',rcDateText(rcDay(c,'rcCashDate'))],['발행금액',wonStr(rcAmt(c,'cash'))]])});
+  return out;
+}
+function rcCoPick(c,all){
+  const cos=db.companies.filter(y=>y.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko')), cur=c.coPicked?c.companyId:'';
+  const btn=(id,name)=>all?`<button type="button" class="chip" data-wz-co="${id}" aria-pressed="${cur===id}">${esc(name)}</button>`:`<button type="button" data-wz-co="${id}" aria-pressed="${cur===id}"><b>${esc(name)}</b></button>`;
+  return `<div class="${all?'chips':'wz-choice wz-co'}">${cos.map(y=>btn(y.id,y.name)).join('')}${btn(ETC,'기타 업체')}</div>`
+    +(cur===ETC?`<label class="f">업체명<input class="input${all?'':' wz-text'}" data-sf="coName" value="${esc(c.f.coName||'')}" placeholder="예: ○○상조" autocomplete="off"></label>`:'');
+}
+function rcWhoFields(c){
+  const f=c.f, hj=isHJ(c);
+  return `${hj?`<label class="f">고객 회사<input class="input" data-sf="company" value="${esc(f.company||'')}" placeholder="예: 넥센타이어" autocomplete="off"></label>`:''}
+    <label class="f">이름<input class="input" data-sf="customer" value="${esc(f.customer||'')}" placeholder="예: ${hj?'서재원':'손소영'}" autocomplete="off"></label>`;
+}
+function rcCardFields(c){
+  const s=S(c);
+  return `<div class="f-wrap"><label class="f">카드사</label>${chooser({scope:'s',key:'rcCardCo',options:db.lists.cardCos||[],label:'카드사',dirPh:'예: 하나카드'})}</div>
+    <label class="f">승인번호<input class="input" data-s="rcCardAppr" inputmode="numeric" value="${esc(s.rcCardAppr||'')}" placeholder="예: 10202012" autocomplete="off"></label>
+    <label class="f">결제일<input class="input" type="date" data-s="rcCardDate" value="${esc(rcDay(c,'rcCardDate'))}"></label>
+    <label class="f">카드결제 금액${amtIn('data-s="rcCardAmt"',s.rcCardAmt,'비우면 자동')}</label><p class="note rc-auto" id="rcAuto_card"></p>`;
+}
+function rcCashFields(c){
+  const s=S(c);
+  return `<label class="f">발행번호<input class="input" type="tel" data-s="rcCashNo" inputmode="tel" value="${esc(s.rcCashNo||'')}" placeholder="예: 010-8508-3590" autocomplete="off"></label>
+    ${isHJ(c)?`<label class="f">승인번호<input class="input" data-s="rcCashAppr" value="${esc(s.rcCashAppr||'')}" placeholder="예: I71883433" autocomplete="off" autocapitalize="characters"></label>`:''}
+    <label class="f">발행일<input class="input" type="date" data-s="rcCashDate" value="${esc(rcDay(c,'rcCashDate'))}"></label>
+    <label class="f">발행금액${amtIn('data-s="rcCashAmt"',s.rcCashAmt,'비우면 자동')}</label><p class="note rc-auto" id="rcAuto_cash"></p>`;
+}
+const rcPrevBox=(kind,title)=>`<div class="rc-box" id="rcPrevBox_${kind}"><div class="rc-box-h"><span>${title} 양식</span><button class="btn sm" type="button" data-rc-copy="${kind}">복사</button></div><pre id="rcPrev_${kind}"></pre></div>`;
 function pickSel(id,list,sel,dirVal,dirPh){
   return `<div class="pk"><select class="input" data-s="${id}"><option value="">선택</option>${list.map(o=>`<option value="${esc(o)}" ${o===sel?'selected':''}>${esc(o)}</option>`).join('')}<option value="__direct" ${sel==='__direct'?'selected':''}>직접입력</option></select>
     <input class="input" data-s="${id}Dir" value="${esc(dirVal||'')}" placeholder="${dirPh}" ${sel==='__direct'?'':'hidden'}></div>`;
@@ -2465,6 +2541,7 @@ const GRP=[
   {id:'urn',t:'유골함',chip:'chUrn'},
   {id:'etc',t:'꽃장식 · 헌화 · 이송',chip:'chEtc'},
   {id:'extra',t:'추가내역',chip:'chExtra'},
+  {id:'rcpt',t:'영수증',chip:'chRcpt'},
   {id:'mgr',t:'실장님 몫',chip:'chMinus'},
   {id:'def',t:'지난 마이너스',chip:'chDef'},
 ];
@@ -2516,6 +2593,10 @@ const SCR=[
   {id:'transfer',g:'etc',kind:'text',key:'transfer',ph:'예: 부산 → 창원',q:'이송이 있었나요?',sub:'있으면 적어 주세요. 없으면 넘어가세요.'},
   {id:'exAsk',g:'extra',kind:'yn',key:'extraAsk',q:'추가로 받은 게 있나요?',sub:'상복 · 도우미 시간 추가처럼 따로 받은 것',yes:exYes},
   {id:'extra',g:'extra',kind:'extra',q:'추가로 받은 걸 적어 주세요',sub:'항목 · 금액 · 현금/카드. 현금만 보내는금액에 더해요.',when:exYes},
+  {id:'rcCo',g:'rcpt',kind:'co',q:'어느 업체 행사인가요?',sub:'영수증 양식이 업체마다 달라요. 현진시닝은 카드결제 양식도 있어요.',when:c=>quickOn(c)&&(rcMoney(c)||!!c.coPicked)},
+  {id:'rcWho',g:'rcpt',kind:'who',keys:['company','customer'],q:'영수증은 누구 이름으로 했나요?',sub:c=>isHJ(c)?'고객 회사와 이름이 들어가요. 예: 넥센타이어 서재원':`업체명 옆에 이름이 들어가요. 예: ${caseCoName(c)} 손소영`,when:rcOn},
+  {id:'rcCard',g:'rcpt',kind:'rcCard',scope:'s',keys:['rcCardCo','rcCardAppr'],q:'카드 결제 내용을 넣어 주세요',sub:'카드로 받은 돈(제단 빼고)이 금액에 자동으로 들어가요. 모르는 칸은 비워 두세요.',when:rcCardOn},
+  {id:'rcCash',g:'rcpt',kind:'rcCash',scope:'s',keys:['rcCashNo','rcCashAppr'],q:'현금영수증 내용을 넣어 주세요',sub:'현금으로 받은 돈(제단 빼고)이 발행금액에 자동으로 들어가요. 발행 안 했으면 넘어가세요.',when:rcCashOn},
   {id:'mgAsk',g:'mgr',kind:'yn',key:'mgrAsk',q:'실장님한테 따로 줄 금액이 있나요?',yes:miYes},
   {id:'mgr',g:'mgr',kind:'mgr',q:'실장님한테 줄 금액을 항목별로 넣어 주세요',when:miYes},
   {id:'def',g:'def',kind:'def',q:'지난 행사 마이너스를 이 정산에서 뺄까요?',sub:'보내는금액이 마이너스였던 행사예요. 수익이 충분한 정산에서 빼요.',when:c=>openDefs(c).length>0||(S(c).carry||[]).length>0},
@@ -2532,7 +2613,7 @@ function scrStep(c,id,dir){ for(let k=SCR_I(id)+dir;k>=0&&k<SCR.length;k+=dir){ 
 function scrFirst(c,g){ const x=SCR.find(y=>(!g||y.g===g)&&scrOn(c,y)); return x?x.id:SCR[0].id; }
 function hasSettleData(c){
   const s=c.s||{};
-  return ['hall','burialAmt','altarAmt','chodo','kit','lunch','urnCollect','urnCost','flower','trib','transfer','flowerSale','sendOverride'].some(k=>String(s[k]||'').trim())
+  return ['hall','burialAmt','altarAmt','chodo','kit','lunch','urnCollect','urnCost','flower','trib','transfer','flowerSale','sendOverride','rcCashNo','rcCashAppr','rcCardCo','rcCardAppr'].some(k=>String(s[k]||'').trim())
     || (s.extras||[]).some(x=>x.text||x.amt) || (s.minus||[]).some(x=>x.amt||x.memo) || (s.carry||[]).length>0;
 }
 function wzAt(c){
@@ -2641,6 +2722,11 @@ function stepBody(id,c,all){
     <p class="calc mgr-keep" id="mgrKeep" hidden></p>
     <p class="note">제단 · 유골함을 카드로 받았거나 관꽃장식을 팔았으면 실장 몫이 자동으로 들어갑니다. 그 밖에 줄 것만 항목별로 넣으세요. 카톡에는 기타추가 다음 줄에 들어갑니다.</p>`;
   if(id==='def') return `<div class="def-body" id="defBody"></div>`;
+  if(id==='rcpt') return `${quickOn(c)?`<div class="f-wrap"><label class="f">업체 <span class="lbl-sub">영수증 양식이 업체마다 달라요</span></label>${rcCoPick(c,true)}</div>`:''}
+    ${rcWhoFields(c)}
+    <div class="fields" id="rcFields_card">${rcCardFields(c)}${rcPrevBox('card','카드결제')}</div>
+    <div class="fields" id="rcFields_cash">${rcCashFields(c)}${rcPrevBox('cash','현금영수증')}</div>
+    <p class="note" id="rcNone">현금 · 카드로 받은 돈(상품 수금 · 유골함 · 추가 · 관꽃장식)을 넣으면 영수증 양식이 만들어져요. 제단은 빼고 계산해요.${isHJ(c)?'':' 카드결제 양식은 현진시닝만 있어요.'}</p>`;
   if(id==='done') return `<div class="wz-total" id="wzTotal"><span id="wzTotL">보내는금액</span><b id="wzSend">0원</b><small id="wzSendNote"></small></div>
     <div class="wz-review" id="wzReview"></div>
     <div class="env-prev wz-env" id="wzEnv" hidden></div>
@@ -2650,7 +2736,7 @@ function stepBody(id,c,all){
 }
 function wzScreen(c,id){
   const x=SCR[SCR_I(id)], s=S(c), f=c.f, R=rules();
-  let q=x.q, sub=typeof x.sub==='function'?x.sub():(x.sub||''), body='';
+  let q=x.q, sub=typeof x.sub==='function'?x.sub(c):(x.sub||''), body='';
   const go=(label='다음')=>`<button class="btn primary wz-go" type="button" id="wzGo" data-wz-next>${label}</button>`;
   const choice=(attr,key,opts,cur)=>`<div class="wz-choice">${opts.map(([v,l])=>`<button type="button" ${attr}="${key}" data-v="${v}" aria-pressed="${cur===v}"><b>${l}</b></button>`).join('')}</div>`;
   const ch=(label,o)=>`<div class="f-wrap"><label class="f">${label}</label>${chooser({scope:'s',...o})}</div>`;
@@ -2662,6 +2748,10 @@ function wzScreen(c,id){
   else if(x.kind==='helper') body=`${ch('도우미',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})}<label class="f">시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" placeholder="예: 50" autocomplete="off"><span>시간</span></div></label>${go()}`;
   else if(x.kind==='veh') body=`${ch('차종',{scope:'f',key:'vehType',options:db.lists.vehTypes||[],label:'차종'})}${ch('장의차 업체',{scope:'f',key:'vehCo',options:db.lists.vehCos||[],label:'장의차 업체'})}${go()}`;
   else if(x.kind==='mourn') body=`${ch('상복 업체',{scope:'f',key:'mournBrand',options:db.lists.mournBrands||[],label:'상복 업체'})}${go()}`;
+  else if(x.kind==='co') body=rcCoPick(c,false)+(c.coPicked&&c.companyId===ETC?go():'');
+  else if(x.kind==='who') body=`${rcWhoFields(c)}<div class="wz-result"><div><span>양식 둘째 줄</span><b id="rcWhoPrev"></b></div></div>${go()}`;
+  else if(x.kind==='rcCard') body=`${rcCardFields(c)}${rcPrevBox('card','카드결제')}${go()}`;
+  else if(x.kind==='rcCash') body=`${rcCashFields(c)}${rcPrevBox('cash','현금영수증')}${go()}`;
   else if(x.kind==='pay') body=choice('data-wz-pick',x.key,[['현금','현금'],['카드','카드']],s[x.key]||'현금');
   else if(x.kind==='pick'){
     if(x.id==='sea'){ const b=toWon(s.burialAmt), fee=Math.min(b,(Number(R.burialFee)||0)*10000), h1=hqRound((b-fee)/2), h2=hqRound(b/2), mw=w=>wonStr(w)||'0원';
@@ -2683,7 +2773,8 @@ function wzScreen(c,id){
     <p class="calc mgr-keep" id="mgrKeep" hidden></p>${go()}`; }
   else if(x.kind==='def') body=`<div class="def-body" id="defBody"></div>${go()}`;
   else if(x.kind==='done'){ if(settleCalc(c).sendWon<0) q='이 행사는 마이너스예요';
-    body=stepBody('done',c,false)+`<button class="btn primary wz-go" type="button" data-wz-copy>정산 카톡 복사</button>`; }
+    body=stepBody('done',c,false)+`<button class="btn primary wz-go" type="button" data-wz-copy>정산 카톡 복사</button>`
+      +rcptForms(c).map(fm=>`<button class="btn wz-go wz-go2" type="button" data-rc-copy="${fm.kind}">${fm.title} 양식 복사</button>`).join(''); }
   return `<div class="wz-card" data-scr="${x.id}"><div class="wz-head"><h2 class="wz-q" tabindex="-1">${esc(q)}</h2>${sub?`<p class="wz-sub${x.warn?' warn':''}">${sub}</p>`:''}</div>${body}</div>`;
 }
 function wzFrame(c){
@@ -2697,7 +2788,7 @@ function wzFrame(c){
 }
 function wzGoLabel(c){
   const b=$('#wzGo'); if(!b) return; const id=wzAt(c), x=SCR[SCR_I(id)];
-  const src=x.scope==='f'||x.keys?c.f:S(c), has=k=>!!String(src[k]??'').trim();
+  const src=x.scope==='f'||(x.keys&&x.scope!=='s')?c.f:S(c), has=k=>!!String(src[k]??'').trim();
   const empty=x.keys?!x.keys.some(has):(['amt','text','no'].includes(x.kind)&&!has(x.key));
   b.textContent=empty?'없어요':scrStep(c,id,1)==='done'?'확인하기':'다음';
 }
@@ -2743,6 +2834,7 @@ function wzReview(c,d){
     ['mgr', -d.sub.minus, mi.length?mi.map(x=>`${x.short||x.memo||'기타'} ${wonStr(x.won)}`).join(' · '):'없음'],
     ['def', -d.sub.carry, d.carry.length?d.carry.map(r=>String(r.label||'').trim()||'지난 마이너스').join(' · '):'없음'],
   ];
+  if(rcOn(c)) rows.splice(rows.findIndex(r=>r[0]==='extra')+1,0,['rcpt',null,rcptForms(c).map(fm=>`${fm.title} ${wonStr(rcAmt(c,fm.kind))||'0원'}`).join(' · ')]);
   if(quickOn(c)){ const f=d.f, p=parseDT(f.depart), no=String(f.eventNo||'').trim();
     rows.unshift(['info', null, [no&&`${no}번`, String(f.place||'').trim(), p&&`발인 ${p.mo}/${p.d}`].filter(Boolean).join(' · ')||'안 넣음']); }
   return rows.map(([g,w,note])=>`<button type="button" class="wz-rv" data-wz-to="${scrFirst(c,g)}"><span class="wz-rv-k"><b>${esc(GRP_T[g])}</b><small>${esc(note)}</small></span><span class="wz-rv-v ${w==null?'zero':w<0?'minus':w?'':'zero'}">${w==null?'':sg(w)}</span>${SV_R}</button>`).join('');
@@ -2767,6 +2859,8 @@ function renderSettle(){
     <label class="f">직접 입력 (비우면 위 계산대로)${amtIn('data-s="sendOverride"',s.sendOverride,'비워 두면 자동')}</label></div></div>
   <div class="out"><div class="out-head"><h2>정산 카톡<small>회사로 보내는 몫</small></h2><button class="btn primary" id="copySettle" type="button">복사</button></div>
     <textarea class="text-out" id="settleText" rows="18" aria-label="정산 카톡"></textarea></div>
+  ${[['card','카드결제','현진시닝 보고'],['cash','현금영수증',isHJ(c)?'현진시닝 보고':'업체 보고']].map(([k,t,sub])=>`<div class="out" id="rcBox_${k}" hidden><div class="out-head"><h2>${t}<small>${sub}</small></h2><button class="btn primary" type="button" data-rc-copy="${k}">복사</button></div>
+    <textarea class="text-out" id="rcText_${k}" rows="7" aria-label="${t} 양식"></textarea></div>`).join('')}
   <div class="sec settle-wide"><div class="sec-head"><h2>월별 봉투정리</h2><button class="btn primary" type="button" id="openEnvelope">봉투 정리하기</button></div><p class="note">식장 · 장지 · 초도 · 키트 · 도시락과 제단 · 유골함 수익이 본부장 · 실장 봉투에 자동으로 나눠 들어갑니다. 월별로 보관하세요.</p></div>
   <div class="sec settle-wide"><div class="sec-head"><h2>수당 정산</h2></div><div class="fields">
     <label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}"><span>번</span></div></label>
@@ -2882,6 +2976,14 @@ function updSettle(skipDef){
   const bs=$('#wzBasicState'); if(bs){ const miss=[['행사번호',d.f.eventNo],['장소',d.f.place],['도우미',d.f.helper],['차량',d.f.vehType||d.f.vehCo],['상복',d.f.mournBrand],['장지',d.v['장지']]].filter(x=>!String(x[1]||'').trim()).map(x=>x[0]); bs.textContent=miss.length?`비어 있음: ${miss.join(' · ')}`:'모두 채움'; bs.classList.toggle('miss',!!miss.length); }
   const bar=$('#settleBar'); if(bar){ bar.classList.toggle('neg',d.sendWon<0); $('#sbLabel').textContent=d.sendWon<0?'보내는금액 · 마이너스':'보내는금액'; $('#sbSend').textContent=d.send||'0원'; }
   const t=$('#settleText'); if(t) t.value=settleText(c);
+  { const forms=rcptForms(c), by=Object.fromEntries(forms.map(fm=>[fm.kind,fm])), RS=rcptSums(c);
+    ['card','cash'].forEach(k=>{ const fm=by[k], box=$('#rcBox_'+k), ta=$('#rcText_'+k), pv=$('#rcPrev_'+k), fl=$('#rcFields_'+k), au=$('#rcAuto_'+k);
+      if(box) box.hidden=!fm; if(ta) ta.value=fm?fm.text:''; if(pv) pv.textContent=fm?fm.text:''; if(fl) fl.hidden=!fm;
+      if(au){ const parts=k==='card'?RS.cardParts:RS.cashParts, ov=String(s[k==='card'?'rcCardAmt':'rcCashAmt']||'').trim();
+        au.innerHTML=parts.length?`자동 <b>${esc(fullWon(RS[k]))}</b> = ${esc(parts.map(x=>`${x.k} ${wonStr(x.w)}`).join(' + '))}${ov?' · 직접 넣은 금액으로 나가요':''}`
+          :`${k==='card'?'카드':'현금'}로 받은 돈이 없어요. 금액을 직접 넣어 주세요.`; } });
+    const nn=$('#rcNone'); if(nn) nn.hidden=forms.length>0;
+    const wp=$('#rcWhoPrev'); if(wp) wp.textContent=rcWho(c)||'비어 있음'; }
   const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''}${cd.chodo?` · 초도 ${wonStr(cd.chodo)}`:''}${cd.kit?` · 키트 ${wonStr(cd.kit)}`:''}${cd.lunch?` · 도시락 ${wonStr(cd.lunch)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
   [['꽃관',cd.flowerKeep],['초도',cd.chodo],['키트',cd.kit],['도시락',cd.lunch]].forEach(([k,w])=>{ const el=document.querySelector(`#p-settle [data-comm="${k}"]`); if(!el) return; el.disabled=!!w; el.placeholder=w?'자동 '+wonStr(w):'';
     const want=w?'':String((s.comm||{})[k]??''); if(el.value!==want) el.value=want; const u=el.closest('.amt')?.querySelector('.amt-u'); if(u) u.textContent=w?'':amtUnit(want); });
@@ -2895,7 +2997,9 @@ $('#p-settle').addEventListener('input',e=>{
   else if(t.dataset.me){ me()[t.dataset.me]=t.value; }
   else if(t.dataset.rule){ rules()[t.dataset.rule]=t.value; }
   else if(t.dataset.cl){ const r=(s.carry||[]).find(y=>y.id===t.dataset.cl); if(r) r.label=t.value; }
-  else if(t.dataset.s && t.tagName!=='SELECT'){ const k=t.dataset.s; const map={flowerSelDir:'flowerAmt',flowerPayDir:'flowerPayText',tribSelDir:'tribAmt',tribPayDir:'tribPayText'}; s[map[k]||k]=t.value; }
+  else if(t.dataset.s && t.tagName!=='SELECT'){ const k=t.dataset.s;
+    if(k==='rcCashNo' && /^01\d/.test(t.value.replace(/\D/g,''))){ const nv=fmtTel(t.value); if(nv!==t.value) t.value=nv; }  /* 휴대폰 번호면 010-0000-0000 */
+    const map={flowerSelDir:'flowerAmt',flowerPayDir:'flowerPayText',tribSelDir:'tribAmt',tribPayDir:'tribPayText'}; s[map[k]||k]=t.value; }
   else if(t.dataset.ex){ const x=s.extras.find(y=>y.id===t.dataset.ex); if(x) x[t.dataset.exf]=t.value; }
   else if(t.dataset.mi){ const x=(s.minus||[]).find(y=>y.id===t.dataset.mi); if(x) x[t.dataset.mif]=t.value; }
   else return;
@@ -2914,6 +3018,7 @@ $('#p-settle').addEventListener('keydown',e=>{
 $('#p-settle').addEventListener('change',e=>{
   const t=e.target, c=curCase(); if(!c) return;
   if(t.dataset.sfdate){ if(setDateField(c,t)){ touched(); updSettle(); } return; }  // 일부 휴대폰은 날짜를 고를 때 change만 보냄
+  if(t.type==='date'&&t.dataset.s){ const s=S(c); if(s[t.dataset.s]!==t.value){ s[t.dataset.s]=t.value; touched(); updSettle(); } return; }
   if(t.tagName!=='SELECT'||!t.dataset.s) return; const s=S(c);
   s[t.dataset.s]=t.value; const dir=t.parentElement.querySelector('[data-s$="Dir"]'); if(dir){ dir.hidden=t.value!=='__direct'; if(t.value==='__direct') dir.focus(); }
   touched(); updSettle();
@@ -2927,6 +3032,14 @@ $('#p-settle').addEventListener('click',e=>{
   if(b.hasAttribute('data-wz-next')){ wzGo(scrStep(c,wzAt(c),1)); return; }
   if(b.dataset.wzTo){ wzGo(b.dataset.wzTo==='__first'?scrFirst(c):b.dataset.wzTo); return; }
   if(b.hasAttribute('data-wz-copy')){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
+  if(b.dataset.rcCopy){ const k=b.dataset.rcCopy, fm=rcptForms(c).find(x=>x.kind===k), ta=$('#rcText_'+k); if(!fm) return;
+    const msg=`${fm.title} 양식을 복사했습니다`;
+    if(ta&&!$('#rcBox_'+k).hidden) copyFrom(ta,msg); else copyText(fm.text,msg); return; }
+  if(b.dataset.wzCo){
+    const co=coById(b.dataset.wzCo); changeCaseCo(c,co); c.coPicked=true; touched(); renderCaseSel();
+    if(settleMode!=='wizard'){ renderSettle(); if(co.id===ETC) $('#p-settle [data-sf="coName"]')?.focus(); return; }
+    if(co.id===ETC){ $('#wzStage').innerHTML=wzScreen(c,wzAt(c)); wzChrome(c); updSettle(); $('#p-settle .wz-card [data-sf="coName"]')?.focus(); return; }
+    wzGo(scrStep(c,wzAt(c),1)); return; }
   if(b.dataset.wzPick){ s[b.dataset.wzPick]=b.dataset.v; b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); touched(); wzGo(scrStep(c,wzAt(c),1)); return; }
   if(b.dataset.wzYn){
     const key=b.dataset.wzYn, dd=YN_DATA[key];
