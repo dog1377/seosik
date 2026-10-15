@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.15-3">
+<meta name="app-version" content="2026.10.16-1">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="관리자 서식">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -930,6 +930,10 @@ body.split #p-settle .wz{max-width:none}
 .rc-auto{margin-top:-6px}
 .rc-auto b{color:var(--ink);font-variant-numeric:tabular-nums}
 .wz-go2{margin-top:-12px}
+.sm-switch{flex-wrap:wrap;row-gap:8px}
+.sm-switch>span{white-space:nowrap}
+.sm-btns{display:flex;gap:8px;flex-wrap:nowrap;justify-content:flex-end;margin-left:auto}
+.wz-top .wz-mode[hidden]{display:none}
 .wz-result{display:grid;gap:8px;padding:14px 16px;border-radius:14px;background:var(--field)}
 .wz-result[hidden]{display:none}
 .wz-result>div{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -1384,7 +1388,7 @@ function preserveCremNames(){
 }
 function cremHtml(){
   const f=curCase().f||{};
-  return `<label class="f"><span class="field-label">화장장명</span><input class="input" type="text" id="f_cremName" data-k="cremName" value="${esc(cremName(f))}" placeholder="예: 부산영락공원" autocomplete="off"></label>
+  return `<label class="f"><span class="field-label">화장장명</span><input class="input" type="text" id="f_cremName" data-k="cremName" value="${esc(cremName(f))}" placeholder="예: 부산 / 창원 / 김해" autocomplete="off"></label>
     <div class="crem-schedule-fields">
       <label class="f"><span class="field-label">화장 날짜</span><input class="input" type="date" id="f_cremDate" data-k="cremDate" value="${esc(f.cremDate||'')}"></label>
       <label class="f"><span class="field-label">회차</span><div class="suffix"><input class="input" type="number" id="f_cremRound" data-k="cremRound" value="${esc(f.cremRound||'')}" min="1" max="999" step="1" inputmode="numeric" placeholder="예: 3"><span>회차</span></div></label>
@@ -1856,12 +1860,16 @@ const cntText=(v,u)=>isNum(v)?`${String(v).trim()}${u}`:String(v??'').trim();
 document.addEventListener('input',e=>{ const t=e.target; if(t.closest&&t.closest('.suffix.cnt')){ const sp=t.parentElement.querySelector('span'); if(sp) sp.hidden=!(isNum(t.value)||!t.value.trim()); const q=t.parentElement.nextElementSibling; if(q&&q.classList.contains('cnt-quick')) q.querySelectorAll('[data-cnt]').forEach(b=>b.setAttribute('aria-pressed',String(t.value.trim()===b.dataset.v))); } });
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-cnt]'); if(!b) return; const inp=document.getElementById('f_'+b.dataset.cnt); if(!inp) return;
   inp.value=inp.value.trim()===b.dataset.v?'':b.dataset.v; inp.dispatchEvent(new Event('input',{bubbles:true})); });
+// 업체별 입력 칸 예시 (칸이 비어 있을 때 흐리게 보임)
+const FIELD_EX={'현진시닝':{product:'예: 삼성전기 270 일반형',staffOrg:'예: 부산본부'},'고이장례연구소':{product:'예: 2026 가족장 289'}};
+const exFor=k=>{ const c=curCase(); if(!c) return ''; return (FIELD_EX[caseCoName(c).replace(/\s/g,'')]||{})[k]||''; };
+const exAttr=k=>exFor(k)?` placeholder="${esc(exFor(k))}"`:'';
 function ctl(fd){
   const v=(curCase().f||{})[fd.k]??'';
   if(curCase().f.sameChief && SAME_MAP[fd.k]) return `<input class="input" id="f_${fd.k}" type="${fd.t==='tel'?'tel':'text'}" value="${esc(v)}" disabled title="회원과 동일">`;
   if(fd.t==='datetime-local') return dtCtl(fd.k,v,(coById(curCase().companyId).labels||{})[fd.k]||fd.l);
   const L=(coById(curCase().companyId).labels||{})[fd.k]||fd.l;
-  if(fd.t==='prod'){ const co=coById(curCase().companyId); if(!(co.products||[]).length) return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" value="${esc(v)}">`; return chooser({key:fd.k,options:co.products,label:L}); }
+  if(fd.t==='prod'){ const co=coById(curCase().companyId); if(!(co.products||[]).length) return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" value="${esc(v)}"${exAttr(fd.k)} autocomplete="off">`; return chooser({key:fd.k,options:co.products,label:L}); }
   if(fd.t==='pick'||fd.t==='combo') return chooser({key:fd.k,options:db.lists[fd.o]||[],label:L});
   if(fd.t==='select') return chooser({key:fd.k,options:fd.o,label:L,direct:false});
   if(fd.t==='pick'){   // 목록 선택 + 직접입력
@@ -1875,7 +1883,7 @@ function ctl(fd){
   if(fd.t==='cnt') return `<div class="suffix cnt"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" value="${esc(v)}" placeholder="숫자 또는 글" autocomplete="off"><span ${isNum(v)||!String(v).trim()?'':'hidden'}>${fd.o}</span></div>
     <div class="cnt-quick">${CNT_WORDS.map(w=>`<button type="button" class="chip" data-cnt="${fd.k}" data-v="${w}" aria-pressed="${String(v).trim()===w}">${w}</button>`).join('')}</div>`;
   if(fd.t==='num') return `<div class="suffix"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="${fd.k==='eventNo'?'numeric':'decimal'}" value="${esc(v)}" ${fd.k==='eventNo'?'placeholder="예: 3" autocomplete="off"':''}><span>${fd.o}</span></div>`;
-  return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="${fd.t}" value="${esc(v)}" ${fd.t==='tel'?'inputmode="tel" autocomplete="off"':''}>`;
+  return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="${fd.t}" value="${esc(v)}"${exAttr(fd.k)} ${fd.t==='tel'?'inputmode="tel" autocomplete="off"':''}>`;
 }
 const lab=fd=>{
   const co=coById(curCase().companyId), raw=(co.labels||{})[fd.k]||fd.l;
@@ -2089,14 +2097,18 @@ function renderTtl(){
   el.textContent=(navigator.onLine===false?'오프라인 사용 중 · ':'')+`이 기기에 계속 보관 · 전체 ${db.cases.length}건`+(full?' · 저장 공간이 많이 찼어요. 설정에서 백업 후 오래된 달을 정리해 주세요':' · 지우기 전까지 사라지지 않아요');
 }
 window.addEventListener('online',()=>renderTtl()); window.addEventListener('offline',()=>renderTtl());
+// 행사 기록 이름: 행사번호 장례식장 업체명 고인명 (예: 15번 부산전문 현진시닝 고 홍길동)
+function caseLabel(c){
+  const f=c.f||{}, no=String(f.eventNo||'').trim().replace(/번$/,''), nm=String(f.name||'').trim();
+  return [no&&`${no}번`, String(f.place||'').trim(), c.quick&&!c.coPicked?'정산만':caseCoName(c), nm&&`고 ${nm}`].filter(Boolean).join(' ');
+}
 function renderCaseSel(){
   renderTtl();
   const cur=curCase(), months=caseMonths(), mk=cur?caseMonth(cur):(months[0]?months[0][0]:'');
   const list=mk?casesOfMonth(mk):[], used=carryUse(); let negLeft=0;
   $('#caseSel').innerHTML=list.length?list.map(c=>{ const d=parseDT(c.f.depart), co=coById(c.companyId), w=settleCalc(c).sendWon, neg=w<0?(used.has(c.id)?' · 마이너스 정리됨':` · 마이너스 ${wonStr(w)}`):'';
     if(w<0&&!used.has(c.id)) negLeft++;
-    const no=String(c.f.eventNo||'').trim(), who=c.f.name?'故 '+c.f.name:(c.f.place||(no?`${no}번 행사`:(c.quick?'(장소 미입력)':'(고인명 미입력)')));
-    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(who)} · ${esc(c.quick?(c.coPicked?caseCoName(c)+' 정산만':'정산만'):caseCoName(c))}${d?` · 발인 ${d.mo}/${d.d}`:''}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
+    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(caseLabel(c))}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
   $('#caseSel').disabled=!list.length; $('#delCase').disabled=!list.length;
   const i=months.findIndex(x=>x[0]===mk);
   $('#cmLabel').textContent=mk?monthLabel(mk):'행사 없음';
@@ -2561,7 +2573,7 @@ const GRP=[
 const GRP_T=Object.fromEntries([['info','행사 정보'],...GRP.map(g=>[g.id,g.t]),['done','확인']]);
 const SM_KEY='funeral-settleMode';
 let settleMode=(()=>{ try{ return localStorage.getItem(SM_KEY)==='all'?'all':'wizard'; }catch(e){ return 'wizard'; } })();
-const wzPos=new Map();
+const wzPos=new Map(), wzFromDone=new Set();  // 확인 화면에서 줄을 눌러 고치러 간 행사
 const urnHas=s=>['urnCollect','urnCost','urnDisc','urnType'].some(k=>String(s[k]||'').trim())||s.urnAsk==='yes';
 const sv=(c,k)=>String(S(c)[k]??'').trim();
 const urnYes=c=>urnHas(S(c));
@@ -2788,12 +2800,14 @@ function wzScreen(c,id){
   else if(x.kind==='done'){ if(settleCalc(c).sendWon<0) q='이 행사는 마이너스예요';
     body=stepBody('done',c,false)+`<button class="btn primary wz-go" type="button" data-wz-copy>정산 카톡 복사</button>`
       +rcptForms(c).map(fm=>`<button class="btn wz-go wz-go2" type="button" data-rc-copy="${fm.kind}">${fm.title} 양식 복사</button>`).join(''); }
+  if(x.kind!=='done' && wzFromDone.has(c.id)) body+=`<button class="btn wz-go wz-go2" type="button" data-wz-to="done">확인 화면으로 돌아가기</button>`;
   return `<div class="wz-card" data-scr="${x.id}"><div class="wz-head"><h2 class="wz-q" tabindex="-1">${esc(q)}</h2>${sub?`<p class="wz-sub${x.warn?' warn':''}">${sub}</p>`:''}</div>${body}</div>`;
 }
 function wzFrame(c){
   return `<div class="wz" id="wz">
     <div class="wz-top"><button class="wz-back" type="button" id="wzBack" data-wz-prev aria-label="이전 질문">${SV_L}</button>
       <div class="wz-prog" aria-hidden="true"><i id="wzProg"></i></div>
+      <button class="wz-mode" type="button" id="wzToEnd" data-wz-to="done">확인 화면</button>
       <button class="wz-mode" type="button" data-wz-mode="all">모두 보기</button></div>
     <div class="wz-meta"><span id="wzGroup"></span><span id="wzTot"></span></div>
     <div class="wz-stage" id="wzStage">${wzScreen(c,wzAt(c))}</div>
@@ -2811,6 +2825,7 @@ function wzChrome(c){
   const p=$('#wzProg'); if(p) p.style.width=`${Math.round(Math.max(0,SCR_I(id)-base)/(SCR.length-1-base)*100)}%`;  // 건너뛴 질문이 있어도 앞으로만 차오름
   const g=$('#wzGroup'); if(g) g.textContent=GRP_T[x.g]||'';
   const bk=$('#wzBack'); if(bk) bk.disabled=i===0;
+  const te=$('#wzToEnd'); if(te) te.hidden=id==='done';
   $('#p-settle').classList.toggle('wz-end',id==='done');
   wzGoLabel(c);
 }
@@ -2818,7 +2833,7 @@ const reduceMotion=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: r
 function wzGo(to){
   const c=curCase(); if(!c) return;
   const from=wzAt(c); if(!to||to===from||SCR_I(to)<0) return;
-  wzPos.set(c.id,to);
+  wzPos.set(c.id,to); if(to==='done') wzFromDone.delete(c.id);
   const stage=$('#wzStage'); if(settleMode!=='wizard'||!stage){ renderSettle(); return; }
   const dir=SCR_I(to)>SCR_I(from)?'next':'prev', anim=!reduceMotion();
   stage.innerHTML=wzScreen(c,to); const card=stage.firstElementChild;
@@ -2859,7 +2874,7 @@ function renderSettle(){
   const s=S(c), f=c.f; if(!s.minus) s.minus=[]; if(!s.flowerSalePay) s.flowerSalePay='현금';
   const wiz=settleMode==='wizard';
   el.classList.toggle('wz-on',wiz);
-  const main=wiz?wzFrame(c):`<div class="sm-switch settle-wide"><span>한 화면에 모두 보는 중</span><button class="btn sm" type="button" data-wz-mode="wizard">한 단계씩 입력하기</button></div>
+  const main=wiz?wzFrame(c):`<div class="sm-switch settle-wide"><span>한 화면에 모두 보는 중</span><div class="sm-btns"><button class="btn sm" type="button" data-wz-end>확인 화면</button><button class="btn sm" type="button" data-wz-mode="wizard">한 단계씩 입력하기</button></div></div>
     <div class="settle-guide settle-wide"><b>숫자만 넣으면 만원</b>입니다. 30 → 30만원<br>칸 아래 실제 금액, 제목 옆 <b>+</b>/<b>−</b>는 보내는금액에 들어가는 몫이에요.</div>
     <div class="sec"><div class="sec-head"><h2>기본 정보</h2></div><div class="fields">${basicFields(c)}</div></div>
     ${GRP.map(st=>`<div class="sec${st.id==='def'?' settle-wide':''}" ${st.id==='def'?'id="defSec"':''}><div class="sec-head"><h2>${esc(st.t)}</h2>${sChip(st.chip)}</div><div class="fields">${stepBody(st.id,c,true)}</div></div>`).join('')}`;
@@ -3043,7 +3058,8 @@ $('#p-settle').addEventListener('click',e=>{
   if(b.dataset.wzMode){ setSettleMode(b.dataset.wzMode); return; }
   if(b.hasAttribute('data-wz-prev')){ wzGo(scrStep(c,wzAt(c),-1)); return; }
   if(b.hasAttribute('data-wz-next')){ wzGo(scrStep(c,wzAt(c),1)); return; }
-  if(b.dataset.wzTo){ wzGo(b.dataset.wzTo==='__first'?scrFirst(c):b.dataset.wzTo); return; }
+  if(b.dataset.wzTo){ const to=b.dataset.wzTo==='__first'?scrFirst(c):b.dataset.wzTo; if(wzAt(c)==='done'&&to!=='done') wzFromDone.add(c.id); wzGo(to); return; }
+  if(b.hasAttribute('data-wz-end')){ wzPos.set(c.id,'done'); wzFromDone.delete(c.id); setSettleMode('wizard'); return; }
   if(b.hasAttribute('data-wz-copy')){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
   if(b.dataset.rcCopy){ const k=b.dataset.rcCopy, fm=rcptForms(c).find(x=>x.kind===k), ta=$('#rcText_'+k); if(!fm) return;
     const msg=`${fm.title} 양식을 복사했습니다`;
