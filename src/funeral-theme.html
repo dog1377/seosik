@@ -3,7 +3,7 @@
 /* 디자인 A · 부고장: 흰 종이 · 먹색 · 명조 (밝은 화면 / 어두운 화면) */
 :root{
   --bg:#f3f3f1; --surface:#ffffff; --field:#f7f7f5; --ink:#1c1d1f; --ink-2:#3d4044; --muted:#5a5e63;
-  --line:#d6d7d4; --edge:#9a9d9a; --ph:#767a7f; --accent:#1c1d1f; --accent-ink:#ffffff; --accent-soft:#ececea;
+  --line:#d6d7d4; --edge:#9a9d9a; --ph:#6a6e73; --accent:#1c1d1f; --accent-ink:#ffffff; --accent-soft:#ececea;
   --bronze:#8c6a1f; --warn:#9a3b1e; --warn-soft:#f7e6de; --shadow:none; --radius:6px;
   --sans:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
   --serif:"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;
@@ -156,13 +156,35 @@ body .csheet{border-radius:6px 6px 0 0}
 body .settle-bar{border-radius:6px;box-shadow:none}
 body .mf-home{border-radius:4px}
 body .toast{box-shadow:none}
+/* 보기 쉬움 점검 (2026.10.16): 글자 대비 4.5:1 이상 · 작은 글자 12px 이상 · 누르는 곳 44px 이상 · 아이폰에서 칸을 눌러도 화면이 확대되지 않게 16px */
+.wz-amt .input:focus-visible{box-shadow:0 2px 0 var(--ink)}
+body .sn-foot,body .env-badge,body #ttlNote,body .out-head h2 small,body .sec-head h2 small,body .sn-head small,body .sec-num,body .co-card small{font-size:12px}
+@media (max-width:699px){
+  body .appbar button,body #newCase,body #saveNow{min-height:44px}
+  body #menuBtn,body .jr-x,body #snClose,body #wzBack{min-width:44px;min-height:44px}
+  body .case-panel{grid-template-columns:44px minmax(0,1fr) 44px auto}
+  body .cm-nav{width:44px;height:44px}
+  body .case-panel #delCase{min-height:44px;min-width:46px}
+  body .case-panel #caseSel{min-height:44px;font-size:16px}
+  body .btn,body .btn.sm,body .co-card .btn,body .out-head .btn{min-height:44px}
+  body .co-card .btn,body .out-head .btn{font-size:13px}
+  body .group-tabs button{min-height:44px;font-size:12.5px}
+  body .im-mode,body .im-row button,body .wz-top button,body .acc-h,body .missing button{min-height:44px}
+  body .env-source>summary{min-height:44px;box-sizing:border-box;padding:12px 0}
+  body .text-out,body .out textarea{font-size:16px!important}
+  body .dt select.input,body .dt input[type="date"],body .mg select.input{font-size:16px}
+  body .note{font-size:12.5px}
+  body .co-card small,body .sec-num,body .field-hint,body .btn.link,body .env-cash thead th{font-size:12px}
+  body .group-footer p{font-size:12.5px}
+  body label.f,body .f-wrap{font-size:13px}
+}
 </style>
 <script>
 (function () {
   'use strict';
   // 휴무 · 당직 화면(안쪽 창)에도 같은 색과 글꼴
   var DUTY_THEME = ':root{--bg:#f3f3f1;--surface:#ffffff;--surface-2:#f7f7f5;--line:#d6d7d4;--line-2:#e6e6e3;' +
-    '--text:#1c1d1f;--text-2:#3d4044;--muted:#5a5e63;--faint:#767a7f;' +
+    '--text:#1c1d1f;--text-2:#3d4044;--muted:#5a5e63;--faint:#6a6e73;' +
     '--primary:#1c1d1f;--primary-600:#000000;--primary-50:#ececea;--primary-100:#dcdcd9;' +
     '--a:#1c1d1f;--a-bg:#ececea;--b:#8c6a1f;--b-bg:#f2ead6;--sat:#2a5d8f;' +
     '--r:6px;--r-sm:4px;--sh-1:none;--font:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif}' +

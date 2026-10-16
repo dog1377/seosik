@@ -295,6 +295,12 @@ body .type-card .ic{border-radius:4px}
 body .toast{box-shadow:none}
 body label.field input,body label.field select,body label.field textarea,body .sel{border-radius:4px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:var(--muted)}
+/* 보기 쉬움 점검 (2026.10.16): 누르는 곳 44px 이상, 흰 서명 칸 안 글자는 어두운 화면에서도 진하게 */
+body .icon-btn{width:44px;height:44px}
+body .seg button,body .save-bar .btn{min-height:44px}
+body .sig-box span,body .sig-prev span,body .seal-box span{color:#5a5e63}
+@media (max-width:999px){ body .r-row{grid-template-columns:minmax(0,1fr) 88px 44px 44px} body .r-row .icon-btn{width:44px;height:44px} }
+
 </style>
 
 <header class="appbar">
@@ -2010,7 +2016,7 @@ function renderReview() {
   $('#rvDays').innerHTML = dates.map((k, i) => `
     <div class="rv-day ${k === today ? 'today' : ''}">
       <div class="rv-day-h"><b>${esc(mdLabel(k))}일(${DOW[fromKey(k).getDay()]}) 출상</b><span>${k === today ? '오늘' : (k === toKey(addDays(new Date(), -1)) ? '어제' : '')}</span></div>
-      <textarea id="rv-${k}" data-date="${k}" rows="2" placeholder="예: 서민관 넥센타이어 5개&#10;여러 건이면 줄을 바꿔 적으세요. 없으면 비워 두세요.">${esc(S.reviews[k] || '')}</textarea>
+      <textarea id="rv-${k}" data-date="${k}" rows="2" aria-label="${esc(mdLabel(k))}일 출상 후기" placeholder="예: 서민관 넥센타이어 5개&#10;여러 건이면 줄을 바꿔 적으세요. 없으면 비워 두세요.">${esc(S.reviews[k] || '')}</textarea>
     </div>`).join('');
   $$('#rvDays textarea').forEach(autosize);
   const share = !!navigator.share && !!window.__PWA__;

@@ -14,7 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.16-20";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.16-21";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <title>DW관리</title>
@@ -355,6 +355,12 @@ body .type-card .ic{border-radius:4px}
 body .toast{box-shadow:none}
 body label.field input,body label.field select,body label.field textarea,body .sel{border-radius:4px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:var(--muted)}
+/* 보기 쉬움 점검 (2026.10.16): 누르는 곳 44px 이상, 흰 서명 칸 안 글자는 어두운 화면에서도 진하게 */
+body .icon-btn{width:44px;height:44px}
+body .seg button,body .save-bar .btn{min-height:44px}
+body .sig-box span,body .sig-prev span,body .seal-box span{color:#5a5e63}
+@media (max-width:999px){ body .r-row{grid-template-columns:minmax(0,1fr) 88px 44px 44px} body .r-row .icon-btn{width:44px;height:44px} }
+
 </style>
 <!-- 앱 잠금: 회사가 정한 비밀번호(해시만 앱에 들어 있음)를 넣어야 앱이 열립니다. 해시가 비어 있으면 잠그지 않습니다. -->
 <style id="lock-ui">
