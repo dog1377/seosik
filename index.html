@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.16-21";
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.16-22";
 try { if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); } catch (e) {}</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>관리자 서식</title>
@@ -318,6 +318,15 @@ body .icon-btn{width:44px;height:44px}
 body .seg button,body .save-bar .btn{min-height:44px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:#5a5e63}
 @media (max-width:999px){ body .r-row{grid-template-columns:minmax(0,1fr) 88px 44px 44px} body .r-row .icon-btn{width:44px;height:44px} }
+/* 손맛 다듬기 (audit-suite, 2026.10.16): 누르면 살짝 눌림, 창 안 스크롤 가두기, 글자 또렷하게, 설명 줄바꿈 */
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+button,a,label,select{touch-action:manipulation}
+body .btn,body .type-card,body .seg button,body .icon-btn{transition-property:transform,background-color,border-color,color;transition-duration:.12s;transition-timing-function:ease-out}
+body .btn:active:not(:disabled),body .type-card:active,body .seg button:active,body .icon-btn:active:not(:disabled){transform:scale(.97)}
+.sheet,.screen-body,.pick-list{overscroll-behavior:contain}
+p{text-wrap:pretty}
+@media (prefers-reduced-motion:reduce){body .btn:active,body .type-card:active,body .seg button:active,body .icon-btn:active{transform:none}}
+
 
 </style>
 <!-- 앱 잠금: 회사가 정한 비밀번호(해시만 앱에 들어 있음)를 넣어야 앱이 열립니다. 해시가 비어 있으면 잠그지 않습니다. -->

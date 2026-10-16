@@ -45,7 +45,7 @@ body{background:var(--bg);font-family:var(--sans);font-variant-numeric:tabular-n
 label.f,.f-wrap{font-size:13px;font-weight:500;letter-spacing:normal}
 label.f>.field-label{color:var(--muted)}
 .input,.ch-btn{background-color:var(--surface);border:1px solid var(--edge);border-radius:10px;font-size:16px;letter-spacing:normal}
-.input:hover,.ch-btn:hover{border-color:var(--edge)}
+@media (hover:hover){.input:hover,.ch-btn:hover{border-color:var(--edge)}}
 .input:focus,.ch-btn.open{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .input::placeholder{color:var(--ph);letter-spacing:normal}
 .input:disabled{background:var(--field)}
@@ -57,7 +57,7 @@ label.f>.field-label{color:var(--muted)}
 /* 버튼 */
 .btn{border-radius:12px;font-weight:500;letter-spacing:normal}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700;box-shadow:none}
-.btn.primary:hover{filter:none;background:var(--accent)}
+@media (hover:hover){.btn.primary:hover{filter:none;background:var(--accent)}}
 .btn.sm{border-radius:10px}
 .btn.link{background:var(--accent-soft);color:var(--accent);border-radius:9px}
 #newCase{border-radius:12px}
@@ -70,7 +70,7 @@ label.f>.field-label{color:var(--muted)}
 .work-tabs button{letter-spacing:normal}
 .chip{border-radius:999px}
 .co-btn{background:var(--surface);border-color:var(--line)}
-.co-btn:hover{border-color:var(--accent);background:var(--accent-soft)}
+@media (hover:hover){.co-btn:hover{border-color:var(--accent);background:var(--accent-soft)}}
 .item .tog{background:var(--accent-soft);color:var(--accent)}
 
 /* 아래 메뉴: 서식함 탭 막대와 같게 */
@@ -94,7 +94,7 @@ label.f>.field-label{color:var(--muted)}
 .sec-num{font-family:var(--sans);font-weight:500}
 .btn,.btn.sm,#newCase,.btn.link{border-radius:4px}
 #newCase{background:var(--surface);color:var(--ink);border:1px solid var(--ink)}
-#newCase:hover{background:var(--accent-soft)}
+@media (hover:hover){#newCase:hover{background:var(--accent-soft)}}
 .input,.ch-btn{border-radius:4px}
 .input:focus,.ch-btn.open{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
 .group-tabs{border-radius:6px}
@@ -178,6 +178,16 @@ body .sn-foot,body .env-badge,body #ttlNote,body .out-head h2 small,body .sec-he
   body .group-footer p{font-size:12.5px}
   body label.f,body .f-wrap{font-size:13px}
 }
+/* 손맛 다듬기 (audit-suite: make-interfaces-feel-better · emil-design-engineering · web-design-guidelines, 2026.10.16)
+   누르면 살짝 눌림(0.12초) · 손가락으로 누른 뒤 남는 회색 표시와 마우스용 강조가 휴대폰에 남지 않게 · 제목 줄바꿈 고르게 · 창 안 스크롤이 뒤 화면으로 안 넘어가게 */
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+button,a,label,summary,select{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body .btn,body .co-btn,body .chip,body .missing button,body .seg button,body .cm-nav,body .group-tabs button{transition-property:transform,background-color,border-color,color,box-shadow;transition-duration:.12s;transition-timing-function:ease-out}
+body .btn:active:not(:disabled),body .co-btn:active,body .chip:active,body .missing button:active,body .seg button:active,body .cm-nav:active:not(:disabled){transform:scale(.97)}
+h1,h2,h3,.wz-q{text-wrap:balance}
+.note,.wz-card p,.field-hint,.calc{text-wrap:pretty}
+.sn-body,.csheet-list,.sheet,.tp-body{overscroll-behavior:contain}
+@media (prefers-reduced-motion:reduce){body .btn:active,body .co-btn:active,body .chip:active,body .missing button:active,body .seg button:active,body .cm-nav:active{transform:none}}
 </style>
 <script>
 (function () {

@@ -341,6 +341,15 @@ body .icon-btn{width:44px;height:44px}
 body .seg button,body .save-bar .btn{min-height:44px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:#5a5e63}
 @media (max-width:999px){ body .r-row{grid-template-columns:minmax(0,1fr) 88px 44px 44px} body .r-row .icon-btn{width:44px;height:44px} }
+/* 손맛 다듬기 (audit-suite, 2026.10.16): 누르면 살짝 눌림, 창 안 스크롤 가두기, 글자 또렷하게, 설명 줄바꿈 */
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+button,a,label,select{touch-action:manipulation}
+body .btn,body .type-card,body .seg button,body .icon-btn{transition-property:transform,background-color,border-color,color;transition-duration:.12s;transition-timing-function:ease-out}
+body .btn:active:not(:disabled),body .type-card:active,body .seg button:active,body .icon-btn:active:not(:disabled){transform:scale(.97)}
+.sheet,.screen-body,.pick-list{overscroll-behavior:contain}
+p{text-wrap:pretty}
+@media (prefers-reduced-motion:reduce){body .btn:active,body .type-card:active,body .seg button:active,body .icon-btn:active{transform:none}}
+
 
 </style>
 
