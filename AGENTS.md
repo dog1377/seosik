@@ -175,6 +175,7 @@ python3 -m http.server 8765 --bind 127.0.0.1 &
 - 정산: `S(c)`(정산 데이터 `case.s`) · `settleCalc` · `settleText` · `deficits` · `caseTag` · `commData` · `commText`.
 - 정산 화면: 한 단계씩 `SCR`(질문 목록) · `wzScreen` · `wzGo` · `wzReview` · `wzFromDone`, 모두 보기 `GRP` · `stepBody`, `renderSettle` · `updSettle`.
 - 정산만(행사 입력 없이): `startQuickSettle` · `quickOn`(`case.quick`, 업체 고르면 `case.coPicked`).
+- **받은 정산 카톡 검사**(행사로 저장 안 함): 정산 화면 `ckOn` → `renderCheck`. `parseSettleKakao`(카톡 글 → 정산 칸 값, 실장 줄 중 (꽃장식)·(제단)·유골함 자동 줄은 계산값과 비교만) → `checkSettleKakao`(이 기기 정산 기준으로 `settleCalc`, 틀린 금액 `money` · 양식 `form`, 고친 카톡 `out`). 정산 카톡 돈 줄은 `settleMoneyLines(d)` 하나로 정산 카톡과 같이 씀. 들어가는 곳: 새 행사 창 · 정산 시작 화면 · 모두 보기 · 확인 화면.
 - 영수증: `rcptSums` · `rcptForms` · `rcWho` · `isHJ` · `rcCashOn` · `rcCardOn` (값은 `case.s.rcCash*` · `rcCard*`).
 - 봉투: `envelopeSplitAuto` · `envelopeValues` · `envelopeText` · `syncEnvelopeRecord` · `renderEnvelopes`.
 - 정산 기준(설정): `settleRules.altarFixed`(24) · `urnShare`(50) · `burialFee`(5) · `flowerPct`(60) · `mgrName`.

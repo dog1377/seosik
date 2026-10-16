@@ -926,6 +926,26 @@ body.split #p-settle .wz{max-width:none}
 .wz-no .suffix span{right:18px;font-size:16px}
 .wz-read{margin:-10px 0 0;padding-left:4px;font-size:13px;line-height:1.5;color:var(--muted)}
 .quick-start .row{gap:10px}
+/* 받은 정산 카톡 검사 */
+.ck-in{min-height:220px;font-size:15px;line-height:1.6}
+.ck-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:14px 16px;border:3px double var(--ink);border-radius:0;margin:2px 0 8px}
+.ck-total span{font-size:14px;color:var(--muted)}
+.ck-total b{font-family:var(--serif);font-size:27px;font-weight:700;font-variant-numeric:tabular-nums}
+.ck-claim{margin:0 0 12px;font-size:14px;color:var(--muted)}
+.ck-claim.bad{color:var(--warn);font-weight:600}
+.ck-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ck-item{padding:10px 12px;border:1px solid var(--line);border-radius:6px;display:grid;gap:3px;background:var(--surface)}
+.ck-item b{font-size:15px;color:var(--ink)}
+.ck-item span{font-size:14px;line-height:1.5;color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
+.ck-item.money{border-color:var(--warn);background:var(--warn-soft)}
+.ck-item.money b{color:var(--warn)}
+.ck-ok{margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:6px;font-weight:600}
+.ck-how{margin-top:12px;font-size:14px}
+.ck-how summary{cursor:pointer;color:var(--muted);padding:8px 0;min-height:44px;display:flex;align-items:center}
+.ck-how ul{list-style:none;margin:0;padding:0}
+.ck-how li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.ck-how li b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ck-how li.sum{border-bottom:3px double var(--ink);font-weight:700}
 .wz-card .wz-choice.wz-co{gap:10px}
 .wz-card .wz-choice.wz-co button{min-height:58px;border-radius:14px;padding:8px 10px}
 .wz-card .wz-choice.wz-co button b{font-size:16px;word-break:keep-all}
@@ -1127,6 +1147,7 @@ body.split #p-settle .wz{max-width:none}
     <div class="co-list" id="coList"></div>
     <button class="btn primary" id="pickSettle" type="button" data-quick-settle>행사 입력 없이 정산만</button>
     <button class="btn" id="pickEnvelope" type="button">행사 등록 없이 봉투 1건 추가</button>
+    <button class="btn" id="pickCheck" type="button" data-ck-open>받은 정산 카톡 검사</button>
     <button class="btn" id="pickCancel" type="button">닫기</button>
   </div>
 </div>
@@ -2080,7 +2101,7 @@ function openPicker(mode){
   $('#coList').innerHTML=coButtons('data-pick');
   $('#pickTitle').textContent=mode==='change'?'업체 변경':'어느 업체 행사인가요?';
   $('#pickCancel').hidden=false;
-  $('#pickEnvelope').hidden=$('#pickSettle').hidden=mode==='change';
+  $('#pickEnvelope').hidden=$('#pickSettle').hidden=$('#pickCheck').hidden=mode==='change';
   $('#picker').hidden=false;
 }
 function closePicker(){ $('#picker').hidden=true; }
@@ -2447,15 +2468,11 @@ function settleCalc(c){
       carry:sum(carry.map(r=>Math.abs(r.won)))}};
 }
 function settleData(c){ return {...settleCalc(c), v:vals(c)}; }
-function settleText(c){
-  const d=settleData(c), g=k=>String(d.s[k]??'').trim(), ind='                 ';
+/* 정산 카톡의 돈 줄(수금 ~ 보내는금액). 정산 카톡과 「받은 정산 카톡 검사」가 같이 씀 */
+function settleMoneyLines(d){
+  const g=k=>String(d.s[k]??'').trim(), ind='                 ';
   const collect=d.f.collect?`${d.collectWon?wonStr(d.collectWon):money(d.f.collect)}(${d.s.pay||'현금'})`:'';
-  const L=[
-    d.v['장소'],
-    `도우미 : ${d.v['도우미']}`,
-    `차량 : ${d.v['차량']}`,
-    `상복 : ${String(d.f.mournBrand||'').trim()}`,
-    `장지 : ${d.v['장지']}`,
+  return [
     `수금 : ${collect}`,
     `제단 : ${d.altar}`,
     `유골함 : ${d.urn}`,
@@ -2469,7 +2486,133 @@ function settleText(c){
     ...d.carry.map(x=>x.line),
     `보내는금액 : ${d.send}`,
   ];
+}
+function settleText(c){
+  const d=settleData(c);
+  const L=[
+    d.v['장소'],
+    `도우미 : ${d.v['도우미']}`,
+    `차량 : ${d.v['차량']}`,
+    `상복 : ${String(d.f.mournBrand||'').trim()}`,
+    `장지 : ${d.v['장지']}`,
+    ...settleMoneyLines(d),
+  ];
   return L.map(l=>l.replace(/\s+$/,'')).join('\n');
+}
+/* ---------- 받은 정산 카톡 검사: 붙여 넣은 카톡을 읽어 정산 규칙대로 다시 계산 · 양식 확인 · 고친 카톡 (행사로 저장 안 함) ---------- */
+const CK_KEYS=['도우미','차량','상복','장지','수금','제단','유골함','유골함원가','기타추가','이송','입관꽃장식','헌화','보내는금액'];
+const CK_RANK={장소:0,도우미:1,차량:2,상복:3,장지:4,수금:5,제단:6,유골함:7,유골함원가:8,기타추가:9,실장:10,이송:11,입관꽃장식:12,헌화:13,마이너스:14,보내는금액:15};
+const ckPayOf=t=>/카드/.test(t)?'카드':(/현금/.test(t)?'현금':'');
+const ckParens=v=>{ const a=[]; String(v).replace(/\(([^()]*)\)/g,(m,p)=>{ a.push(p.trim()); return m; }); return a; };
+const ckMain=v=>String(v).split('(')[0].trim();
+const ckAmtStr=w=>!w?'':(w%10000===0&&Math.abs(w)<10000000?String(w/10000):String(w));   /* 만원으로 떨어지면 만원 숫자 */
+function ckItem(t){   /* "남상복 6세트 추가 30만원(현금)" → 글 · 금액 · 결제 */
+  t=String(t).trim(); const ps=ckParens(t), last=ps.length?ps[ps.length-1]:'';
+  let pay=ckPayOf(last), body=pay?t.replace(/\([^()]*\)\s*$/,'').trim():t;
+  if(!pay){ const w=body.match(/\s*(현금|카드)\s*$/); if(w){ pay=w[1]; body=body.slice(0,w.index).trim(); } }
+  let m=body.match(/^(.*?)\s*(-?[\d,]+(?:\.\d+)?\s*만\s*(?:[\d,]+\s*)?원?|-?[\d,]+\s*원)\s*$/);
+  if(!m) m=body.match(/^(.*?)\s*(-?[\d,]+(?:\.\d+)?)\s*$/);
+  return m?{text:m[1].trim(),won:toWon(m[2]),pay,raw:t}:{text:body,won:0,pay,raw:t};
+}
+function parseSettleKakao(text){
+  const P={head:{place:'',도우미:null,차량:null,상복:null,장지:null},order:[],orig:{},s:{pay:'현금',extras:[],urnPay:'현금',minus:[],carry:[]},f:{},claim:{},mins:[],unknown:[],notes:[],extrasRaw:[]};
+  const s=P.s; let inExtra=false;
+  const addExtra=t=>{ const it=ckItem(t); P.extrasRaw.push(it.raw);
+    if(!it.won && !it.text) return;
+    if(!it.pay){ P.notes.push(`「${it.raw}」에 현금 · 카드 표시가 없어 현금으로 봤어요`); it.pay='현금'; }
+    if(/관꽃장식/.test(it.text)){ s.flowerSale=ckAmtStr(it.won); s.flowerSalePay=it.pay; }
+    else s.extras.push({id:uid(),text:it.text,amt:ckAmtStr(it.won),pay:it.pay}); };
+  String(text||'').replace(/\r/g,'').replace(/：/g,':').replace(/\u00a0/g,' ').split('\n').forEach(raw=>{
+    const t=raw.trim(); if(!t) return;
+    const m=t.match(/^([^:]{1,24}?)\s*:\s*(.*)$/);
+    if(m){
+      const k=m[1].replace(/\s+/g,''), v=m[2].trim(); inExtra=false;
+      if(/\d+월.*행사/.test(k) && /-/.test(v)){ s.carry.push({id:uid(),label:m[1].trim(),won:-Math.abs(toWon(v)),from:''}); P.order.push('마이너스'); return; }
+      if(CK_KEYS.includes(k)){
+        P.order.push(k); if(P.orig[k]==null) P.orig[k]=v;
+        if(k in P.head) P.head[k]=v;
+        else if(k==='수금'){ const w=toWon(ckMain(v)); P.f.collect=w?String(w):''; const pay=ckPayOf(ckParens(v).join(' '))||ckPayOf(v);
+          if(w && !pay) P.notes.push('수금에 현금 · 카드 표시가 없어 현금으로 봤어요'); s.pay=pay||'현금'; }
+        else if(k==='제단'){ const ps=ckParens(v), main=toWon(ckMain(v)), rec=ps.map(toWon).find(w=>w>0);
+          if(main||rec){ s.altarAmt=String(rec||main); s.altarPay=/카드/.test(v)?'카드':'현금'; P.claim.altar=main; } }
+        else if(k==='유골함'){ if(v){ const ps=ckParens(v), col=v.match(/수금\s*\(([^)]*)\)/), dis=v.match(/할인\s*\(([^)]*)\)/), lastP=ps.length?ps[ps.length-1]:'';
+          const pay=ckPayOf(lastP)||ckPayOf(v.replace(/\([^()]*\)/g,' ')); let type=v; const cut=Math.max(col?v.indexOf(col[0])+col[0].length:-1, dis?v.indexOf(dis[0])+dis[0].length:-1);
+          type=cut>=0?v.slice(cut):''; if(ckPayOf(lastP)) type=type.replace(/\([^()]*\)\s*$/,''); type=type.replace(/\s*(현금|카드)\s*$/,'').trim();
+          s.urnCollect=col?String(toWon(col[1])||''):String(toWon(ckMain(v))||''); if(!col) P.notes.push('유골함 「수금(…)」을 찾지 못해 앞 금액을 수금으로 봤어요');
+          s.urnDisc=dis?String(toWon(dis[1])||''):''; s.urnType=type; s.urnPay=pay||'현금'; if(!pay) P.notes.push('유골함에 현금 · 카드 표시가 없어 현금으로 봤어요');
+          if(col){ P.claim.urnShare=toWon(ckMain(v)); const fi=v.indexOf('('); if(fi>0 && !/(수금|할인)\s*$/.test(v.slice(0,fi))) P.claim.urnProfit=toWon(ps[0]); } } }
+        else if(k==='유골함원가'){ const w=toWon(v); s.urnCost=w?String(w):''; }
+        else if(k==='기타추가'){ inExtra=true; if(v) addExtra(v); }
+        else if(k==='이송') s.transfer=v;
+        else if(k==='입관꽃장식'||k==='헌화'){ const ps=ckParens(v), key=k==='헌화'?'trib':'flower'; s[key]=ckMain(v); s[key+'Pay']=ps.length?ps[ps.length-1]:''; }
+        else if(k==='보내는금액'){ P.claim.send=v?toWon(v):null; }
+        return;
+      }
+      if(/^-/.test(v.replace(/\s/g,''))){ const ps=ckParens(v); P.mins.push({who:m[1].trim(),won:Math.abs(toWon(ckMain(v))),memo:ps.length?ps[ps.length-1]:'',raw:t}); P.order.push('실장'); return; }
+      P.unknown.push(t); return;
+    }
+    const cm=t.match(/^(.+?)\s*(-\s*[\d,]+(?:\.\d+)?\s*(?:만\s*원?|원)?)\s*$/);
+    if(cm && /행사/.test(cm[1])){ s.carry.push({id:uid(),label:cm[1].trim(),won:-Math.abs(toWon(cm[2])),from:''}); P.order.push('마이너스'); inExtra=false; return; }
+    if(inExtra){ addExtra(t); return; }
+    if(!P.order.length && !P.head.place){ P.head.place=t; P.order.push('장소'); return; }
+    P.unknown.push(t);
+  });
+  return P;
+}
+function checkSettleKakao(text){
+  const P=parseSettleKakao(text), s=P.s, R=rules();
+  if(!P.order.some(k=>k==='보내는금액'||k==='수금')) return {bad:true};
+  const altarCard=!!toWon(s.altarAmt) && s.altarPay!=='현금', urnCard=!!toWon(s.urnCollect) && s.urnPay!=='현금';
+  const auto={};
+  P.mins.forEach(x=>{
+    if(x.memo==='꽃장식' && toWon(s.flowerSale) && !auto.fl) auto.fl=x;
+    else if(x.memo==='제단' && altarCard && !auto.al) auto.al=x;
+    else if(!x.memo && urnCard && !auto.urn) auto.urn=x;
+    else s.minus.push({id:uid(),who:x.who,amt:ckAmtStr(x.won),memo:x.memo});
+  });
+  const who=(P.mins[0]&&P.mins[0].who)||mgrName();
+  const c={id:'ck',f:{collect:P.f.collect||''},s};
+  const keep=R.mgrName; let d, lines;
+  try{ R.mgrName=who; d=settleCalc(c); lines=settleMoneyLines(d); } finally { R.mgrName=keep; }
+  const H=P.head, head=[H.place,`도우미 : ${H.도우미||''}`,`차량 : ${H.차량||''}`,`상복 : ${H.상복||''}`,`장지 : ${H.장지||''}`];
+  const out=[...head,...lines].map(l=>l.replace(/\s+$/,'')).join('\n');
+  const money=[], form=[], flagged=new Set();
+  const wfmt=w=>wonStr(w)||'0원';
+  /* 계산 */
+  if(P.claim.send==null) money.push({t:'보내는금액 줄이 없어요',d:`맞는 금액은 ${fullWon(d.sendWon)||'0원'}이에요.`});
+  else if(P.claim.send!==d.sendWon){ const df=d.sendWon-P.claim.send; money.push({t:'보내는금액이 틀려요',d:`적힌 ${fullWon(P.claim.send)||'0원'} → 맞는 금액 ${fullWon(d.sendWon)||'0원'} (${fullWon(Math.abs(df))} ${df>0?'더 보내야 해요':'덜 보내야 해요'})`}); }
+  flagged.add('보내는금액');
+  if(d.altarWon && P.claim.altar!=null && P.claim.altar!==d.altarSend){ money.push({t:'제단 금액이 틀려요',d:`받은 ${wfmt(d.altarWon)} 중 ${R.altarFixed}만원까지만 보내요. 적힌 ${wfmt(P.claim.altar)} → ${wfmt(d.altarSend)}`}); flagged.add('제단'); }
+  if(d.U.uCol){
+    if(P.claim.urnShare!=null && P.claim.urnShare!==d.U.share){ money.push({t:'유골함 본부장 몫이 틀려요',d:`이익 ${wfmt(d.U.profit)}(수금 − 원가)의 ${R.urnShare}%, 0.5만원은 본부장 내림. 적힌 ${wfmt(P.claim.urnShare)} → ${wfmt(d.U.share)}`}); flagged.add('유골함'); }
+    else if(P.claim.urnProfit!=null && P.claim.urnProfit!==d.U.profit){ money.push({t:'유골함 이익이 틀려요',d:`수금 ${wfmt(d.U.uCol)} − 원가 ${wfmt(d.U.uCost)} = ${wfmt(d.U.profit)}. 적힌 ${wfmt(P.claim.urnProfit)}`}); flagged.add('유골함'); }
+    if(!d.U.uCost) form.push({t:'유골함원가가 비어 있어요',d:'원가가 없으면 이익과 본부장 몫이 크게 나와요. 원가를 확인하세요.'});
+  }
+  [['fl','꽃장식','관꽃장식 우리 몫',`이익(판 금액 − 입관꽃장식 원가)의 ${R.flowerPct}%`],['al','제단','제단 카드 · 우리 몫',`받은 금액에서 ${R.altarFixed}만원을 뺀 나머지`],['urn','유골함','유골함 카드 · 우리 몫','이익에서 본부장 몫을 뺀 나머지']].forEach(([key,short,name,why])=>{
+    const exp=d.autoMinus.find(x=>x.short===short), got=auto[key];
+    if(exp && !got){ money.push({t:`${name} 줄이 빠졌어요`,d:`「${exp.line}」 줄을 넣었어요. (${why})`}); flagged.add('실장'); }
+    else if(exp && got && got.won!==exp.won){ money.push({t:`${name}이 틀려요`,d:`${why}. 적힌 -${wfmt(got.won)} → -${wfmt(exp.won)}`}); flagged.add('실장'); }
+  });
+  s.minus.forEach(x=>{ const m=String(x.memo||'');
+    if((/제단/.test(m)&&d.altarWon&&d.altarCash)||(/유골함/.test(m)&&d.U.uCol&&s.urnPay==='현금')) form.push({t:`「${x.who} : -${wonStr(toWon(x.amt))}(${m})」 확인하세요`,d:`${/제단/.test(m)?'제단':'유골함'}을 현금으로 받았으면 실장 몫은 처음부터 보내는금액에 안 들어가 있어요. 이 줄이 있으면 두 번 빠져요.`}); });
+  /* 양식 */
+  const miss=CK_KEYS.filter(k=>!P.order.includes(k)&&k!=='보내는금액');
+  if(!H.place) form.push({t:'맨 윗줄 장소가 없어요',d:'첫 줄에 장소(예: 부산착한 VIP2호)를 넣어 주세요. 고친 카톡의 첫 줄이 비어 있어요.'});
+  if(miss.length) form.push({t:'빠진 줄을 넣었어요',d:miss.map(k=>`${k} :`).join(' · ')});
+  const ranks=P.order.map(k=>CK_RANK[k]).filter(x=>x!=null);
+  if(ranks.some((r,i)=>i&&r<ranks[i-1])) form.push({t:'줄 순서를 양식대로 바로잡았어요',d:'장소 → 도우미 → 차량 → 상복 → 장지 → 수금 → 제단 → 유골함 → 유골함원가 → 기타추가 → 실장 → 이송 → 입관꽃장식 → 헌화 → 보내는금액'});
+  const outMap={}; lines.forEach(l=>{ const m=l.match(/^([^:]+?)\s*:\s*(.*)$/); if(m && CK_KEYS.includes(m[1].trim()) && outMap[m[1].trim()]==null) outMap[m[1].trim()]=m[2]; });
+  const nz=x=>String(x||'').replace(/\s+/g,'');
+  ['수금','제단','유골함','유골함원가','입관꽃장식','헌화','보내는금액'].forEach(k=>{
+    if(flagged.has(k) || P.orig[k]==null || outMap[k]==null) return;
+    if(nz(P.orig[k])!==nz(outMap[k])) form.push({t:`${k} 표기를 양식대로 고쳤어요`,d:`${P.orig[k]||'(빈칸)'} → ${outMap[k]||'(빈칸)'}`});
+  });
+  const exOut=d.extras.map(x=>x.line), exIn=P.extrasRaw;
+  if(exIn.length && nz(exIn.join('|'))!==nz(exOut.join('|'))) form.push({t:'기타추가 표기를 양식대로 고쳤어요',d:exOut.join(' · ')||'(없음)'});
+  if(P.unknown.length) form.push({t:'읽지 못한 줄이 있어요',d:`고친 카톡에서는 빠졌으니 확인하세요: ${P.unknown.map(x=>`「${x}」`).join(' ')}`});
+  P.notes.forEach(n=>form.push({t:'확인하세요',d:n}));
+  const how=d.rows.filter(r=>r.on && r.won).map(r=>({k:r.k,won:r.won}));
+  return {d,out,money,form,how,claim:P.claim.send,send:d.sendWon,ok:!money.length&&!form.length};
 }
 /* ---------- 마이너스 정산: 보내는금액이 -면 다른 행사 정산에서 뺌 ---------- */
 function caseTag(c){
@@ -2826,7 +2969,8 @@ function wzScreen(c,id){
   else if(x.kind==='def') body=`<div class="def-body" id="defBody"></div>${go()}`;
   else if(x.kind==='done'){ if(settleCalc(c).sendWon<0) q='이 행사는 마이너스예요';
     body=stepBody('done',c,false)+`<button class="btn primary wz-go" type="button" data-wz-copy>정산 카톡 복사</button>`
-      +rcptForms(c).map(fm=>`<button class="btn wz-go wz-go2" type="button" data-rc-copy="${fm.kind}">${fm.title} 양식 복사</button>`).join(''); }
+      +rcptForms(c).map(fm=>`<button class="btn wz-go wz-go2" type="button" data-rc-copy="${fm.kind}">${fm.title} 양식 복사</button>`).join('')
+      +`<button class="btn wz-go wz-go2" type="button" data-ck-open>받은 정산 카톡 검사</button>`; }
   if(x.kind!=='done' && wzFromDone.has(c.id)) body+=`<button class="btn wz-go wz-go2" type="button" data-wz-to="done">확인 화면으로 돌아가기</button>`;
   return `<div class="wz-card" data-scr="${x.id}"><div class="wz-head"><h2 class="wz-q" tabindex="-1">${esc(q)}</h2>${sub?`<p class="wz-sub${x.warn?' warn':''}">${sub}</p>`:''}</div>${body}</div>`;
 }
@@ -2894,14 +3038,56 @@ function wzReview(c,d){
     rows.unshift(['info', null, [no&&`${no}번`, String(f.place||'').trim(), p&&`발인 ${p.mo}/${p.d}`].filter(Boolean).join(' · ')||'안 넣음']); }
   return rows.map(([g,w,note])=>`<button type="button" class="wz-rv" data-wz-to="${scrFirst(c,g)}"><span class="wz-rv-k"><b>${esc(GRP_T[g])}</b><small>${esc(note)}</small></span><span class="wz-rv-v ${w==null?'zero':w<0?'minus':w?'':'zero'}">${w==null?'':sg(w)}</span>${SV_R}</button>`).join('');
 }
+let ckOn=false, ckText='', ckTimer=0;
+function openCheck(){ ckOn=true; if(!$('#picker').hidden) closePicker(); if(db.tab!=='settle') setTab('settle'); else renderSettle(); window.scrollTo(0,0); }
+function renderCheck(){
+  const el=$('#p-settle'), R=rules();
+  el.innerHTML=`<div class="sp-main">
+    <div class="sec ck-sec"><div class="sec-head"><h2>받은 정산 카톡 검사</h2><button class="btn sm" type="button" data-ck-close>정산으로 돌아가기</button></div>
+      <p class="note">다른 직원에게 받은 정산 카톡을 그대로 붙여 넣으세요. 이 기기의 정산 기준(제단 ${esc(String(R.altarFixed))}만원까지 · 유골함 본부장 ${esc(String(R.urnShare))}% · 관꽃장식 우리 ${esc(String(R.flowerPct))}%)으로 계산과 양식을 확인하고 바르게 고친 카톡을 만들어요. 행사로는 저장하지 않아요.</p>
+      <textarea class="text-out ck-in" id="ckIn" rows="12" placeholder="정산 카톡을 여기에 붙여 넣기" aria-label="받은 정산 카톡">${esc(ckText)}</textarea>
+      <div class="row"><button class="btn primary" type="button" id="ckRun">검사하기</button><button class="btn" type="button" id="ckClear">지우기</button></div>
+    </div>
+    <div class="sec ck-res" id="ckRes" hidden aria-live="polite"></div>
+  </div>
+  <div class="sp-side"><div class="out" id="ckOutBox" hidden><div class="out-head"><h2>고친 정산 카톡<small>규칙대로 다시 쓴 것</small></h2><button class="btn primary" type="button" id="ckCopy">복사</button></div>
+    <textarea class="text-out" id="ckOut" rows="20" aria-label="고친 정산 카톡" readonly></textarea></div></div>`;
+  if(ckText.trim()) runCheck(false);
+}
+function runCheck(scroll){
+  const res=$('#ckRes'), box=$('#ckOutBox'); if(!res) return;
+  if(!ckText.trim()){ res.hidden=true; box.hidden=true; return; }
+  const r=checkSettleKakao(ckText);
+  res.hidden=false;
+  if(r.bad){ box.hidden=true; res.innerHTML=`<div class="sec-head"><h2>정산 카톡을 찾지 못했어요</h2></div><p class="note">「수금 :」 · 「보내는금액 :」 줄이 있는 정산 카톡을 그대로 붙여 넣으세요.</p>`; return; }
+  const n=r.money.length+r.form.length, li=(x,k)=>`<li class="ck-item ${k}"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></li>`;
+  res.innerHTML=`<div class="sec-head"><h2>${r.ok?'맞아요':`고칠 곳 ${n}개`}</h2></div>
+    <div class="ck-total"><span>맞는 보내는금액</span><b>${esc(fullWon(r.send)||'0원')}</b></div>
+    <p class="ck-claim ${r.claim!=null&&r.claim!==r.send?'bad':''}">${r.claim==null?'받은 카톡에 보내는금액이 없어요':(r.claim===r.send?`받은 카톡도 ${esc(fullWon(r.claim)||'0원')} · 계산이 맞아요`:`받은 카톡은 ${esc(fullWon(r.claim)||'0원')} · 계산이 틀려요`)}</p>
+    ${r.ok?'<p class="ck-ok">계산과 양식 모두 정산 규칙과 같아요. 그대로 써도 돼요.</p>':`<ul class="ck-list">${r.money.map(x=>li(x,'money')).join('')}${r.form.map(x=>li(x,'form')).join('')}</ul>`}
+    ${r.how.length?`<details class="ck-how"><summary>보내는금액 계산 보기</summary><ul>${r.how.map(x=>`<li><span>${esc(x.k)}</span><b>${x.won<0?'−':'+'}${esc(Math.abs(x.won).toLocaleString('ko-KR'))}원</b></li>`).join('')}<li class="sum"><span>보내는금액</span><b>${esc(fullWon(r.send)||'0원')}</b></li></ul></details>`:''}`;
+  box.hidden=false; $('#ckOut').value=r.out;
+  if(scroll) res.scrollIntoView({behavior:reduceMotion()?'auto':'smooth',block:'start'});
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest&&e.target.closest('[data-ck-open],[data-ck-close],#ckRun,#ckClear,#ckCopy'); if(!t) return;
+  if(t.hasAttribute('data-ck-open')){ openCheck(); return; }
+  if(t.hasAttribute('data-ck-close')){ ckOn=false; renderSettle(); window.scrollTo(0,0); return; }
+  if(t.id==='ckRun'){ ckText=$('#ckIn').value; runCheck(true); return; }
+  if(t.id==='ckClear'){ ckText=''; $('#ckIn').value=''; runCheck(false); $('#ckIn').focus(); return; }
+  if(t.id==='ckCopy') copyFrom($('#ckOut'),'고친 정산 카톡을 복사했습니다');
+});
+document.addEventListener('input',e=>{ if(e.target.id!=='ckIn') return; ckText=e.target.value; clearTimeout(ckTimer); ckTimer=setTimeout(()=>runCheck(false),450); });
 function renderSettle(){
   const c=curCase(), el=$('#p-settle');
   el.classList.remove('wz-on','wz-end');
-  if(!c){ el.innerHTML=`<div class="sec quick-start"><div class="sec-head"><h2>정산 시작</h2></div><p class="note">행사 입력 없이도 정산 카톡과 봉투를 바로 만들 수 있어요. 행사번호 · 장소 · 발인일부터 하나씩 물어봐요.</p><div class="row"><button class="btn primary" type="button" data-quick-settle>정산만 바로 시작</button><button class="btn" type="button" data-go-input>행사 입력으로</button></div></div>`; return; }
+  el.classList.toggle('ck-on',ckOn);
+  if(ckOn){ renderCheck(); return; }
+  if(!c){ el.innerHTML=`<div class="sec quick-start"><div class="sec-head"><h2>정산 시작</h2></div><p class="note">행사 입력 없이도 정산 카톡과 봉투를 바로 만들 수 있어요. 행사번호 · 장소 · 발인일부터 하나씩 물어봐요.</p><div class="row"><button class="btn primary" type="button" data-quick-settle>정산만 바로 시작</button><button class="btn" type="button" data-go-input>행사 입력으로</button><button class="btn" type="button" data-ck-open>받은 정산 카톡 검사</button></div></div>`; return; }
   const s=S(c), f=c.f; if(!s.minus) s.minus=[]; if(!s.flowerSalePay) s.flowerSalePay='현금';
   const wiz=settleMode==='wizard';
   el.classList.toggle('wz-on',wiz);
-  const main=wiz?wzFrame(c):`<div class="sm-switch settle-wide"><span>한 화면에 모두 보는 중</span><div class="sm-btns"><button class="btn sm" type="button" data-wz-end>확인 화면</button><button class="btn sm" type="button" data-wz-mode="wizard">한 단계씩 입력하기</button></div></div>
+  const main=wiz?wzFrame(c):`<div class="sm-switch settle-wide"><span>한 화면에 모두 보는 중</span><div class="sm-btns"><button class="btn sm" type="button" data-ck-open>받은 카톡 검사</button><button class="btn sm" type="button" data-wz-end>확인 화면</button><button class="btn sm" type="button" data-wz-mode="wizard">한 단계씩 입력하기</button></div></div>
     <div class="settle-guide settle-wide"><b>숫자만 넣으면 만원</b>입니다. 30 → 30만원<br>칸 아래 실제 금액, 제목 옆 <b>+</b>/<b>−</b>는 보내는금액에 들어가는 몫이에요.</div>
     <div class="sec"><div class="sec-head"><h2>기본 정보</h2></div><div class="fields">${basicFields(c)}</div></div>
     ${GRP.map(st=>`<div class="sec${st.id==='def'?' settle-wide':''}" ${st.id==='def'?'id="defSec"':''}><div class="sec-head"><h2>${esc(st.t)}</h2>${sChip(st.chip)}</div><div class="fields">${stepBody(st.id,c,true)}</div></div>`).join('')}`;
