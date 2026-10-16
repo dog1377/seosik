@@ -18,7 +18,7 @@
 ## 1. 절대 하면 안 되는 것
 
 1. **저장 키 이름을 바꾸거나 지우지 않는다.** 바꾸면 직원 휴대폰의 기록이 안 보이게 됩니다.
-   - localStorage: `funeral-band-v2`(장례일정 · 정산 · 봉투 전부), `hyumu-*`(휴무/당직), `funeral-settleMode`, `funeral-lastBackup`, `funeral-firstUse`, `funeral-bkSnooze`, `funeral-snapVer`, `funeral-snapDay`, `mf.*`(관리자 서식), `ca.*`(DW관리)
+   - localStorage: `funeral-band-v2`(장례일정 · 정산 · 봉투 전부), `hyumu-*`(휴무/당직), `funeral-settleMode`, `funeral-inputMode`, `funeral-lastBackup`, `funeral-firstUse`, `funeral-bkSnooze`, `funeral-snapVer`, `funeral-snapDay`, `mf.*`(관리자 서식), `ca.*`(DW관리)
    - IndexedDB: `funeral-safe`(장례일정 자동 보관본), `manager-forms`(관리자 서식), `company-admin`(DW관리)
    - sessionStorage: `ca.unlock`
 2. **데이터 모양을 바꿀 때는 기존 값을 살리는 이전 코드(마이그레이션)를 넣고**, 한 번만 돌도록 표시값을 둔다 (예: `if(!db.vItems17){ …; db.vItems17=true; }`).
@@ -59,6 +59,8 @@
 - 업체별 입력 칸 예시(`FIELD_EX`): 화장장명 "예: 부산 / 창원 / 김해", 상품 — 현진시닝 "예: 삼성전기 270 일반형" · 고이장례연구소 "예: 2026 가족장 289", 소속 — 현진시닝 "예: 부산본부".
 - 시간 칸은 24시간제 · 10분 단위. 차종은 띄어쓰기("버스 리무진").
 - **글꼴**: 본문은 **Pretendard**(jsDelivr `pretendard@1.3.9` 동적 subset CSS, 버전 고정), 제목(앱 이름 · 화면 제목 · 시트 제목)은 **Noto Serif KR**(Google Fonts). 세 앱 모두 같은 글꼴 묶음(`"Pretendard Variable","Pretendard",-apple-system,…,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif`). 서비스워커(`sw.template.js`)가 두 글꼴 파일을 보관해서 인터넷이 약해도 그대로 보인다. 숫자는 `tabular-nums`(자리 맞춤), 한국어 줄바꿈은 `word-break:keep-all`.
+- **디자인 A · 부고장** (2026.10.16 사용자가 고름, 세 앱 공통): 흰 종이 · 먹색(`#1c1d1f`) · 명조 제목. 주 버튼은 먹색, 위 막대 아래 · 아래 메뉴 위에 먹색 가는 선, 버튼 · 칸 모서리 4px · 카드 6px, 그림자 없음. 정산 질문은 큰 명조, 금액 칸은 밑줄만, 보내는금액은 두 줄 테두리(`3px double`) 안에 명조. 색은 `src/funeral-theme.html`(장례일정)과 `src/app.html` · `src/admin.html`의 `:root`에 있다 (밝은 · 어두운 화면 둘 다).
+- **행사 입력은 한 칸씩**: 입력 묶음 카드(고인 정보 · 고객 · 상주 …)를 하나씩 보여 주고 「이전 / 다음(다음 카드 이름)」으로 넘긴다. 넘길 때 옆에서 부드럽게 들어옴(움직임 줄이기 설정이면 없음). 위쪽 4개 탭으로 묶음 이동, 「모두 보기」로 예전처럼 한 묶음 전체 보기(이 기기에 `funeral-inputMode`로 기억). 마지막 카드에서 다음 → 보고서.
 - **휴대폰(699px 이하) 장례일정 위쪽**: 화면 제목 덩어리(`.page-intro`)와 위쪽 탭(`.work-tabs`)은 숨김(맨 위 막대 · 아래 메뉴와 겹침), 행사 기록 상자는 작게. 태블릿 · PC는 그대로. (`src/funeral-theme.html` 맨 아래)
 
 ---
@@ -167,6 +169,7 @@ python3 -m http.server 8765 --bind 127.0.0.1 &
 
 ## 7. 코드 지도 (`src/funeral.html`)
 - 저장: `KEY='funeral-band-v2'`, `store`, `save()`, 마이그레이션 표시값 `db.v3`~`db.v9`, `db.vVeh`, `db.dwVendorAdded`, `db.vItems17`. 자동 보관본 `autoSnapshot` · `renderSnaps`.
+- 행사 입력 한 칸씩: `inputMode` · `inputSection` · `inputSecs` · `applyInputGroup(scroll, dir)`.
 - 행사: `makeCase` · `startCase` · `changeCaseCo` · `caseMonth` · `caseLabel` · `renderCaseSel` · `renderInput` · `vals`(양식 칸 값) · `fillTpl`(양식 채우기).
 - 금액: `toWon` · `wonStr` · `money` · `hqRound` · `urnSplit` · `flowerSplit` · `envSplit`.
 - 정산: `S(c)`(정산 데이터 `case.s`) · `settleCalc` · `settleText` · `deficits` · `caseTag` · `commData` · `commText`.

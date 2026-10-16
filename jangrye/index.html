@@ -8,8 +8,9 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.16-5">
-<meta name="theme-color" content="#293f65">
+<meta name="app-version" content="2026.10.16-6">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>장례일정</title>
@@ -368,6 +369,12 @@ select.input{padding-right:30px}
 .group-footer p{font-size:12px;color:var(--muted);margin:0}
 .group-footer .btn{min-height:44px}
 .group-footer .ui-icon{width:16px;height:16px}
+.im-row{display:flex;align-items:center;gap:10px;flex:none}
+.im-mode{white-space:nowrap}
+.input-grid.step{grid-template-columns:minmax(0,1fr)}
+.input-grid>.sec.in-next{animation:wzSoftN .32s ease-out both}
+.input-grid>.sec.in-prev{animation:wzSoftP .32s ease-out both}
+@media (prefers-reduced-motion:reduce){.input-grid>.sec{animation:none!important}}
 .btn{border-radius:10px;font-size:14px;font-weight:600;min-height:44px;padding:0 16px;gap:7px;transition:background .15s,box-shadow .15s,border-color .15s}
 .btn:hover{background:var(--field);border-color:var(--edge)}
 .btn.primary{box-shadow:0 2px 4px rgba(26,46,78,.08)}
@@ -1629,6 +1636,11 @@ const UI_ICONS={"calendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx
 const uiIcon=k=>`<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">${UI_ICONS[k]||''}</svg>`;
 const INPUT_GROUPS=[{id:'basic',label:'기본 정보'},{id:'schedule',label:'장례 일정'},{id:'service',label:'상품·제공'},{id:'staff',label:'담당·배치'}];
 let inputGroup='basic';
+/* 행사 입력: 한 칸씩(입력 묶음 카드 하나씩) 보기 · 모두 보기. 고른 방식은 이 기기에 기억 */
+let inputSection=null;
+const IM_KEY='funeral-inputMode';
+let inputMode=(()=>{ try{ return localStorage.getItem(IM_KEY)==='all'?'all':'step'; }catch(e){ return 'step'; } })();
+const inputSecs=()=>INPUT_GROUPS.flatMap(g=>[...document.querySelectorAll(`#inputGrid>.sec[data-group="${g.id}"]`)]);
 const SECTION_UI={
   sched:{group:'schedule',title:'장례 일정'},cust:{group:'basic',title:'고객 · 회원 정보'},
   name:{group:'basic',title:'고인 정보'},chief:{group:'basic',title:'상주 정보'},
@@ -1637,13 +1649,25 @@ const SECTION_UI={
   coupon:{group:'service',title:'확인 사항'},mgr:{group:'staff',title:'관리사 배치'},
   deduct:{group:'service',title:'공제 · 추가 항목'},crem:{group:'schedule',title:'화장 · 매장'}
 };
-function applyInputGroup(scroll=false){
+function applyInputGroup(scroll=false,dir=''){
   if(!INPUT_GROUPS.some(g=>g.id===inputGroup)) inputGroup='basic';
-  const i=INPUT_GROUPS.findIndex(g=>g.id===inputGroup);
+  const step=inputMode!=='all', list=inputSecs();
+  const cur=list.find(el=>el.dataset.section===inputSection&&el.dataset.group===inputGroup)||list.find(el=>el.dataset.group===inputGroup)||list[0]||null;
+  if(cur){ inputSection=cur.dataset.section; inputGroup=cur.dataset.group; }
+  const i=INPUT_GROUPS.findIndex(g=>g.id===inputGroup), k=cur?list.indexOf(cur):-1;
+  const inGroup=list.filter(el=>el.dataset.group===inputGroup), gi=cur?inGroup.indexOf(cur):0;
   document.querySelectorAll('[data-input-group]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.inputGroup===inputGroup)));
-  document.querySelectorAll('#inputGrid>[data-group]').forEach(el=>el.hidden=el.dataset.group!==inputGroup);
-  const count=$('#inputProgress'); if(count) count.textContent=`${i+1} / 4 항목`;
-  const foot=$('#groupFooter'); if(foot) foot.innerHTML=`<button class="btn" type="button" data-group-prev ${i===0?'disabled':''}>${uiIcon('left')}이전</button><p>${i+1} / 4</p><button class="btn primary" type="button" data-group-next>${i===3?'보고서 확인':INPUT_GROUPS[i+1].label}${uiIcon('right')}</button>`;
+  list.forEach(el=>{ el.hidden=step?el!==cur:el.dataset.group!==inputGroup; });
+  $('#inputGrid')?.classList.toggle('step',step);
+  const count=$('#inputProgress'); if(count) count.textContent=step?`${INPUT_GROUPS[i].label} ${gi+1} / ${inGroup.length}`:`${i+1} / 4 항목`;
+  const mb=$('#inputModeBtn'); if(mb) mb.textContent=step?'모두 보기':'한 칸씩 보기';
+  const foot=$('#groupFooter'); if(foot){
+    if(step){ const nx=list[k+1];
+      foot.innerHTML=`<button class="btn" type="button" data-group-prev ${k<=0?'disabled':''}>${uiIcon('left')}이전</button><p>${k+1} / ${list.length}</p><button class="btn primary" type="button" data-group-next>${nx?esc(nx.dataset.title||'다음'):'보고서 확인'}${uiIcon('right')}</button>`; }
+    else foot.innerHTML=`<button class="btn" type="button" data-group-prev ${i===0?'disabled':''}>${uiIcon('left')}이전</button><p>${i+1} / 4</p><button class="btn primary" type="button" data-group-next>${i===3?'보고서 확인':INPUT_GROUPS[i+1].label}${uiIcon('right')}</button>`;
+  }
+  // 다음 · 이전으로 넘길 때 카드가 옆에서 부드럽게 들어옴 (움직임 줄이기 설정이면 없음)
+  if(step&&dir&&cur&&!reduceMotion()){ cur.classList.remove('in-next','in-prev'); void cur.offsetWidth; cur.classList.add('in-'+dir); }
   fitItemTexts();
   if(scroll) $('#inputControls')?.scrollIntoView({block:'start',behavior:'auto'});
 }
@@ -1678,8 +1702,12 @@ function updateWorkspace(t){
 }
 document.addEventListener('click',e=>{
   const go=e.target.closest('[data-ui-go]');if(go){setTab(go.dataset.uiGo);return;}
-  const group=e.target.closest('[data-input-group]');if(group){inputGroup=group.dataset.inputGroup;applyInputGroup();return;}
+  const group=e.target.closest('[data-input-group]');if(group){ const ng=group.dataset.inputGroup, d=INPUT_GROUPS.findIndex(g=>g.id===ng)>=INPUT_GROUPS.findIndex(g=>g.id===inputGroup)?'next':'prev'; if(ng!==inputGroup){ inputGroup=ng; inputSection=null; } applyInputGroup(false,d); return; }
+  if(e.target.closest('[data-input-mode]')){ inputMode=inputMode==='all'?'step':'all'; try{ localStorage.setItem(IM_KEY,inputMode); }catch(err){ /* 저장 못 해도 이번엔 바뀜 */ } applyInputGroup(true); return; }
   const next=e.target.closest('[data-group-next]'), prev=e.target.closest('[data-group-prev]');
+  if((next||prev)&&inputMode!=='all'){ const list=inputSecs(), k=list.findIndex(el=>el.dataset.section===inputSection&&el.dataset.group===inputGroup), to=list[k+(next?1:-1)];
+    if(!to){ if(next) setTab('out'); return; }
+    inputSection=to.dataset.section; inputGroup=to.dataset.group; applyInputGroup(true,next?'next':'prev'); return; }
   if(next||prev){const i=INPUT_GROUPS.findIndex(g=>g.id===inputGroup);if(next&&i===3){setTab('out');return;}inputGroup=INPUT_GROUPS[Math.max(0,Math.min(3,i+(next?1:-1)))].id;applyInputGroup(true);}
 });
 
@@ -1927,7 +1955,7 @@ function renderInput(){
   const co=coById(c.companyId);
   let h=`<div class="co-card"><div class="co-identity"><span class="co-symbol">${uiIcon('building')}</span><div><small>진행 업체${co.id===ETC?' · 기본 양식':''}${c.quick?' · 정산에서 바로 만든 행사':''}</small><b>${esc(caseCoName(c))}</b></div></div><button class="btn sm" type="button" data-act="changeCo">업체 변경</button></div>
     ${co.id===ETC?`<label class="f co-name-f"><span class="field-label">업체명 <span class="lbl-sub">기타 업체로 작성할 때 보고서에 들어갈 업체 이름</span></span><input class="input" id="f_coName" data-k="coName" value="${esc(c.f.coName||'')}" placeholder="예: ○○상조" autocomplete="off"></label>`:''}
-    <div class="input-controls" id="inputControls"><nav class="group-tabs" aria-label="입력 항목">${INPUT_GROUPS.map(g=>`<button type="button" data-input-group="${g.id}" aria-pressed="${g.id===inputGroup}">${g.label}</button>`).join('')}</nav><span class="input-progress" id="inputProgress"></span></div><div class="input-grid" id="inputGrid">`;
+    <div class="input-controls" id="inputControls"><nav class="group-tabs" aria-label="입력 항목">${INPUT_GROUPS.map(g=>`<button type="button" data-input-group="${g.id}" aria-pressed="${g.id===inputGroup}">${g.label}</button>`).join('')}</nav><div class="im-row"><span class="input-progress" id="inputProgress"></span><button class="btn sm im-mode" type="button" id="inputModeBtn" data-input-mode>모두 보기</button></div></div><div class="input-grid" id="inputGrid">`;
   const used=usedPH(co);
   SECTIONS.forEach(s=>{
     const filled=k=>String(c.f[k]??'').trim()!=='';
@@ -1935,7 +1963,7 @@ function renderInput(){
     const extra = s.key==='mgr'?(used.has('관리사배치')||(c.mgr||[]).length>0) : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')||(c.deductions||[]).some(d=>String(d.text||'').trim())) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')||['cremName','cremDate','cremTime','hagwanDate'].some(filled)) : false;
     if(!rows.length && !extra) return;
     const sectionKey=s.key||s.rows[0][0].k, meta=SECTION_UI[sectionKey]||{group:'basic',title:s.t};
-    h+=`<div class="sec" data-section="${sectionKey}" data-group="${meta.group}" ${meta.group===inputGroup?'':'hidden'}><div class="sec-head"><h2>${meta.title}</h2>${s.key==='sched'?'<button class="btn link" type="button" data-act="threeDay">3일장 자동 입력</button>':''}</div><div class="fields">`;
+    h+=`<div class="sec" data-section="${sectionKey}" data-group="${meta.group}" data-title="${esc(meta.title)}" ${meta.group===inputGroup?'':'hidden'}><div class="sec-head"><h2>${meta.title}</h2>${s.key==='sched'?'<button class="btn link" type="button" data-act="threeDay">3일장 자동 입력</button>':''}</div><div class="fields">`;
     h+=rows.map(fieldRow).join('');
     if(s.key==='sched') h+=`<div id="schedInfo" class="fields"></div>`;
     if(s.key==='cust') h+=`<label class="check"><input type="checkbox" id="sameChief" ${c.f.sameChief?'checked':''}> 회원과 상주가 같은 사람</label>`;
@@ -2081,7 +2109,7 @@ $('#coList').onclick=e=>{
 };
 function startCase(id){
   const co=coById(id), c=makeCase(co.id); db.cases.push(c); db.cur=c.id; save(); dirty=true; closePicker(); setTab('input'); renderAll();
-  inputGroup='basic'; applyInputGroup(); const el=(co.id===ETC&&$('#f_coName'))||$('#f_eventNo')||$('#f_name'); if(el) el.focus(); toast(co.id===ETC?'기타 업체 행사건을 시작했습니다. 업체명을 넣어 주세요':`${co.name} 행사건을 시작했습니다`);
+  inputGroup='basic'; inputSection=null; applyInputGroup(); const el=(co.id===ETC&&$('#f_coName'))||$('#f_eventNo')||$('#f_name'); if(el) el.focus(); toast(co.id===ETC?'기타 업체 행사건을 시작했습니다. 업체명을 넣어 주세요':`${co.name} 행사건을 시작했습니다`);
 }
 function coButtons(attr){
   const cos=db.companies.filter(x=>x.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
@@ -2242,7 +2270,7 @@ function renderOut(){
   $('#missing').innerHTML=miss.length?`<span>비어 있음</span>${miss.map(([k,l])=>`<button type="button" data-go="${k}">${l}</button>`).join('')}`:'';
   fitOutText();
 }
-$('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return; setTab('input'); const el=$('#f_'+b.dataset.go); if(el){ const sec=el.closest('[data-group]'); if(sec){ inputGroup=sec.dataset.group; applyInputGroup(); } el.scrollIntoView({block:'center'}); (el.matches('input,select,textarea,button')?el:el.querySelector('input:not([type=hidden]),select,button'))?.focus(); } };
+$('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return; setTab('input'); const el=$('#f_'+b.dataset.go); if(el){ const sec=el.closest('[data-group]'); if(sec){ inputGroup=sec.dataset.group; inputSection=sec.dataset.section||null; applyInputGroup(); } el.scrollIntoView({block:'center'}); (el.matches('input,select,textarea,button')?el:el.querySelector('input:not([type=hidden]),select,button'))?.focus(); } };
 
 
 /* ---------- 관리: 회사 ---------- */
@@ -3525,27 +3553,27 @@ autoSnapshot();
 </script>
 <!-- 장례 일정 작성기 공통 디자인: build.py가 funeral.html과 jangrye/index.html 맨 끝에 넣습니다. 서식함과 같은 색·글꼴·양식, 오프라인 저장. -->
 <style id="mf-theme">
-/* 서식함과 같은 색 (밝은 화면 / 어두운 화면) */
+/* 디자인 A · 부고장: 흰 종이 · 먹색 · 명조 (밝은 화면 / 어두운 화면) */
 :root{
-  --bg:#f1f2ef; --surface:#ffffff; --field:#f6f7f4; --ink:#1a2128; --ink-2:#3a444d; --muted:#5d6771;
-  --line:#dcdfda; --edge:#c3c8c3; --ph:#737c84; --accent:#2a4759; --accent-ink:#ffffff; --accent-soft:#e1e9ee;
-  --bronze:#80601d; --warn:#953d1b; --warn-soft:#f6e3d9; --shadow:none; --radius:14px;
+  --bg:#f3f3f1; --surface:#ffffff; --field:#f7f7f5; --ink:#1c1d1f; --ink-2:#3d4044; --muted:#5a5e63;
+  --line:#d6d7d4; --edge:#9a9d9a; --ph:#767a7f; --accent:#1c1d1f; --accent-ink:#ffffff; --accent-soft:#ececea;
+  --bronze:#8c6a1f; --warn:#9a3b1e; --warn-soft:#f7e6de; --shadow:none; --radius:6px;
   --sans:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
   --serif:"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#111518; --surface:#1a2025; --field:#151a1e; --ink:#e6e9eb; --ink-2:#c3cbd1; --muted:#9ba5ae;
-    --line:#2a3239; --edge:#3b464e; --ph:#8a959e; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
-    --bronze:#d8b46a; --warn:#efa27e; --warn-soft:#3a2419; --shadow:none;
+    --bg:#121314; --surface:#1b1c1e; --field:#17181a; --ink:#ecebe8; --ink-2:#c9c8c4; --muted:#a3a6aa;
+    --line:#2e3033; --edge:#5f6368; --ph:#8d9196; --accent:#ecebe8; --accent-ink:#121314; --accent-soft:#2b2d30;
+    --bronze:#d4b26a; --warn:#eea488; --warn-soft:#3a2219; --shadow:none;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#111518; --surface:#1a2025; --field:#151a1e; --ink:#e6e9eb; --ink-2:#c3cbd1; --muted:#9ba5ae;
-  --line:#2a3239; --edge:#3b464e; --ph:#8a959e; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
-  --bronze:#d8b46a; --warn:#efa27e; --warn-soft:#3a2419; --shadow:none;
+  --bg:#121314; --surface:#1b1c1e; --field:#17181a; --ink:#ecebe8; --ink-2:#c9c8c4; --muted:#a3a6aa;
+  --line:#2e3033; --edge:#5f6368; --ph:#8d9196; --accent:#ecebe8; --accent-ink:#121314; --accent-soft:#2b2d30;
+  --bronze:#d4b26a; --warn:#eea488; --warn-soft:#3a2219; --shadow:none;
 }
 body{background:var(--bg);font-family:var(--sans);font-variant-numeric:tabular-nums;letter-spacing:normal;line-height:1.55;word-break:keep-all;overflow-wrap:break-word}
 
@@ -3608,6 +3636,48 @@ label.f>.field-label{color:var(--muted)}
 .acc-b button.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
 .toast{background:var(--ink);color:var(--surface);border-radius:12px;box-shadow:none}
 
+/* ---------- 디자인 A · 부고장 ----------
+   흰 종이 위에 먹색. 위아래 막대는 먹색 가는 선으로 테두리처럼, 제목은 명조, 버튼 · 칸은 덜 둥글게.
+   보내는금액은 부고장처럼 두 줄 테두리 안에 명조로 */
+.appbar{background:var(--surface);border-bottom:1px solid var(--ink)}
+.mobile-nav{border-top:1px solid var(--ink)}
+.mobile-nav button[aria-current="page"]{color:var(--ink)}
+.sec,.out,.case-panel,.co-card,.wz-card,.wz-review{border-radius:6px}
+.sec-head h2{font-family:var(--serif);font-size:17px;font-weight:700;letter-spacing:0}
+.sec-num{font-family:var(--sans);font-weight:500}
+.btn,.btn.sm,#newCase,.btn.link{border-radius:4px}
+#newCase{background:var(--surface);color:var(--ink);border:1px solid var(--ink)}
+#newCase:hover{background:var(--accent-soft)}
+.input,.ch-btn{border-radius:4px}
+.input:focus,.ch-btn.open{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.group-tabs{border-radius:6px}
+.group-tabs button{border-radius:4px}
+.group-tabs button[aria-pressed="true"]{color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.chip{border-radius:4px}
+.co-btn{border-radius:4px}
+.item .tog{border-radius:4px;background:var(--accent-soft);color:var(--ink)}
+.toast{border-radius:4px}
+/* 정산: 질문은 큰 명조, 금액 칸은 밑줄만, 진행 줄은 먹색 가는 줄 */
+.wz-card{border:1px solid var(--line)}
+.wz-card .wz-q{font-family:var(--serif);font-weight:700;letter-spacing:-.01em;line-height:1.38}
+.wz-prog{height:2px;border-radius:0;background:var(--line)}
+.wz-prog i{border-radius:0;background:var(--ink)}
+.wz-amt .input{border:0;border-bottom:2px solid var(--ink);border-radius:0;background:transparent;padding-left:0;font-size:42px;font-weight:600;letter-spacing:-.02em;min-height:72px;box-shadow:none}
+.wz-amt .input:focus{border-bottom-color:var(--ink);box-shadow:none}
+.wz-amt .amt-u{right:0}
+.wz-go{border-radius:4px}
+.wz-card .wz-choice button{border-radius:4px;background:var(--surface);border:1px solid var(--edge)}
+.wz-card .wz-choice button[aria-pressed="true"]{border:2px solid var(--ink);background:var(--accent-soft);color:var(--ink)}
+.wz-total{background:var(--surface);border:3px double var(--ink);border-radius:0;animation:none}
+.wz-total b{font-family:var(--serif);font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.wz-total.neg{background:var(--surface);border-color:var(--warn)}
+.wz-total.neg b{color:var(--warn)}
+.wz-result,.calc,.ledger,.text-out,.ex,.mg,.rp,.rc-box,.wz-item,.wz-text,.missing,.def-alert,.def-me,.def-month,.def-row,.auto-mi,.snap-list,.sub-fold,.sub-block,.settle-guide,.sm-switch,.settle-bar,.bk-banner,.acc-h,.wz-back{border-radius:4px}
+.env-event,.env-form,.env-stat,.env-prev,.env-lock{border-radius:6px}
+/* 행사 입력: 한 칸씩 보기 */
+.im-mode{border:0;background:none;color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;min-height:40px;padding:0 4px}
+.input-grid.step>.sec{min-height:260px}
+
 /* 휴대폰: 할 일이 바로 보이게 위쪽을 줄임.
    화면 제목은 맨 위 막대에 이미 있고, 입력 · 보고서 · 정산은 아래 메뉴에 있어서 겹치는 것만 숨김 */
 @media (max-width:699px){
@@ -3618,16 +3688,19 @@ label.f>.field-label{color:var(--muted)}
   .cm-label b{font-size:15px}
   #ttlNote:not(.warn){display:none}
   body[data-tab="envelopes"] .top,body[data-tab="admin"] .top{display:none}
+  .im-row{justify-content:space-between;margin-top:8px}
+  .im-row .input-progress{display:inline;font-size:12.5px}
+  .wz-amt .input{font-size:38px}
 }
 </style>
 <script>
 (function () {
   'use strict';
   // 휴무 · 당직 화면(안쪽 창)에도 같은 색과 글꼴
-  var DUTY_THEME = ':root{--bg:#f1f2ef;--surface:#ffffff;--surface-2:#f6f7f4;--line:#dcdfda;--line-2:#e8eae6;' +
-    '--text:#1a2128;--text-2:#3a444d;--muted:#5d6771;--faint:#8a939b;' +
-    '--primary:#2a4759;--primary-600:#1f3646;--primary-50:#e1e9ee;--primary-100:#cfdce4;' +
-    '--a:#2a4759;--a-bg:#e1e9ee;--b:#80601d;--b-bg:#f2e9d4;--sat:#2a5d8f;' +
+  var DUTY_THEME = ':root{--bg:#f3f3f1;--surface:#ffffff;--surface-2:#f7f7f5;--line:#d6d7d4;--line-2:#e6e6e3;' +
+    '--text:#1c1d1f;--text-2:#3d4044;--muted:#5a5e63;--faint:#767a7f;' +
+    '--primary:#1c1d1f;--primary-600:#000000;--primary-50:#ececea;--primary-100:#dcdcd9;' +
+    '--a:#1c1d1f;--a-bg:#ececea;--b:#8c6a1f;--b-bg:#f2ead6;--sat:#2a5d8f;' +
     '--r:12px;--r-sm:9px;--sh-1:none;--font:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif}' +
     'body{letter-spacing:normal}';
   var duty = document.getElementById('dutyFrame');

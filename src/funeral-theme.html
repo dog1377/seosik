@@ -1,26 +1,26 @@
 <!-- 장례 일정 작성기 공통 디자인: build.py가 funeral.html과 jangrye/index.html 맨 끝에 넣습니다. 서식함과 같은 색·글꼴·양식, 오프라인 저장. -->
 <style id="mf-theme">
-/* 서식함과 같은 색 (밝은 화면 / 어두운 화면) */
+/* 디자인 A · 부고장: 흰 종이 · 먹색 · 명조 (밝은 화면 / 어두운 화면) */
 :root{
-  --bg:#f1f2ef; --surface:#ffffff; --field:#f6f7f4; --ink:#1a2128; --ink-2:#3a444d; --muted:#5d6771;
-  --line:#dcdfda; --edge:#c3c8c3; --ph:#737c84; --accent:#2a4759; --accent-ink:#ffffff; --accent-soft:#e1e9ee;
-  --bronze:#80601d; --warn:#953d1b; --warn-soft:#f6e3d9; --shadow:none; --radius:14px;
+  --bg:#f3f3f1; --surface:#ffffff; --field:#f7f7f5; --ink:#1c1d1f; --ink-2:#3d4044; --muted:#5a5e63;
+  --line:#d6d7d4; --edge:#9a9d9a; --ph:#767a7f; --accent:#1c1d1f; --accent-ink:#ffffff; --accent-soft:#ececea;
+  --bronze:#8c6a1f; --warn:#9a3b1e; --warn-soft:#f7e6de; --shadow:none; --radius:6px;
   --sans:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
   --serif:"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#111518; --surface:#1a2025; --field:#151a1e; --ink:#e6e9eb; --ink-2:#c3cbd1; --muted:#9ba5ae;
-    --line:#2a3239; --edge:#3b464e; --ph:#8a959e; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
-    --bronze:#d8b46a; --warn:#efa27e; --warn-soft:#3a2419; --shadow:none;
+    --bg:#121314; --surface:#1b1c1e; --field:#17181a; --ink:#ecebe8; --ink-2:#c9c8c4; --muted:#a3a6aa;
+    --line:#2e3033; --edge:#5f6368; --ph:#8d9196; --accent:#ecebe8; --accent-ink:#121314; --accent-soft:#2b2d30;
+    --bronze:#d4b26a; --warn:#eea488; --warn-soft:#3a2219; --shadow:none;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#111518; --surface:#1a2025; --field:#151a1e; --ink:#e6e9eb; --ink-2:#c3cbd1; --muted:#9ba5ae;
-  --line:#2a3239; --edge:#3b464e; --ph:#8a959e; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
-  --bronze:#d8b46a; --warn:#efa27e; --warn-soft:#3a2419; --shadow:none;
+  --bg:#121314; --surface:#1b1c1e; --field:#17181a; --ink:#ecebe8; --ink-2:#c9c8c4; --muted:#a3a6aa;
+  --line:#2e3033; --edge:#5f6368; --ph:#8d9196; --accent:#ecebe8; --accent-ink:#121314; --accent-soft:#2b2d30;
+  --bronze:#d4b26a; --warn:#eea488; --warn-soft:#3a2219; --shadow:none;
 }
 body{background:var(--bg);font-family:var(--sans);font-variant-numeric:tabular-nums;letter-spacing:normal;line-height:1.55;word-break:keep-all;overflow-wrap:break-word}
 
@@ -83,6 +83,48 @@ label.f>.field-label{color:var(--muted)}
 .acc-b button.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
 .toast{background:var(--ink);color:var(--surface);border-radius:12px;box-shadow:none}
 
+/* ---------- 디자인 A · 부고장 ----------
+   흰 종이 위에 먹색. 위아래 막대는 먹색 가는 선으로 테두리처럼, 제목은 명조, 버튼 · 칸은 덜 둥글게.
+   보내는금액은 부고장처럼 두 줄 테두리 안에 명조로 */
+.appbar{background:var(--surface);border-bottom:1px solid var(--ink)}
+.mobile-nav{border-top:1px solid var(--ink)}
+.mobile-nav button[aria-current="page"]{color:var(--ink)}
+.sec,.out,.case-panel,.co-card,.wz-card,.wz-review{border-radius:6px}
+.sec-head h2{font-family:var(--serif);font-size:17px;font-weight:700;letter-spacing:0}
+.sec-num{font-family:var(--sans);font-weight:500}
+.btn,.btn.sm,#newCase,.btn.link{border-radius:4px}
+#newCase{background:var(--surface);color:var(--ink);border:1px solid var(--ink)}
+#newCase:hover{background:var(--accent-soft)}
+.input,.ch-btn{border-radius:4px}
+.input:focus,.ch-btn.open{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.group-tabs{border-radius:6px}
+.group-tabs button{border-radius:4px}
+.group-tabs button[aria-pressed="true"]{color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.chip{border-radius:4px}
+.co-btn{border-radius:4px}
+.item .tog{border-radius:4px;background:var(--accent-soft);color:var(--ink)}
+.toast{border-radius:4px}
+/* 정산: 질문은 큰 명조, 금액 칸은 밑줄만, 진행 줄은 먹색 가는 줄 */
+.wz-card{border:1px solid var(--line)}
+.wz-card .wz-q{font-family:var(--serif);font-weight:700;letter-spacing:-.01em;line-height:1.38}
+.wz-prog{height:2px;border-radius:0;background:var(--line)}
+.wz-prog i{border-radius:0;background:var(--ink)}
+.wz-amt .input{border:0;border-bottom:2px solid var(--ink);border-radius:0;background:transparent;padding-left:0;font-size:42px;font-weight:600;letter-spacing:-.02em;min-height:72px;box-shadow:none}
+.wz-amt .input:focus{border-bottom-color:var(--ink);box-shadow:none}
+.wz-amt .amt-u{right:0}
+.wz-go{border-radius:4px}
+.wz-card .wz-choice button{border-radius:4px;background:var(--surface);border:1px solid var(--edge)}
+.wz-card .wz-choice button[aria-pressed="true"]{border:2px solid var(--ink);background:var(--accent-soft);color:var(--ink)}
+.wz-total{background:var(--surface);border:3px double var(--ink);border-radius:0;animation:none}
+.wz-total b{font-family:var(--serif);font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.wz-total.neg{background:var(--surface);border-color:var(--warn)}
+.wz-total.neg b{color:var(--warn)}
+.wz-result,.calc,.ledger,.text-out,.ex,.mg,.rp,.rc-box,.wz-item,.wz-text,.missing,.def-alert,.def-me,.def-month,.def-row,.auto-mi,.snap-list,.sub-fold,.sub-block,.settle-guide,.sm-switch,.settle-bar,.bk-banner,.acc-h,.wz-back{border-radius:4px}
+.env-event,.env-form,.env-stat,.env-prev,.env-lock{border-radius:6px}
+/* 행사 입력: 한 칸씩 보기 */
+.im-mode{border:0;background:none;color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;min-height:40px;padding:0 4px}
+.input-grid.step>.sec{min-height:260px}
+
 /* 휴대폰: 할 일이 바로 보이게 위쪽을 줄임.
    화면 제목은 맨 위 막대에 이미 있고, 입력 · 보고서 · 정산은 아래 메뉴에 있어서 겹치는 것만 숨김 */
 @media (max-width:699px){
@@ -93,16 +135,19 @@ label.f>.field-label{color:var(--muted)}
   .cm-label b{font-size:15px}
   #ttlNote:not(.warn){display:none}
   body[data-tab="envelopes"] .top,body[data-tab="admin"] .top{display:none}
+  .im-row{justify-content:space-between;margin-top:8px}
+  .im-row .input-progress{display:inline;font-size:12.5px}
+  .wz-amt .input{font-size:38px}
 }
 </style>
 <script>
 (function () {
   'use strict';
   // 휴무 · 당직 화면(안쪽 창)에도 같은 색과 글꼴
-  var DUTY_THEME = ':root{--bg:#f1f2ef;--surface:#ffffff;--surface-2:#f6f7f4;--line:#dcdfda;--line-2:#e8eae6;' +
-    '--text:#1a2128;--text-2:#3a444d;--muted:#5d6771;--faint:#8a939b;' +
-    '--primary:#2a4759;--primary-600:#1f3646;--primary-50:#e1e9ee;--primary-100:#cfdce4;' +
-    '--a:#2a4759;--a-bg:#e1e9ee;--b:#80601d;--b-bg:#f2e9d4;--sat:#2a5d8f;' +
+  var DUTY_THEME = ':root{--bg:#f3f3f1;--surface:#ffffff;--surface-2:#f7f7f5;--line:#d6d7d4;--line-2:#e6e6e3;' +
+    '--text:#1c1d1f;--text-2:#3d4044;--muted:#5a5e63;--faint:#767a7f;' +
+    '--primary:#1c1d1f;--primary-600:#000000;--primary-50:#ececea;--primary-100:#dcdcd9;' +
+    '--a:#1c1d1f;--a-bg:#ececea;--b:#8c6a1f;--b-bg:#f2ead6;--sat:#2a5d8f;' +
     '--r:12px;--r-sm:9px;--sh-1:none;--font:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif}' +
     'body{letter-spacing:normal}';
   var duty = document.getElementById('dutyFrame');
