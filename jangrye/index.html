@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.16-3">
+<meta name="app-version" content="2026.10.16-4">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -1861,7 +1861,7 @@ document.addEventListener('input',e=>{ const t=e.target; if(t.closest&&t.closest
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-cnt]'); if(!b) return; const inp=document.getElementById('f_'+b.dataset.cnt); if(!inp) return;
   inp.value=inp.value.trim()===b.dataset.v?'':b.dataset.v; inp.dispatchEvent(new Event('input',{bubbles:true})); });
 // 업체별 입력 칸 예시 (칸이 비어 있을 때 흐리게 보임)
-const FIELD_EX={'현진시닝':{product:'예: 삼성전기 270 일반형',staffOrg:'예: 부산본부'},'고이장례연구소':{product:'예: 2026 가족장 289'}};
+const FIELD_EX={'현진시닝':{product:'예: 삼성전기 270 일반형',staffOrg:'예: 부산본부',mourn:'예: 부친상 / 모친상'},'고이장례연구소':{product:'예: 2026 가족장 289'}};
 const exFor=k=>{ const c=curCase(); if(!c) return ''; return (FIELD_EX[caseCoName(c).replace(/\s/g,'')]||{})[k]||''; };
 const exAttr=k=>exFor(k)?` placeholder="${esc(exFor(k))}"`:'';
 function ctl(fd){
