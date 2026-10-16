@@ -94,8 +94,9 @@ svg{flex:none}
 .field > span,.field-label{font-size:13px;font-weight:500;color:var(--muted)}
 .field-label{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .opt{font-weight:400;font-size:12px;color:var(--muted)}
-input[type="text"],input[type="number"],input[type="date"],input:not([type]),textarea{width:100%;min-width:0;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;line-height:1.45}
+input[type="text"],input[type="number"],input[type="date"],select,input:not([type]),textarea{width:100%;min-width:0;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;line-height:1.45}
 input[type="date"]{min-height:47px;-webkit-appearance:none;appearance:none}
+select{min-height:47px}
 textarea{resize:none;min-height:70px;overflow:hidden}
 input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -187,8 +188,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 
 /* ---------- Tab bar & toast ---------- */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabbar-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
-.tabbar-in.five{grid-template-columns:repeat(5,1fr)}
+.tabbar-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabbar-in.six{grid-template-columns:repeat(6,1fr)}
 .tabbar button{min-width:0;white-space:nowrap}
 .tabbar button{height:var(--tabbar-h);display:grid;place-items:center;align-content:center;gap:3px;font-size:12px;color:var(--muted);background:none;border:0}
 .tabbar button[aria-current="page"]{color:var(--accent);font-weight:700}
@@ -257,7 +258,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 @media (min-width:1000px){
   .appbar-in,.wrap,.tabbar-in{max-width:1220px}
   .wrap{padding-inline:28px}
-  .wrap>.banner,.wrap>.install-card,.wrap>.update-bar,#tab-weekly,#tab-settings,#tab-ship>.tab-head,#shipSeg,#shipLog{width:100%;max-width:760px;margin-inline:auto}
+  .wrap>.banner,.wrap>.install-card,.wrap>.update-bar,#tab-weekly,#tab-minutes,#tab-settings,#tab-ship>.tab-head,#shipSeg,#shipLog{width:100%;max-width:760px;margin-inline:auto}
   #tab-review{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:28px;align-items:start}
   #tab-review>.tab-head{grid-column:1/-1}
   .rv-main,.rv-side{display:grid;gap:16px;min-width:0}
@@ -267,9 +268,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
   .rpt-main{display:grid;gap:16px;min-width:0}
   .live-pv{display:grid;gap:10px;min-width:0}
   #rptLive{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));max-height:calc(100dvh - 64px - var(--tabbar-h) - 28px);overflow-y:auto;overscroll-behavior:contain}
-  #weeklyEditor .screen-body{display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr);column-gap:32px;align-items:start;padding-inline:max(24px,calc((100vw - 1320px) / 2))}
-  #weeklyEditor .screen-body>.inner{margin:0;max-width:none}
-  #wLive{position:sticky;top:0}
+  #weeklyEditor .screen-body,#minutesEditor .screen-body{display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr);column-gap:32px;align-items:start;padding-inline:max(24px,calc((100vw - 1320px) / 2))}
+  #weeklyEditor .screen-body>.inner,#minutesEditor .screen-body>.inner{margin:0;max-width:none}
+  #wLive,#mLive{position:sticky;top:0}
   #previewScreen .inner,#sigScreen .inner{max-width:820px}
 }
 </style>
@@ -311,6 +312,17 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     <b>저장에 실패했어요</b>
     기기 저장공간이 부족할 수 있어요. 설정에서 백업 파일을 먼저 받아 두세요.
   </div>
+
+  <!-- ===== 회의록 ===== -->
+  <section class="tab" id="tab-minutes" hidden>
+    <div class="tab-head">
+      <h1>회의록</h1>
+      <p>회의 내용과 결정사항을 적으면 기존 보고서와 같은 양식의 이미지와 PDF로 만들어져요.</p>
+    </div>
+    <button class="btn primary block" id="newMinutes" type="button">+ 회의록 작성</button>
+    <div class="list" id="minutesList"></div>
+    <div class="empty" id="minutesEmpty"><p class="empty-msg">아직 작성한 회의록이 없어요. 위 버튼으로 새 회의록을 작성해 보세요. 입력한 내용은 자동으로 저장돼요.</p></div>
+  </section>
 
   <!-- ===== 주간보고 ===== -->
   <section class="tab" id="tab-weekly">
@@ -482,6 +494,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>
       주간보고
     </button>
+    <button type="button" data-tab="minutes" aria-current="false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v4H9zM9 11h6M9 15h6M9 18h4"/></svg>
+      회의록
+    </button>
     <button type="button" data-tab="review" aria-current="false">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v10.5H10l-4.5 3.5V16H4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>
       후기보고
@@ -496,6 +512,40 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     </button>
   </div>
 </nav>
+
+<!-- ===== 회의록 작성 화면 ===== -->
+<div class="screen" id="minutesEditor" hidden>
+  <div class="screen-bar">
+    <button class="back" type="button" id="mBack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>목록</button>
+    <div class="screen-title">회의록</div>
+    <span class="save-state" id="mSaveState" role="status"></span>
+  </div>
+  <div class="screen-body">
+    <div class="inner" id="mFields">
+      <label class="field"><span>회의명</span><input id="mTitle" data-minute="title" type="text" placeholder="예: 10월 파트장 회의"></label>
+      <div class="grid2">
+        <label class="field"><span>회의일</span><input id="mDate" data-minute="date" type="date"></label>
+        <label class="field"><span>장소</span><input id="mPlace" data-minute="place" type="text" placeholder="예: 본사 회의실"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>시작 시간 <span class="opt">선택</span></span><select id="mStart" data-minute="start"></select></label>
+        <label class="field"><span>종료 시간 <span class="opt">선택</span></span><select id="mEnd" data-minute="end"></select></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>파트명</span><input id="mPart" data-minute="part" type="text" placeholder="예: 장례지원 1파트"></label>
+        <label class="field"><span>작성자</span><input id="mAuthor" data-minute="author" type="text" placeholder="작성자 이름"></label>
+      </div>
+      <label class="field"><span>참석자</span><textarea id="mAttendees" data-minute="attendees" placeholder="참석한 분들의 이름과 직급을 적어 주세요."></textarea></label>
+      <label class="field"><span>회의 안건</span><textarea id="mAgenda" data-minute="agenda" placeholder="예: 행사 진행 현황, 직원 교육, 다음 달 일정"></textarea></label>
+      <label class="field"><span>회의 내용</span><textarea id="mDiscussion" data-minute="discussion" rows="5" placeholder="안건별로 이야기한 내용을 적어 주세요."></textarea></label>
+      <label class="field"><span>결정사항</span><textarea id="mDecisions" data-minute="decisions" placeholder="회의에서 결정한 내용을 적어 주세요."></textarea></label>
+      <label class="field"><span>후속 조치 <span class="opt">담당자 · 기한</span></span><textarea id="mFollowup" data-minute="followup" placeholder="예: 김OO 실장 / 10월 20일까지 / 교육 일정 공유"></textarea></label>
+      <div class="danger-zone"><button class="btn danger small" type="button" id="mDelete" hidden>이 회의록 삭제</button></div>
+    </div>
+    <aside class="live-pv" id="mLive" aria-label="회의록 미리보기"><div class="live-head"><b>입력하면 바로 바뀌는 회의록</b><button class="btn small" type="button" data-live-open>크게 보기 · 저장</button></div><div class="live-doc"></div></aside>
+  </div>
+  <div class="screen-actions"><div class="inner"><button class="btn" type="button" id="mCopy">문구 복사</button><button class="btn primary" type="button" id="mPreview">미리보기 · 저장</button></div></div>
+</div>
 
 <!-- ===== 주간보고 작성 화면 ===== -->
 <div class="screen" id="weeklyEditor" hidden>
@@ -809,11 +859,11 @@ const DEFAULT_SETTINGS = { author: '', part: '', company: '디더블유 장례�
 const RANKS = ['본부장', '총괄실장', '실장', '팀장', '파트장', '과장', '대리', '주임', '장례지도사', '사원'];
 const S = {
   settings: clone(DEFAULT_SETTINGS),
-  weekly: new Map(), ship: new Map(), imgCache: new Map(),
+  weekly: new Map(), minutes: new Map(), ship: new Map(), imgCache: new Map(),
   tab: 'weekly', shipView: 'log',
   logMonth: { y: 2026, m: 1 },
   rpt: { type: 'week', monday: mondayOf(new Date()), y: 2026, m: 1, qr: true },
-  ew: null, ewDirty: false, sd: null,
+  ew: null, ewDirty: false, em: null, emDirty: false, sd: null,
   reviews: {}, rvTitle: '', rvEnd: null, rvDirty: false, sig: null,
   es: null, esImg: null, esImgRemoved: false,
   pv: null,
@@ -842,7 +892,7 @@ function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s
 function showTab(t) {
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
   S.tab = t;
-  ['weekly', 'review', 'ship', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
+  ['weekly', 'minutes', 'review', 'ship', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
   $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
   try { localStorage.setItem('mf.tab', t); } catch (e) { /* ignore */ }
   window.scrollTo(0, 0);
@@ -851,6 +901,76 @@ function showTab(t) {
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
 async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
+
+/* ================= 회의록 (기존 kv 보관함에 추가, 기존 기록은 그대로) ================= */
+const MINUTE_FIELDS = ['title', 'date', 'place', 'start', 'end', 'part', 'author', 'attendees', 'agenda', 'discussion', 'decisions', 'followup'];
+function minutesTitle(r) { return (r.title || '').trim() || '제목 없는 회의록'; }
+function newMinutes() {
+  const r = { id: uid(), createdAt: Date.now(), updatedAt: Date.now() };
+  MINUTE_FIELDS.forEach((f) => { r[f] = ''; });
+  return Object.assign(r, { date: toKey(new Date()), part: S.settings.part || '', author: S.settings.author || '' });
+}
+function readMinutes(r) {
+  if (!r || typeof r.id !== 'string' || !r.id || !/^\d{4}-\d{2}-\d{2}$/.test(r.date || '')) return null;
+  const copy = { id: r.id, createdAt: Number(r.createdAt) || 0, updatedAt: Number(r.updatedAt) || 0 };
+  MINUTE_FIELDS.forEach((f) => { copy[f] = typeof r[f] === 'string' ? r[f] : ''; });
+  return copy;
+}
+function renderMinutesList() {
+  const list = [...S.minutes.values()].sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt - a.updatedAt);
+  $('#minutesList').innerHTML = list.map((r) => `<button class="w-card" type="button" data-id="${esc(r.id)}">
+    <span class="w-label">${esc(minutesTitle(r))}</span>
+    <span class="w-range">${esc(fmtYMD(fromKey(r.date)))}${r.start ? ` · ${esc(r.start)}` : ''}${r.place ? ` · ${esc(r.place)}` : ''}</span>
+    <span class="muted small-t">${esc([r.part, r.author ? `작성 ${r.author}` : ''].filter(Boolean).join(' · ') || '회의록')} · 수정 ${fmtDT(r.updatedAt)}</span>
+  </button>`).join('');
+  $('#minutesEmpty').hidden = list.length > 0;
+}
+function openMinutes(id) {
+  const existing = id && S.minutes.get(id);
+  S.em = existing ? clone(existing) : newMinutes(); S.emDirty = false;
+  const times = Array.from({ length: 144 }, (_, i) => `${pad(Math.floor(i / 6))}:${pad(i % 6 * 10)}`);
+  $$('#mFields select').forEach((el) => { el.innerHTML = '<option value="">선택 안 함</option>' + times.map((t) => `<option>${t}</option>`).join(''); });
+  $$('#mFields [data-minute]').forEach((el) => { el.value = S.em[el.dataset.minute] || ''; });
+  $('#mSaveState').textContent = existing ? '저장됨' : '';
+  $('#mDelete').hidden = !existing;
+  openScreen('minutesEditor');
+  $$('#mFields textarea').forEach(autosize);
+  $('.live-doc', $('#mLive')).replaceChildren(); liveMinutes(0);
+}
+let mTimer, mRevision = 0;
+const persistMinutes = () => Store.put('kv', clone([...S.minutes.values()]), 'minutes');
+function touchMinutes() {
+  S.emDirty = true; mRevision++; liveMinutes();
+  $('#mSaveState').textContent = '저장 중…';
+  clearTimeout(mTimer); mTimer = setTimeout(saveMinutesNow, 600);
+}
+async function saveMinutesNow() {
+  clearTimeout(mTimer);
+  if (!S.em || !S.emDirty) return true;
+  const revision = mRevision, copy = clone(S.em);
+  if (!copy.date) copy.date = toKey(new Date());
+  copy.updatedAt = Date.now(); S.minutes.set(copy.id, copy);
+  const ok = await persistMinutes();
+  if (S.em && S.em.id === copy.id && mRevision === revision) {
+    S.em.date = copy.date; $('#mDate').value = copy.date;
+    S.em.updatedAt = copy.updatedAt; S.emDirty = !ok;
+    $('#mSaveState').textContent = ok ? '저장됨' : '저장 안 됨';
+    $('#mDelete').hidden = false;
+  }
+  if (ok) { requestPersist(); checkBackup(); }
+  renderMinutesList(); return ok;
+}
+async function flushMinutes() {
+  clearTimeout(mTimer);
+  while (S.emDirty) { if (!await saveMinutesNow()) return false; }
+  return true;
+}
+function minutesText(r) {
+  return ['회의록', minutesTitle(r), `회의일: ${fmtYMD(fromKey(r.date || toKey(new Date())))}`,
+    ['시간', [r.start, r.end].filter(Boolean).join(' ~ ')], ['장소', r.place], ['파트명', r.part], ['작성자', r.author], ['참석자', r.attendees],
+    ['회의 안건', r.agenda], ['회의 내용', r.discussion], ['결정사항', r.decisions], ['후속 조치', r.followup]]
+    .map((v) => Array.isArray(v) ? (v[1] ? `\n${v[0]}: ${v[1]}` : '') : v).filter(Boolean).join('\n');
+}
 
 /* ================= 주간보고 ================= */
 const emptyMember = (name = '', rank = '') => ({ name, rank, issue: '', improve: '', action: '' });
@@ -905,6 +1025,8 @@ function scheduleLive(boxId, makeJob, ms) { if (!isWide()) return; clearTimeout(
 const weeklyLiveJob = () => S.ew && weeklyJob(clone(S.ew));
 const shipLiveJob = () => { const p = rptPeriod(); return shipJob(p, shipItemsBetween(p.start, p.end), S.rpt.qr); };
 const liveWeekly = (ms) => scheduleLive('wLive', weeklyLiveJob, ms);
+const minutesLiveJob = () => S.em && minutesJob(clone(S.em));
+const liveMinutes = (ms) => scheduleLive('mLive', minutesLiveJob, ms);
 const liveShip = (ms) => { if (S.shipView === 'report') scheduleLive('rptLive', shipLiveJob, ms == null ? 120 : ms); };
 function openWeekly(id) {
   const existing = id && S.weekly.get(id);
@@ -1503,6 +1625,36 @@ function footerText(s, extra) {
 }
 
 /* ----- report jobs ----- */
+function minutesBodyBlocks(text) {
+  const ctx = mctx(); ctx.font = F(400, 22);
+  const lines = wrapLines(ctx, (text || '').trim(), CW - 48), blocks = [];
+  // 본문을 나누어 A4 여러 쪽으로 저장해도 긴 회의 내용이 잘리지 않게 한다.
+  for (let i = 0; i < lines.length;) {
+    const count = i === 0 ? 5 : 24;
+    blocks.push(textBoxBlock(lines.slice(i, i + count).join('\n'))); i += count;
+  }
+  return blocks;
+}
+function minutesJob(r) {
+  const s = S.settings, date = fmtYMD(fromKey(r.date || toKey(new Date())));
+  const time = [r.start, r.end].filter(Boolean).join(' ~ ');
+  return {
+    title: '회의록', text: minutesText(r) + ' ' + [s.company, ...approvalsOf(s)].join(' '),
+    fileBase: safeName(`회의록_${date}_${minutesTitle(r)}`),
+    footerLeft: footerText({ ...s, author: r.author }),
+    build: async () => {
+      const b = [
+        headerBlock({ title: '회의록', sub: date, company: s.company, approvals: approvalsOf(s), signature: await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
+        metaBlock([['회의명', minutesTitle(r)]]),
+        metaBlock([['회의일', date], ['시간', time], ['파트명', r.part], ['작성자', r.author], ['장소', r.place]]),
+      ];
+      [['참석자', r.attendees], ['회의 안건', r.agenda], ['회의 내용', r.discussion], ['결정사항', r.decisions], ['후속 조치', r.followup]].forEach(([title, text]) => {
+        b.push(sectionBlock(title), ...minutesBodyBlocks(text));
+      });
+      return b;
+    },
+  };
+}
 function weeklyJob(r, opts = {}) {
   const s = opts.settings || S.settings;
   const wi = weekInfo(fromKey(r.weekStart));
@@ -1901,7 +2053,7 @@ function renderSettings() {
   const imgs = [...S.ship.values()].filter((e) => e.qr).length;
   const rvDays = Object.keys(S.reviews).filter((k) => (S.reviews[k] || '').trim()).length;
   const hasFuneral = window.__PWA__ && Object.keys(funeralStorage()).length > 0;
-  $('#dataCount').textContent = `이 기기에 저장된 기록: 주간보고 ${S.weekly.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)${hasFuneral ? ' · 장례업무 기록 있음' : ''}. 백업 파일에는 장례업무 기록도 함께 들어가요.`;
+  $('#dataCount').textContent = `이 기기에 저장된 기록: 주간보고 ${S.weekly.size}건 · 회의록 ${S.minutes.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)${hasFuneral ? ' · 장례업무 기록 있음' : ''}. 백업 파일에는 장례업무 기록도 함께 들어가요.`;
 }
 function renderRoster() {
   const list = (S.sd || S.settings).roster || [];
@@ -1945,7 +2097,7 @@ function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return n
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
 function markBackup() { lsSet(BK_KEY, String(Date.now())); lsSet(BK_SNOOZE, ''); checkBackup(); }
 function checkBackup() {
-  const has = !!(S.weekly.size || S.ship.size || Object.values(S.reviews || {}).some((v) => String(v || '').trim())), now = Date.now();
+  const has = !!(S.weekly.size || S.minutes.size || S.ship.size || Object.values(S.reviews || {}).some((v) => String(v || '').trim())), now = Date.now();
   const last = Number(lsGet(BK_KEY)) || 0;
   if (has && !lsGet(BK_FIRST)) lsSet(BK_FIRST, String(now));
   const first = Number(lsGet(BK_FIRST)) || now;
@@ -1958,8 +2110,9 @@ function checkBackup() {
 async function exportBackup() {
   const btn = $('#backupBtn'); setBusy(btn, true, '준비 중…');
   try {
+    if (!await flushMinutes()) { toast('회의록 저장 후 다시 백업해 주세요.'); return; }
     const img = await Store.getAll('img');
-    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, funeral: funeralStorage() };
+    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, funeral: funeralStorage() };
     const now = new Date();
     const name = `관리자서식_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
     await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요', onDone: markBackup,
@@ -1970,7 +2123,7 @@ async function importBackup(file) {
   let data;
   try { data = JSON.parse(await file.text()); } catch (e) { toast('백업 파일을 읽지 못했어요.'); return; }
   if (!data || data.app !== 'manager-forms') { toast('이 앱의 백업 파일이 아니에요.'); return; }
-  let w = 0, sh = 0;
+  let w = 0, sh = 0, mt = 0;
   for (const im of (data.img || [])) { if (im && im.id && im.data) await Store.put('img', im); }
   for (const r of (data.weekly || [])) {
     if (!r || !r.id || !r.weekStart) continue;
@@ -1982,6 +2135,13 @@ async function importBackup(file) {
     const cur = S.ship.get(e.id);
     if (!cur || (e.updatedAt || 0) > (cur.updatedAt || 0)) { S.ship.set(e.id, e); await Store.put('ship', e); sh++; }
   }
+  const previousMinutes = new Map(S.minutes);
+  for (const value of (Array.isArray(data.minutes) ? data.minutes : [])) {
+    const r = readMinutes(value); if (!r) continue;
+    const cur = S.minutes.get(r.id);
+    if (!cur || r.updatedAt > cur.updatedAt) { S.minutes.set(r.id, r); mt++; }
+  }
+  if (mt && !await persistMinutes()) { S.minutes = previousMinutes; toast('회의록을 저장하지 못했어요. 다시 불러와 주세요.'); return; }
   if (!S.sig && data.signature && data.signature.data) { S.sig = data.signature; sigImgCache = null; await saveSig(); }
   let fn = 0, fkept = 0;
   if (data.funeral && typeof data.funeral === 'object') {
@@ -2005,17 +2165,17 @@ async function importBackup(file) {
     S.sd = null; await saveSettings();
   }
   renderAll();
-  toast(`주간보고 ${w}건, 후기 ${rvn}일, 탁송·출고 ${sh}건${fn ? ', 장례업무 기록' : ''}을 불러왔어요${fkept ? ' (이미 있던 장례업무 기록은 그대로 두었어요)' : ''}`);
+  toast(`주간보고 ${w}건, 회의록 ${mt}건, 후기 ${rvn}일, 탁송·출고 ${sh}건${fn ? ', 장례업무 기록' : ''}을 불러왔어요${fkept ? ' (이미 있던 장례업무 기록은 그대로 두었어요)' : ''}`);
 }
 async function wipeAll() {
   await Store.clearAll();
-  S.weekly.clear(); S.ship.clear(); S.imgCache.clear(); S.reviews = {}; S.rvTitle = ''; S.rvDirty = false; clearTimeout(rvTimer); S.sig = null; sigImgCache = null;
+  S.weekly.clear(); S.minutes.clear(); S.em = null; S.emDirty = false; clearTimeout(mTimer); S.ship.clear(); S.imgCache.clear(); S.reviews = {}; S.rvTitle = ''; S.rvDirty = false; clearTimeout(rvTimer); S.sig = null; sigImgCache = null;
   S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
   toast(window.__PWA__ ? '관리자 서식 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.' : '모든 기록을 삭제했어요');
 }
-function renderAll() { renderWeeklyList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
+function renderAll() { renderWeeklyList(); renderMinutesList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
 
 /* ================= events ================= */
 function bind() {
@@ -2023,6 +2183,33 @@ function bind() {
   $('#bkLater').addEventListener('click', () => { lsSet(BK_SNOOZE, String(Date.now() + 7 * DAY)); $('#bkBanner').hidden = true; });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBackup(); });
   $$('.tabbar button').forEach((b) => b.addEventListener('click', () => (b.dataset.tab === 'funeral' ? goFuneral() : showTab(b.dataset.tab))));
+  // 회의록
+  $('#newMinutes').addEventListener('click', () => openMinutes());
+  $('#minutesList').addEventListener('click', (e) => { const card = e.target.closest('[data-id]'); if (card) openMinutes(card.dataset.id); });
+  $('#mFields').addEventListener('input', (e) => {
+    const field = e.target.dataset.minute; if (!S.em || !MINUTE_FIELDS.includes(field)) return;
+    S.em[field] = e.target.value;
+    if (e.target.tagName === 'TEXTAREA') autosize(e.target);
+    touchMinutes();
+  });
+  $('#mBack').addEventListener('click', async () => {
+    if (!await flushMinutes()) { toast('회의록을 저장하지 못했어요. 다시 시도해 주세요.'); return; }
+    S.em = null; closeScreen('minutesEditor'); renderMinutesList();
+  });
+  const previewMinutes = async () => { if (S.em && await flushMinutes()) openPreview(minutesJob(clone(S.em))); };
+  $('#mPreview').addEventListener('click', previewMinutes);
+  $('#mLive').addEventListener('click', previewMinutes);
+  $('#mCopy').addEventListener('click', async () => {
+    if (!S.em || !await flushMinutes()) return;
+    toast(await copyText(minutesText(S.em)) ? '회의록 문구를 복사했어요' : '복사하지 못했어요. 다시 눌러 주세요.');
+  });
+  $('#mDelete').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => {
+    if (!await flushMinutes()) return;
+    const old = S.minutes.get(S.em.id); S.minutes.delete(S.em.id);
+    if (!await persistMinutes()) { if (old) S.minutes.set(old.id, old); toast('삭제하지 못했어요. 다시 시도해 주세요.'); return; }
+    S.em = null; S.emDirty = false; closeScreen('minutesEditor'); renderMinutesList(); toast('회의록을 삭제했어요');
+  }));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.emDirty) saveMinutesNow(); });
   // weekly
   $('#newWeekly').addEventListener('click', () => {
     const k = toKey(mondayOf(new Date()));
@@ -2078,7 +2265,7 @@ function bind() {
   $('#rptQr').addEventListener('change', (e) => { S.rpt.qr = e.target.checked; liveShip(0); });
   $('#wLive').addEventListener('click', async () => { if (!S.ew) return; await flushWeekly(); openPreview(weeklyJob(clone(S.ew))); });
   $('#rptLive').addEventListener('click', () => openPreview(shipLiveJob()));
-  const onWide = () => { if (!isWide()) return; if (!$('#weeklyEditor').hidden) liveWeekly(0); if (!$('#tab-ship').hidden) liveShip(0); };
+  const onWide = () => { if (!isWide()) return; if (!$('#weeklyEditor').hidden) liveWeekly(0); if (!$('#minutesEditor').hidden) liveMinutes(0); if (!$('#tab-ship').hidden) liveShip(0); };
   if (WIDE_MQ.addEventListener) WIDE_MQ.addEventListener('change', onWide);
   $('#rptPreview').addEventListener('click', () => { const p = rptPeriod(); openPreview(shipJob(p, shipItemsBetween(p.start, p.end), S.rpt.qr)); });
   $('#sBack').addEventListener('click', () => closeScreen('shipEditor'));
@@ -2168,7 +2355,7 @@ const FUNERAL_KEYS = /^(funeral-|hyumu-)/;
 function setLastApp(v) { try { localStorage.setItem('mf.lastApp', v); } catch (e) { /* ignore */ } }
 async function goFuneral() {
   if (S.sd) { showTab('settings'); toast('설정을 저장하거나 되돌린 뒤에 이동해 주세요.'); return; }
-  await flushWeekly(); await saveReviewNow();
+  await flushWeekly(); await saveReviewNow(); if (!await flushMinutes()) return;
   setLastApp('funeral');
   location.replace('funeral.html');
 }
@@ -2209,7 +2396,7 @@ async function copyLink() {
   try { await navigator.clipboard.writeText(url); toast('주소를 복사했어요'); }
   catch (e) { toast(url); }
 }
-function safeToReload() { return $$('.screen').every((s) => s.hidden) && $('#sheet').hidden && !S.ewDirty && !S.sd && !S.rvDirty && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#tab-review textarea, #tab-review input')); }
+function safeToReload() { return $$('.screen').every((s) => s.hidden) && $('#sheet').hidden && !S.ewDirty && !S.emDirty && !S.sd && !S.rvDirty && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#tab-review textarea, #tab-review input')); }
 function applyUpdate(ver) {
   if (updatePending) return;
   updatePending = true;
@@ -2228,7 +2415,7 @@ async function checkVersion() {
 }
 function setupPwa() {
   if (!window.__PWA__) return;
-  $('#tabFuneral').hidden = false; $('.tabbar-in').classList.add('five');
+  $('#tabFuneral').hidden = false; $('.tabbar-in').classList.add('six');
   setLastApp('forms');
   $('#appVersion').textContent = `앱 버전 ${window.__APP_VERSION__ || '-'}`;
   LABELS.png = '이미지 저장·보내기'; LABELS.pdf = 'PDF 저장·보내기';
@@ -2259,7 +2446,7 @@ function bindPwa() {
   $('#sheetSave').addEventListener('click', sheetSave);
   $('#sheetCancel').addEventListener('click', closeSheet);
   $('#sheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeSheet(); });
-  $('#updateBtn').addEventListener('click', async () => { await flushWeekly(); await saveReviewNow(); location.reload(); });
+  $('#updateBtn').addEventListener('click', async () => { await flushWeekly(); await saveReviewNow(); if (await flushMinutes()) location.reload(); });
   $('#installClose').addEventListener('click', () => { $('#installCard').hidden = true; try { localStorage.setItem('mf.installDismissed', '1'); } catch (e) { /* ignore */ } });
   document.addEventListener('click', async (e) => {
     if (e.target.closest('.copy-link')) copyLink();
@@ -2282,17 +2469,18 @@ async function init() {
   let tab = 'weekly';
   try { tab = localStorage.getItem('mf.tab') || 'weekly'; } catch (e) { /* ignore */ }
   const fromHash = (location.hash || '').replace('#', '');
-  if (['weekly', 'review', 'ship', 'settings'].includes(fromHash)) {
+  if (['weekly', 'minutes', 'review', 'ship', 'settings'].includes(fromHash)) {
     tab = fromHash;
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
   }
-  if (!['weekly', 'review', 'ship', 'settings'].includes(tab)) tab = 'weekly';
+  if (!['weekly', 'minutes', 'review', 'ship', 'settings'].includes(tab)) tab = 'weekly';
   renderAll();
   showTab(tab);
   const ok = await Store.open();
   $('#storeBanner').hidden = ok;
   if (ok) {
-    const [w, sh, st, rv, rvt, sg] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings'), Store.get('kv', 'reviews'), Store.get('kv', 'reviewTitle'), Store.get('kv', 'signature')]);
+    const [w, sh, st, rv, rvt, sg, mt] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings'), Store.get('kv', 'reviews'), Store.get('kv', 'reviewTitle'), Store.get('kv', 'signature'), Store.get('kv', 'minutes')]);
+    (Array.isArray(mt) ? mt : []).forEach((value) => { const r = readMinutes(value); if (r) S.minutes.set(r.id, r); });
     if (sg && sg.data) S.sig = sg;
     if (rv && typeof rv === 'object') S.reviews = rv;
     if (typeof rvt === 'string') S.rvTitle = rvt;
