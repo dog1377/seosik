@@ -43,7 +43,7 @@
 4. 커밋 → PR → 사람이 확인하고 `main`에 합치면 1~2분 뒤 배포. 앱을 다시 열면 적용된다.
 
 ### 주의
-- `src/funeral.html` 안에는 휴무/당직 앱이 base64로 들어간 **아주 긴 줄(13만 글자 이상)**이 있다. 파일 전체를 한 번에 읽지 말고 필요한 줄 범위만 읽는다. 그 줄은 고치지 않는다.
+- `src/funeral.html` 안에는 휴무/당직 앱이 base64로 들어간 **아주 긴 줄(13만 글자 이상)**이 있다. 파일 전체를 한 번에 읽지 말고 필요한 줄 범위만 읽는다. 그 줄을 직접 고치지 말고, 휴무/당직 앱을 고칠 때는 `python3 tools/duty_edit.py out duty.html` 로 꺼내서 고친 뒤 `python3 tools/duty_edit.py in duty.html` 로 다시 넣는다 (넣은 뒤 다시 꺼내 같은지 확인).
 - Claude와 번갈아 고치는 저장소다. **작업 시작 전에 항상 최신 `main`을 받는다.** 동시에 두 곳에서 고치지 않는다.
 
 ---
@@ -178,6 +178,7 @@ python3 -m http.server 8765 --bind 127.0.0.1 &
 - 영수증: `rcptSums` · `rcptForms` · `rcWho` · `isHJ` · `rcCashOn` · `rcCardOn` (값은 `case.s.rcCash*` · `rcCard*`).
 - 봉투: `envelopeSplitAuto` · `envelopeValues` · `envelopeText` · `syncEnvelopeRecord` · `renderEnvelopes`.
 - 정산 기준(설정): `settleRules.altarFixed`(24) · `urnShare`(50) · `burialFee`(5) · `flowerPct`(60) · `mgrName`.
+- 휴무/당직 (base64 안, `tools/duty_edit.py` 로 꺼냄): 저장 `hyumu-scheduler-v2`(`state`), 규칙 `state.settings`. **고정 규칙**(규칙 설정 화면에서 바꿈): `depDays`('odd' 홀수일 · 'even' 짝수일 · 'any' 아무 날, 기본 odd) · `splitLen`(2) · `splitCount`(2) · `joinLen`(4) · `joinCount`(1) · `depNoCheck`(true, 출발일 발인확인 제외). 분리 · 붙여쓰기 일수는 서로 달라야 함. 관련 함수 `depOK` · `depMsg` · `modeLabel` · `personIssues` · `attemptBreaks` · `canCheck` · `candidateIssues` · `renderSettings`.
 
 ## 8. 커밋 · 배포
 - 커밋 메시지는 바뀐 점을 한국어로 짧게.
