@@ -44,14 +44,14 @@ html = f"""<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="관리자 서식">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";
 try {{ if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); }} catch (e) {{}}</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
-{lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': '관리자 서식', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': '장례일정만 쓰실 분은 <a href="jangrye/">장례일정 열기</a>'})}
+{lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': '관리자 서식', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': '장례일정만 쓰실 분은 <a href="../jangrye/">장례일정 열기</a>'})}
 </head>
 <body>
 {body_part}
@@ -59,7 +59,47 @@ try {{ if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') l
 </html>
 """
 
-(ROOT / 'index.html').write_text(html, encoding='utf-8')
+# 관리자 서식은 forms/ 폴더에 둔다. 맨 앞 주소(/)에 있으면 안드로이드 크롬이 그 아래 장례일정(/jangrye/) · DW관리(/admin/)까지
+# 관리자 서식 앱 안으로 봐서 "이미 설치됨"이 뜬다. 앱 신분증(manifest id "/")과 manifest 주소(/manifest.webmanifest)는 그대로라
+# 이미 깔린 관리자 서식은 같은 앱으로 이어서 업데이트된다. 맨 앞 주소(/, /funeral.html)는 forms/ 로 넘겨 주는 안내 페이지.
+import shutil
+FM = ROOT / 'forms'
+(FM / 'vendor').mkdir(parents=True, exist_ok=True)
+(FM / 'icons').mkdir(parents=True, exist_ok=True)
+shutil.copyfile(ROOT / 'vendor' / 'jspdf.umd.min.js', FM / 'vendor' / 'jspdf.umd.min.js')
+for ic in (ROOT / 'icons').glob('*.png'):
+    shutil.copyfile(ic, FM / 'icons' / ic.name)
+(FM / 'index.html').write_text(html, encoding='utf-8')
+
+
+def redirect_page(target, title):
+    return f"""<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{title}</title>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="관리자 서식">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
+<link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
+<script>location.replace('{target}' + location.search + location.hash);</script>
+<noscript><meta http-equiv="refresh" content="0;url={target}"></noscript>
+<style>body{{margin:0;padding:32px 20px;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#1c1d1f;background:#fff}}a{{color:inherit}}@media (prefers-color-scheme:dark){{body{{color:#ecebe8;background:#121314}}}}</style>
+</head>
+<body><p>관리자 서식으로 이동합니다. 넘어가지 않으면 <a href="{target}">여기를 누르세요</a>.</p>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () {{}});</script>
+</body>
+</html>
+"""
+
+
+(ROOT / 'index.html').write_text(redirect_page('forms/', '관리자 서식'), encoding='utf-8')
+(ROOT / 'funeral.html').write_text(redirect_page('forms/funeral.html', '장례업무 · 관리자 서식'), encoding='utf-8')
 
 # ---------- 장례 일정 작성기: 서식함 안의 장례업무(funeral.html)와 따로 쓰는 장례일정 앱(jangrye/) ----------
 import re
@@ -67,12 +107,12 @@ FUNERAL_SRC = (ROOT / 'src' / 'funeral.html').read_text(encoding='utf-8')
 THEME = (ROOT / 'src' / 'funeral-theme.html').read_text(encoding='utf-8')
 
 
-def make_funeral(title, extras, share_title=None, page_title=None):
+def make_funeral(title, extras, share_title=None, page_title=None, manifest_href='manifest.webmanifest'):
     fsrc = FUNERAL_SRC
     if page_title:
         fsrc = fsrc.replace('<title>장례 일정 작성기</title>', '<title>' + page_title + '</title>', 1)
     head = (
-        '<link rel="manifest" href="manifest.webmanifest">\n'
+        '<link rel="manifest" href="' + manifest_href + '">\n'
         '<link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">\n'
         '<link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">\n'
         '<meta name="mobile-web-app-capable" content="yes">\n'
@@ -100,13 +140,23 @@ def make_sw(prefix, core):
 
 
 # 서식함 안의 장례업무
-(ROOT / 'funeral.html').write_text(
-    make_funeral('관리자 서식', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8')], share_title='관리자 서식', page_title='장례업무 · 관리자 서식'),
+(FM / 'funeral.html').write_text(
+    make_funeral('관리자 서식', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8')], share_title='관리자 서식', page_title='장례업무 · 관리자 서식', manifest_href='../manifest.webmanifest'),
     encoding='utf-8')
-(ROOT / 'sw.js').write_text(make_sw('seosik-app-', [
-    './', './index.html', './funeral.html', './manifest.webmanifest', './vendor/jspdf.umd.min.js',
+(FM / 'sw.js').write_text(make_sw('forms-app-', [
+    './', './index.html', './funeral.html', './vendor/jspdf.umd.min.js',
     './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
 ]), encoding='utf-8')
+(FM / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
+# 맨 앞 주소(/)의 서비스워커: 안내 페이지 두 개와 manifest만 맡고, 나머지(forms · jangrye · admin)는 손대지 않음
+ROOT_ONLY = ['/', '/index.html', '/funeral.html', '/manifest.webmanifest']
+root_sw = make_sw('seosik-app-', ['./', './index.html', './funeral.html', './manifest.webmanifest',
+                                  './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png'])
+scope_line = "if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;"
+if scope_line not in root_sw:
+    raise SystemExit('scope check line not found in sw.template.js')
+root_sw = root_sw.replace(scope_line, 'if (!' + json.dumps(ROOT_ONLY) + '.includes(url.pathname)) return;')
+(ROOT / 'sw.js').write_text(root_sw, encoding='utf-8')
 (ROOT / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
 
 # 따로 쓰는 장례일정 앱 (서식 없음)

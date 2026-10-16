@@ -5,7 +5,7 @@
 
 | 앱 | 주소 | 원본 |
 |---|---|---|
-| 관리자 서식 (파트장용) | https://dwfuneral.com | `src/app.html` |
+| 관리자 서식 (파트장용) | https://dwfuneral.com/forms/ (맨 앞 주소 dwfuneral.com 은 여기로 넘겨 줌) | `src/app.html` |
 | 장례일정 (직원용: 행사 입력 · 보고서 · 정산 · 봉투 · 휴무/당직) | https://dwfuneral.com/jangrye/ | `src/funeral.html` |
 | DW관리 (회사 관리자용) | https://dwfuneral.com/admin/ | `src/admin.html` |
 
@@ -23,8 +23,8 @@
    - sessionStorage: `ca.unlock`
 2. **데이터 모양을 바꿀 때는 기존 값을 살리는 이전 코드(마이그레이션)를 넣고**, 한 번만 돌도록 표시값을 둔다 (예: `if(!db.vItems17){ …; db.vItems17=true; }`).
 3. 장례일정의 **「자동 보관본」**(`autoSnapshot`, 업데이트 전 · 하루 한 번 IndexedDB `funeral-safe`에 보관) 기능을 없애지 않는다.
-4. **앱 신분증(`manifest.webmanifest`의 `"id"`)을 바꾸지 않는다.** 관리자 서식 `"./"`(= dwfuneral.com/), 장례일정 `"/jangrye/"`, DW관리 `"/admin/"`. `id`는 주소의 맨 앞(도메인)을 기준으로 읽혀서, 예전처럼 셋 다 `"./"`이면 휴대폰이 세 앱을 같은 앱으로 알고 "이미 설치됨"이 뜬다 (2026.10.16 고침). 바꾸면 이미 깔린 앱이 다른 앱으로 취급된다.
-5. **자동으로 만들어지는 파일을 직접 고치지 않는다**: `index.html`, `funeral.html`, `jangrye/index.html`, `admin/index.html`, `sw.js`, `jangrye/sw.js`, `admin/sw.js`, `version.json`, `admin/version.json`. (고쳐도 다음 빌드 때 덮어써집니다.)
+4. **앱 신분증(`manifest.webmanifest`의 `"id"`)과 관리자 서식 manifest 위치를 바꾸지 않는다.** 관리자 서식 `"./"`(= dwfuneral.com/, manifest는 맨 앞 `/manifest.webmanifest`에 두고 `start_url`·`scope`만 `forms/`), 장례일정 `"/jangrye/"`, DW관리 `"/admin/"`. **관리자 서식을 다시 맨 앞 주소(/)로 옮기지 않는다** — 맨 앞 주소 앱은 그 아래 /jangrye/ · /admin/ 까지 자기 앱으로 덮어서 안드로이드에서 다른 두 앱을 설치할 수 없게 된다 (2026.10.16 forms/ 로 옮김, 맨 앞 `/` · `/funeral.html`은 넘겨 주는 안내 페이지, 맨 앞 `sw.js`는 그 두 페이지만 맡음). `id`는 주소의 맨 앞(도메인)을 기준으로 읽혀서, 예전처럼 셋 다 `"./"`이면 휴대폰이 세 앱을 같은 앱으로 알고 "이미 설치됨"이 뜬다 (2026.10.16 고침). 바꾸면 이미 깔린 앱이 다른 앱으로 취급된다.
+5. **자동으로 만들어지는 파일을 직접 고치지 않는다**: `forms/` 폴더 전부, `index.html`, `funeral.html`, `jangrye/index.html`, `admin/index.html`, `sw.js`, `jangrye/sw.js`, `admin/sw.js`, `version.json`, `admin/version.json`. (고쳐도 다음 빌드 때 덮어써집니다.)
 6. **비밀번호를 채팅으로 받지 않는다.** 앱 잠금은 DW관리 → 설정 → 「앱 비밀번호」에서 만든 코드(`admin:p2$…`, `forms:p2$…`)만 받아 `locks.json`에 넣는다. 지금 `locks.json`은 비어 있어 잠금이 꺼져 있다.
 7. **돈 계산 규칙이 애매하면 만들기 전에 먼저 물어본다.** 짐작해서 만들지 않는다. 보기를 몇 개 주고 고르게 하면 좋다.
 
