@@ -64,7 +64,8 @@ self.addEventListener('fetch', (event) => {
     if (url.pathname.endsWith('/version.json')) return; // always live
     if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
     event.respondWith(networkFirst(req));
-  } else if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+  } else if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com' ||
+             (url.hostname === 'cdn.jsdelivr.net' && url.pathname.startsWith('/npm/pretendard@'))) {
     event.respondWith(staleWhileRevalidate(req));
   }
 });

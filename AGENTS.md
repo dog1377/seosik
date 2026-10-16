@@ -58,6 +58,8 @@
 - 행사 기록 목록 이름: `15번 부산전문 현진시닝 故 홍길동` (행사번호 · 장례식장 · 업체명 · 故 고인명, 빈 칸은 뺌). 코드 `caseLabel`.
 - 업체별 입력 칸 예시(`FIELD_EX`): 화장장명 "예: 부산 / 창원 / 김해", 상품 — 현진시닝 "예: 삼성전기 270 일반형" · 고이장례연구소 "예: 2026 가족장 289", 소속 — 현진시닝 "예: 부산본부".
 - 시간 칸은 24시간제 · 10분 단위. 차종은 띄어쓰기("버스 리무진").
+- **글꼴**: 본문은 **Pretendard**(jsDelivr `pretendard@1.3.9` 동적 subset CSS, 버전 고정), 제목(앱 이름 · 화면 제목 · 시트 제목)은 **Noto Serif KR**(Google Fonts). 세 앱 모두 같은 글꼴 묶음(`"Pretendard Variable","Pretendard",-apple-system,…,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif`). 서비스워커(`sw.template.js`)가 두 글꼴 파일을 보관해서 인터넷이 약해도 그대로 보인다. 숫자는 `tabular-nums`(자리 맞춤), 한국어 줄바꿈은 `word-break:keep-all`.
+- **휴대폰(699px 이하) 장례일정 위쪽**: 화면 제목 덩어리(`.page-intro`)와 위쪽 탭(`.work-tabs`)은 숨김(맨 위 막대 · 아래 메뉴와 겹침), 행사 기록 상자는 작게. 태블릿 · PC는 그대로. (`src/funeral-theme.html` 맨 아래)
 
 ---
 

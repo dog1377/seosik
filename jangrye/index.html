@@ -8,19 +8,22 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.16-4">
+<meta name="app-version" content="2026.10.16-5">
 <meta name="theme-color" content="#293f65">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>장례일정</title>
+<!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap">
 <style>
 :root{
   --bg:#f3f4f3; --surface:#ffffff; --field:#f6f7f6; --ink:#1a1f1d; --ink-2:#3d4643; --muted:#6c7773; --line:#e3e7e5;
   --accent:#2d4a42; --accent-ink:#ffffff; --accent-soft:#e6eeea; --edge:#d3dad7; --ph:#9aa5a1; --bronze:#7a6341; --warn:#a4432e; --warn-soft:#fbede8;
-  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --sans:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
   --serif:"Noto Serif KR","AppleMyungjo","Batang",serif;
   --nav-h:0px; --ab-h:58px;
 }
@@ -3525,26 +3528,26 @@ autoSnapshot();
 /* 서식함과 같은 색 (밝은 화면 / 어두운 화면) */
 :root{
   --bg:#f1f2ef; --surface:#ffffff; --field:#f6f7f4; --ink:#1a2128; --ink-2:#3a444d; --muted:#5d6771;
-  --line:#dcdfda; --edge:#c3c8c3; --ph:#8a939b; --accent:#2a4759; --accent-ink:#ffffff; --accent-soft:#e1e9ee;
+  --line:#dcdfda; --edge:#c3c8c3; --ph:#737c84; --accent:#2a4759; --accent-ink:#ffffff; --accent-soft:#e1e9ee;
   --bronze:#80601d; --warn:#953d1b; --warn-soft:#f6e3d9; --shadow:none; --radius:14px;
-  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --sans:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
   --serif:"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg:#111518; --surface:#1a2025; --field:#151a1e; --ink:#e6e9eb; --ink-2:#c3cbd1; --muted:#9ba5ae;
-    --line:#2a3239; --edge:#3b464e; --ph:#77828b; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
+    --line:#2a3239; --edge:#3b464e; --ph:#8a959e; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
     --bronze:#d8b46a; --warn:#efa27e; --warn-soft:#3a2419; --shadow:none;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#111518; --surface:#1a2025; --field:#151a1e; --ink:#e6e9eb; --ink-2:#c3cbd1; --muted:#9ba5ae;
-  --line:#2a3239; --edge:#3b464e; --ph:#77828b; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
+  --line:#2a3239; --edge:#3b464e; --ph:#8a959e; --accent:#9fc2d8; --accent-ink:#0e1a22; --accent-soft:#213440;
   --bronze:#d8b46a; --warn:#efa27e; --warn-soft:#3a2419; --shadow:none;
 }
-body{background:var(--bg);font-family:var(--sans);letter-spacing:normal;line-height:1.55}
+body{background:var(--bg);font-family:var(--sans);font-variant-numeric:tabular-nums;letter-spacing:normal;line-height:1.55;word-break:keep-all;overflow-wrap:break-word}
 
 /* 위쪽 막대와 제목: 서식함처럼 바탕색 위에 명조 제목 */
 .appbar{background:var(--bg);border-bottom:1px solid var(--line)}
@@ -3604,6 +3607,18 @@ label.f>.field-label{color:var(--muted)}
 /* 왼쪽 메뉴 */
 .acc-b button.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
 .toast{background:var(--ink);color:var(--surface);border-radius:12px;box-shadow:none}
+
+/* 휴대폰: 할 일이 바로 보이게 위쪽을 줄임.
+   화면 제목은 맨 위 막대에 이미 있고, 입력 · 보고서 · 정산은 아래 메뉴에 있어서 겹치는 것만 숨김 */
+@media (max-width:699px){
+  .page-intro,.work-tabs{display:none}
+  .case-panel{padding:10px 12px;gap:6px}
+  .case-heading{display:none}
+  .cm-nav{width:36px;height:36px}
+  .cm-label b{font-size:15px}
+  #ttlNote:not(.warn){display:none}
+  body[data-tab="envelopes"] .top,body[data-tab="admin"] .top{display:none}
+}
 </style>
 <script>
 (function () {
@@ -3613,7 +3628,7 @@ label.f>.field-label{color:var(--muted)}
     '--text:#1a2128;--text-2:#3a444d;--muted:#5d6771;--faint:#8a939b;' +
     '--primary:#2a4759;--primary-600:#1f3646;--primary-50:#e1e9ee;--primary-100:#cfdce4;' +
     '--a:#2a4759;--a-bg:#e1e9ee;--b:#80601d;--b-bg:#f2e9d4;--sat:#2a5d8f;' +
-    '--r:12px;--r-sm:9px;--sh-1:none;--font:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}' +
+    '--r:12px;--r-sm:9px;--sh-1:none;--font:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif}' +
     'body{letter-spacing:normal}';
   var duty = document.getElementById('dutyFrame');
   if (duty) {
@@ -3623,7 +3638,7 @@ label.f>.field-label{color:var(--muted)}
         if (!d || !d.head || d.getElementById('mf-duty-theme')) return;
         var link = d.createElement('link');
         link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap';
+        link.href = 'https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css';
         d.head.appendChild(link);
         var st = d.createElement('style');
         st.id = 'mf-duty-theme';
@@ -3639,7 +3654,7 @@ label.f>.field-label{color:var(--muted)}
 </script>
 <!-- 따로 쓰는 「장례일정」 앱에만 붙는 부분: 설치 안내, 카카오톡 안에서 열렸을 때 바깥 브라우저로 넘기기. -->
 <style id="jr-install">
-.jr-card{margin:16px 0 0;background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:14px 16px;display:grid;gap:10px;font-size:14px;line-height:1.6}
+.jr-card{margin:16px 0 12px;background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:14px 16px;display:grid;gap:10px;font-size:14px;line-height:1.6}
 .jr-card.warn{border-color:var(--warn);background:var(--warn-soft)}
 .jr-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .jr-head b{font-size:15px}
