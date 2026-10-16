@@ -23,9 +23,10 @@
    - sessionStorage: `ca.unlock`
 2. **데이터 모양을 바꿀 때는 기존 값을 살리는 이전 코드(마이그레이션)를 넣고**, 한 번만 돌도록 표시값을 둔다 (예: `if(!db.vItems17){ …; db.vItems17=true; }`).
 3. 장례일정의 **「자동 보관본」**(`autoSnapshot`, 업데이트 전 · 하루 한 번 IndexedDB `funeral-safe`에 보관) 기능을 없애지 않는다.
-4. **자동으로 만들어지는 파일을 직접 고치지 않는다**: `index.html`, `funeral.html`, `jangrye/index.html`, `admin/index.html`, `sw.js`, `jangrye/sw.js`, `admin/sw.js`, `version.json`, `admin/version.json`. (고쳐도 다음 빌드 때 덮어써집니다.)
-5. **비밀번호를 채팅으로 받지 않는다.** 앱 잠금은 DW관리 → 설정 → 「앱 비밀번호」에서 만든 코드(`admin:p2$…`, `forms:p2$…`)만 받아 `locks.json`에 넣는다. 지금 `locks.json`은 비어 있어 잠금이 꺼져 있다.
-6. **돈 계산 규칙이 애매하면 만들기 전에 먼저 물어본다.** 짐작해서 만들지 않는다. 보기를 몇 개 주고 고르게 하면 좋다.
+4. **앱 신분증(`manifest.webmanifest`의 `"id"`)을 바꾸지 않는다.** 관리자 서식 `"./"`(= dwfuneral.com/), 장례일정 `"/jangrye/"`, DW관리 `"/admin/"`. `id`는 주소의 맨 앞(도메인)을 기준으로 읽혀서, 예전처럼 셋 다 `"./"`이면 휴대폰이 세 앱을 같은 앱으로 알고 "이미 설치됨"이 뜬다 (2026.10.16 고침). 바꾸면 이미 깔린 앱이 다른 앱으로 취급된다.
+5. **자동으로 만들어지는 파일을 직접 고치지 않는다**: `index.html`, `funeral.html`, `jangrye/index.html`, `admin/index.html`, `sw.js`, `jangrye/sw.js`, `admin/sw.js`, `version.json`, `admin/version.json`. (고쳐도 다음 빌드 때 덮어써집니다.)
+6. **비밀번호를 채팅으로 받지 않는다.** 앱 잠금은 DW관리 → 설정 → 「앱 비밀번호」에서 만든 코드(`admin:p2$…`, `forms:p2$…`)만 받아 `locks.json`에 넣는다. 지금 `locks.json`은 비어 있어 잠금이 꺼져 있다.
+7. **돈 계산 규칙이 애매하면 만들기 전에 먼저 물어본다.** 짐작해서 만들지 않는다. 보기를 몇 개 주고 고르게 하면 좋다.
 
 ---
 
