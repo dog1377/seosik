@@ -147,6 +147,15 @@ label.f>.field-label{color:var(--muted)}
   .im-row .input-progress{display:inline;font-size:12.5px}
   .wz-amt .input{font-size:38px}
 }
+/* 모서리 · 그림자 통일 (디자인 통일 점검 2026.10.16): 버튼 · 칸 · 작은 표시 4px, 상자 · 창 6px, 그림자 대신 먹색 선 */
+body .ab-menu,body .jr-x,body .jr-btn,body .cm-nav,body .co-symbol,body .x,body .pick-x,body .tp-clear,body .tp-grid button,body .mobile-nav button,
+body .burial-seg button,body .missing button,body .ph button,body .seg,body .seg button,body .acc-b button,body .item .tog,body .csheet-list button,body .check,body .btn.link,body .group-tabs button{border-radius:4px}
+body .jr-card,body .burial-seg,body .sum,body .must,body .fold-ex,body .acc,body .crem-preview,body .env-notice,body .warnline,body .calc,body .text-out,body .toast,body .sheet{border-radius:6px}
+body .csheet{border-radius:6px 6px 0 0}
+@media (min-width:700px){ body .csheet,body .sheet{border-radius:6px} }
+body .settle-bar{border-radius:6px;box-shadow:none}
+body .mf-home{border-radius:4px}
+body .toast{box-shadow:none}
 </style>
 <script>
 (function () {

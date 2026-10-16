@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.16-17";
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.16-18";
 try { if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); } catch (e) {}</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>관리자 서식</title>
@@ -306,6 +306,13 @@ input[type="text"]:focus,input[type="number"]:focus,input[type="date"]:focus,sel
 .card,.w-card,.sample,.weekpick,.member,.install-card,.save-bar,.rv-day,.rv-preview,.switch.boxed,.stat,.s-row,.period,.qr-box,.sig-box,.pv-sign,.live-doc,.rv-recent button,.d-card,.r-card,.st-card,.type-card,.staff-pick,.seal-box,.sig-prev,.sig-wrap{border-radius:6px}
 .sheet{border-radius:10px 10px 0 0}
 .card h2{font-family:var(--font-display);font-weight:700}
+/* 모서리 · 그림자 통일 (디자인 통일 점검 2026.10.16): 상자 · 창 6px, 버튼 · 칸 · 작은 아이콘 4px, 그림자 대신 선 */
+body .sheet{border-radius:6px}
+body .save-bar{border-radius:6px;box-shadow:none;border-color:var(--ink)}
+body .type-card .ic{border-radius:4px}
+body .toast{box-shadow:none}
+body label.field input,body label.field select,body label.field textarea,body .sel{border-radius:4px}
+body .sig-box span,body .sig-prev span,body .seal-box span{color:var(--muted)}
 </style>
 <!-- 앱 잠금: 회사가 정한 비밀번호(해시만 앱에 들어 있음)를 넣어야 앱이 열립니다. 해시가 비어 있으면 잠그지 않습니다. -->
 <style id="lock-ui">
