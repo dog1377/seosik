@@ -299,6 +299,8 @@ body .sig-box span,body .sig-prev span,body .seal-box span{color:var(--muted)}
 body .icon-btn{width:44px;height:44px}
 body .seg button,body .save-bar .btn{min-height:44px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:#5a5e63}
+.af-box{display:grid;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.af-h{margin:0;font-size:15px;font-weight:700}
 @media (max-width:999px){ body .r-row{grid-template-columns:minmax(0,1fr) 88px 44px 44px} body .r-row .icon-btn{width:44px;height:44px} }
 /* 손맛 다듬기 (audit-suite, 2026.10.16): 누르면 살짝 눌림, 창 안 스크롤 가두기, 글자 또렷하게, 설명 줄바꿈 */
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
@@ -515,6 +517,13 @@ p{text-wrap:pretty}
       </div>
       <p class="small-t muted" id="bkLast"></p>
       <input type="file" id="restoreFile" accept=".json,application/json" class="vh">
+      <div class="af-box" id="afBox">
+        <h3 class="af-h">휴대폰 자동 백업</h3>
+        <p class="small-t muted">처음 한 번 저장할 곳을 고르면, 그다음부터 자동으로 그 파일에 최신 기록(주간보고 · 회의록 · 후기 · 탁송 · 장례업무 · 휴무)이 들어가요. 앱을 지우거나 기록이 사라져도 파일은 휴대폰에 남아서 「백업 불러오기」로 되살릴 수 있어요.</p>
+        <p class="small-t" id="afStatus"></p>
+        <div class="grid2" id="afBtns"><button class="btn primary" type="button" id="afOn">자동 백업 켜기</button><button class="btn" type="button" id="afOpen">예전 파일 연결</button></div>
+        <div class="grid2" id="afBtns2" hidden><button class="btn primary" type="button" id="afFix">다시 연결</button><button class="btn" type="button" id="afNow">지금 백업</button><button class="btn" type="button" id="afRestore">이 파일에서 되살리기</button><button class="btn" type="button" id="afOff">끄기</button></div>
+      </div>
       <button class="btn danger block" type="button" id="wipeBtn">모든 기록 삭제</button>
     </div>
     <p class="ver" id="appVersion"></p>
@@ -2203,6 +2212,7 @@ async function importBackup(file) {
   }
   renderAll();
   toast(`주간보고 ${w}건, 회의록 ${mt}건, 후기 ${rvn}일, 탁송·출고 ${sh}건${fn ? ', 장례업무 기록' : ''}을 불러왔어요${fkept ? ' (이미 있던 장례업무 기록은 그대로 두었어요)' : ''}`);
+  afSetMeta({ guard: false }); afLast = ''; afWrite(false);
 }
 async function wipeAll() {
   await Store.clearAll();
@@ -2385,6 +2395,88 @@ function bind() {
   $('#backupBtn').addEventListener('click', exportBackup);
   $('#restoreFile').addEventListener('change', async (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) await importBackup(f); });
   $('#wipeBtn').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 전부 삭제', wipeAll));
+  bindAF();
+}
+
+/* ================= 휴대폰 자동 백업 파일 (2026.10.17) =================
+   처음 한 번 저장할 곳을 고르면(파일 손잡이를 IndexedDB 'dw-autofile'에 보관 — 장례일정 · 장례업무와 같은 손잡이 · 같은 파일),
+   기록이 바뀔 때마다 그 파일에 백업 파일과 같은 내용을 덮어씀. 앱을 지워 이 사이트 기록이 지워져도 파일은 휴대폰에 남음. */
+const AF_DB = 'dw-autofile', AF_META = 'dw-autofile-meta';
+const afSupported = () => typeof window.showSaveFilePicker === 'function';
+function afIdb() { return new Promise((res, rej) => { const r = indexedDB.open(AF_DB, 1); r.onupgradeneeded = () => r.result.createObjectStore('h'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function afGet() { try { const d = await afIdb(); return await new Promise((res) => { const q = d.transaction('h').objectStore('h').get('main'); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch (e) { return null; } }
+async function afPut(hd) { const d = await afIdb(); await new Promise((res, rej) => { const t = d.transaction('h', 'readwrite'), st = t.objectStore('h'); if (hd) st.put(hd, 'main'); else st.delete('main'); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+function afMeta() { try { return JSON.parse(localStorage.getItem(AF_META) || '{}') || {}; } catch (e) { return {}; } }
+function afSetMeta(m) { try { localStorage.setItem(AF_META, JSON.stringify(Object.assign(afMeta(), m))); } catch (e) { /* ignore */ } }
+async function afPerm(hd, ask) { try { let p = await hd.queryPermission({ mode: 'readwrite' }); if (p !== 'granted' && ask) p = await hd.requestPermission({ mode: 'readwrite' }); return p; } catch (e) { return 'denied'; } }
+async function afReadFile(hd) { try { const t = await (await hd.getFile()).text(); const d = t.trim() ? JSON.parse(t) : null; return d && d.app === 'manager-forms' ? d : null; } catch (e) { return null; } }
+const afCases = (o) => { try { return (JSON.parse((o || {})['funeral-band-v2'] || '{}').cases || []).length; } catch (e) { return 0; } };
+const afHasData = (d) => !!d && ((d.weekly || []).length + (d.minutes || []).length + (d.ship || []).length + Object.values(d.reviews || {}).filter((v) => String(v || '').trim()).length + afCases(d.funeral)) > 0;
+function afSig() {
+  const f = funeralStorage();
+  return JSON.stringify({ w: [...S.weekly.values()].map((r) => [r.id, r.updatedAt]), m: [...S.minutes.values()].map((r) => [r.id, r.updatedAt]), s: [...S.ship.values()].map((r) => [r.id, r.updatedAt]),
+    r: S.reviews, t: S.rvTitle || '', set: S.settings, sg: S.sig && S.sig.data ? S.sig.data.length : 0, f: Object.keys(f).sort().map((k) => k + ':' + f[k].length + ':' + f[k].slice(-80)) });
+}
+let afLast = '', afBusy = false;
+async function afWrite(ask) {
+  if (afBusy) return 'busy';
+  const hd = await afGet(); if (!hd) return 'off';
+  if (await afPerm(hd, ask) !== 'granted') { afSetMeta({ need: true }); renderAF(); return 'perm'; }
+  afBusy = true;
+  try {
+    const sig = afSig();
+    if (sig === afLast && !ask) { afSetMeta({ need: false }); return 'same'; }
+    const img = await Store.getAll('img');
+    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, funeral: funeralStorage(), autoFile: true };
+    const base = await afReadFile(hd);
+    // 안전장치: 이 기기 기록이 비어 있는데 파일에는 기록이 있으면 덮어쓰지 않음 (앱을 다시 깐 직후 등)
+    if (!afHasData(data) && afHasData(base)) { afSetMeta({ guard: true, need: false }); renderAF(); return 'guard'; }
+    // 이 기기에서 비어 있는 부분은 파일에 있던 것을 그대로 둠 (예: 장례일정에서 먼저 되살린 뒤 관리자 서식을 열어도 주간보고가 안 지워지게)
+    if (base) {
+      if (!data.weekly.length && (base.weekly || []).length) data.weekly = base.weekly;
+      if (!data.minutes.length && (base.minutes || []).length) data.minutes = base.minutes;
+      if (!data.ship.length && (base.ship || []).length) { data.ship = base.ship; data.img = base.img || []; }
+      if (!Object.values(data.reviews || {}).some((v) => String(v || '').trim()) && base.reviews) { data.reviews = base.reviews; data.reviewTitle = data.reviewTitle || base.reviewTitle || ''; }
+      if (!data.signature && base.signature) data.signature = base.signature;
+      if (!S.settings.author && !(S.settings.roster || []).length && base.settings) data.settings = base.settings;
+      if (!afCases(data.funeral) && afCases(base.funeral)) data.funeral = base.funeral;
+    }
+    const w = await hd.createWritable(); await w.write(JSON.stringify(data)); await w.close();
+    afLast = sig; afSetMeta({ at: Date.now(), need: false, guard: false, name: hd.name || '', err: '' }); renderAF(); return 'ok';
+  } catch (e) { afSetMeta({ err: String((e && e.message) || e) }); renderAF(); return 'err'; } finally { afBusy = false; }
+}
+async function afConnect(hd) {
+  await afPut(hd); afLast = '';
+  if (await afPerm(hd, true) !== 'granted') { afSetMeta({ need: true, name: hd.name || '' }); renderAF(); toast('파일 수정을 허용해야 자동 백업이 돼요'); return; }
+  const base = await afReadFile(hd);
+  const local = { weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], reviews: S.reviews, funeral: funeralStorage() };
+  if (afHasData(base) && !afHasData(local)) { await importBackup(await hd.getFile()); return; }   // 빈 기기 → 이 파일에서 되살리고 이어서 자동 백업
+  const r = await afWrite(true);
+  toast(r === 'ok' ? '자동 백업을 켰어요. 기록이 바뀔 때마다 이 파일에 최신 기록이 들어가요' : r === 'guard' ? '이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요' : '자동 백업 파일을 쓰지 못했어요');
+  renderAF();
+}
+async function renderAF() {
+  const st = $('#afStatus'); if (!st) return;
+  const hd = await afGet(), m = afMeta();
+  $('#afBtns').hidden = !!hd; $('#afBtns2').hidden = !hd;
+  if (!afSupported() && !hd) { st.textContent = '이 휴대폰(브라우저)에서는 자동 백업을 쓸 수 없어요. 「백업 파일 저장」을 써 주세요.'; $('#afBtns').hidden = true; return; }
+  if (!hd) { st.textContent = '꺼져 있어요.'; return; }
+  const perm = await afPerm(hd, false), d = m.at ? new Date(m.at) : null;
+  const at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '아직 없음';
+  st.textContent = m.guard ? `켜짐 · 파일 「${hd.name}」에 기록이 있어 덮어쓰지 않았어요. 「이 파일에서 되살리기」를 누르세요.`
+    : perm !== 'granted' ? `켜짐 · 다시 연결이 필요해요 (마지막 자동 백업 ${at}). 「다시 연결」을 누르면 이어져요.`
+      : `켜짐 · 파일 「${hd.name}」 · 마지막 자동 백업 ${at}`;
+  $('#afFix').hidden = perm === 'granted';
+}
+function bindAF() {
+  $('#afOn').addEventListener('click', async () => { if (!afSupported()) { toast('이 휴대폰에서는 자동 백업을 쓸 수 없어요'); return; } let hd; try { hd = await window.showSaveFilePicker({ suggestedName: 'DW_자동백업.json', types: [{ description: 'DW 백업 파일', accept: { 'application/json': ['.json'] } }] }); } catch (e) { return; } await afConnect(hd); });
+  $('#afOpen').addEventListener('click', async () => { if (typeof window.showOpenFilePicker !== 'function') { toast('이 휴대폰에서는 쓸 수 없어요'); return; } let hs; try { hs = await window.showOpenFilePicker({ types: [{ description: 'DW 백업 파일', accept: { 'application/json': ['.json'] } }] }); } catch (e) { return; } if (hs && hs[0]) await afConnect(hs[0]); });
+  $('#afFix').addEventListener('click', async () => { const r = await afWrite(true); toast(r === 'ok' || r === 'same' ? '자동 백업을 다시 이었어요' : r === 'guard' ? '이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요' : '파일 수정을 허용해야 자동 백업이 돼요'); renderAF(); });
+  $('#afNow').addEventListener('click', async () => { afLast = ''; const r = await afWrite(true); toast(r === 'ok' ? '자동 백업 파일에 지금 기록을 넣었어요' : r === 'guard' ? '이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요' : '자동 백업 파일을 쓰지 못했어요'); });
+  $('#afRestore').addEventListener('click', async () => { const hd = await afGet(); if (!hd) return; if (await afPerm(hd, true) !== 'granted') { toast('파일 읽기를 허용해 주세요'); return; } await importBackup(await hd.getFile()); });
+  $('#afOff').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 끄기', async () => { await afPut(null); afSetMeta({ at: 0, need: false, guard: false }); renderAF(); toast('자동 백업을 껐어요. 휴대폰의 파일은 그대로 남아 있어요'); }));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') afWrite(false); else renderAF(); });
+  setInterval(() => { if (document.visibilityState === 'visible') afWrite(false); }, 60000);
 }
 
 /* ================= 장례업무 (funeral.html, same installed app) ================= */
@@ -2535,6 +2627,7 @@ async function init() {
   renderAll();
   checkBackup();
   setTimeout(renderSamples, 200);
+  renderAF(); setTimeout(() => afWrite(false), 1500);
 }
 init();
 </script>

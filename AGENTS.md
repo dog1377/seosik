@@ -19,7 +19,7 @@
 
 1. **저장 키 이름을 바꾸거나 지우지 않는다.** 바꾸면 직원 휴대폰의 기록이 안 보이게 됩니다.
    - localStorage: `funeral-band-v2`(장례일정 · 정산 · 봉투 전부), `hyumu-*`(휴무/당직), `funeral-settleMode`, `funeral-inputMode`, `funeral-lastBackup`, `funeral-firstUse`, `funeral-bkSnooze`, `funeral-snapVer`, `funeral-snapDay`, `mf.*`(관리자 서식), `ca.*`(DW관리)
-   - IndexedDB: `funeral-safe`(장례일정 자동 보관본), `manager-forms`(관리자 서식), `company-admin`(DW관리)
+   - IndexedDB: `funeral-safe`(장례일정 자동 보관본), `manager-forms`(관리자 서식), `company-admin`(DW관리), `dw-autofile`(휴대폰 자동 백업 파일 손잡이) / localStorage `dw-autofile-meta`(마지막 자동 백업 시각 등)
    - sessionStorage: `ca.unlock`
 2. **데이터 모양을 바꿀 때는 기존 값을 살리는 이전 코드(마이그레이션)를 넣고**, 한 번만 돌도록 표시값을 둔다 (예: `if(!db.vItems17){ …; db.vItems17=true; }`).
 3. 장례일정의 **「자동 보관본」**(`autoSnapshot`, 업데이트 전 · 하루 한 번 IndexedDB `funeral-safe`에 보관) 기능을 없애지 않는다.
@@ -69,6 +69,7 @@
 - **월간 현황 그래프**(dataviz 규칙): 당직 메인/서브 막대 `.dv-plot`(높이 10px, 두 칸 사이 2px 틈, 끝만 4px 둥글게), 평균은 막대 뒤 가는 세로선 `.ref`, 범례 `#dvLegend`(평균 · 많고 적은 차이), 손가락/마우스 올리면 값 `dvTipBind`. 색은 전용 변수 `--dv-m`/`--dv-s` (밝은 #00928a/#a87526, 어두운 #1a9e94/#b8862f — `validate_palette.js` 통과값, 바꾸면 다시 검사). 평균에서 2회 이상 벗어나면 합계 빨간색 + 「평균보다 N회 많음/적음」. KPI 진행 막대는 `.k-meter` (예전 `.bar`는 달력 막대 CSS와 이름이 겹쳐 안 보였음).
 - **보기 쉬움 규칙**(2026.10.16 점검): 글자 대비 4.5:1 이상(예시 글자 `--ph`·`--faint` 밝은 화면 #6a6e73), 설명 글자 12px 이상, 휴대폰에서 누르는 곳 44×44px 이상, 휴대폰 입력칸 · 결과 글 칸 16px(아이폰 확대 방지), 글자 없는 칸에는 `aria-label`. 블록 위치: `src/funeral-theme.html` 끝 「보기 쉬움 점검」, 휴무 앱 안 같은 이름 블록, `src/app.html` · `src/admin.html`의 「보기 쉬움 점검」. 흰 서명 칸 안 글자는 어두운 화면에서도 #5a5e63. 달력 · 근무표 칸 안 한 글자 표시(출 · 휴 · 복 · 요일)는 칸이 좁아 11px 안팎 그대로.
 - **손맛 다듬기**(audit-suite: make-interfaces-feel-better · emil-design-engineering · web-design-guidelines, 2026.10.16): 버튼은 누르면 `scale(.97)` 0.12초(움직임 줄이기 설정이면 없음), 마우스용 강조(`:hover`)는 `@media (hover:hover)` 안에만 둬서 휴대폰에 안 남게, 탭할 때 회색 표시 없음(`-webkit-tap-highlight-color:transparent`), 제목 `text-wrap:balance` · 설명 `pretty`, 창 · 시트 안 스크롤은 `overscroll-behavior:contain`. 각 앱의 「손맛 다듬기」 블록. 들어올 때 튀어나오는 움직임 · 순서대로 나타나기는 우리 규칙(차분하게)에 안 맞아서 안 씀. `transition: all` 쓰지 않기.
+- **휴대폰 자동 백업 파일**(2026.10.17): 관리자 서식 설정 → 데이터, 장례일정 설정 → 행사 기록 보관의 「자동 백업 켜기」. 처음 한 번 `showSaveFilePicker`로 휴대폰 파일(`DW_자동백업.json`)을 고르면 손잡이를 IndexedDB `dw-autofile`에 두고, 기록이 바뀔 때마다 그 파일에 덮어씀(장례 쪽은 저장 6초 뒤 · 화면을 벗어날 때, 관리자 서식은 1분마다 바뀐 게 있으면 · 화면을 벗어날 때). 파일 모양은 관리자 서식 백업과 같음(`app:'manager-forms'`, `funeral`에 장례 · 휴무 저장값) → 두 앱의 「백업 불러오기」 모두 받음(장례일정은 `afToFuneralBackup`). 장례 쪽은 funeral 부분만 바꾸고 관리자 서식 부분은 파일 것을 그대로, 관리자 서식은 이 기기에서 비어 있는 부분은 파일 것을 그대로 둠. **안전장치**: 이 기기가 비어 있고 파일에 기록이 있으면 덮어쓰지 않음(「이 파일에서 되살리기」 안내). 앱을 지운 뒤에는 「예전 (자동 백업) 파일 연결」로 그 파일을 고르면 되살리고 이어서 자동 백업. 권한이 풀리면 「다시 연결」(장례일정은 「저장」 버튼으로도 다시 물음). 아이폰 · 옛 크롬은 지원 안 함(안내 문구). DW관리 기록은 안 들어감.
 - **휴대폰(699px 이하) 장례일정 위쪽**: 화면 제목 덩어리(`.page-intro`)와 위쪽 탭(`.work-tabs`)은 숨김(맨 위 막대 · 아래 메뉴와 겹침), 행사 기록 상자는 작게. 태블릿 · PC는 그대로. (`src/funeral-theme.html` 맨 아래)
 
 ---
