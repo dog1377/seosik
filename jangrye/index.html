@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.16-25">
+<meta name="app-version" content="2026.10.17-1">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="장례일정">
@@ -2542,13 +2542,18 @@ function ckItem(t){   /* "남상복 6세트 추가 30만원(현금)" → 글 · 
   if(!pay){ const w=body.match(/\s*(현금|카드)\s*$/); if(w){ pay=w[1]; body=body.slice(0,w.index).trim(); } }
   let m=body.match(/^(.*?)\s*(-?[\d,]+(?:\.\d+)?\s*만\s*(?:[\d,]+\s*)?원?|-?[\d,]+\s*원)\s*$/);
   if(!m) m=body.match(/^(.*?)\s*(-?[\d,]+(?:\.\d+)?)\s*$/);
-  return m?{text:m[1].trim(),won:toWon(m[2]),pay,raw:t}:{text:body,won:0,pay,raw:t};
+  if(m) return {text:m[1].trim(),won:toWon(m[2]),pay,raw:t};
+  /* 금액이 중간에 있는 줄: "남상복 3세트 15만원 추가" → 금액(만원 · 원이 붙은 숫자)을 찾아 빼고 나머지는 글 */
+  const all=[...body.matchAll(/-?[\d,]+(?:\.\d+)?\s*만\s*(?:[\d,]+\s*)?원?|-?[\d,]+\s*원/g)];
+  if(all.length){ const x=all[all.length-1]; const text=(body.slice(0,x.index)+' '+body.slice(x.index+x[0].length)).replace(/\s+/g,' ').trim(); return {text,won:toWon(x[0]),pay,raw:t,moved:true}; }
+  return {text:body,won:0,pay,raw:t};
 }
 function parseSettleKakao(text){
   const P={head:{place:'',도우미:null,차량:null,상복:null,장지:null},order:[],orig:{},s:{pay:'현금',extras:[],urnPay:'현금',minus:[],carry:[]},f:{},claim:{},mins:[],unknown:[],notes:[],extrasRaw:[]};
   const s=P.s; let inExtra=false;
   const addExtra=t=>{ const it=ckItem(t); P.extrasRaw.push(it.raw);
     if(!it.won && !it.text) return;
+    if(!it.won) P.notes.push(`「${it.raw}」에서 금액을 찾지 못했어요. 금액을 확인해 주세요`);
     if(!it.pay){ P.notes.push(`「${it.raw}」에 현금 · 카드 표시가 없어 현금으로 봤어요`); it.pay='현금'; }
     if(/관꽃장식/.test(it.text)){ s.flowerSale=ckAmtStr(it.won); s.flowerSalePay=it.pay; }
     else s.extras.push({id:uid(),text:it.text,amt:ckAmtStr(it.won),pay:it.pay}); };
