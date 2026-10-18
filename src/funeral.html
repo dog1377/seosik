@@ -1543,9 +1543,16 @@ if(!db.v5){
   db.v5=true;
 }
 if(!db.v6){ db.companies.forEach(x=>{ x.deduct=[]; }); db.v6=true; }
-const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],urnTypes:['천향사각합골함'],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
+const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],urnTypes:[],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
 if(!db.lists) db.lists=JSON.parse(JSON.stringify(DEFAULT_LISTS));
 Object.keys(DEFAULT_LISTS).forEach(k=>{ if(!db.lists[k]) db.lists[k]=DEFAULT_LISTS[k].slice(); });
+// 공통 기본 선택지만 한 번 제거한다. 기존 행사의 유골함 기록은 그대로 둔다.
+function migrateUrnChoices(data){
+  if(data.vUrnDefaultRemoved) return;
+  if(Array.isArray(data.lists?.urnTypes)) data.lists.urnTypes=data.lists.urnTypes.filter(v=>v!=='천향사각합골함');
+  data.vUrnDefaultRemoved=true;
+}
+migrateUrnChoices(db);
 // 차종 "버스+리무진" → "버스 리무진" (목록 · 기존 행사 모두)
 const noPlus=v=>String(v??'').replace(/\s*\+\s*/g,' ').trim();
 if(!db.vVeh){ db.lists.vehTypes=[...new Set((db.lists.vehTypes||[]).map(noPlus))]; db.cases.forEach(c=>{ if(c.f&&/\+/.test(c.f.vehType||'')) c.f.vehType=noPlus(c.f.vehType); }); db.vVeh=true; }
@@ -2242,7 +2249,7 @@ $('#keepRestoreFile').onchange=async e=>{
 };
 // 백업(파일 · 자동 보관본)을 지금 기록에 합침: 없는 건 넣고, 더 최근에 고친 건 바꿈. 지금 기록은 지우지 않음
 function mergeBackup(data){
-  const b=data.db; let nc=0, ne=0;
+  const b=data.db; migrateUrnChoices(b); let nc=0, ne=0;
   const ids=new Set(b.cases.map(c=>c.id));
   db.cases=db.cases.filter(c=>ids.has(c.id)||Object.values(c.f||{}).some(v=>String(v??'').trim()));
   if(!db.cases.length&&!db.envelopes.length){
@@ -2536,7 +2543,7 @@ $('#shareApp').onclick=async()=>{
   if(await doCopy(url)) toast('앱 주소를 복사했습니다'); else toast(url);
 };
 $('#exportCfg').onclick=async()=>{
-  const txt=JSON.stringify({app:'funeral-maker',v:1,companies:db.companies,lists:db.lists,crems:db.crems});
+  const txt=JSON.stringify({app:'funeral-maker',v:1,companies:db.companies,lists:db.lists,crems:db.crems,vUrnDefaultRemoved:db.vUrnDefaultRemoved});
   if(await doCopy(txt)) toast('설정을 복사했습니다. 카톡 등에 붙여넣어 보관·전달하세요');
   else { $('#importBox').hidden=false; $('#importText').value=txt; $('#importText').select(); toast('자동 복사가 막혀 있습니다. 선택된 글을 복사하세요'); }
 };
@@ -2545,6 +2552,7 @@ $('#importApply').onclick=()=>{
   let cfg; try{ cfg=JSON.parse($('#importText').value.trim()); }catch(e){ toast('설정 글이 올바르지 않습니다. 전체를 붙여넣었는지 확인하세요'); return; }
   if(!cfg || cfg.app!=='funeral-maker' || !Array.isArray(cfg.companies)){ toast('이 앱에서 내보낸 설정이 아닙니다'); return; }
   arm($('#importApply'),'한 번 더 누르면 바꿉니다',()=>{
+    migrateUrnChoices(cfg);
     db.companies=cfg.companies; if(cfg.lists) db.lists=cfg.lists; if(Array.isArray(cfg.crems)) db.crems=cfg.crems;
     if(!db.companies.find(x=>x.id===ETC)) db.companies.push({id:ETC,name:'기타 업체',band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:GOI_REPORT}],items:BAND_ITEMS.slice(),deduct:[]});
     db.cases.forEach(c=>{ if(!db.companies.find(x=>x.id===c.companyId)) c.companyId=ETC; });
