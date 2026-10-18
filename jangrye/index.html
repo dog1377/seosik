@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.17-2">
+<meta name="app-version" content="2026.10.18-1">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="장례일정">
@@ -1097,8 +1097,15 @@ body.split #p-settle .wz{max-width:none}
       <p class="keep-stats" id="keepLast"></p>
       <div class="row"><button class="btn primary" id="keepBackup" type="button">전체 기록 백업 파일 저장</button><label class="btn" for="keepRestoreFile">백업 불러오기</label></div>
       <input type="file" id="keepRestoreFile" accept=".json,application/json" hidden>
+      <div class="af-box" id="clBox">
+        <h3 class="snap-h">클라우드 자동 저장</h3>
+        <p class="note">구글 드라이브에 기록이 자동으로 저장됩니다. 앱을 지우거나 휴대폰을 바꿔도 「클라우드 코드」만 넣으면 그대로 돌아와요. 관리자 서식과 같은 곳에 저장됩니다.</p>
+        <p class="keep-stats" id="clStatus"></p>
+        <div id="clSetup" class="af-box"><label class="f"><span class="field-label">클라우드 주소 또는 클라우드 코드</span><input class="input" id="clCode" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"></label><div class="row"><button class="btn primary" id="clGo" type="button">연결</button></div></div>
+        <div class="row" id="clOn" hidden><button class="btn" id="clNow" type="button">지금 저장</button><button class="btn" id="clCopy" type="button">클라우드 코드 복사</button><button class="btn" id="clPull" type="button">클라우드에서 불러오기</button><button class="btn" id="clOff" type="button">끄기</button></div>
+      </div>
       <div class="af-box" id="afBox">
-        <h3 class="snap-h">휴대폰 자동 백업</h3>
+        <h3 class="snap-h">휴대폰 파일 자동 백업</h3>
         <p class="note">처음 한 번 저장할 곳을 고르면, 그다음부터 저장할 때마다 그 파일에 최신 기록이 자동으로 들어갑니다. 앱을 지우거나 기록이 사라져도 파일은 휴대폰에 남아서 「백업 불러오기」로 되살릴 수 있어요. 관리자 서식과 같은 파일을 같이 씁니다.</p>
         <p class="keep-stats" id="afStatus"></p>
         <div class="row" id="afBtns"><button class="btn primary" id="afOn" type="button">자동 백업 켜기</button><button class="btn" id="afOpen" type="button">예전 자동 백업 파일 연결</button></div>
@@ -1573,7 +1580,7 @@ if(!db.dwVendorAdded){
   db.dwVendorAdded=true;
 }
 if(!db.vItems17){ db.companies.forEach(x=>{ x.items=BAND_ITEMS.slice(); }); db.vItems17=true; }
-function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof afSchedule==='function') afSchedule(); return ok; }
+function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof afSchedule==='function') afSchedule(); if(ok&&typeof clSchedule==='function') clSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
 // 기타 업체로 작성한 건은 직접 넣은 업체명을 씀
 const caseCoName=c=>{ const co=coById(c&&c.companyId); return co.id===ETC&&String((c.f||{}).coName||'').trim()?String(c.f.coName).trim():co.name; };
@@ -2275,6 +2282,62 @@ function afToFuneralBackup(data){
   const duty={}; Object.keys(data.funeral).forEach(k=>{ if(/^hyumu-/.test(k)) duty[k]=data.funeral[k]; });
   return b&&Array.isArray(b.cases)?{app:'funeral-maker-backup',v:1,db:b,duty}:data;
 }
+
+/* ---------- 클라우드 자동 저장 (2026.10.18)
+   사용자 구글 드라이브에 저장 (구글 앱스 스크립트 웹 앱, 코드 tools/cloud-script.gs). 회사 서버 없음.
+   연결 정보 localStorage 'dw-cloud' {url,key}. key = 기기에서 만든 긴 무작위 「클라우드 코드」 (주소#코드 로 보관 · 붙여 넣기).
+   장례 쪽은 slot 'funeral' (장례 · 휴무 저장값), 관리자 서식은 slot 'forms'. 저장 10초 뒤 · 화면을 벗어날 때 올림.
+   안전장치: 이 기기에 행사가 없는데 클라우드에 있으면 덮어쓰지 않음. ---------- */
+const CL_CONF='dw-cloud', CL_META='dw-cloud-meta';
+const CL_URL_RE=/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
+function clConf(){ try{ const c=JSON.parse(localStorage.getItem(CL_CONF)||'null'); return c&&c.url&&c.key?c:null; }catch(e){ return null; } }
+function clSetConf(c){ try{ if(c) localStorage.setItem(CL_CONF,JSON.stringify(c)); else localStorage.removeItem(CL_CONF); }catch(e){} }
+function clMeta(){ try{ return JSON.parse(localStorage.getItem(CL_META)||'{}')||{}; }catch(e){ return {}; } }
+function clSetMeta(m){ try{ localStorage.setItem(CL_META,JSON.stringify(Object.assign(clMeta(),m))); }catch(e){} }
+function clParse(code){ const t=String(code||'').trim().replace(/\s+/g,''); const i=t.indexOf('#'); const u=i<0?t:t.slice(0,i), k=i<0?'':t.slice(i+1); if(!CL_URL_RE.test(u)) return null; return {url:u,key:/^[A-Za-z0-9]{24,64}$/.test(k)?k:''}; }
+function clNewKey(){ const A='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', a=new Uint8Array(32); crypto.getRandomValues(a); return [...a].map(b=>A[b%A.length]).join(''); }
+const clCode=c=>`${c.url}#${c.key}`;
+async function clGet(c,slot){ const r=await fetch(`${c.url}?key=${encodeURIComponent(c.key)}&slot=${slot}&t=${Date.now()}`,{cache:'no-store',redirect:'follow'}); const j=await r.json(); if(!j||!j.ok) throw new Error((j&&j.err)||'fail'); return j; }
+async function clPost(c,slot,obj){
+  const body=JSON.stringify({key:c.key,slot,data:JSON.stringify(obj)});
+  try{ const r=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body,redirect:'follow'}); const j=await r.json(); if(!j||!j.ok) throw new Error((j&&j.err)||'fail'); return j; }
+  catch(e){ if(e&&/key|big|busy/.test(e.message)) throw e;
+    // 답을 못 읽는 경우(일부 브라우저): 그냥 보내고, 다시 읽어서 같은지 확인
+    await fetch(c.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body});
+    const back=await clGet(c,slot); if(!back.data||back.data.length!==JSON.stringify(obj).length) throw new Error('fail'); return back; }
+}
+var clLast='', clTimer=0, clBusy=false;
+async function clPush(force){
+  const c=clConf(); if(!c) return 'off'; if(clBusy) return 'busy';
+  const fun=afFuneralPart(), sig=JSON.stringify(fun);
+  if(sig===clLast&&!force) return 'same';
+  clBusy=true;
+  try{
+    if(afCases(fun)) clSetMeta({guard:false});
+    if(!afCases(fun)){ const cur=await clGet(c,'funeral'); let d=null; try{ d=cur.data?JSON.parse(cur.data):null; }catch(e){} if(d&&afCases(d.funeral)>0){ clSetMeta({guard:true}); renderCL(); return 'guard'; } }
+    await clPost(c,'funeral',{app:'dw-cloud',slot:'funeral',v:1,at:new Date().toISOString(),funeral:fun});
+    clLast=sig; clSetMeta({fat:Date.now(),err:'',guard:false}); renderCL(); return 'ok';
+  }catch(e){ clSetMeta({err:String(e&&e.message||e)}); renderCL(); return 'err'; }
+  finally{ clBusy=false; }
+}
+function clSchedule(){ if(!clConf()) return; clearTimeout(clTimer); clTimer=setTimeout(()=>{ clPush(false); },10000); }
+async function clRestore(c){
+  const cur=await clGet(c,'funeral'); if(!cur.data) return null;
+  let d=null; try{ d=JSON.parse(cur.data); }catch(e){ return null; }
+  const data=afToFuneralBackup({app:'manager-forms',funeral:(d&&d.funeral)||{}}); if(!data||!data.db) return null;
+  const r=mergeBackup(data); clSetMeta({guard:false}); save(); dirty=true; renderAll(); return r;
+}
+function renderCL(){
+  const st=$('#clStatus'); if(!st) return;
+  const c=clConf(), m=clMeta();
+  $('#clSetup').hidden=!!c; $('#clOn').hidden=!c;
+  if(!c){ st.textContent='꺼져 있어요. 구글에서 받은 클라우드 주소를 붙여 넣고 「연결」을 누르세요. 앱을 다시 깔았으면 보관해 둔 클라우드 코드를 붙여 넣으세요.'; return; }
+  const d=m.fat?new Date(m.fat):null, at=d?`${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`:'아직 없음';
+  st.textContent=m.guard?'켜짐 · 클라우드에 기록이 있어서 덮어쓰지 않았어요. 「클라우드에서 불러오기」를 누르세요.'
+    :m.err?`켜짐 · 마지막 저장 ${at} · 지금은 올리지 못했어요(인터넷 확인). 다음 저장 때 다시 올립니다.`
+    :`켜짐 · 마지막 클라우드 저장 ${at} · 「클라우드 코드 복사」로 코드를 카톡 「나와의 채팅」에 보관해 두세요.`;
+}
+async function clCopyCode(){ const c=clConf(); if(!c) return; const t=clCode(c); try{ await navigator.clipboard.writeText(t); toast('클라우드 코드를 복사했어요. 카톡 「나와의 채팅」에 붙여 넣어 보관하세요'); }catch(e){ prompt('클라우드 코드 (길게 눌러 복사)',t); } }
 var afLast="", afTimer=0, afBusy=false;
 async function afWrite(ask){
   if(afBusy) return 'busy';
@@ -2361,6 +2424,25 @@ $('#afRestore').onclick=async()=>{ const hd=await afGet(); if(!hd) return; if(aw
 $('#afOff').onclick=()=>arm($('#afOff'),'정말 끄기',async()=>{ await afPut(null); afSetMeta({at:0,need:false,guard:false}); renderAF(); toast('자동 백업을 껐습니다. 휴대폰의 파일은 그대로 남아 있어요'); });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'){ clearTimeout(afTimer); afWrite(false); } });
 renderAF(); afWrite(false);
+$('#clGo').onclick=async()=>{
+  const p=clParse($('#clCode').value);
+  if(!p){ toast('주소가 맞지 않아요. 구글에서 받은 「…/exec」 주소나 클라우드 코드를 그대로 붙여 넣으세요'); return; }
+  const c={url:p.url,key:p.key||clNewKey()}, b=$('#clGo'); b.disabled=true; b.textContent='연결 중…';
+  try{
+    const cur=await clGet(c,'funeral'); clSetConf(c); $('#clCode').value='';
+    let msg='클라우드 자동 저장을 켰어요. 「클라우드 코드 복사」로 코드를 보관해 두세요';
+    if(p.key&&cur.data){ const r=await clRestore(c); if(r) msg=`클라우드에서 행사 ${r.nc}건, 봉투 ${r.ne}건을 되살리고 자동 저장을 이었어요`; }
+    clLast=''; await clPush(true); renderCL(); toast(msg);
+  }catch(e){ toast('연결하지 못했어요. 주소와 인터넷을 확인해 주세요'); }
+  finally{ b.disabled=false; b.textContent='연결'; }
+};
+$('#clNow').onclick=async()=>{ save(); const r=await clPush(true); toast(r==='ok'?'클라우드에 지금 기록을 올렸어요':r==='guard'?'클라우드에 기록이 있어요. 「클라우드에서 불러오기」를 먼저 눌러 주세요':'올리지 못했어요. 인터넷을 확인해 주세요'); };
+$('#clCopy').onclick=()=>clCopyCode();
+$('#clPull').onclick=async()=>{ const c=clConf(); if(!c) return; try{ const r=await clRestore(c); toast(r?`클라우드에서 행사 ${r.nc}건, 봉투 ${r.ne}건을 불러왔어요 (지금 기록은 지우지 않고 합쳤어요)`:'클라우드에 장례 기록이 없어요'); clLast=''; clPush(false); renderCL(); }catch(e){ toast('불러오지 못했어요. 인터넷을 확인해 주세요'); } };
+$('#clOff').onclick=()=>arm($('#clOff'),'정말 끄기',()=>{ clSetConf(null); clSetMeta({fat:0,err:'',guard:false}); renderCL(); toast('클라우드 자동 저장을 껐어요. 구글 드라이브의 기록은 그대로 있어요'); });
+window.addEventListener('online',()=>{ if(clMeta().err) clPush(false); });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&clConf()){ clearTimeout(clTimer); clPush(false); } });
+renderCL(); if(clConf()) setTimeout(()=>clPush(false),2500);
 $('#newCase').onclick=()=>db.tab==='envelopes'?newManualEnvelope():db.tab==='settle'?startQuickSettle():openPicker('new');
 $('#caseSel').onchange=e=>{ db.cur=e.target.value; save(); dirty=true; renderAll(); };
 function arm(btn,label,fn){
