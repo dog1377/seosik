@@ -1077,6 +1077,12 @@ body.split #p-settle .wz{max-width:none}
       </div>
     </div>
     <div class="sec">
+      <div class="sec-head"><h2>배차 양식</h2></div>
+      <p class="note">모든 업체 행사의 보고서 화면에 나오는 배차 문자 양식입니다. 쓸 수 있는 자리: {발인날짜} {장소} {업체명} {회사명} {발인} {배차} {화장하관} {화장장회차} {차량경로} {차량} {운행경로} {장지} {담당} {담당연락처} {고인명} {상주명}. 배차 칸을 비워 두면 발인 30분 전으로, 운행 경로를 비워 두면 「화장장-장지-장례식장」으로 들어갑니다.</p>
+      <label class="f">배차 양식<textarea class="input tpl" id="dispTpl" rows="11"></textarea></label>
+      <div class="row"><button class="btn sm primary" id="saveDispTpl" type="button">저장</button><button class="btn sm" id="resetDispTpl" type="button">기본값으로</button></div>
+    </div>
+    <div class="sec">
       <div class="sec-head"><h2>정산 기준</h2></div>
       <div class="pair">
         <label class="f">제단 정산 고정 금액<div class="suffix"><input class="input" id="rAltar" inputmode="numeric"><span>만원</span></div></label>
@@ -1403,6 +1409,17 @@ const JH_REPORT=`주현라이프[상담완료보고]
 
 * 특이사항
 {특이사항}`;
+/* 배차 양식 (2026.10.20): 모든 업체 행사의 보고서에 나옴. 설정 → 배차 양식에서 고칠 수 있음(db.dispatchTpl) */
+const DISPATCH_TPL=`{발인날짜}
+장소 : {장소}
+회사 : {업체명}
+발인 : {발인}
+배차 : {배차}
+{화장하관}
+
+{차량경로}
+
+{담당} {담당연락처}`;
 const HJ_REPORTS=[
  {name:'행사진행보고', body:`☆{접수월일} 행사진행☆
 회사 : {회사명}
@@ -1636,6 +1653,17 @@ function hm(p){ return p.h==null?'':`${pad(p.h)}시${p.mi?' '+pad(p.mi)+'분':''
 function longDT(v){ const p=parseDT(v); if(!p) return ''; return `${pad(p.mo)}월 ${pad(p.d)}일${p.h==null?'':` ${pad(p.h)}시 ${pad(p.mi)}분`}`; }
 function dayTime(v){ const p=parseDT(v); return p?`${pad(p.d)}일 ${hm(p)}`.trim():''; }
 function period(a,b){ const p=parseDT(a), q=parseDT(b); if(!p||!q) return ''; const n=Math.round((new Date(q.y,q.mo-1,q.d)-new Date(p.y,p.mo-1,p.d))/86400000)+1; return n>0?`${pad(p.d)}일-${pad(q.d)}일 ${n}일`:''; }
+/* 배차 양식용 */
+function dispatchDT(f){ if(String(f.dispatchAt||'').trim()) return f.dispatchAt; const p=parseDT(f.depart); if(!p||p.h==null) return ''; const t=new Date(p.y,p.mo-1,p.d,p.h,p.mi||0); t.setMinutes(t.getMinutes()-30); return `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}`; }
+function departDay(f){ const p=parseDT(f.depart); if(!p) return ''; return `${p.mo}월 ${p.d}일 ${'일월화수목금토'[new Date(p.y,p.mo-1,p.d).getDay()]}요일`; }
+function cremWithRound(f){ if(isBurial(f)) return ''; const n=cremReportLabel(f); return [n, f.cremRound?`(${pad(f.cremRound)}회차)`:''].filter(Boolean).join(' '); }
+function cremOrHagwan(f){ if(isBurial(f)){ const hs=hagwanStr(f); return hs?`하관 : ${hs}`:'하관 : '; } return `화장 : ${cremWithRound(f)}`; }
+function autoRoute(f){   /* 화장장 - 장지 - 장례식장 (같은 이름이 이어지면 하나만) */
+  const strip=s=>String(s||'').replace(/\s|\(.*?\)/g,''), b1=String(f.burial1||'').trim(), b2=String(f.burial2||'').trim();
+  const stops=[isBurial(f)?'':cremReportLabel(f), ...(b1||b2?[b1,b2]:String(f.burial||'').split('-'))].map(s=>String(s||'').trim()).filter(Boolean);
+  const out=[]; stops.forEach(s=>{ if(!out.length||strip(out[out.length-1])!==strip(s)) out.push(s); });
+  return out.length?[...out,'장례식장'].join('-'):'';
+}
 function cremStr(f){
   if(!f.cremDate) return ''; const p=parseDT(f.cremDate+(f.cremTime?'T'+f.cremTime:'')); if(!p) return '';
   const ex=[cremReportLabel(f), f.cremRound?pad(f.cremRound)+'회차':''].filter(Boolean).join(' ');
@@ -1654,7 +1682,7 @@ function vals(c){
     '장소':g('place'), '기간':period(f.death,f.depart), '회사명':g('company'), '업체명':caseCoName(c), '고객명':g('customer'), '관계':g('custRel'), '고객연락처':g('custTel'),
     '고인명':deceased, '고인이름':g('name'), '상주명':g('chief'), '상주연락처':g('chiefTel'), '종교':g('religion'),
     '성별':g('gender'), '나이':g('age'), '상주관계':g('chiefRel'),
-    '임종':dayTime(f.death), '입관':dayTime(f.casket), '발인':dayTime(f.depart), '장지':g('burial')||[g('burial1'),g('burial2')].filter(Boolean).join('-'), '배차':dayTime(f.dispatchAt), '운행경로':g('route'), '상품':g('product'),
+    '임종':dayTime(f.death), '입관':dayTime(f.casket), '발인':dayTime(f.depart), '장지':g('burial')||[g('burial1'),g('burial2')].filter(Boolean).join('-'), '배차':dayTime(dispatchDT(f)), '운행경로':g('route')||autoRoute(f), '발인날짜':departDay(f), '화장장회차':cremWithRound(f), '화장하관':cremOrHagwan(f), '차량경로':[noPlus(g('vehType')),g('route')||autoRoute(f)].filter(Boolean).join(' '), '상품':g('product'),
     '접수일시':longDT(f.recv||f.death), '입관일시':longDT(f.casket), '발인일시':longDT(f.depart), '1차장지':g('burial1'), '2차장지':g('burial2'),
     '납입':money(f.paid), '잔액':money(f.balance),
     '회사지원':money(f.support), '수금액':(altarDeductWon(c)&&toWon(f.collect))?(wonStr(collectNetWon(c))||'0원'):money(f.collect), '담당':g('staff'), '담당연락처':g('staffTel'), '특이사항':g('note'),
@@ -1799,11 +1827,11 @@ const FIELD_PH={place:['장소'],recv:['접수일시','접수'],death:['임종',
   company:['회사명'],customer:['고객명'],custRel:['관계'],custTel:['고객연락처'],name:['고인명','고인이름'],gender:['고인명','성별'],age:['고인명','나이'],origin:['고인명','본관'],religion:['종교'],
   chief:['상주명'],chiefRel:['상주관계'],chiefTel:['상주연락처'],burial1:['1차장지','장지'],burial2:['2차장지','장지'],burial:['장지'],product:['상품'],
   support:['회사지원'],paid:['납입'],balance:['잔액'],collect:['수금액'],staff:['담당'],staffTel:['담당연락처'],note:['특이사항'],
-  helper:['도우미','도우미이름'],helperHours:['도우미'],mourning:['상복'],vehicle:['차량'],mournM:['상복'],mournW:['상복'],mournBrand:['상복'],vehType:['차량'],vehCo:['차량'],dispatchAt:['차량','배차'],route:['차량','운행경로'],altar:['제단공제'],shroud:['수의대체'],provNote:['제공특이사항'],
+  helper:['도우미','도우미이름'],helperHours:['도우미'],mourning:['상복'],vehicle:['차량'],mournM:['상복'],mournW:['상복'],mournBrand:['상복'],vehType:['차량'],vehCo:['차량'],dispatchAt:['배차'],route:['운행경로','차량경로'],altar:['제단공제'],shroud:['수의대체'],provNote:['제공특이사항'],
   mourn:['상구분'],staffOrg:['소속'],productShort:['상품약칭'],eventNo:['행사번호'],
   arrive:['도착'],cause:['사망사유'],addr:['주소'],method:['장법'],altarSup:['제단지원'],coupon:['할인권사용'],cardBack:['회원증회수'],certSub:['확인서대체'],affiliate:['계열사'],rank:['직급']};
 const ALWAYS=['eventNo','place','death','casket','depart','name','chief'];   // 부고에 필요한 칸은 항상
-function usedPH(co){ return new Set([...[co.band,...activeReports(co).map(r=>r.body)].join('\n').matchAll(/\{([^}]+)\}/g)].map(m=>m[1].split(':')[0])); }
+function usedPH(co){ const s=new Set([...[co.band,...activeReports(co).map(r=>r.body),db.dispatchTpl||DISPATCH_TPL].join('\n').matchAll(/\{([^}]+)\}/g)].map(m=>m[1].split(':')[0])); if(s.has('화장하관')){ s.add('화장'); s.add('하관'); } if(s.has('화장장회차')) s.add('화장'); if(s.has('차량경로')){ s.add('차량'); s.add('운행경로'); } if(s.has('발인날짜')) s.add('발인'); return s; }
 function visible(k,used){ return ALWAYS.includes(k) || (FIELD_PH[k]||[]).some(p=>used.has(p)); }
 const REQUIRED={place:'장소',death:'임종',depart:'발인',customer:'고객 · 회원명',name:'고인명',chief:'상주명',staff:'담당',cremDate:'화장 날짜',hagwanDate:'하관 날짜'};
 
@@ -2602,7 +2630,8 @@ function renderOut(){
   if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
   $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
-  $('#reportCards').innerHTML=reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#reportCards').innerHTML=`<div class="out" id="dispOut"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div>`+reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c);
   reports.forEach((r,i)=>{ $('#rep_'+i).value=fillTpl(r.body,c); });
   const used=usedPH(co);
   const burialOn=used.has('화장')||used.has('하관');
@@ -2616,6 +2645,7 @@ $('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return;
 /* ---------- 관리: 회사 ---------- */
 let coSel=null, lastTpl='coBand';
 function renderCompanies(){
+  const dtpl=$('#dispTpl'); if(dtpl&&document.activeElement!==dtpl) dtpl.value=db.dispatchTpl||DISPATCH_TPL;
   if(!db.companies.find(x=>x.id===coSel)) coSel=(db.companies.find(x=>x.id!==ETC)||db.companies[0]).id;
   const list=[...db.companies.filter(x=>x.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko')), coById(ETC)];
   $('#coChips').innerHTML=list.map(x=>`<button class="chip" type="button" data-co="${x.id}" aria-pressed="${x.id===coSel}">${esc(x.name)}</button>`).join('')+`<button class="chip add" type="button" data-co="__new">+ 업체 추가</button>`;
@@ -4005,7 +4035,9 @@ async function copyText(text,msg,fallbackEl){
 }
 $('#copySched').onclick=()=>copyText(splitBand($('#bandText').value).sched,'일정표를 복사했습니다',$('#bandText'));
 $('#copyProv').onclick=()=>{ const s=splitBand($('#bandText').value); if(!s.prov){ toast('양식에 "제공내역" 줄이 없습니다'); return; } copyText(s.prov,'제공내역을 복사했습니다',$('#bandText')); };
-$('#reportCards').onclick=e=>{ const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
+$('#saveDispTpl').onclick=()=>{ const t=$('#dispTpl').value.replace(/\s+$/,''); db.dispatchTpl=t&&t!==DISPATCH_TPL?t:''; save(); dirty=true; renderAll(); toast('배차 양식을 저장했습니다'); };
+$('#resetDispTpl').onclick=()=>{ $('#dispTpl').value=DISPATCH_TPL; db.dispatchTpl=''; save(); dirty=true; renderAll(); toast('배차 양식을 기본값으로 되돌렸습니다'); };
+$('#reportCards').onclick=e=>{ if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정',data:'데이터 관리'};
 const TAB_TITLES={input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
 /* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
