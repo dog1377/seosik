@@ -1078,7 +1078,7 @@ body.split #p-settle .wz{max-width:none}
     </div>
     <div class="sec">
       <div class="sec-head"><h2>퇴근 양식</h2></div>
-      <p class="note">모든 행사의 보고서 화면에 나오고, 날짜가 바뀌면 자동으로 바뀝니다. 퇴근은 오늘 19시. 출근은 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분), 발인이면 1시간 전(현진시닝은 1시간 30분 전, 발인 10시부터는 08시 30분). 내일 일정이 없으면 08시 30분. 발인 날부터는 퇴근 · 출근 줄이 빠집니다. 쓸 수 있는 자리: {장소} {담당} {담당연락처} {업체명} {퇴근줄} {출근줄} {입관줄} {발인줄}</p>
+      <p class="note">모든 행사의 보고서 화면에 나오고, 날짜가 바뀌면 자동으로 바뀝니다. 퇴근은 오늘 19시. 출근은 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분), 발인이면 1시간 전(현진시닝은 1시간 30분 전). 계산한 출근이 08시 30분보다 늦으면 모두 08시 30분. 내일 일정이 없으면 08시 30분. 발인 날부터는 퇴근 · 출근 줄이 빠집니다. 쓸 수 있는 자리: {장소} {담당} {담당연락처} {업체명} {퇴근줄} {출근줄} {입관줄} {발인줄}</p>
       <label class="f">퇴근 양식<textarea class="input tpl" id="offTpl" rows="7"></textarea></label>
       <div class="row"><button class="btn sm primary" id="saveOffTpl" type="button">저장</button><button class="btn sm" id="resetOffTpl" type="button">기본값으로</button></div>
     </div>
@@ -1713,7 +1713,7 @@ function endPay_(c){
 }
 /* 퇴근 · 출근 계산
    퇴근: 오늘 19시. 출근: 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분),
-   발인이면 1시간 전(현진시닝은 1시간 30분 전, 발인 10시부터는 모두 08시 30분). 내일 일정이 없거나 시간이 없으면 08시 30분.
+   발인이면 1시간 전(현진시닝은 1시간 30분 전). 계산한 출근이 08시 30분보다 늦으면 08시 30분. 내일 일정이 없거나 시간이 없으면 08시 30분.
    발인 날부터는 퇴근 · 출근 줄 없음. 오늘 날짜는 window.__todayYMD 로 바꿔 시험할 수 있음 */
 const ymdOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const todayYMD=()=>window.__todayYMD||ymdOf(new Date());
@@ -1731,8 +1731,8 @@ function offWork(c){
     const next=ev.filter(e=>String(e.v).slice(0,10)===tmY).sort((a,b)=>String(a.v).localeCompare(String(b.v)))[0], np=next&&parseDT(next.v);
     let mins=8*60+30;
     if(np&&np.h!=null){ const at=np.h*60+np.mi;
-      if(next.k==='입관') mins=at>=9*60+30?8*60+30:at-60;
-      else { const hj=String(caseCoName(c)||'').replace(/\s/g,'')==='현진시닝'; mins=at>=10*60?8*60+30:at-(hj?90:60); } }
+      const hj=String(caseCoName(c)||'').replace(/\s/g,'')==='현진시닝', before=next.k==='입관'?60:(hj?90:60);
+      mins=Math.min(at-before, 8*60+30); }   // 늦어도 08시 30분 출근
     mins=(mins+24*60)%(24*60);
     out.on=`${tm.getDate()}일 : ${hmStr(Math.floor(mins/60),mins%60)} 출근`;
   }catch(e){}
