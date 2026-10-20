@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.20-4">
+<meta name="app-version" content="2026.10.20-5">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="관리자 서식">
@@ -1081,6 +1081,12 @@ body.split #p-settle .wz{max-width:none}
       <div class="row"><button class="btn sm primary" id="saveDispTpl" type="button">저장</button><button class="btn sm" id="resetDispTpl" type="button">기본값으로</button></div>
     </div>
     <div class="sec">
+      <div class="sec-head"><h2>퇴근 양식</h2></div>
+      <p class="note">모든 행사의 보고서 화면에 나오고, 날짜가 바뀌면 자동으로 바뀝니다. 퇴근은 오늘 19시. 출근은 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분), 발인이면 1시간 전(현진시닝은 1시간 30분 전, 발인 10시부터는 08시 30분). 내일 일정이 없으면 08시 30분. 발인 날부터는 퇴근 · 출근 줄이 빠집니다. 쓸 수 있는 자리: {장소} {담당} {담당연락처} {업체명} {퇴근줄} {출근줄} {입관줄} {발인줄}</p>
+      <label class="f">퇴근 양식<textarea class="input tpl" id="offTpl" rows="7"></textarea></label>
+      <div class="row"><button class="btn sm primary" id="saveOffTpl" type="button">저장</button><button class="btn sm" id="resetOffTpl" type="button">기본값으로</button></div>
+    </div>
+    <div class="sec">
       <div class="sec-head"><h2>정산 기준</h2></div>
       <div class="pair">
         <label class="f">제단 정산 고정 금액<div class="suffix"><input class="input" id="rAltar" inputmode="numeric"><span>만원</span></div></label>
@@ -1424,6 +1430,13 @@ const DISPATCH_TPL=`{발인날짜}
 {차량경로}
 
 {담당} {담당연락처}`;
+/* 퇴근 양식 (2026.10.20): 오늘 19시 퇴근 + 다음 날 첫 일정(입관 · 발인) 기준 출근. 날짜가 바뀌면 자동으로 바뀜. 설정 → 퇴근 양식(db.offTpl) */
+const OFF_TPL=`{장소}
+담당 : {담당}
+{퇴근줄}
+{출근줄}
+{입관줄}
+{발인줄}`;
 const HJ_REPORTS=[
  {name:'행사진행보고', body:`☆{접수월일} 행사진행☆
 회사 : {회사명}
@@ -1702,11 +1715,39 @@ function endPay_(c){
     cardNote: method==='현금'?'':'하단 첨부 - 비과세 확인 완료',
     receipt: method==='카드'?'카드':String(s.rcCashNo||'').trim() };
 }
+/* 퇴근 · 출근 계산
+   퇴근: 오늘 19시. 출근: 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분),
+   발인이면 1시간 전(현진시닝은 1시간 30분 전, 발인 10시부터는 모두 08시 30분). 내일 일정이 없거나 시간이 없으면 08시 30분.
+   발인 날부터는 퇴근 · 출근 줄 없음. 오늘 날짜는 window.__todayYMD 로 바꿔 시험할 수 있음 */
+const ymdOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayYMD=()=>window.__todayYMD||ymdOf(new Date());
+const hmStr=(hh,mm)=>`${pad(hh)}시${mm?' '+pad(mm)+'분':''}`;
+function offWork(c){
+  const out={off:'',on:'',casket:'',depart:'',ended:false,day:''};
+  try{
+    const f=c.f||{}, today=todayYMD(), dep=String(f.depart||'').slice(0,10), t=parseDT(today);
+    const ev=[]; if(f.casket) ev.push({k:'입관',v:f.casket}); if(f.depart) ev.push({k:'발인',v:f.depart});
+    ev.forEach(e=>{ const p=parseDT(e.v); if(p) out[e.k==='입관'?'casket':'depart']=`${p.d}일 : ${p.h!=null?hmStr(p.h,p.mi)+' ':''}${e.k}`; });
+    out.day=`${t.d}일`;
+    if(dep&&today>=dep){ out.ended=true; return out; }
+    const tm=new Date(t.y,t.mo-1,t.d+1), tmY=ymdOf(tm);
+    out.off=`${t.d}일 : 19시 퇴근`;
+    const next=ev.filter(e=>String(e.v).slice(0,10)===tmY).sort((a,b)=>String(a.v).localeCompare(String(b.v)))[0], np=next&&parseDT(next.v);
+    let mins=8*60+30;
+    if(np&&np.h!=null){ const at=np.h*60+np.mi;
+      if(next.k==='입관') mins=at>=9*60+30?8*60+30:at-60;
+      else { const hj=String(caseCoName(c)||'').replace(/\s/g,'')==='현진시닝'; mins=at>=10*60?8*60+30:at-(hj?90:60); } }
+    mins=(mins+24*60)%(24*60);
+    out.on=`${tm.getDate()}일 : ${hmStr(Math.floor(mins/60),mins%60)} 출근`;
+  }catch(e){}
+  return out;
+}
 function vals(c){
   const f=c.f||{}, g=k=>(f[k]??'').toString().trim();
   const deceased=[g('name'), g('gender'), g('age')?g('age')+'세':''].filter(Boolean).join(' ')+(g('origin')?`(본관/${g('origin')})`:'');
-  const EP=endPay(c);
+  const EP=endPay(c), OW=offWork(c);
   return {
+    '퇴근줄':OW.off, '출근줄':OW.on, '입관줄':OW.casket, '발인줄':OW.depart,
     '장례일정':funeralSpan(f), '결제방식':EP.method, '결제일자':EP.day, '결제금액':EP.amount, '입금자명':EP.payer, '카드결제내역':EP.cardNote, '현금영수증':EP.receipt, '사전가입할인':g('preJoin')||'없음', '이행완료확인서':g('certDone')||'하단 첨부',
     '장소':g('place'), '기간':period(f.death,f.depart), '회사명':g('company'), '업체명':caseCoName(c), '고객명':g('customer'), '관계':g('custRel'), '고객연락처':g('custTel'),
     '고인명':deceased, '고인이름':g('name'), '상주명':g('chief'), '상주연락처':g('chiefTel'), '종교':g('religion'),
@@ -2547,8 +2588,9 @@ function renderOut(){
   if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
   $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
-  $('#reportCards').innerHTML=`<div class="out" id="dispOut"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div>`+reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#reportCards').innerHTML=`<div class="out" id="dispOut"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div>`+reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c);
+  { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없어요':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
   reports.forEach((r,i)=>{ $('#rep_'+i).value=fillTpl(r.body,c); });
   const used=usedPH(co);
   const burialOn=used.has('화장')||used.has('하관');
@@ -2563,6 +2605,7 @@ $('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return;
 let coSel=null, lastTpl='coBand';
 function renderCompanies(){
   const dtpl=$('#dispTpl'); if(dtpl&&document.activeElement!==dtpl) dtpl.value=db.dispatchTpl||DISPATCH_TPL;
+  const otpl=$('#offTpl'); if(otpl&&document.activeElement!==otpl) otpl.value=db.offTpl||OFF_TPL;
   if(!db.companies.find(x=>x.id===coSel)) coSel=(db.companies.find(x=>x.id!==ETC)||db.companies[0]).id;
   const list=[...db.companies.filter(x=>x.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko')), coById(ETC)];
   $('#coChips').innerHTML=list.map(x=>`<button class="chip" type="button" data-co="${x.id}" aria-pressed="${x.id===coSel}">${esc(x.name)}</button>`).join('')+`<button class="chip add" type="button" data-co="__new">+ 업체 추가</button>`;
@@ -3954,9 +3997,15 @@ $('#copySched').onclick=()=>copyText(splitBand($('#bandText').value).sched,'일�
 $('#copyProv').onclick=()=>{ const s=splitBand($('#bandText').value); if(!s.prov){ toast('양식에 "제공내역" 줄이 없습니다'); return; } copyText(s.prov,'제공내역을 복사했습니다',$('#bandText')); };
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-crempick]'); if(!b) return; const inp=$('#f_cremName'); if(!inp) return;
   inp.value=b.dataset.crempick; inp.dispatchEvent(new Event('input',{bubbles:true})); document.querySelectorAll('[data-crempick]').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); });
+var offShown='';
+const offRefresh=()=>{ if(db.tab==='out'&&offShown&&offShown!==todayYMD()) renderOut(); };
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') offRefresh(); });
+setInterval(offRefresh,60000);
+$('#saveOffTpl').onclick=()=>{ const t=$('#offTpl').value.replace(/\s+$/,''); db.offTpl=t&&t!==OFF_TPL?t:''; save(); dirty=true; renderAll(); toast('퇴근 양식을 저장했습니다'); };
+$('#resetOffTpl').onclick=()=>{ $('#offTpl').value=OFF_TPL; db.offTpl=''; save(); dirty=true; renderAll(); toast('퇴근 양식을 기본값으로 되돌렸습니다'); };
 $('#saveDispTpl').onclick=()=>{ const t=$('#dispTpl').value.replace(/\s+$/,''); db.dispatchTpl=t&&t!==DISPATCH_TPL?t:''; save(); dirty=true; renderAll(); toast('배차 양식을 저장했습니다'); };
 $('#resetDispTpl').onclick=()=>{ $('#dispTpl').value=DISPATCH_TPL; db.dispatchTpl=''; save(); dirty=true; renderAll(); toast('배차 양식을 기본값으로 되돌렸습니다'); };
-$('#reportCards').onclick=e=>{ if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
+$('#reportCards').onclick=e=>{ if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정',data:'데이터 관리'};
 const TAB_TITLES={input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
 /* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
