@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.20-3">
+<meta name="app-version" content="2026.10.20-4">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="장례일정">
@@ -1321,6 +1321,24 @@ const GOI_REPORT=`장소: {장소}
 
 특이사항
 {공제항목}`;
+/* 고이장례연구소 장례 종료 보고 (2026.10.20): 결제가 현금이면 입금자 명 · 현금영수증 번호, 카드면 「카드 결제」 · 「하단 첨부 - 비과세 확인 완료」 · 「카드」 */
+const GOI_END_REPORT=`장례 종료 보고
+[회원/연락처] : {고객명}/{고객연락처}
+[장례식장] {장소}
+[장례 일정] {장례일정}
+[담당 팀장] {담당}
+[상품명] {상품}
+[결제 방식] {결제방식}
+-결제 일자 : {결제일자}
+-결제 금액 : {결제금액}
+-입금자 명 : {입금자명}
+-카드 결제 내역(사진) : {카드결제내역}
+-현금영수증 : {현금영수증}
+[유골함] 카탈로그와 실제 사진 하단 첨부
+[사전 가입 할인여부] {사전가입할인}
+-이행완료확인서 : {이행완료확인서}
+[특이사항]
+{공제항목}`;
 const JABIN_REPORT=`♧The자빈♧
 
 의전보고
@@ -1607,6 +1625,7 @@ if(!db.dwVendorAdded){
   db.dwVendorAdded=true;
 }
 if(!db.vItems17){ db.companies.forEach(x=>{ x.items=BAND_ITEMS.slice(); }); db.vItems17=true; }
+if(!db.vGoiEnd){ const goi=db.companies.find(x=>isGoi(x)); if(goi){ if(!goi.reports) goi.reports=[]; if(!goi.reports.some(r=>r.name==='장례 종료 보고')) goi.reports.push({id:uid(),name:'장례 종료 보고',body:GOI_END_REPORT}); } db.vGoiEnd=true; }
 function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof afSchedule==='function') afSchedule(); if(ok&&typeof clSchedule==='function') clSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
 // 기타 업체로 작성한 건은 직접 넣은 업체명을 씀
@@ -1663,10 +1682,32 @@ function addDaysAt(v,days,hh,mm){ const p=parseDT(v); const t=new Date(p.y,p.mo-
 function fullDT(v){ const p=parseDT(v); if(!p) return ''; return `${p.mo}월 ${pad(p.d)}일(${wdOf(p)})${p.h==null?'':' '+hm(p)}`; }
 
 /* ---------- 양식 채우기 ---------- */
+/* 장례 종료 보고용: 장례 일정 「09월 29일~10월 01일」, 결제 방식에 따라 달라지는 줄 */
+const md2=v=>{ const p=parseDT(v); return p?`${pad(p.mo)}월 ${pad(p.d)}일`:''; };
+function funeralSpan(f){ const a=md2(f.death||f.recv||f.arrive), b=md2(f.depart); return a&&b?`${a}~${b}`:(a||b); }
+function endPay(c){ try{ return endPay_(c); }catch(e){ return {method:'',day:'',amount:'',payer:'',cardNote:'',receipt:''}; } }   // 처음 불러오는 중에는 계산에 쓰는 것들이 아직 준비 전일 수 있음
+function endPay_(c){
+  const s=c.s?S(c):{}, f=c.f||{}, r=rcptSums(c);
+  const cash=String(s.rcCashAmt||'').trim()?toWon(s.rcCashAmt):r.cash, card=String(s.rcCardAmt||'').trim()?toWon(s.rcCardAmt):r.card;
+  const main=s.pay==='카드'?'카드':'현금';
+  const method=cash>0&&card>0?'현금 · 카드':cash>0?'현금':card>0?'카드':main;
+  const dayV=method==='카드'?(String(s.rcCardDate||'').trim()||String(f.depart||'').slice(0,10)):(String(s.rcCashDate||'').trim()||String(f.depart||'').slice(0,10));
+  const day=md2(dayV), p=parseDT(dayV), mmdd=p?`${pad(p.mo)}${pad(p.d)}`:'';
+  const W=w=>w>0?`${w.toLocaleString('ko-KR')}원`:'';
+  const amount=method==='현금 · 카드'?`현금 ${W(cash)} · 카드 ${W(card)}`:W(method==='카드'?card:cash);
+  const staff=String(f.staff||'').trim().replace(/\s*(팀장|실장|과장|대리|부장|주임|님)$/,'').trim(), cust=String(f.customer||'').trim();
+  const cashPayer=[cust, staff?staff+mmdd:''].filter(Boolean).join(' / ');
+  return { method, day, amount,
+    payer: method==='카드'?'카드 결제':method==='현금 · 카드'?`${cashPayer} · 카드 결제`:cashPayer,
+    cardNote: method==='현금'?'':'하단 첨부 - 비과세 확인 완료',
+    receipt: method==='카드'?'카드':String(s.rcCashNo||'').trim() };
+}
 function vals(c){
   const f=c.f||{}, g=k=>(f[k]??'').toString().trim();
   const deceased=[g('name'), g('gender'), g('age')?g('age')+'세':''].filter(Boolean).join(' ')+(g('origin')?`(본관/${g('origin')})`:'');
+  const EP=endPay(c);
   return {
+    '장례일정':funeralSpan(f), '결제방식':EP.method, '결제일자':EP.day, '결제금액':EP.amount, '입금자명':EP.payer, '카드결제내역':EP.cardNote, '현금영수증':EP.receipt, '사전가입할인':g('preJoin')||'없음', '이행완료확인서':g('certDone')||'하단 첨부',
     '장소':g('place'), '기간':period(f.death,f.depart), '회사명':g('company'), '업체명':caseCoName(c), '고객명':g('customer'), '관계':g('custRel'), '고객연락처':g('custTel'),
     '고인명':deceased, '고인이름':g('name'), '상주명':g('chief'), '상주연락처':g('chiefTel'), '종교':g('religion'),
     '성별':g('gender'), '나이':g('age'), '상주관계':g('chiefRel'),
@@ -1805,7 +1846,7 @@ const SECTIONS=[
   {t:'상품 · 금액', rows:[[F('product','상품','prod')],[F('altarSup','제단지원 (예: 100만원 공제)')],[F('productShort','상품 약칭 (보고용, 비우면 상품)','combo','productShorts')],[F('support','회사지원','money'),F('paid','납입','money')],[F('balance','잔액','money'),F('collect','수금액','money')]]},
   {t:'담당', rows:[[F('staffOrg','소속 (예: 부산본부)')],[F('staff','담당 · 팀장'),F('staffTel','연락처','tel')],[F('note','특이사항','textarea')]]},
   {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','cnt','세트'),F('mournW','상복 여','cnt','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('dispatchAt','배차','datetime-local'),F('route','운행 경로 (예: 부산영락-부산추모-장례식장)')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('provNote','특이사항 (번호 없는 메모)')]]},
-  {t:'확인 사항', rows:[[F('coupon','할인권 사용','select',['','O','X']),F('cardBack','회원증 회수','select',['','O','X'])],[F('certSub','확인서 대체')]]},
+  {t:'확인 사항', rows:[[F('coupon','할인권 사용','select',['','O','X']),F('cardBack','회원증 회수','select',['','O','X'])],[F('certSub','확인서 대체')],[F('preJoin','사전 가입 할인 (비우면 없음)'),F('certDone','이행완료확인서','select',['','하단 첨부','미가입'])]]},
   {t:'관리사 배치', key:'mgr', rows:[]},
   {t:'공제 · 추가 항목', key:'deduct', rows:[]},
   {t:'화장', key:'crem', rows:[]},
@@ -1815,7 +1856,7 @@ const FIELD_PH={place:['장소'],recv:['접수일시','접수'],death:['임종',
   company:['회사명'],customer:['고객명'],custRel:['관계'],custTel:['고객연락처'],name:['고인명','고인이름'],gender:['고인명','성별'],age:['고인명','나이'],origin:['고인명','본관'],religion:['종교'],
   chief:['상주명'],chiefRel:['상주관계'],chiefTel:['상주연락처'],burial1:['1차장지','장지'],burial2:['2차장지','장지'],burial:['장지'],product:['상품'],
   support:['회사지원'],paid:['납입'],balance:['잔액'],collect:['수금액'],staff:['담당'],staffTel:['담당연락처'],note:['특이사항'],
-  helper:['도우미','도우미이름'],helperHours:['도우미'],mourning:['상복'],vehicle:['차량'],mournM:['상복'],mournW:['상복'],mournBrand:['상복'],vehType:['차량'],vehCo:['차량'],dispatchAt:['배차'],route:['운행경로','차량경로'],altar:['제단공제'],shroud:['수의대체'],provNote:['제공특이사항'],
+  helper:['도우미','도우미이름'],helperHours:['도우미'],mourning:['상복'],vehicle:['차량'],mournM:['상복'],mournW:['상복'],mournBrand:['상복'],vehType:['차량'],vehCo:['차량'],dispatchAt:['배차'],route:['운행경로','차량경로'],preJoin:['사전가입할인'],certDone:['이행완료확인서'],altar:['제단공제'],shroud:['수의대체'],provNote:['제공특이사항'],
   mourn:['상구분'],staffOrg:['소속'],productShort:['상품약칭'],eventNo:['행사번호'],
   arrive:['도착'],cause:['사망사유'],addr:['주소'],method:['장법'],altarSup:['제단지원'],coupon:['할인권사용'],cardBack:['회원증회수'],certSub:['확인서대체'],affiliate:['계열사'],rank:['직급']};
 const ALWAYS=['eventNo','place','death','casket','depart','name','chief'];   // 부고에 필요한 칸은 항상
