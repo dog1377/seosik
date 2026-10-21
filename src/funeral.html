@@ -2793,12 +2793,9 @@ function settleData(c){ return {...settleCalc(c), v:vals(c)}; }
 /* 정산 카톡의 돈 줄(수금 ~ 보내는금액). 정산 카톡과 「받은 정산 카톡 검사」가 같이 씀 */
 function settleMoneyLines(d){
   const g=k=>String(d.s[k]??'').trim(), ind='                 ';
-  /* 수금 줄에는 상품금액만 (제단공제를 빼지 않음) · 제단공제는 바로 아래 「제단공제 : -20만원」 줄로 (2026.10.21 사용자 결정). 보내는금액은 공제 뺀 금액 기준 그대로 */
-  const colFull=toWon(d.f.collect);
-  const collect=d.f.collect?`${colFull?wonStr(colFull):money(d.f.collect)}(${d.s.pay||'현금'})`:'';
+  const collect=d.f.collect?`${d.collectWon?wonStr(d.collectWon):(d.altarDed?'0원':money(d.f.collect))}(${d.s.pay||'현금'})`:'';
   return [
     `수금 : ${collect}`,
-    ...(d.altarDed&&colFull?[`제단공제 : -${wonStr(d.altarDed)}`]:[]),
     `제단 : ${d.altar}`,
     `유골함 : ${d.urn}`,
     `유골함원가 : ${d.uCost?wonStr(d.uCost):''}`,
@@ -2826,7 +2823,7 @@ function settleText(c){
 }
 /* ---------- 받은 정산 카톡 검사: 붙여 넣은 카톡을 읽어 정산 규칙대로 다시 계산 · 양식 확인 · 고친 카톡 (행사로 저장 안 함) ---------- */
 const CK_KEYS=['도우미','차량','상복','장지','수금','제단','유골함','유골함원가','기타추가','이송','입관꽃장식','헌화','보내는금액'];
-const CK_RANK={장소:0,도우미:1,차량:2,상복:3,장지:4,수금:5,제단공제:5.5,제단:6,유골함:7,유골함원가:8,기타추가:9,실장:10,이송:11,입관꽃장식:12,헌화:13,마이너스:14,보내는금액:15};
+const CK_RANK={장소:0,도우미:1,차량:2,상복:3,장지:4,수금:5,제단:6,유골함:7,유골함원가:8,기타추가:9,실장:10,이송:11,입관꽃장식:12,헌화:13,마이너스:14,보내는금액:15};
 const ckPayOf=t=>/카드/.test(t)?'카드':(/현금/.test(t)?'현금':'');
 const ckParens=v=>{ const a=[]; String(v).replace(/\(([^()]*)\)/g,(m,p)=>{ a.push(p.trim()); return m; }); return a; };
 const ckMain=v=>String(v).split('(')[0].trim();
@@ -2858,7 +2855,6 @@ function parseSettleKakao(text){
     if(m){
       const k=m[1].replace(/\s+/g,''), v=m[2].trim(); inExtra=false;
       if(/\d+월.*행사/.test(k) && /-/.test(v)){ s.carry.push({id:uid(),label:m[1].trim(),won:-Math.abs(toWon(v)),from:''}); P.order.push('마이너스'); return; }
-      if(k==='제단공제'){ const w=Math.abs(toWon(ckMain(v))); P.f.altar=w?String(w):''; P.order.push(k); if(P.orig[k]==null) P.orig[k]=v; return; }   /* 수금(상품금액)에서 빼고 계산 */
       if(CK_KEYS.includes(k)){
         P.order.push(k); if(P.orig[k]==null) P.orig[k]=v;
         if(k in P.head) P.head[k]=v;
@@ -2902,7 +2898,7 @@ function checkSettleKakao(text){
     else s.minus.push({id:uid(),who:x.who,amt:ckAmtStr(x.won),memo:x.memo});
   });
   const who=(P.mins[0]&&P.mins[0].who)||mgrName();
-  const c={id:'ck',f:{collect:P.f.collect||'',altar:P.f.altar||''},altarNet:!!P.f.altar,s};
+  const c={id:'ck',f:{collect:P.f.collect||''},s};
   const keep=R.mgrName; let d, lines;
   try{ R.mgrName=who; d=settleCalc(c); lines=settleMoneyLines(d); } finally { R.mgrName=keep; }
   const H=P.head, head=[H.place,`도우미 : ${H.도우미||''}`,`차량 : ${H.차량||''}`,`상복 : ${H.상복||''}`,`장지 : ${H.장지||''}`];
@@ -2931,7 +2927,7 @@ function checkSettleKakao(text){
   if(!H.place) form.push({t:'맨 윗줄 장소가 없어요',d:'첫 줄에 장소(예: 부산착한 VIP2호)를 넣어 주세요. 고친 카톡의 첫 줄이 비어 있어요.'});
   if(miss.length) form.push({t:'빠진 줄을 넣었어요',d:miss.map(k=>`${k} :`).join(' · ')});
   const ranks=P.order.map(k=>CK_RANK[k]).filter(x=>x!=null);
-  if(ranks.some((r,i)=>i&&r<ranks[i-1])) form.push({t:'줄 순서를 양식대로 바로잡았어요',d:'장소 → 도우미 → 차량 → 상복 → 장지 → 수금 → (제단공제) → 제단 → 유골함 → 유골함원가 → 기타추가 → 실장 → 이송 → 입관꽃장식 → 헌화 → 보내는금액'});
+  if(ranks.some((r,i)=>i&&r<ranks[i-1])) form.push({t:'줄 순서를 양식대로 바로잡았어요',d:'장소 → 도우미 → 차량 → 상복 → 장지 → 수금 → 제단 → 유골함 → 유골함원가 → 기타추가 → 실장 → 이송 → 입관꽃장식 → 헌화 → 보내는금액'});
   const outMap={}; lines.forEach(l=>{ const m=l.match(/^([^:]+?)\s*:\s*(.*)$/); if(m && CK_KEYS.includes(m[1].trim()) && outMap[m[1].trim()]==null) outMap[m[1].trim()]=m[2]; });
   const nz=x=>String(x||'').replace(/\s+/g,'');
   ['수금','제단','유골함','유골함원가','입관꽃장식','헌화','보내는금액'].forEach(k=>{
