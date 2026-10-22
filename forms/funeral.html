@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.21-3">
+<meta name="app-version" content="2026.10.22-1">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="관리자 서식">
@@ -2986,10 +2986,11 @@ function commText(c){
 }
 /* ---------- 현금영수증 · 카드결제 양식 ----------
    금액 = 손님한테 받은 돈 합계(제단 빼고): 상품 수금 · 유골함 수금 · 추가내역 · 관꽃장식 판매
-   현금으로 받은 것 → 현금영수증 발행금액, 카드로 받은 것 → 카드결제 금액. 카드결제 양식은 현진시닝 · 고이장례연구소만 (다른 업체는 카드 양식 없음, 2026.10.21 고이 추가)
+   현금으로 받은 것 → 현금영수증 발행금액, 카드로 받은 것 → 카드결제 금액. 카드결제 양식은 현진시닝 · 고이장례연구소 · 농협상조만 (다른 업체는 카드 양식 없음, 2026.10.21 고이 · 10.22 농협 추가)
    예: 상품 257.5 + 유골함 90 + 남상복 30 + 여상복 12 + 관꽃장식 30 (모두 현금) = 4,195,000원 */
 const isHJ=c=>caseCoName(c).replace(/\s/g,'')==='현진시닝';
-const rcCardCo=c=>isHJ(c)||caseCoName(c).replace(/\s/g,'')==='고이장례연구소';   // 카드결제 양식이 있는 업체
+const RC_CARD_COS=['현진시닝','고이장례연구소','농협상조'];
+const rcCardCo=c=>RC_CARD_COS.includes(caseCoName(c).replace(/\s/g,''));   // 카드결제 양식이 있는 업체
 function rcptSums(c){
   const s=c.s?S(c):{pay:'현금',extras:[],urnPay:'현금'}, f=c.f||{}, R=rules(), U=urnSplit(s,R), FL=flowerSplit(s,R);
   const parts={'현금':[],'카드':[]}, put=(pay,k,w)=>{ if(w>0&&parts[pay]) parts[pay].push({k,w}); };
@@ -3120,7 +3121,7 @@ const SCR=[
   {id:'transfer',g:'etc',kind:'text',key:'transfer',ph:'예: 부산 → 창원',q:'이송이 있었나요?',sub:'있으면 적어 주세요. 없으면 넘어가세요.'},
   {id:'exAsk',g:'extra',kind:'yn',key:'extraAsk',q:'추가로 받은 게 있나요?',sub:'상복 · 도우미 시간 추가처럼 따로 받은 것',yes:exYes},
   {id:'extra',g:'extra',kind:'extra',q:'추가로 받은 걸 적어 주세요',sub:'항목 · 금액 · 현금/카드. 현금만 보내는금액에 더해요.',when:exYes},
-  {id:'rcCo',g:'rcpt',kind:'co',q:'어느 업체 행사인가요?',sub:'영수증 양식이 업체마다 달라요. 현진시닝 · 고이장례연구소는 카드결제 양식도 있어요.',when:c=>quickOn(c)&&(rcMoney(c)||!!c.coPicked)},
+  {id:'rcCo',g:'rcpt',kind:'co',q:'어느 업체 행사인가요?',sub:'영수증 양식이 업체마다 달라요. 현진시닝 · 고이장례연구소 · 농협상조는 카드결제 양식도 있어요.',when:c=>quickOn(c)&&(rcMoney(c)||!!c.coPicked)},
   {id:'rcWho',g:'rcpt',kind:'who',keys:['company','customer'],q:'영수증은 누구 이름으로 했나요?',sub:c=>isHJ(c)?'고객 회사와 이름이 들어가요. 예: 넥센타이어 서재원':`업체명 옆에 이름이 들어가요. 예: ${caseCoName(c)} 손소영`,when:rcOn},
   {id:'rcCard',g:'rcpt',kind:'rcCard',scope:'s',keys:['rcCardCo','rcCardAppr'],q:'카드 결제 내용을 넣어 주세요',sub:'카드로 받은 돈(제단 빼고)이 금액에 자동으로 들어가요. 모르는 칸은 비워 두세요.',when:rcCardOn},
   {id:'rcCash',g:'rcpt',kind:'rcCash',scope:'s',keys:['rcCashNo','rcCashAppr'],q:'현금영수증 내용을 넣어 주세요',sub:'현금으로 받은 돈(제단 빼고)이 발행금액에 자동으로 들어가요. 발행 안 했으면 넘어가세요.',when:rcCashOn},
@@ -3258,7 +3259,7 @@ function stepBody(id,c,all){
     ${rcWhoFields(c)}
     <div class="fields" id="rcFields_card">${rcCardFields(c)}${rcPrevBox('card','카드결제')}</div>
     <div class="fields" id="rcFields_cash">${rcCashFields(c)}${rcPrevBox('cash','현금영수증')}</div>
-    <p class="note" id="rcNone">현금 · 카드로 받은 돈(상품 수금 · 유골함 · 추가 · 관꽃장식)을 넣으면 영수증 양식이 만들어져요. 제단은 빼고 계산해요.${rcCardCo(c)?'':' 카드결제 양식은 현진시닝 · 고이장례연구소만 있어요.'}</p>`;
+    <p class="note" id="rcNone">현금 · 카드로 받은 돈(상품 수금 · 유골함 · 추가 · 관꽃장식)을 넣으면 영수증 양식이 만들어져요. 제단은 빼고 계산해요.${rcCardCo(c)?'':' 카드결제 양식은 현진시닝 · 고이장례연구소 · 농협상조만 있어요.'}</p>`;
   if(id==='done') return `<div class="wz-total" id="wzTotal"><span id="wzTotL">보내는금액</span><b id="wzSend">0원</b><small id="wzSendNote"></small></div>
     <div class="wz-review" id="wzReview"></div>
     <div class="env-prev wz-env" id="wzEnv" hidden></div>
