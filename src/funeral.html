@@ -995,6 +995,34 @@ body.split #p-settle .wz{max-width:none}
 @media (prefers-reduced-motion:reduce){.wz-card{animation:none!important}.wz-prog i{transition:none}}
 @media (max-width:380px){.wz-card{padding:26px 16px 20px}.wz-card .wz-q{font-size:22px}}
 @media (min-width:700px){.wz-card{padding:40px 36px 32px}.wz-card .wz-q{font-size:26px}}
+/* 보고서 입력 · 장례행사 일정표 미리보기 (2026.10.22) */
+.sz-pv{overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:zoom-in;overscroll-behavior:contain}
+.sz-pv canvas{display:block;width:100%;height:auto}
+.sz-pv.zoom{cursor:zoom-out;max-height:75vh}
+.sz-pv.zoom canvas{width:900px;max-width:none}
+#p-sched .sz-side{display:none}
+body.split #p-sched{grid-template-columns:minmax(0,1fr) minmax(380px,46%);column-gap:22px;align-items:start}
+body.split #p-sched>.sz-main{grid-column:1;min-width:0}
+body.split #p-sched>.sz-side{display:grid;gap:16px;grid-column:2;position:sticky;top:calc(var(--ab-h) + 14px + env(safe-area-inset-top,0px));max-height:calc(100dvh - var(--ab-h) - var(--nav-h) - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;min-width:0}
+body.split #p-sched .sz-pv-done{display:none}
+.sz-goods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 8px}
+@media (min-width:560px){.sz-goods{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.sz-g{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted);text-align:center}
+.sz-g .input{min-height:46px;padding:6px 4px;text-align:center;font-size:16px}
+.sz-hrows{display:grid;gap:8px}
+.sz-hrow{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr);gap:6px}
+.sz-hrow .input{min-height:46px;padding:6px 8px;font-size:16px}
+.sz-hhead{font-size:12.5px;font-weight:600;color:var(--muted)}
+.sz-box{display:grid;gap:8px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:var(--field)}
+.sz-pr{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.sz-pr span{color:var(--muted)}
+.sz-pr b{font-variant-numeric:tabular-nums;text-align:right}
+.sz-auto span{font-size:12.5px;font-weight:600;color:var(--muted)}
+.sz-auto p{margin:0;font-size:14px;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere}
+.pair2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sz-picks{grid-template-columns:repeat(2,minmax(0,1fr))}
+#p-sched textarea.input{min-height:110px;font-size:16px;line-height:1.55;padding:12px 14px;resize:vertical}
+#xlOut .sz-pv{margin-top:2px}
 </style>
 </head>
 <body>
@@ -1025,6 +1053,7 @@ body.split #p-settle .wz{max-width:none}
     <nav class="work-tabs" aria-label="행사 업무">
       <button type="button" data-ui-go="input"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6zM13 6l5 5M3 6V3h5"/></svg>행사 입력</button>
       <button type="button" data-ui-go="out"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/></svg>보고서 · 복사</button>
+      <button type="button" data-ui-go="sched"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM9 5.5H6a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6.5a1 1 0 0 0-1-1h-3M8.5 14l2.5 2.5 4.5-5"/></svg>보고서 입력</button>
       <button type="button" data-ui-go="settle"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 8h18M21 12h-6v5h6M17 14.5h.01"/></svg>정산 · 수당</button>
     </nav>
   </header>
@@ -1044,6 +1073,8 @@ body.split #p-settle .wz{max-width:none}
   </section>
 
   <section id="p-settle" class="stack" hidden></section>
+
+  <section id="p-sched" class="stack" hidden></section>
   <section id="p-envelopes" class="stack" hidden></section>
 
   <section id="p-duty" hidden><iframe id="dutyFrame" title="휴무 · 당직표"></iframe></section>
@@ -1153,6 +1184,7 @@ body.split #p-settle .wz{max-width:none}
       <div class="acc-b"><div>
         <button type="button" data-go="input">행사 입력</button>
         <button type="button" data-go="out">보고서 · 복사</button>
+        <button type="button" data-go="sched">보고서 입력</button>
         <button type="button" data-go="settle">정산 · 수당</button>
         <button type="button" data-go="envelopes">월별 봉투정리</button>
       </div></div>
@@ -1853,11 +1885,12 @@ function updateSaveState(state){
 }
 function updateWorkspace(t){
   document.body.dataset.tab=t;
-  const titles={input:['장례 일정 작성','행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.'],out:['보고서 · 복사','완성된 내용을 확인하고 필요한 양식을 복사하세요.'],settle:['정산 · 수당','수금 내역과 회사 정산금, 개인 수당을 확인하세요.'],envelopes:['월별 봉투정리','행사별 봉투를 모아 월 합계와 출금할 지폐 장수를 확인하세요.'],admin:['업무 설정','업체 양식과 선택 목록을 내 업무에 맞게 관리하세요.']};
+  const titles={input:['장례 일정 작성','행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.'],out:['보고서 · 복사','완성된 내용을 확인하고 필요한 양식을 복사하세요.'],sched:['보고서 입력','장례행사 일정표를 한 단계씩 채우고 이미지 · 엑셀로 저장하세요.'],settle:['정산 · 수당','수금 내역과 회사 정산금, 개인 수당을 확인하세요.'],envelopes:['월별 봉투정리','행사별 봉투를 모아 월 합계와 출금할 지폐 장수를 확인하세요.'],admin:['업무 설정','업체 양식과 선택 목록을 내 업무에 맞게 관리하세요.']};
   const info=titles[t]||['휴무 · 당직',''];
   $('#pageTitle').textContent=info[0];$('#pageDesc').textContent=info[1];
   $('#newCase').innerHTML=uiIcon('plus')+(t==='envelopes'?'봉투 1건 추가':t==='settle'?'새 정산':'새 행사');
-  document.querySelectorAll('[data-ui-go]').forEach(b=>{ if(b.dataset.uiGo===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current'); });
+  document.querySelectorAll('[data-ui-go]').forEach(b=>{ const k=(t==='sched'&&b.closest('#mobileNav'))?'out':t;   /* 보고서 입력은 아래 메뉴에서 「보고서」로 표시 */
+    if(b.dataset.uiGo===k)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current'); });
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>{if(b.classList.contains('on')){b.setAttribute('aria-current','page');b.closest('.acc').querySelector('.acc-h').setAttribute('aria-expanded','true');}else b.removeAttribute('aria-current');});
 }
 document.addEventListener('click',e=>{
@@ -2000,8 +2033,8 @@ function syncChief(c){
 /* ---------- 선택 칸: 누르면 아래에서 목록이 올라옴 ---------- */
 const CH={}; let chSeq=0, chCur=null;
 const CHEV='<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>';
-function chGet(scope,key){ const c=curCase(); if(!c) return ''; return String((scope==='s'?S(c):c.f)[key]??''); }
-function chSet(scope,key,val){ const c=curCase(); if(!c) return; (scope==='s'?S(c):c.f)[key]=val; if(scope==='f') c.f['_d_'+key]=false; touched(); if(db.tab==='settle') updSettle(); if(scope==='f'&&key==='method') renderInput(); if(scope==='f'&&key==='hagwanSi'){ applySijin(c.f); updCremPreview(); schedInfo(); } }
+function chGet(scope,key){ const c=curCase(); if(!c) return ''; if(scope==='x') return sxGet(c,key); return String((scope==='s'?S(c):c.f)[key]??''); }
+function chSet(scope,key,val){ const c=curCase(); if(!c) return; if(scope==='x') sxSet(c,key,val); else (scope==='s'?S(c):c.f)[key]=val; if(scope==='f') c.f['_d_'+key]=false; touched(); if(db.tab==='settle') updSettle(); if(db.tab==='sched') szLive(); if(scope==='f'&&key==='method') renderInput(); if(scope==='f'&&key==='hagwanSi'){ applySijin(c.f); updCremPreview(); schedInfo(); } }
 function chooser({scope='f',key,options=[],label='',placeholder='선택',direct=true,numeric=false,dirPh='직접 입력',fmt=null}){
   const id='ch'+(++chSeq), value=chGet(scope,key), opts=options.filter(Boolean), isDir=direct && value && !opts.includes(value), show=v=>fmt?fmt(v):v;
   CH[id]={scope,key,options:opts,label,direct,placeholder,fmt};
@@ -2584,10 +2617,11 @@ function renderOut(){
   if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
   $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
-  $('#reportCards').innerHTML=`<div class="out" id="dispOut"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut"><div class="out-head"><h2>장례행사 일정표<small>엑셀 파일 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlsched>엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#reportCards').innerHTML=`<div class="out" id="dispOut"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c);
   { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없어요':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
-  { let n=0; try{ n=Object.keys(schedCells(c)).length; }catch(e){} $('#xlNote').textContent=`행사 입력 · 정산에 넣은 값이 엑셀 양식에 채워져요 (지금 ${n}칸). 장례용품 수량 · 도우미 날짜별 시간 · 숙박료 · 주행거리는 앱에 칸이 없어 빈칸으로 나와요.`; }
+  $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워져요. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 넣으세요. 미리보기를 누르면 크게 보여요.';
+  { const cv=$('#xlCanvas'); szPaint(cv,c); szWhenFonts(()=>{ if(db.tab==='out'||isSplit()) szPaint($('#xlCanvas'),curCase()); }); }
   reports.forEach((r,i)=>{ $('#rep_'+i).value=fillTpl(r.body,c); });
   const used=usedPH(co);
   const burialOn=used.has('화장')||used.has('하관');
@@ -3028,7 +3062,7 @@ function schedSpan(f){ const a=parseDT(f.recv||f.arrive||f.death), b=parseDT(f.d
   const full=p=>`${p.y}.${pad(p.mo)}.${pad(p.d)}`;
   if(a&&b){ if(a.y===b.y&&a.mo===b.mo) return a.d===b.d?full(a):`${full(a)} ~${pad(b.d)}`; return `${full(a)} ~${a.y===b.y?'':b.y+'.'}${pad(b.mo)}.${pad(b.d)}`; }
   return a?full(a):b?full(b):''; }
-function schedCells(c){
+function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는 칸 (특이사항 줄은 V.__notes) */
   const f=c.f||{}, s=c.s?S(c):{}, V={}, set=(k,v)=>{ v=typeof v==='number'?v:String(v??'').trim(); if(v!==''&&v!==0) V[k]=v; };
   const add=(k,v)=>{ v=String(v||'').trim(); if(v) V[k]=V[k]?V[k]+' · '+v:v; };
   const no=String(f.eventNo||'').trim();
@@ -3069,9 +3103,105 @@ function schedCells(c){
   if(altarText(f.altar)) notes.push(`제단공제 : ${altarText(f.altar)}`);
   if(String(s.transfer||'').trim()) notes.push(`이송 : ${String(s.transfer).trim()}`);
   if(rest.length) notes.push(`추가 : ${rest.join(' · ')}`);
-  set('A41',(notes.length>3?[...notes.slice(0,2),notes.slice(2).join(' / ')]:notes).join('\n'));   // A41:U43 합친 칸(3줄, 줄 바꿈) · 한 장에 맞춤
+  V.__notes=notes;
   return V;
 }
+/* ---------- 보고서 입력 (2026.10.22): 일정표 칸을 한 단계씩 묻고 case.sx 에 저장 ----------
+   칸 값 = 보고서 입력에서 직접 넣은 값(case.sx) > 행사 입력 · 정산에서 자동으로 만든 값(schedAuto) */
+const SZ_GOODS=['관','수의','관보','명정','다라니','습신','꽃종이','소창','알코올','칠성판','장갑','탈지면','한지','목함','꼬깔','양초','접수세트','향','염베'], SZ_GCOL='CDEFGHIJKLMNOPQRSTU';
+const SZ_ITEMS=[['수의',17],['사전상담',18],['영정사진',19],['앰블런스',20],['유골함',21],['헌화',22],['꽃 바구니',23],['생화꽃장식',24],['3단 화환',25],['일회용품',26],['편의용품',27]];
+const SX=c=>{ if(!c.sx||typeof c.sx!=='object') c.sx={}; return c.sx; };
+const sxGet=(c,p)=>String(p.split('.').reduce((o,k)=>o&&typeof o==='object'?o[k]:undefined,SX(c))??'');
+function sxSet(c,p,v){ const ks=p.split('.'); let o=SX(c); ks.slice(0,-1).forEach(k=>{ if(!o[k]||typeof o[k]!=='object') o[k]={}; o=o[k]; }); o[ks[ks.length-1]]=v; }
+const szT=v=>String(v??'').trim();
+const szNum=v=>/^\d+(\.\d+)?$/.test(v)&&v.length<7?Number(v):v;
+function szItemOn(c,n,A){
+  const o=(SX(c).itemOn||{})[n]; if(o===true||o===false) return o;
+  const row=(SZ_ITEMS.find(x=>x[0]===n)||[])[1], it=(SX(c).items||{})[n]||{};
+  return ['C','G','K','L'].some(k=>(k+row) in A)||['co','name','qty','note'].some(k=>szT(it[k]));
+}
+function schedCells(c){
+  const A=schedAuto(c), V={...A}, x=SX(c), put=(k,v,num)=>{ v=szT(v); if(v) V[k]=num?szNum(v):v; };
+  put('Q3',x.span); put('E9',x.support); put('P9',x.lodging);
+  SZ_GOODS.forEach((g,i)=>put(SZ_GCOL[i]+'15',(x.goods||{})[g],true));
+  SZ_ITEMS.forEach(([n,row])=>{
+    if(!szItemOn(c,n,A)){ ['C','G','K','L'].forEach(k=>delete V[k+row]); return; }
+    const o=(x.items||{})[n]||{}; put('C'+row,o.co); put('G'+row,o.name); put('K'+row,o.qty,true); put('L'+row,o.note); });
+  put('K29',x.mNoteM); put('K30',x.mNoteW);
+  [[29,'남상복'],[30,'여상복']].forEach(([r,l])=>{ if((V['D'+r]||V['J'+r]||V['K'+r])&&!V['F'+r]) V['F'+r]=l; });
+  put('N32',x.km1); put('Q32',x.vnote1);
+  if(x.veh2On==='yes'){ const v=x.veh2||{}; put('C33',v.type); put('E33',v.co); put('F33',v.dest); put('N33',v.km); put('Q33',v.note); }
+  const hp=x.help||{}, n2=v=>/^\d+$/.test(v);
+  [0,1,2].forEach(i=>{ const h=hp[i]||{}, r=36+i, d=szT(h.d), s=szT(h.s), e=szT(h.e), n=szT(h.n);
+    if(d) V['F'+r]=n2(d)?`${pad(Number(d))}일`:d; if(s) V['H'+r]=n2(s)?`${pad(Number(s))}시`:s; if(e) V['J'+r]=n2(e)?`${pad(Number(e))}시`:e; if(n) V['L'+r]=n2(n)?`${n}명`:n; });
+  put('N35',x.helpNote);
+  const notes=[...(A.__notes||[]),...itemLines(x.memo)]; delete V.__notes;
+  if(notes.length) V.A41=(notes.length>3?[...notes.slice(0,2),notes.slice(2).join(' / ')]:notes).join('\n');   // A41:U43 합친 칸(3줄) · 한 장에 맞춤
+  return V;
+}
+/* 미리보기 · 이미지: 엑셀 양식(칸 너비 · 높이 · 합친 칸 · 테두리 · 굵기 · 정렬)을 그대로 그림 */
+let SZM=null;
+function szModel(){
+  if(SZM) return SZM;
+  const P=new DOMParser(), X=n=>P.parseFromString(SCHED_XLSX[n],'application/xml').documentElement;
+  const kid=(el,n)=>el?[...el.children].filter(x=>x.localName===n):[], one=(el,n)=>kid(el,n)[0]||null, at=(el,a)=>el?el.getAttribute(a):null;
+  const rgb=el=>{ const v=at(el,'rgb'); return v&&v.length>=6?'#'+v.slice(-6):null; };
+  const st=X('xl/styles.xml'), sh=X('xl/worksheets/sheet1.xml'), wb=X('xl/workbook.xml');
+  const fonts=kid(one(st,'fonts'),'font').map(f=>({b:!!one(f,'b')&&at(one(f,'b'),'val')!=='0',sz:Number(at(one(f,'sz'),'val'))||10,color:rgb(one(f,'color'))}));
+  const fills=kid(one(st,'fills'),'fill').map(f=>{ const p=one(f,'patternFill'); return at(p,'patternType')==='solid'?rgb(one(p,'fgColor')):null; });
+  const borders=kid(one(st,'borders'),'border').map(b=>{ const o={}; ['left','right','top','bottom'].forEach(k=>{ const e=one(b,k), s=at(e,'style'); if(s) o[k]={s,c:rgb(one(e,'color'))}; }); return o; });
+  const xfs=kid(one(st,'cellXfs'),'xf').map(x=>{ const a=one(x,'alignment'), w=at(a,'wrapText');
+    return {font:fonts[+at(x,'fontId')||0]||fonts[0],fill:fills[+at(x,'fillId')||0]||null,border:borders[+at(x,'borderId')||0]||{},h:at(a,'horizontal')||'general',v:at(a,'vertical')||'bottom',wrap:w==='1'||w==='true'}; });
+  const fp=one(sh,'sheetFormatPr'), dW=Number(at(fp,'defaultColWidth'))||8.43, dH=Number(at(fp,'defaultRowHeight'))||15;
+  let pa='A1:U43'; kid(one(wb,'definedNames'),'definedName').forEach(d=>{ if(at(d,'name')==='_xlnm.Print_Area'){ const m=d.textContent.replace(/\$/g,'').match(/([A-Z]+\d+:[A-Z]+\d+)\s*$/); if(m) pa=m[1]; } });
+  const cr=ref=>{ const m=/^([A-Z]+)(\d+)$/.exec(ref); let n=0; for(const ch of m[1]) n=n*26+ch.charCodeAt(0)-64; return [n,Number(m[2])]; };
+  const colL=n=>{ let s=''; while(n){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-1-m)/26; } return s; };
+  const [[c1,r1],[c2,r2]]=pa.split(':').map(cr), cw={};
+  kid(one(sh,'cols'),'col').forEach(c=>{ for(let i=+at(c,'min');i<=+at(c,'max');i++) if(at(c,'width')) cw[i]=Number(at(c,'width')); });
+  const X0={}, Y0={}, rh={}, cells={}; let x=0, y=0;
+  for(let i=c1;i<=c2+1;i++){ X0[i]=x; if(i<=c2) x+=Math.round((cw[i]||dW)*7+5); }
+  kid(one(sh,'sheetData'),'row').forEach(r=>{ const rn=+at(r,'r'); if(at(r,'ht')) rh[rn]=Number(at(r,'ht'));
+    kid(r,'c').forEach(c=>{ const is=one(c,'is'), v=one(c,'v'); cells[at(c,'r')]={s:+at(c,'s')||0,t:is?[...is.getElementsByTagName('t')].map(t=>t.textContent).join(''):v?v.textContent:''}; }); });
+  for(let r=r1;r<=r2+1;r++){ Y0[r]=y; if(r<=r2) y+=Math.round((rh[r]||dH)*4/3); }
+  const cover={}; kid(one(sh,'mergeCells'),'mergeCell').forEach(m=>{ const [[a,b],[cc,d]]=at(m,'ref').split(':').map(cr), o={c1:a,r1:b,c2:cc,r2:d}; for(let r=b;r<=d;r++) for(let c=a;c<=cc;c++) cover[colL(c)+r]=o; });
+  return SZM={xfs,cells,cover,c1,r1,c2,r2,X0,Y0,W:x,H:y,colL};
+}
+function szDraw(cv,V,scale=2){
+  const M=szModel(), pd=18, fam=getComputedStyle(document.body).fontFamily||'sans-serif', W=M.W+pd*2, H=M.H+pd*2;
+  cv.width=Math.round(W*scale); cv.height=Math.round(H*scale);
+  const g=cv.getContext('2d'); g.setTransform(scale,0,0,scale,0,0); g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.translate(pd,pd);
+  const box=(c,r)=>{ const m=M.cover[M.colL(c)+r], a=m?m.c1:c, b=m?m.r1:r, cc=Math.min(m?m.c2:c,M.c2), d=Math.min(m?m.r2:r,M.r2); return {x:M.X0[a],y:M.Y0[b],w:M.X0[cc+1]-M.X0[a],h:M.Y0[d+1]-M.Y0[b]}; };
+  for(let r=M.r1;r<=M.r2;r++) for(let c=M.c1;c<=M.c2;c++){
+    const ref=M.colL(c)+r, m=M.cover[ref]; if(m&&(m.c1!==c||m.r1!==r)) continue;
+    const cell=M.cells[ref], xf=M.xfs[cell?cell.s:0]||M.xfs[0], R=box(c,r);
+    if(xf.fill){ g.fillStyle=xf.fill; g.fillRect(R.x,R.y,R.w,R.h); }
+    let val=ref in V?V[ref]:(cell?cell.t:''); if(val===''||val==null) continue;
+    const num=typeof val==='number'; val=String(val);
+    let px=xf.font.sz*4/3; const font=p=>`${xf.font.b?700:400} ${p}px ${fam}`; g.font=font(px);
+    const padX=3, maxW=R.w-padX*2; let lines=val.split('\n');
+    if(xf.wrap){ const out=[]; lines.forEach(l=>{ let cur=''; for(const ch of l){ if(cur&&g.measureText(cur+ch).width>maxW){ out.push(cur); cur=ch; } else cur+=ch; } out.push(cur); }); lines=out; }
+    else { const w=Math.max(...lines.map(l=>g.measureText(l).width)); if(w>maxW){ px=Math.max(px*.62,px*maxW/w); g.font=font(px); } }
+    const lh=px*1.3, th=lines.length*lh, ha=xf.h==='general'?(num?'right':'left'):xf.h==='centerContinuous'?'center':xf.h;
+    g.save(); g.beginPath(); g.rect(R.x+1,R.y+1,R.w-2,R.h-2); g.clip();
+    g.fillStyle=xf.font.color||'#111'; g.textBaseline='middle'; g.textAlign=ha==='center'?'center':ha==='right'?'right':'left';
+    const tx=ha==='center'?R.x+R.w/2:ha==='right'?R.x+R.w-padX:R.x+padX, ty=xf.v==='center'?R.y+(R.h-th)/2:xf.v==='top'?R.y+2:R.y+R.h-th-2;
+    lines.forEach((l,i)=>g.fillText(l,tx,ty+lh*(i+.5)));
+    g.restore();
+  }
+  const LW={thin:1,medium:2,thick:3,double:3,hair:.6};
+  for(let r=M.r1;r<=M.r2;r++) for(let c=M.c1;c<=M.c2;c++){
+    const ref=M.colL(c)+r, cell=M.cells[ref]; if(!cell) continue; const b=(M.xfs[cell.s]||{}).border; if(!b) continue; const m=M.cover[ref];
+    const x0=M.X0[c], x1=M.X0[c+1], y0=M.Y0[r], y1=M.Y0[r+1];
+    [['top',x0,y0,x1,y0,!m||r===m.r1],['bottom',x0,y1,x1,y1,!m||r===m.r2],['left',x0,y0,x0,y1,!m||c===m.c1],['right',x1,y0,x1,y1,!m||c===m.c2]].forEach(([k,a,bb,cc,d,on])=>{
+      const e=b[k]; if(!e||!on) return; g.beginPath(); g.lineWidth=LW[e.s]||(/medium|thick/i.test(e.s)?2:1); g.strokeStyle=e.c||'#222'; g.setLineDash(/dash|dot/i.test(e.s)?[2,2]:[]); g.moveTo(a,bb); g.lineTo(cc,d); g.stroke(); });
+  }
+  g.setLineDash([]);
+  return cv;
+}
+function szPaint(cv,c){ if(!cv||!c) return; try{ szDraw(cv,schedCells(c)); }catch(e){ console.warn(e); } }
+let szFontWait=false;
+function szWhenFonts(fn){ if(szFontWait||!document.fonts||document.fonts.status==='loaded') return; szFontWait=true; document.fonts.ready.then(()=>{ szFontWait=false; fn(); }); }
+
 const xlEsc=s=>String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function xlFill(xml,V){
   return xml.replace(/<c r="([A-Z]+\d+)"( s="\d+")?(?: t="\w+")?(?:\/>|>[\s\S]*?<\/c>)/g,(m,ref,st)=>{ if(!(ref in V)) return m; const v=V[ref]; st=st||'';
@@ -3094,13 +3224,188 @@ function zipStore(files){   /* 압축 없이 묶기 (엑셀은 이것도 그대�
 function schedXlsxBlob(c){ const V=schedCells(c); return zipStore(Object.entries(SCHED_XLSX).map(([n,t])=>[n,n==='xl/worksheets/sheet1.xml'?xlFill(t,V):t])); }
 function schedFileName(c){ const f=c.f||{}, no=String(f.eventNo||'').trim().replace(/번$/,'');
   return ('장례행사일정표'+(no?`_${no}번`:'')+(f.place?'_'+String(f.place).trim():'')+(f.name?'_故'+String(f.name).trim():'')).replace(/[\\/:*?"<>|\s]+/g,'_')+'.xlsx'; }
-async function schedSave(c){
-  const name=schedFileName(c), blob=schedXlsxBlob(c);
+async function schedSave(c){ await szDeliver(schedFileName(c),schedXlsxBlob(c),'엑셀 파일을 저장했습니다'); }
+async function szDeliver(name,blob,msg){
   try{ const file=new File([blob],name,{type:blob.type}); if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:name}); return; } }
   catch(e){ if(e&&e.name==='AbortError') return; }
   const url=URL.createObjectURL(blob),a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),20000);
-  toast('엑셀 파일을 저장했습니다');
+  toast(msg);
 }
+async function szSave(c,kind){
+  if(!c) return;
+  try{
+    if(kind==='xlsx'){ await schedSave(c); return; }
+    const cv=szDraw(document.createElement('canvas'),schedCells(c),2);
+    const blob=await new Promise(r=>cv.toBlob(r,'image/png')); if(!blob) throw new Error('png');
+    await szDeliver(schedFileName(c).replace(/\.xlsx$/,'.png'),blob,'이미지를 저장했습니다');
+  }catch(e){ toast(kind==='xlsx'?'엑셀 파일을 만들지 못했어요':'이미지를 만들지 못했어요'); }
+}
+/* 한 단계씩 묻기 */
+const SZ_G={info:'기본 정보',pay:'수금 결제',goods:'장례용품',items:'품목',mourn:'상복',veh:'장의차량',help:'도우미',memo:'특이사항',done:'확인'};
+const SZ_BASE=[
+  {id:'no',g:'info',q:'행사번호와 장소를 확인해 주세요'},
+  {id:'span',g:'info',q:'행사 진행 기간은요?'},
+  {id:'staff',g:'info',q:'담당자는 누구인가요?'},
+  {id:'cust',g:'info',q:'고객 정보를 넣어 주세요'},
+  {id:'dec',g:'info',q:'고인과 상주를 넣어 주세요'},
+  {id:'rel',g:'info',q:'종교는요?'},
+  {id:'time',g:'info',q:'임종 · 입관 · 발인 시간을 확인해 주세요'},
+  {id:'burial',g:'info',q:'장지와 상품을 넣어 주세요'},
+  {id:'money',g:'info',q:'회사 지원 · 납입금 · 숙박료가 있나요?'},
+  {id:'pay',g:'pay',q:'수금 결제를 확인해 주세요'},
+  {id:'goods',g:'goods',q:'장례용품(영광) 수량을 넣어 주세요'},
+  {id:'itemPick',g:'items',q:'어떤 품목이 있었나요?'},
+  {id:'mourn',g:'mourn',q:'상복은요?'},
+  {id:'veh',g:'veh',q:'장의차량을 넣어 주세요'},
+  {id:'veh2',g:'veh',q:'차량이 한 대 더 있었나요?'},
+  {id:'help',g:'help',q:'도우미 팀장과 총 시간은요?'},
+  {id:'helpRows',g:'help',q:'도우미 근무 시간을 날짜별로 넣어 주세요'},
+  {id:'memo',g:'memo',q:'특이사항이 있나요?'},
+  {id:'done',g:'done',q:'장례행사 일정표가 완성됐어요'},
+];
+const szPos=new Map(), szFromDone=new Set();
+function szSteps(c){ const A=schedAuto(c), out=[]; SZ_BASE.forEach(s=>{ out.push(s); if(s.id==='itemPick') SZ_ITEMS.forEach(([n])=>{ if(szItemOn(c,n,A)) out.push({id:'it:'+n,g:'items',q:`${n}은(는) 어떻게 했나요?`,item:n}); }); }); return out; }
+function szAtId(c,steps){ steps=steps||szSteps(c); const id=szPos.get(c.id); return steps.some(s=>s.id===id)?id:steps[0].id; }
+function szDays(c){ const f=c.f||{}, a=parseDT(f.recv||f.arrive||f.death), b=parseDT(f.depart); if(!a||!b) return [];
+  const out=[], d=new Date(a.y,a.mo-1,a.d), end=new Date(b.y,b.mo-1,b.d); for(let i=0;i<8&&d<=end;i++){ out.push({v:pad(d.getDate()),l:`${d.getMonth()+1}/${d.getDate()} (${'일월화수목금토'[d.getDay()]})`}); d.setDate(d.getDate()+1); } return out; }
+function szScreen(c,st,steps){
+  const f=c.f, A=schedAuto(c), x=SX(c), ph=(v,ex)=>v?`자동: ${String(v).replace(/\n/g,' / ')}`:(ex||'');
+  const fIn=(k,l,p,o={})=>`<label class="f">${l}<input class="input" data-sf="${k}" value="${esc(f[k]||'')}" placeholder="${esc(p||'')}" autocomplete="off"${o.tel?' type="tel" inputmode="tel"':''}${o.num?' inputmode="numeric"':''}></label>`;
+  const xIn=(p,l,pp,o={})=>`<label class="f">${l}<input class="input" data-sx="${p}" value="${esc(sxGet(c,p))}" placeholder="${esc(pp||'')}" autocomplete="off"${o.num?' inputmode="numeric"':''}></label>`;
+  const sIn=(k,l,p,o={})=>`<label class="f">${l}<input class="input" data-s="${k}" value="${esc(S(c)[k]||'')}" placeholder="${esc(p||'')}" autocomplete="off"${o.tel?' type="tel" inputmode="tel"':''}></label>`;
+  const ch=(l,o)=>`<div class="f-wrap"><label class="f">${l}</label>${chooser(o)}</div>`;
+  const i=steps.findIndex(s=>s.id===st.id), last=steps[i+1]&&steps[i+1].id==='done';
+  const go=(l)=>`<button class="btn primary wz-go" type="button" data-sz-next>${l||(last?'확인하기':'다음')}</button>`;
+  const choice=(key,opts,cur,cls='')=>`<div class="wz-choice ${cls}">${opts.map(([v,l])=>`<button type="button" data-sz-pick="${key}" data-v="${esc(v)}" aria-pressed="${cur===v}"><b>${esc(l)}</b></button>`).join('')}</div>`;
+  let q=st.q, sub='', body='';
+  const autoSub='흐린 글자는 행사 입력 · 정산에서 자동으로 들어가는 값이에요. 다르게 쓰려면 직접 넣으세요.';
+  if(st.id==='no') body=fIn('eventNo','행사번호','예: 140',{num:1})+fIn('place','행사 진행 장소','예: 함안하늘 특실')+go();
+  else if(st.id==='span'){ sub='비우면 접수일(없으면 임종일)부터 발인일까지 자동으로 들어가요.'; body=xIn('span','행사 진행 기간',ph(A.Q3,'예: 2026.04.01 ~03'))+go(); }
+  else if(st.id==='staff') body=fIn('staff','담당자',ph(!f.staff&&me().name,'예: 서영우'))+fIn('staffTel','연락처','예: 010-0000-0000',{tel:1})+go();
+  else if(st.id==='cust') body=fIn('customer','고객명','예: 노승지')+fIn('custTel','연락처','예: 010-0000-0000',{tel:1})+fIn('custRel','고인과의 관계','예: 녀')+go();
+  else if(st.id==='dec') body=fIn('name','고인','예: 노성택')+fIn('chief','상주명','예: 노승지')+fIn('chiefTel','상주 연락처','예: 010-0000-0000',{tel:1})+go();
+  else if(st.id==='rel'){ sub='누르면 바로 다음으로 넘어가요.'; body=choice('f:religion',['유교','무교','불교','기독교','천주교','기타'].map(v=>[v,v]),f.religion||'','wz-co')+go(f.religion?'다음':'모름 · 넘어가기'); }
+  else if(st.id==='time') body=[['death','임종'],['casket','입관'],['depart','발인']].map(([k,l])=>`<div class="f-wrap"><label class="f">${l}</label>${dtCtl(k,f[k]||'',l)}</div>`).join('')+go();
+  else if(st.id==='burial') body=fIn('burial1','1차 장지',ph(!f.burial1&&A.E8,'예: 함안하늘공원'))+fIn('burial2','2차 장지','예: 함안추모공원')+fIn('product','상품','예: 2026 가족장 289')+go();
+  else if(st.id==='money'){ sub='회사 지원 · 납입금은 비우면 행사 입력의 회사지원 · 납입 · 사전 가입 할인으로 자동으로 들어가요.'; body=xIn('support','회사 지원 또는 납입금',ph(A.E9,'예: 10만원 선납 / 10만원 할인'))+xIn('lodging','숙박료','예: 5만원')+go(); }
+  else if(st.id==='pay'){ sub='금액은 정산에 넣은 값으로 자동으로 들어가요. 카드/현금 줄은 상품 수금, 추가 줄은 유골함 · 추가내역 · 관꽃장식이에요.';
+    const row=(l,on,v)=>`<div class="sz-pr"><span>${l}</span><b>${on?'V ':''}${esc(v||'없음')}</b></div>`;
+    body=`<div class="sz-box">${row('카드',A.E10,String(A.F10||'').replace('결제금액: ',''))}${row('현금',A.E11,String(A.F11||'').replace('결제금액: ',''))}${row('추가',A.E12,A.E12?`${[A.G12&&'카드',A.I12&&'현금'].filter(Boolean).join(' · ')} ${String(A.J12||'').replace('금액: ','')}`:'')}</div>
+      ${sIn('rcCardAppr','카드승인 번호','예: 10202012')}${sIn('rcCashNo','현금영수증 번호','예: 010-0000-0000',{tel:1})}
+      <button class="btn wz-go wz-go2" type="button" data-sz-settle>정산에서 금액 고치기</button>${go()}`; }
+  else if(st.id==='goods'){ sub='앱에 없는 칸이라 여기서만 넣어요. 숫자 말고 「1.0특」처럼 글도 돼요.';
+    body=`<div class="sz-goods">${SZ_GOODS.map(g=>`<label class="sz-g"><span>${g==='접수세트'?'접수 세트':g}</span><input class="input" data-sx="goods.${g}" value="${esc(sxGet(c,'goods.'+g))}" inputmode="decimal" autocomplete="off" aria-label="${g} 수량"></label>`).join('')}</div>
+      <div class="wz-quick"><button class="chip" type="button" data-sz-glast>지난 행사와 같게</button><button class="chip" type="button" data-sz-gclear>모두 지우기</button></div>${go()}`; }
+  else if(st.id==='itemPick'){ sub='있었던 품목을 모두 누르세요. 행사 입력 · 정산에 있는 것은 미리 골라 뒀어요.';
+    body=`<div class="wz-choice wz-co sz-picks">${SZ_ITEMS.map(([n])=>`<button type="button" data-sz-item="${esc(n)}" aria-pressed="${szItemOn(c,n,A)}"><b>${esc(n)}</b></button>`).join('')}</div>${go()}`; }
+  else if(st.item){ const n=st.item, row=(SZ_ITEMS.find(z=>z[0]===n)||[])[1], P=`items.${n}.`, has=['C','G','K','L'].some(k=>A[k+row]!=null);
+    q=n; sub=has?autoSub:'모르는 칸은 비워 두세요.';
+    body=xIn(P+'co','업체명',ph(A['C'+row],'예: 삼미'))+xIn(P+'name','품목명',ph(A['G'+row],n==='수의'?'예: 현진저마(남)':''))+xIn(P+'qty','수량',ph(A['K'+row],'예: 1'),{num:1})+xIn(P+'note','비고 및 특이사항 (현장결제)',ph(A['L'+row],''))+go(); }
+  else if(st.id==='mourn'){ sub='업체 · 수량은 행사 입력과 같이 바뀌어요.';
+    body=ch('상복 업체',{scope:'f',key:'mournBrand',options:db.lists.mournBrands||[],label:'상복 업체'})+`<div class="pair2">${fIn('mournM','남 수량','예: 2')}${fIn('mournW','여 수량','예: 2')}</div>`
+      +xIn('mNoteM','남 비고',ph(A.K29,''))+xIn('mNoteW','여 비고',ph(A.K30,''))+go(); }
+  else if(st.id==='veh'){ sub='차종 · 업체 · 목적지는 행사 입력과 같이 바뀌어요.';
+    body=ch('구분 (차종)',{scope:'f',key:'vehType',options:db.lists.vehTypes||[],label:'차종'})+ch('업체',{scope:'f',key:'vehCo',options:db.lists.vehCos||[],label:'장의차 업체'})
+      +fIn('route','목적지',ph(!f.route&&autoRoute(f),'예: 함안하늘-함안추모-장례식장'))+xIn('km1','실제 주행거리','예: 30km')+xIn('vnote1','비고',ph(A.Q32,''))+go(); }
+  else if(st.id==='veh2'){ const on=x.veh2On; body=choice('x:veh2On',[['yes','있어요'],['no','없어요']],on||'');
+    if(on==='yes') body+=xIn('veh2.type','구분 (차종)','예: 리무진')+xIn('veh2.co','업체','예: 한국')+xIn('veh2.dest','목적지','예: 장례식장-함안하늘')+xIn('veh2.km','실제 주행거리','예: 20km')+xIn('veh2.note','비고',ph(A.Q33,''))+go(); }
+  else if(st.id==='help') body=ch('팀장명',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})+`<label class="f">총 시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" placeholder="예: 30" autocomplete="off"><span>시간</span></div></label>`+go();
+  else if(st.id==='helpRows'){ const days=szDays(c), H=Array.from({length:24},(_,k)=>pad(k));
+    const sel=(p,opts,lab)=>`<select class="input" data-sx="${p}" aria-label="${lab}"><option value=""></option>${opts.map(o=>`<option value="${o.v}"${sxGet(c,p)===o.v?' selected':''}>${esc(o.l)}</option>`).join('')}</select>`;
+    sub='모르는 줄은 비워 두세요. 날짜는 접수일부터 발인일까지 골라요.';
+    body=`<div class="sz-hrows"><div class="sz-hrow sz-hhead"><span>날짜</span><span>시작</span><span>종료</span><span>인원</span></div>${[0,1,2].map(k=>`<div class="sz-hrow">${days.length?sel(`help.${k}.d`,days,`${k+1}번째 날짜`):`<input class="input" data-sx="help.${k}.d" value="${esc(sxGet(c,`help.${k}.d`))}" inputmode="numeric" placeholder="일" aria-label="${k+1}번째 날짜">`}${sel(`help.${k}.s`,H.map(h=>({v:h,l:h+'시'})),`${k+1}번째 시작`)}${sel(`help.${k}.e`,H.map(h=>({v:h,l:h+'시'})),`${k+1}번째 종료`)}<input class="input" data-sx="help.${k}.n" value="${esc(sxGet(c,`help.${k}.n`))}" inputmode="numeric" placeholder="명" aria-label="${k+1}번째 인원"></div>`).join('')}</div>`
+      +xIn('helpNote','비고',ph(A.N35,''))+go(); }
+  else if(st.id==='memo'){ const au=A.__notes||[]; sub='여기에 쓴 줄은 맨 아래 특이사항에 더해져요.';
+    body=(au.length?`<div class="sz-box sz-auto"><span>자동으로 들어가는 내용</span>${au.map(t=>`<p>${esc(t)}</p>`).join('')}</div>`:'')+`<label class="f">더 적을 내용<textarea class="input" data-sx="memo" rows="4" placeholder="줄마다 한 줄씩 들어가요">${esc(x.memo||'')}</textarea></label>`+go(); }
+  else if(st.id==='done'){ sub='미리보기를 누르면 크게 보여요. 고칠 곳은 아래 줄을 누르세요.';
+    body=`<div class="sz-pv sz-pv-done" data-sz-zoom><canvas id="szCanvasDone" aria-label="장례행사 일정표 미리보기"></canvas></div>
+      <button class="btn primary wz-go" type="button" data-sz-save="png">이미지 저장</button><button class="btn wz-go wz-go2" type="button" data-sz-save="xlsx">엑셀 저장</button>
+      <div class="wz-review">${szReview(c,A)}</div>`; }
+  if(st.id!=='done'&&szFromDone.has(c.id)) body+=`<button class="btn wz-go wz-go2" type="button" data-sz-to="done">확인 화면으로 돌아가기</button>`;
+  return `<div class="wz-card" data-sz="${esc(st.id)}"><div class="wz-head"><h2 class="wz-q" tabindex="-1">${esc(q)}</h2>${sub?`<p class="wz-sub">${esc(sub)}</p>`:''}</div>${body}</div>`;
+}
+function szReview(c,A){
+  const V=schedCells(c), f=c.f, x=SX(c), steps=szSteps(c), first=g=>(steps.find(s=>s.g===g)||{}).id;
+  const goods=SZ_GOODS.filter((g,i)=>V[SZ_GCOL[i]+'15']!=null).length, items=SZ_ITEMS.filter(([n])=>szItemOn(c,n,A)).map(([n])=>n);
+  const hrows=[0,1,2].filter(i=>V['F'+(36+i)]&&V['F'+(36+i)]!=='일').length;
+  const rows=[
+    ['info',[V.C3,V.I3,f.name&&'故 '+f.name].filter(Boolean).join(' · ')||'안 넣음'],
+    ['pay',[A.F10&&'카드 '+String(A.F10).replace('결제금액: ',''),A.F11&&'현금 '+String(A.F11).replace('결제금액: ',''),A.J12&&'추가 '+String(A.J12).replace('금액: ','')].filter(Boolean).join(' · ')||'정산에 넣은 금액 없음'],
+    ['goods',goods?`${goods}가지 넣음`:'안 넣음'],
+    ['items',items.join(' · ')||'없음'],
+    ['mourn',[V.J29!=null&&`남 ${V.J29}`,V.J30!=null&&`여 ${V.J30}`,V.D29||V.D30].filter(Boolean).join(' · ')||'없음'],
+    ['veh',[V.C32,V.E32,x.veh2On==='yes'&&'2대'].filter(Boolean).join(' · ')||'없음'],
+    ['help',[V.C35,hrows&&`${hrows}일`].filter(Boolean).join(' · ')||'없음'],
+    ['memo',V.A41?`${String(V.A41).split('\n').length}줄`:'없음'],
+  ];
+  return rows.map(([g,note])=>`<button type="button" class="wz-rv" data-sz-to="${esc(first(g))}"><span class="wz-rv-k"><b>${esc(SZ_G[g])}</b><small>${esc(note)}</small></span><span></span>${SV_R}</button>`).join('');
+}
+function renderSched(){
+  const el=$('#p-sched'), c=curCase();
+  if(!c){ el.innerHTML=`<div class="sz-main"><div class="sec"><div class="sec-head"><h2>보고서 입력</h2></div><p class="note">행사를 먼저 만들면 장례행사 일정표를 한 단계씩 채울 수 있어요.</p><div class="row"><button class="btn primary" type="button" data-sz-new>새 행사</button></div></div></div>`; return; }
+  const steps=szSteps(c), id=szAtId(c,steps);
+  el.innerHTML=`<div class="sz-main"><div class="wz sz" id="sz">
+      <div class="wz-top"><button class="wz-back" type="button" id="szBack" data-sz-prev aria-label="이전 질문">${SV_L}</button>
+        <div class="wz-prog" aria-hidden="true"><i id="szProg"></i></div>
+        <button class="wz-mode" type="button" id="szToEnd" data-sz-to="done">확인 화면</button></div>
+      <div class="wz-meta"><span id="szGroup"></span><span id="szCount"></span></div>
+      <div class="wz-stage" id="szStage">${szScreen(c,steps.find(s=>s.id===id),steps)}</div></div></div>
+    <div class="sz-side"><div class="out"><div class="out-head"><h2>미리보기<small>장례행사 일정표</small></h2></div>
+      <div class="sz-pv" data-sz-zoom><canvas id="szCanvasSide" aria-label="장례행사 일정표 미리보기"></canvas></div>
+      <div class="pair"><button class="btn primary" type="button" data-sz-save="png">이미지 저장</button><button class="btn" type="button" data-sz-save="xlsx">엑셀 저장</button></div></div></div>`;
+  szChrome(c,steps); szPaintAll(c);
+}
+function szChrome(c,steps){
+  steps=steps||szSteps(c); const id=szAtId(c,steps), i=steps.findIndex(s=>s.id===id), st=steps[i];
+  const p=$('#szProg'); if(p) p.style.width=`${Math.round(i/(steps.length-1)*100)}%`;
+  const g=$('#szGroup'); if(g) g.textContent=SZ_G[st.g]||'';
+  const n=$('#szCount'); if(n) n.textContent=id==='done'?'':`${i+1} / ${steps.length-1}`;
+  const bk=$('#szBack'); if(bk) bk.disabled=i===0;
+  const te=$('#szToEnd'); if(te) te.hidden=id==='done';
+}
+function szPaintAll(c){ if(!c) return; szPaint($('#szCanvasDone'),c); if(isSplit()) szPaint($('#szCanvasSide'),c); szWhenFonts(()=>szPaintAll(curCase())); }
+let szT2=0;
+function szLive(){ clearTimeout(szT2); szT2=setTimeout(()=>{ const c=curCase(); if(c&&db.tab==='sched') szPaintAll(c); },160); }
+function szGo(to,dir){
+  const c=curCase(); if(!c) return; const steps=szSteps(c); if(!steps.some(s=>s.id===to)) return;
+  const from=szAtId(c,steps); szPos.set(c.id,to); if(to==='done') szFromDone.delete(c.id);
+  const stage=$('#szStage'); if(!stage){ renderSched(); return; }
+  dir=dir||(steps.findIndex(s=>s.id===to)>steps.findIndex(s=>s.id===from)?'next':'prev');
+  stage.innerHTML=szScreen(c,steps.find(s=>s.id===to),steps); const card=stage.firstElementChild;
+  if(!reduceMotion()) card.classList.add('in-'+dir);
+  szChrome(c,steps); szPaintAll(c);
+  const wz=$('#sz'), ab=($('#appbar')?.getBoundingClientRect().bottom)||0, r=wz.getBoundingClientRect();
+  if(Math.abs(r.top-(ab+12))>8) window.scrollTo({top:Math.max(0,scrollY+r.top-ab-12),behavior:reduceMotion()?'auto':'smooth'});
+  card.querySelector('.wz-q')?.focus({preventScroll:true});
+}
+function szMove(d){ const c=curCase(); if(!c) return; const steps=szSteps(c), i=steps.findIndex(s=>s.id===szAtId(c,steps)), t=steps[i+d]; if(t) szGo(t.id,d>0?'next':'prev'); }
+$('#p-sched').addEventListener('input',e=>{
+  const t=e.target, c=curCase(); if(!c) return;
+  if(t.dataset.sf){ let v=t.value; if(/Tel$/.test(t.dataset.sf)){ const nv=fmtTel(v); if(nv!==v){ t.value=nv; v=nv; } } c.f[t.dataset.sf]=v; c.f['_d_'+t.dataset.sf]=false; }
+  else if(t.dataset.s){ let v=t.value; if(t.dataset.s==='rcCashNo'&&/^01\d/.test(v.replace(/\D/g,''))){ const nv=fmtTel(v); if(nv!==v){ t.value=nv; v=nv; } } S(c)[t.dataset.s]=v; }
+  else if(t.dataset.sx) sxSet(c,t.dataset.sx,t.value);
+  else return;
+  touched(); szLive();
+});
+$('#p-sched').addEventListener('change',e=>{ const c=curCase(); if(!c) return; const dt=e.target.closest('[data-dt]'); if(dt){ c.f[dt.dataset.dt]=composeDT(dt); touched(); szLive(); } });
+$('#p-sched').addEventListener('keydown',e=>{ if(e.key!=='Enter'||e.isComposing||tpBox) return; const t=e.target; if(t.tagName==='INPUT'&&t.closest('.wz-card')){ e.preventDefault(); szMove(1); } });
+$('#p-sched').addEventListener('click',e=>{
+  const b=e.target.closest('button,[data-sz-zoom]'); if(!b) return;
+  if(b.hasAttribute('data-sz-new')){ openPicker('new'); return; }
+  const c=curCase(); if(!c) return;
+  if(b.hasAttribute('data-sz-next')){ szMove(1); return; }
+  if(b.hasAttribute('data-sz-prev')){ szMove(-1); return; }
+  if(b.dataset.szTo){ if(b.dataset.szTo!=='done'&&szAtId(c)==='done') szFromDone.add(c.id); szGo(b.dataset.szTo); return; }
+  if(b.dataset.szPick){ const [sc,k]=b.dataset.szPick.split(':'), v=b.dataset.v; if(sc==='f'){ c.f[k]=v; } else SX(c)[k]=v; touched();
+    if(k==='veh2On'&&v==='yes'){ szGo('veh2','next'); return; } szMove(1); return; }
+  if(b.dataset.szItem){ const n=b.dataset.szItem, on=b.getAttribute('aria-pressed')!=='true'; const x=SX(c); x.itemOn=x.itemOn||{}; x.itemOn[n]=on; b.setAttribute('aria-pressed',String(on)); touched(); szChrome(c); szLive(); return; }
+  if(b.hasAttribute('data-sz-glast')){ const prev=db.cases.filter(o=>o.id!==c.id&&o.sx&&o.sx.goods&&Object.values(o.sx.goods).some(v=>szT(v))).sort((a,b2)=>(b2.updated||0)-(a.updated||0))[0];
+    if(!prev){ toast('지난 행사에 넣은 장례용품 수량이 없어요'); return; } SX(c).goods={...prev.sx.goods}; touched(); szGo('goods','next'); toast('지난 행사 수량을 넣었습니다'); return; }
+  if(b.hasAttribute('data-sz-gclear')){ SX(c).goods={}; touched(); szGo('goods','next'); return; }
+  if(b.dataset.szSave){ szSave(c,b.dataset.szSave); return; }
+  if(b.hasAttribute('data-sz-settle')){ setTab('settle'); return; }
+  if(b.hasAttribute('data-sz-zoom')) b.classList.toggle('zoom');
+});
 function rcCoPick(c,all){
   const cos=db.companies.filter(y=>y.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko')), cur=c.coPicked?c.companyId:'';
   const btn=(id,name)=>all?`<button type="button" class="chip" data-wz-co="${id}" aria-pressed="${cur===id}">${esc(name)}</button>`:`<button type="button" data-wz-co="${id}" aria-pressed="${cur===id}"><b>${esc(name)}</b></button>`;
@@ -4085,21 +4390,21 @@ $('#saveOffTpl').onclick=()=>{ const t=$('#offTpl').value.replace(/\s+$/,''); db
 $('#resetOffTpl').onclick=()=>{ $('#offTpl').value=OFF_TPL; db.offTpl=''; save(); dirty=true; renderAll(); toast('퇴근 양식을 기본값으로 되돌렸습니다'); };
 $('#saveDispTpl').onclick=()=>{ const t=$('#dispTpl').value.replace(/\s+$/,''); db.dispatchTpl=t&&t!==DISPATCH_TPL?t:''; save(); dirty=true; renderAll(); toast('배차 양식을 저장했습니다'); };
 $('#resetDispTpl').onclick=()=>{ $('#dispTpl').value=DISPATCH_TPL; db.dispatchTpl=''; save(); dirty=true; renderAll(); toast('배차 양식을 기본값으로 되돌렸습니다'); };
-$('#reportCards').onclick=e=>{ if(e.target.closest('[data-xlsched]')){ const c=curCase(); if(c) schedSave(c).catch(()=>toast('엑셀 파일을 만들지 못했어요')); return; } if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
+$('#reportCards').onclick=e=>{ if(e.target.closest('[data-xlinput]')){ setTab('sched'); return; } { const b=e.target.closest('[data-xlsave]'); if(b){ szSave(curCase(),b.dataset.xlsave); return; } } { const z=e.target.closest('[data-sz-zoom]'); if(z){ z.classList.toggle('zoom'); return; } } if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정',data:'데이터 관리'};
-const TAB_TITLES={input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
+const TAB_TITLES={input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],sched:['장례 행사','보고서 입력'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
 /* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
 const isSplit=()=>document.body.classList.contains('split');
 function applySplit(){
   const t=db.tab;
-  if(['input','out','settle','envelopes','duty','admin'].includes(t)) $('#p-out').hidden=!(t==='out'||(isSplit()&&t==='input'));
+  if(['input','out','sched','settle','envelopes','duty','admin'].includes(t)) $('#p-out').hidden=!(t==='out'||(isSplit()&&t==='input'));
   if(isSplit()&&t==='input') renderOut(); else fitOutText();
 }
 let splitT=null;
 function checkSplit(){
   const main=$('#mainContent'); if(!main) return;
   const on=main.clientWidth>=900;
-  if(on!==isSplit()){ document.body.classList.toggle('split',on); applySplit(); }
+  if(on!==isSplit()){ document.body.classList.toggle('split',on); applySplit(); if(db.tab==='sched') szPaintAll(curCase()); }
 }
 if(window.ResizeObserver) new ResizeObserver(()=>{ clearTimeout(splitT); splitT=setTimeout(checkSplit,60); }).observe($('#mainContent'));
 window.addEventListener('resize',()=>{ clearTimeout(splitT); splitT=setTimeout(checkSplit,60); });
@@ -4111,13 +4416,14 @@ function setTab(t,sub){
   const [s1,s2]=t==='duty'?['휴무 · 당직',DUTY_TITLES[db.dutyView]]:(TAB_TITLES[t]||['','']);
   $('#abSub').textContent=s1; $('#abTitle').textContent=s2;
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on', b.dataset.go===(t==='duty'?'duty:'+db.dutyView:t)));
-  ['input','out','settle','envelopes','duty','admin'].forEach(k=>$('#p-'+k).hidden=t!==k);
+  ['input','out','sched','settle','envelopes','duty','admin'].forEach(k=>$('#p-'+k).hidden=t!==k);
   document.body.classList.toggle('duty-mode',t==='duty');
   if(t==='duty') openDuty(db.dutyView);
   if(t==='settle') renderSettle();
   if(t==='envelopes') renderEnvelopes();
   if(t==='input') renderInput();
   if(t==='out') renderOut();
+  if(t==='sched') renderSched();
   if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; renderSnaps(); }
   checkSplit(); applySplit();
   updateWorkspace(t);
@@ -4148,7 +4454,7 @@ $('#sideNav').addEventListener('click',e=>{
 function restoreAcc(){ const a=db.acc||{}; document.querySelectorAll('.acc').forEach(el=>{ const k=el.dataset.acc; if(k in a) el.querySelector('.acc-h').setAttribute('aria-expanded',String(!!a[k])); }); }
 let toastT=null;
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400); }
-function renderAll(){ renderCaseSel(); restoreAcc(); setTab(['input','out','settle','envelopes','duty','admin'].includes(db.tab)?db.tab:(db.tab==='card'?'out':'input'), db.dutyView); }
+function renderAll(){ renderCaseSel(); restoreAcc(); setTab(['input','out','sched','settle','envelopes','duty','admin'].includes(db.tab)?db.tab:(db.tab==='card'?'out':'input'), db.dutyView); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#picker').hidden) closePicker(); });
 
 window.addEventListener('pagehide',()=>save());
