@@ -201,7 +201,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
 
 /* ---------- Install, update, action sheet ---------- */
-.install-card{background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:14px 16px;display:grid;gap:10px;margin-bottom:16px}
+.wipe-zone{display:grid;gap:8px;margin-top:10px;padding-top:16px;border-top:1px solid var(--line)}
+body[data-view="settings"] #installCard{display:none!important}   /* 설정에는 「앱 설치」 칸이 따로 있음 */
+.install-card{background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;display:grid;gap:10px;margin-bottom:16px}
 .install-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .install-head b{font-size:15px}
 .install-body{display:grid;gap:10px;font-size:14px}
@@ -531,7 +533,8 @@ p{text-wrap:pretty}
         <div class="grid2" id="afBtns"><button class="btn primary" type="button" id="afOn">자동 백업 켜기</button><button class="btn" type="button" id="afOpen">예전 파일 연결</button></div>
         <div class="grid2" id="afBtns2" hidden><button class="btn primary" type="button" id="afFix">다시 연결</button><button class="btn" type="button" id="afNow">지금 백업</button><button class="btn" type="button" id="afRestore">이 파일에서 되살리기</button><button class="btn" type="button" id="afOff">끄기</button></div>
       </div>
-      <button class="btn danger block" type="button" id="wipeBtn">모든 기록 삭제</button>
+      <div class="wipe-zone"><p class="small-t muted">이 기기의 관리자 서식 기록을 모두 지웁니다. 지우기 전에 위에서 백업 파일을 먼저 받아 두세요.</p>
+      <button class="btn danger block" type="button" id="wipeBtn">모든 기록 삭제</button></div>
     </div>
     <p class="ver" id="appVersion"></p>
   </section>
@@ -944,7 +947,7 @@ function openScreen(id) { const el = $('#' + id); el.hidden = false; document.bo
 function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
 function showTab(t) {
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
-  S.tab = t;
+  S.tab = t; document.body.dataset.view = t;
   ['weekly', 'minutes', 'review', 'ship', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
   $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
   try { localStorage.setItem('mf.tab', t); } catch (e) { /* ignore */ }

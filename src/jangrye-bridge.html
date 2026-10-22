@@ -1,16 +1,17 @@
 <!-- 따로 쓰는 「장례일정」 앱에만 붙는 부분: 설치 안내, 카카오톡 안에서 열렸을 때 바깥 브라우저로 넘기기. -->
 <style id="jr-install">
-.jr-card{margin:16px 0 12px;background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:14px 16px;display:grid;gap:10px;font-size:14px;line-height:1.6}
+.jr-card{margin:16px 0 12px;background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;display:grid;gap:10px;font-size:14px;line-height:1.6}
 .jr-card.warn{border-color:var(--warn);background:var(--warn-soft)}
 .jr-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .jr-head b{font-size:15px}
 .jr-card ol{margin:0;padding-left:20px;display:grid;gap:4px}
 .jr-card p{margin:0}
 .jr-row{display:flex;flex-wrap:wrap;gap:8px}
-.jr-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--edge);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer}
+.jr-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border-radius:4px;border:1px solid var(--edge);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer}
 .jr-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
-.jr-x{width:36px;height:36px;border:0;border-radius:9px;background:none;color:var(--muted);font-size:18px;cursor:pointer}
+.jr-x{width:44px;height:44px;border:0;border-radius:4px;background:none;color:var(--muted);font-size:18px;cursor:pointer}
 .jr-note{font-size:12.5px;color:var(--muted)}
+body:not([data-tab="input"]) .jr-card:not(.warn){display:none}   /* 설치 안내는 행사 입력 화면에서만 */
 </style>
 <script>
 (function () {

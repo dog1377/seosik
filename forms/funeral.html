@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.22-3">
+<meta name="app-version" content="2026.10.22-4">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="관리자 서식">
@@ -999,6 +999,27 @@ body.split #p-settle .wz{max-width:none}
 @media (prefers-reduced-motion:reduce){.wz-card{animation:none!important}.wz-prog i{transition:none}}
 @media (max-width:380px){.wz-card{padding:26px 16px 20px}.wz-card .wz-q{font-size:22px}}
 @media (min-width:700px){.wz-card{padding:40px 36px 32px}.wz-card .wz-q{font-size:26px}}
+/* 화면 정리 (2026.10.22): 보고서 · 설정은 위쪽 줄에서 하나를 골라 그것만 보여 줌 */
+.wz-rc-row{display:grid;gap:10px;margin-top:-10px}
+.wz-rc-row.two{grid-template-columns:1fr 1fr}
+.wz-rc-row .btn{min-height:50px;font-size:15px}
+.wz-card .wz-ck{justify-self:center;margin-top:-8px;border-color:transparent;background:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.out-tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;scroll-padding:0 12px}
+.out-tabs::-webkit-scrollbar{display:none}
+.out-tabs:empty{display:none}
+.out-tabs button{flex:none;position:relative;border:0;background:none;padding:0 12px;min-height:46px;font:inherit;font-size:14.5px;font-weight:600;color:var(--muted);white-space:nowrap;cursor:pointer}
+.out-tabs button[aria-selected="true"]{color:var(--ink);font-weight:700}
+.out-tabs button[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--ink)}
+.out-tabs button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
+@media (hover:hover){.out-tabs button:hover{color:var(--ink)}}
+#p-out .ov-off,#p-admin .ov-off,#p-settle .ov-off{display:none!important}
+.out-tabs.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+.out-tabs.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+.out-tabs.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+.out-tabs button[hidden]{display:none}
+#p-out #reportCards{grid-template-columns:minmax(0,1fr)}
+body:not([data-tab="input"]):not([data-tab="admin"]) #bkBanner{display:none!important}
+.bk-banner{border-radius:6px}
 /* 보고서 입력 · 장례행사 일정표 미리보기 (2026.10.22) */
 .sz-pv{overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:zoom-in;overscroll-behavior:contain}
 .sz-pv canvas{display:block;width:100%;height:auto}
@@ -1067,7 +1088,8 @@ body.split #p-sched .sz-pv-done{display:none}
   <section id="p-out" class="stack" hidden>
     <p class="split-label">입력하면 바로 바뀌는 보고서</p>
     <div class="missing" id="missing"></div>
-    <div class="out">
+    <div class="out-tabs" id="outTabs" role="tablist" aria-label="보고 양식 고르기"></div>
+    <div class="out" data-ov="band">
       <div class="out-head"><h2>밴드 양식<small id="bandTag"></small></h2><button class="btn" id="copyBand" type="button">전체 복사</button></div>
       <textarea class="text-out" id="bandText" rows="20" aria-label="밴드 양식"></textarea>
       <div class="pair"><button class="btn primary" id="copySched" type="button">일정표 복사</button><button class="btn primary" id="copyProv" type="button">제공내역 복사</button></div>
@@ -1084,7 +1106,8 @@ body.split #p-sched .sz-pv-done{display:none}
   <section id="p-duty" hidden><iframe id="dutyFrame" title="휴무 · 당직표"></iframe></section>
 
   <section id="p-admin" class="stack" hidden>
-    <div class="sec">
+    <div class="out-tabs" id="adminTabs" role="tablist" aria-label="설정 항목"><button type="button" role="tab" data-av-tab="forms">업체 양식</button><button type="button" role="tab" data-av-tab="common">공통 양식</button><button type="button" role="tab" data-av-tab="rules">정산 기준</button><button type="button" role="tab" data-av-tab="lists">선택 목록</button><button type="button" role="tab" data-av-tab="keep">백업 · 공유</button></div>
+    <div class="sec" data-av="forms">
       <div class="sec-head"><h2>업체별 양식</h2></div>
       <div class="chips" id="coChips"></div>
       <label class="f">업체명<input class="input" id="coName"></label>
@@ -1105,19 +1128,19 @@ body.split #p-sched .sz-pv-done{display:none}
         <button class="btn danger" id="coDel" type="button">업체 삭제</button>
       </div>
     </div>
-    <div class="sec">
+    <div class="sec" data-av="common">
       <div class="sec-head"><h2>배차 양식</h2></div>
       <p class="note">모든 업체 행사의 보고서 화면에 나오는 배차 문자 양식입니다. 쓸 수 있는 자리: {발인날짜} {장소} {업체명} {회사명} {발인} {배차} {화장하관} {화장장회차} {차량경로} {차량} {운행경로} {장지} {담당} {담당연락처} {고인명} {상주명}. 배차 칸을 비워 두면 발인 30분 전으로, 운행 경로를 비워 두면 「화장장-장지-장례식장」으로 들어갑니다.</p>
       <label class="f">배차 양식<textarea class="input tpl" id="dispTpl" rows="11"></textarea></label>
       <div class="row"><button class="btn sm primary" id="saveDispTpl" type="button">저장</button><button class="btn sm" id="resetDispTpl" type="button">기본값으로</button></div>
     </div>
-    <div class="sec">
+    <div class="sec" data-av="common">
       <div class="sec-head"><h2>퇴근 양식</h2></div>
       <p class="note">모든 행사의 보고서 화면에 나오고, 날짜가 바뀌면 자동으로 바뀝니다. 퇴근은 오늘 19시. 출근은 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분), 발인이면 1시간 전(현진시닝은 1시간 30분 전). 계산한 출근이 08시 30분보다 늦으면 모두 08시 30분. 내일 일정이 없으면 08시 30분. 발인 날부터는 퇴근 · 출근 줄이 빠집니다. 쓸 수 있는 자리: {장소} {담당} {담당연락처} {업체명} {퇴근줄} {출근줄} {입관줄} {발인줄}</p>
       <label class="f">퇴근 양식<textarea class="input tpl" id="offTpl" rows="7"></textarea></label>
       <div class="row"><button class="btn sm primary" id="saveOffTpl" type="button">저장</button><button class="btn sm" id="resetOffTpl" type="button">기본값으로</button></div>
     </div>
-    <div class="sec">
+    <div class="sec" data-av="rules">
       <div class="sec-head"><h2>정산 기준</h2></div>
       <div class="pair">
         <label class="f">제단 정산 고정 금액<div class="suffix"><input class="input" id="rAltar" inputmode="numeric"><span>만원</span></div></label>
@@ -1130,13 +1153,13 @@ body.split #p-sched .sz-pv-done{display:none}
       <p class="note">이익 = 받은 금액 − 입관꽃장식 원가. 우리 60% · 본부장 40%, 원가는 본부장 몫에 더합니다. 예: 30만원 · 원가 5 → 이익 25 → 우리 15 · 본부장 10 + 원가 5 = 15</p>
       <div class="row"><button class="btn sm primary" id="saveRules" type="button">저장</button></div>
     </div>
-    <div class="sec">
+    <div class="sec" data-av="lists">
       <div class="sec-head"><h2>선택 목록</h2></div>
       <p class="note">입력 화면의 드롭다운에 나오는 목록입니다. 한 줄에 하나씩. 목록에 없으면 "직접입력"으로 쓸 수 있습니다.</p>
       <div id="listEdit" class="fields"></div>
       <div class="row"><button class="btn sm primary" id="saveLists" type="button">저장</button></div>
     </div>
-    <div class="sec">
+    <div class="sec" data-av="keep">
       <div class="sec-head"><h2>행사 기록 보관</h2></div>
       <p class="note">행사 기록은 지우지 않는 한 이 기기에 계속 남고, 발인 날짜 기준으로 월별로 정리됩니다. 기기를 바꾸거나 브라우저 데이터를 지우면 사라지니 한 달에 한 번은 백업 파일을 받아 두세요.</p>
       <p class="keep-stats" id="keepStats"></p>
@@ -1164,7 +1187,7 @@ body.split #p-sched .sz-pv-done{display:none}
       <p class="note">앱이 업데이트될 때(고치기 전 그대로)와 하루 한 번, 이 기기 안에 자동으로 따로 보관합니다. 기록이 사라지거나 이상하면 「되살리기」를 누르세요. 지금 기록은 지우지 않고 빠진 것만 합칩니다.</p>
       <div id="snapList" class="snap-list"></div>
     </div>
-    <div class="sec">
+    <div class="sec" data-av="keep">
       <div class="sec-head"><h2>공유 · 설정 백업</h2></div>
       <p class="note">앱은 이 기기에만 깔려 있고, 입력한 내용은 밖으로 나가지 않습니다. 필요할 때만 아래로 공유하세요.</p>
       <div class="row"><button class="btn" id="shareApp" type="button">앱 주소 공유</button></div>
@@ -1206,7 +1229,11 @@ body.split #p-sched .sz-pv-done{display:none}
     <div class="acc" data-acc="admin">
       <button class="acc-h" type="button" aria-expanded="false"><span><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>설정</span><i></i></button>
       <div class="acc-b"><div>
-        <button type="button" data-go="admin">업체 양식 · 목록 · 백업</button>
+        <button type="button" data-go="admin:forms">업체 양식</button>
+        <button type="button" data-go="admin:common">공통 양식 (배차 · 퇴근)</button>
+        <button type="button" data-go="admin:rules">정산 기준</button>
+        <button type="button" data-go="admin:lists">선택 목록</button>
+        <button type="button" data-go="admin:keep">백업 · 공유</button>
       </div></div>
     </div>
   </div>
@@ -2616,12 +2643,34 @@ function fitOutText(){
   const on=isSplit()&&db.tab==='input';
   document.querySelectorAll('#p-out textarea.text-out').forEach(t=>{ if(on){ t.style.height='auto'; t.style.height=(t.scrollHeight+4)+'px'; } else t.style.height=''; });
 }
+/* 위쪽 고르는 줄: 옆으로 더 있으면 끝을 흐리게 · 고른 것이 보이게 */
+function tabsFade(el){ if(!el) return; const r=el.scrollLeft+el.clientWidth<el.scrollWidth-4, l=el.scrollLeft>4; el.classList.toggle('more-r',r); el.classList.toggle('more-l',l); }
+function tbScroll(b){ const el=b&&b.parentElement; if(!el) return; const L=b.offsetLeft-el.offsetLeft, R=L+b.offsetWidth;
+  if(L<el.scrollLeft+8) el.scrollLeft=Math.max(0,L-24); else if(R>el.scrollLeft+el.clientWidth-8) el.scrollLeft=R-el.clientWidth+24; tabsFade(el); }
+document.addEventListener('scroll',e=>{ const t=e.target; if(t&&t.classList&&t.classList.contains('out-tabs')) tabsFade(t); },true);
+window.addEventListener('resize',()=>document.querySelectorAll('.out-tabs').forEach(tabsFade));
+/* 보고서 화면: 위쪽 줄에서 양식 하나를 골라 그것만 보여 줌 (2026.10.22 정리) */
+function outViews(c){ return [['band','밴드'],...activeReports(coById(c.companyId)).map((r,i)=>['rep'+i,r.name]),['disp','배차'],['off','퇴근'],['xl','일정표']]; }
+function applyOutView(){
+  const btns=[...document.querySelectorAll('#outTabs [data-ov-tab]')]; let v=db.outView;
+  if(!btns.some(b=>b.dataset.ovTab===v)) v='band';
+  btns.forEach(b=>{ const on=b.dataset.ovTab===v; b.setAttribute('aria-selected',String(on)); b.tabIndex=on?0:-1; });
+  document.querySelectorAll('#p-out [data-ov]').forEach(el=>el.classList.toggle('ov-off',el.dataset.ov!==v));
+  tbScroll(btns.find(b=>b.dataset.ovTab===v)); tabsFade($('#outTabs'));
+  return v;
+}
+$('#outTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-ov-tab]'); if(!b) return;
+  db.outView=b.dataset.ovTab; save(); const v=applyOutView(); fitOutText(); if(v==='xl') szPaint($('#xlCanvas'),curCase());
+  tbScroll(b); });
+$('#outTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; const bs=[...e.currentTarget.querySelectorAll('[data-ov-tab]')], i=bs.indexOf(document.activeElement); if(i<0) return;
+  const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
 function renderOut(){
   const c=curCase();
-  if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; return; }
+  if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; $('#outTabs').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
   $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
-  $('#reportCards').innerHTML=`<div class="out" id="dispOut"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#outTabs').innerHTML=outViews(c).map(([k,l])=>`<button type="button" role="tab" data-ov-tab="${k}">${esc(l)}</button>`).join(''); applyOutView();
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c);
   { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없어요':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워져요. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 넣으세요. 미리보기를 누르면 크게 보여요.';
@@ -3694,8 +3743,8 @@ function wzScreen(c,id){
   else if(x.kind==='def') body=`<div class="def-body" id="defBody"></div>${go()}`;
   else if(x.kind==='done'){ if(settleCalc(c).sendWon<0) q='이 행사는 마이너스예요';
     body=stepBody('done',c,false)+`<button class="btn primary wz-go" type="button" data-wz-copy>정산 카톡 복사</button>`
-      +rcptForms(c).map(fm=>`<button class="btn wz-go wz-go2" type="button" data-rc-copy="${fm.kind}">${fm.title} 양식 복사</button>`).join('')
-      +`<button class="btn wz-go wz-go2" type="button" data-ck-open>받은 정산 카톡 검사</button>`; }
+      +(fs=>fs.length?`<div class="wz-rc-row${fs.length>1?' two':''}">${fs.map(fm=>`<button class="btn" type="button" data-rc-copy="${fm.kind}">${fm.title} 복사</button>`).join('')}</div>`:'')(rcptForms(c))
+      +`<button class="btn sm wz-ck" type="button" data-ck-open>받은 정산 카톡 검사</button>`; }
   if(x.kind!=='done' && wzFromDone.has(c.id)) body+=`<button class="btn wz-go wz-go2" type="button" data-wz-to="done">확인 화면으로 돌아가기</button>`;
   return `<div class="wz-card" data-scr="${x.id}"><div class="wz-head"><h2 class="wz-q" tabindex="-1">${esc(q)}</h2>${sub?`<p class="wz-sub${x.warn?' warn':''}">${sub}</p>`:''}</div>${body}</div>`;
 }
@@ -3820,22 +3869,23 @@ function renderSettle(){
   <div class="settle-wide" id="defAlert"></div>
   <div class="sp-main">${main}</div>
   <div class="sp-side">
-  <div class="sec settle-wide" id="ledgerSec"><div class="sec-head"><h2>보내는금액 계산서</h2></div><div class="fields">
+  <div class="out-tabs settle-wide" id="settleTabs" role="tablist" aria-label="정산 결과 고르기"><button type="button" role="tab" data-sv-tab="kakao">정산 카톡</button><button type="button" role="tab" data-sv-tab="rcpt">영수증</button><button type="button" role="tab" data-sv-tab="ledger">계산서 · 봉투</button><button type="button" role="tab" data-sv-tab="comm">수당</button></div>
+  <div class="sec settle-wide" id="ledgerSec" data-sv="ledger"><div class="sec-head"><h2>보내는금액 계산서</h2></div><div class="fields">
     <div class="ledger" id="ledger"></div>
     <label class="f">직접 입력 (비우면 위 계산대로)${amtIn('data-s="sendOverride"',s.sendOverride,'비워 두면 자동')}</label></div></div>
-  <div class="out"><div class="out-head"><h2>정산 카톡<small>회사로 보내는 몫</small></h2><button class="btn primary" id="copySettle" type="button">복사</button></div>
+  <div class="out" data-sv="kakao"><div class="out-head"><h2>정산 카톡<small>회사로 보내는 몫</small></h2><button class="btn primary" id="copySettle" type="button">복사</button></div>
     <textarea class="text-out" id="settleText" rows="18" aria-label="정산 카톡"></textarea></div>
-  ${[['card','카드결제',isHJ(c)?'현진시닝 보고':'업체 보고'],['cash','현금영수증',isHJ(c)?'현진시닝 보고':'업체 보고']].map(([k,t,sub])=>`<div class="out" id="rcBox_${k}" hidden><div class="out-head"><h2>${t}<small>${sub}</small></h2><button class="btn primary" type="button" data-rc-copy="${k}">복사</button></div>
+  ${[['card','카드결제',isHJ(c)?'현진시닝 보고':'업체 보고'],['cash','현금영수증',isHJ(c)?'현진시닝 보고':'업체 보고']].map(([k,t,sub])=>`<div class="out" id="rcBox_${k}" data-sv="rcpt" hidden><div class="out-head"><h2>${t}<small>${sub}</small></h2><button class="btn primary" type="button" data-rc-copy="${k}">복사</button></div>
     <textarea class="text-out" id="rcText_${k}" rows="7" aria-label="${t} 양식"></textarea></div>`).join('')}
-  <div class="sec settle-wide"><div class="sec-head"><h2>월별 봉투정리</h2><button class="btn primary" type="button" id="openEnvelope">봉투 정리하기</button></div><p class="note">식장 · 장지 · 초도 · 키트 · 도시락과 제단 · 유골함 수익이 본부장 · 실장 봉투에 자동으로 나눠 들어갑니다. 월별로 보관하세요.</p></div>
-  <div class="sec settle-wide"><div class="sec-head"><h2>수당 정산</h2></div><div class="fields">
+  <div class="sec settle-wide" data-sv="ledger"><div class="sec-head"><h2>월별 봉투정리</h2><button class="btn primary" type="button" id="openEnvelope">봉투 정리하기</button></div><p class="note">식장 · 장지 · 초도 · 키트 · 도시락과 제단 · 유골함 수익이 본부장 · 실장 봉투에 자동으로 나눠 들어갑니다. 월별로 보관하세요.</p></div>
+  <div class="sec settle-wide" data-sv="comm"><div class="sec-head"><h2>수당 정산</h2></div><div class="fields">
     <label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}"><span>번</span></div></label>
     <p class="calc" id="commAuto"></p>
     ${(()=>{ const ks=COMM_ITEMS.filter(k=>k!=='제단'&&k!=='유골함'), rows=[]; for(let i=0;i<ks.length;i+=2) rows.push(ks.slice(i,i+2)); const m=s.comm||{};
       return rows.map(r=>`<div class="pair">${r.map(k=>`<label class="f">${k}${amtIn(`data-comm="${esc(k)}"`,m[k],'',false)}</label>`).join('')}</div>`).join(''); })()}
     <div class="pair"><label class="f">이름<input class="input" data-me="name" value="${esc(me().name)}" placeholder="홍길동"></label><label class="f">직급<input class="input" data-me="rank" value="${esc(me().rank)}" placeholder="주임"></label></div>
     <p class="note">내 몫 = 실장 몫입니다. 제단 · 유골함 · 꽃관(관꽃장식 판매) · 초도 · 키트 · 도시락은 정산에서 넣은 값의 실장 몫으로 자동 계산됩니다. 장지는 봉투에만 기록되고 여기에는 안 나옵니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
-  <div class="out"><div class="out-head"><h2>수당 정산<small>내 몫</small></h2><button class="btn primary" id="copyComm" type="button">복사</button></div>
+  <div class="out" data-sv="comm"><div class="out-head"><h2>수당 정산<small>내 몫</small></h2><button class="btn primary" id="copyComm" type="button">복사</button></div>
     <textarea class="text-out" id="commText" rows="20" aria-label="수당 정산"></textarea></div>
   </div>
   ${wiz?'':`<div class="settle-bar" id="settleBar"><button type="button" class="sb-sum" id="sbJump" aria-label="보내는금액 계산서로 이동"><small id="sbLabel">보내는금액</small><b id="sbSend">0원</b></button><button class="btn" type="button" id="sbCopy">정산 카톡 복사</button></div>`}`;
@@ -3879,6 +3929,15 @@ function renderDef(c,d){
   h.push(monthList.length?`<div class="def-month">${monthList.map(x=>`<div><span>${esc(x.tag)}${x.c.id===c.id?' (지금 행사)':''}</span><b>${esc(wonStr(x.won))}</b><em class="${x.used?'done':'left'}">${x.used?esc(caseTag(x.used))+'에서 뺌':'남음'}</em></div>`).join('')}</div>`
     :`<p class="note">${M}월에는 마이너스 난 행사가 없습니다.</p>`);
   body.innerHTML=h.join('');
+}
+/* 정산 결과(카톡 · 영수증 · 계산서 · 수당)는 위쪽 줄에서 하나씩 (2026.10.22 정리) */
+function applySettleView(c){
+  const tabs=$('#settleTabs'); if(!tabs||!c) return; const has=rcOn(c);
+  const rb=tabs.querySelector('[data-sv-tab="rcpt"]'); if(rb) rb.hidden=!has;
+  let v=db.settleView; if(!['kakao','rcpt','ledger','comm'].includes(v)||(v==='rcpt'&&!has)) v='kakao';
+  tabs.querySelectorAll('[data-sv-tab]').forEach(b=>{ const on=b.dataset.svTab===v; b.setAttribute('aria-selected',String(on)); b.tabIndex=on?0:-1; });
+  document.querySelectorAll('#p-settle [data-sv]').forEach(el=>el.classList.toggle('ov-off',el.dataset.sv!==v));
+  tabsFade(tabs);
 }
 function updSettle(skipDef){
   const c=curCase(); if(!c) return; const d=settleData(c), R=d.R, s=d.s;
@@ -3954,6 +4013,7 @@ function updSettle(skipDef){
   [['꽃관',cd.flowerKeep],['초도',cd.chodo],['키트',cd.kit],['도시락',cd.lunch]].forEach(([k,w])=>{ const el=document.querySelector(`#p-settle [data-comm="${k}"]`); if(!el) return; el.disabled=!!w; el.placeholder=w?'자동 '+wonStr(w):'';
     const want=w?'':String((s.comm||{})[k]??''); if(el.value!==want) el.value=want; const u=el.closest('.amt')?.querySelector('.amt-u'); if(u) u.textContent=w?'':amtUnit(want); });
   const ct=$('#commText'); if(ct) ct.value=commText(c);
+  applySettleView(c);
 }
 $('#p-settle').addEventListener('input',e=>{
   const t=e.target, c=curCase(); if(!c) return; const s=S(c);
@@ -3990,6 +4050,7 @@ $('#p-settle').addEventListener('change',e=>{
   touched(); updSettle();
 });
 $('#p-settle').addEventListener('click',e=>{
+  { const tb=e.target.closest('[data-sv-tab]'); if(tb){ db.settleView=tb.dataset.svTab; save(); applySettleView(curCase()); tbScroll(tb); return; } }
   const b0=e.target.closest('button'); if(b0&&b0.hasAttribute('data-go-input')){ setTab('input'); return; }
   const c=curCase(); if(!c) return; const s=S(c), b=e.target.closest('button'); if(!b) return;
   if(b.hasAttribute('data-go-def')){ if(settleMode==='wizard') wzGo('def'); else $('#defSec')?.scrollIntoView({block:'start',behavior:'smooth'}); return; }
@@ -4037,7 +4098,7 @@ $('#p-settle').addEventListener('click',e=>{
   if(b.dataset.carryDel){ s.carry=(s.carry||[]).filter(r=>r.id!==b.dataset.carryDel); touched(); updSettle(); toast('빼기를 취소했습니다. 다시 「아직 안 뺀 마이너스」에 나옵니다'); return; }
   if(b.dataset.carryFix){ const r=(s.carry||[]).find(x=>x.id===b.dataset.carryFix), src=r&&db.cases.find(x=>x.id===r.from); if(r&&src){ r.won=settleCalc(src).sendWon; touched(); updSettle(); } return; }
   if(b.id==='sbCopy'){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
-  if(b.id==='sbJump'){ $('#ledgerSec')?.scrollIntoView({block:'center',behavior:'smooth'}); return; }
+  if(b.id==='sbJump'){ db.settleView='ledger'; applySettleView(curCase()); $('#ledgerSec')?.scrollIntoView({block:'center',behavior:'smooth'}); return; }
   if(b.dataset.act==='exAdd'){ const x={id:uid(),text:'',amt:'',pay:'현금'}; s.extras.push(x); touched(); renderSettle(); const el=document.querySelector(`[data-ex="${x.id}"][data-exf="text"]`); if(el) el.focus(); }
 });
 
@@ -4395,6 +4456,19 @@ $('#resetOffTpl').onclick=()=>{ $('#offTpl').value=OFF_TPL; db.offTpl=''; save()
 $('#saveDispTpl').onclick=()=>{ const t=$('#dispTpl').value.replace(/\s+$/,''); db.dispatchTpl=t&&t!==DISPATCH_TPL?t:''; save(); dirty=true; renderAll(); toast('배차 양식을 저장했습니다'); };
 $('#resetDispTpl').onclick=()=>{ $('#dispTpl').value=DISPATCH_TPL; db.dispatchTpl=''; save(); dirty=true; renderAll(); toast('배차 양식을 기본값으로 되돌렸습니다'); };
 $('#reportCards').onclick=e=>{ if(e.target.closest('[data-xlinput]')){ setTab('sched'); return; } { const b=e.target.closest('[data-xlsave]'); if(b){ szSave(curCase(),b.dataset.xlsave); return; } } { const z=e.target.closest('[data-sz-zoom]'); if(z){ z.classList.toggle('zoom'); return; } } if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
+const ADMIN_TITLES={forms:'업체 양식',common:'공통 양식',rules:'정산 기준',lists:'선택 목록',keep:'백업 · 공유'};
+function applyAdminView(){ const v=ADMIN_TITLES[db.adminView]?db.adminView:'forms';
+  document.querySelectorAll('#adminTabs [data-av-tab]').forEach(b=>{ const on=b.dataset.avTab===v; b.setAttribute('aria-selected',String(on)); b.tabIndex=on?0:-1; });
+  document.querySelectorAll('#p-admin [data-av]').forEach(el=>el.classList.toggle('ov-off',el.dataset.av!==v));
+  tbScroll($(`#adminTabs [data-av-tab="${v}"]`)); tabsFade($('#adminTabs')); }
+function adminGo(v){   /* 설정 안에서 항목만 바꿈 (고치던 칸은 그대로 · 화면을 다시 그리지 않음) */
+  if(!ADMIN_TITLES[v]) return; db.adminView=v; save(); applyAdminView(); $('#abTitle').textContent=ADMIN_TITLES[v];
+  document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go==='admin:'+v));
+  document.querySelectorAll('.sidenav [data-go]').forEach(b=>{ if(b.classList.contains('on')) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  const t=$('#adminTabs'), ab=($('#appbar')?.getBoundingClientRect().bottom)||0; if(t&&t.getBoundingClientRect().top<ab) window.scrollTo({top:Math.max(0,scrollY+t.getBoundingClientRect().top-ab-8)}); }
+$('#adminTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-av-tab]'); if(!b) return; adminGo(b.dataset.avTab); });
+$('#adminTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; const bs=[...e.currentTarget.querySelectorAll('[data-av-tab]')], i=bs.indexOf(document.activeElement); if(i<0) return;
+  const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정',data:'데이터 관리'};
 const TAB_TITLES={input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],sched:['장례 행사','보고서 입력'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
 /* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
@@ -4416,10 +4490,11 @@ let outT=null;
 function liveOut(){ if(!isSplit()||db.tab!=='input') return; clearTimeout(outT); outT=setTimeout(()=>{ if(isSplit()&&db.tab==='input') renderOut(); },220); }
 function setTab(t,sub){
   if(t==='duty'){ db.dutyView=sub||db.dutyView||'calendar'; }
+  if(t==='admin'){ if(sub&&ADMIN_TITLES[sub]) db.adminView=sub; if(!ADMIN_TITLES[db.adminView]) db.adminView='forms'; }
   db.tab=t; save();
-  const [s1,s2]=t==='duty'?['휴무 · 당직',DUTY_TITLES[db.dutyView]]:(TAB_TITLES[t]||['','']);
+  const [s1,s2]=t==='duty'?['휴무 · 당직',DUTY_TITLES[db.dutyView]]:t==='admin'?['업무 설정',ADMIN_TITLES[db.adminView]]:(TAB_TITLES[t]||['','']);
   $('#abSub').textContent=s1; $('#abTitle').textContent=s2;
-  document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on', b.dataset.go===(t==='duty'?'duty:'+db.dutyView:t)));
+  document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on', b.dataset.go===(t==='duty'?'duty:'+db.dutyView:t==='admin'?'admin:'+db.adminView:t)));
   ['input','out','sched','settle','envelopes','duty','admin'].forEach(k=>$('#p-'+k).hidden=t!==k);
   document.body.classList.toggle('duty-mode',t==='duty');
   if(t==='duty') openDuty(db.dutyView);
@@ -4428,7 +4503,7 @@ function setTab(t,sub){
   if(t==='input') renderInput();
   if(t==='out') renderOut();
   if(t==='sched') renderSched();
-  if(t==='admin'){ renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; renderSnaps(); }
+  if(t==='admin'){ applyAdminView(); renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; renderSnaps(); }
   checkSplit(); applySplit();
   updateWorkspace(t);
   window.scrollTo(0,0);
@@ -4447,7 +4522,7 @@ $('#sideNav').addEventListener('click',e=>{
   const h=e.target.closest('.acc-h');
   if(h){ const open=h.getAttribute('aria-expanded')!=='true'; h.setAttribute('aria-expanded',String(open)); db.acc=db.acc||{}; db.acc[h.closest('.acc').dataset.acc]=open; save(); return; }
   const g=e.target.closest('[data-go]'); if(!g) return;
-  const [t,sub]=g.dataset.go.split(':'); setTab(t,sub); closeNav();
+  const [t,sub]=g.dataset.go.split(':'); if(t==='admin'&&db.tab==='admin'&&sub) adminGo(sub); else setTab(t,sub); closeNav();
 });
 // 왼쪽 가장자리에서 밀면 메뉴 열기, 메뉴를 왼쪽으로 밀면 닫기
 (()=>{ let sx=null, sy=0;
