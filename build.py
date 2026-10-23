@@ -50,8 +50,7 @@ html = f"""<!doctype html>
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";
-try {{ if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); }} catch (e) {{}}</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
 {lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': '관리자 서식', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': '장례일정만 쓰실 분은 <a href="../jangrye/">장례일정 열기</a>'})}

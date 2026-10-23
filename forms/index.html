@@ -13,8 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.23-4";
-try { if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') location.replace('funeral.html'); } catch (e) {}</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.23-5";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>관리자 서식</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -334,6 +333,108 @@ p{text-wrap:pretty}
 @media (prefers-reduced-motion:reduce){body .btn:active,body .type-card:active,body .seg button:active,body .icon-btn:active{transform:none}}
 
 
+/* ===== 홈 · 파트 게시판 (2026.10.23-5) — 디자인 A: 먹색 가는 선, 가장 중요한 숫자(마감 D-N)만 두 줄 테두리 ===== */
+.tabbar-in,.tabbar-in.six{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+.tabbar button svg{width:22px;height:22px}
+.ftabs{display:flex;border-bottom:1px solid var(--line);margin:-2px 0 16px;overflow-x:auto;scrollbar-width:none}
+.ftabs::-webkit-scrollbar{display:none}
+.ftabs button{flex:1 0 auto;min-height:46px;padding:0 12px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;color:var(--muted);font-size:15px;font-weight:500;white-space:nowrap}
+.ftabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+@media (hover:hover){.ftabs button:hover{color:var(--ink)}}
+.hm-top{display:grid;gap:2px}
+.hm-who{margin:0;font-size:14px;color:var(--muted)}
+.hm-date{margin:0;font-family:var(--font-display);font-size:24px;line-height:1.3}
+.hm-grid,.hm-col{display:grid;gap:16px;min-width:0;align-content:start}
+.hm-h{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}
+.hm-h h2{margin:0}
+.hm-close{justify-items:center;text-align:center}
+.hm-close .hm-h{justify-self:stretch;text-align:left}
+.hm-dd{border:3px double var(--ink);border-radius:2px;padding:8px 28px 6px;min-width:156px}
+.hm-dd b{display:block;font-family:var(--font-display);font-size:44px;line-height:1.2;letter-spacing:.02em}
+.hm-dd-t{font-size:15px;line-height:1.5}
+.hm-led{margin:0;display:grid}
+.hm-led>div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.hm-led>div:first-child{border-top:1px solid var(--ink)}
+.hm-led dt{color:var(--muted);font-size:14px}
+.hm-led dd{margin:0;font-size:18px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.hm-led>div.sum{border-bottom:3px double var(--ink)}
+.hm-led>div.sum dt{color:var(--ink);font-weight:700}
+.hm-go{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hm-nlist{display:grid}
+.hm-n{display:grid;gap:2px;text-align:left;width:100%;min-height:48px;background:none;border:0;border-top:1px solid var(--line);padding:10px 2px;color:var(--ink)}
+.hm-n:first-child{border-top:0;padding-top:2px}
+.hm-n b{font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm-n span{font-size:13px;color:var(--muted)}
+.hm-msg{margin:0;font-size:14px;color:var(--muted);line-height:1.6}
+.hm-team-sum{font-size:15px;line-height:1.6;margin:0}
+.ac-name{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.ac-name[hidden]{display:none}
+.bd-head{display:grid;gap:10px}
+.bd-title{display:grid;gap:2px}
+.bd-title b{font-family:var(--font-display);font-size:20px;line-height:1.35}
+.bd-title span{font-size:13px;color:var(--muted)}
+.bd-list{display:grid;border-top:1px solid var(--ink)}
+.bd-row{display:grid;gap:3px;text-align:left;width:100%;min-width:0;background:var(--surface);border:0;border-bottom:1px solid var(--line);padding:13px 6px;color:var(--ink)}
+.bd-row.notice{background:var(--surface-2)}
+.bd-t{display:flex;align-items:baseline;gap:7px;min-width:0;font-weight:700;font-size:16px}
+.bd-t span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bd-tag{flex:none;font-size:12px;font-weight:700;border:1px solid var(--ink);border-radius:4px;padding:0 6px;line-height:1.55}
+.bd-p{font-size:14px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bd-m{font-size:12.5px;color:var(--muted)}
+.bd-empty{margin:0;padding:4px 2px;color:var(--muted);font-size:14px;line-height:1.6}
+.bd-warn{margin:0;font-size:14px;color:var(--warn);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.bd-people{margin:0}
+.bd-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.bd-ppl{display:grid;border-top:1px solid var(--line)}
+.bd-pp{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:4px 0;border-bottom:1px solid var(--line)}
+.bd-pp div{min-width:0;display:grid}
+.bd-pp b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bd-pp small{font-size:12.5px;color:var(--muted)}
+.bd-pp .btn{flex:none}
+.tm-wrap{overflow-x:auto}
+.tm-tbl{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tm-tbl th{font-size:12.5px;color:var(--muted);font-weight:500;text-align:right;padding:6px 4px;border-bottom:1px solid var(--ink);white-space:nowrap}
+.tm-tbl td{text-align:right;padding:0 4px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tm-tbl th:first-child,.tm-tbl td:first-child{text-align:left;padding-left:0}
+.tm-tbl tfoot td{font-weight:700;padding-top:10px;padding-bottom:8px;border-bottom:3px double var(--ink)}
+.tm-name{display:flex;align-items:center;gap:4px;min-height:46px;width:100%;max-width:9.5em;padding:0;border:0;background:none;color:var(--ink);font-weight:600;text-align:left}
+.tm-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-name svg{flex:none;width:14px;height:14px;color:var(--muted)}
+.ps-h{display:grid;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.ps-h h2{margin:0;font-family:var(--font-display);font-size:21px;line-height:1.45;overflow-wrap:anywhere}
+.ps-meta{font-size:13px;color:var(--muted)}
+.ps-body{margin:0;white-space:pre-wrap;font-size:16px;line-height:1.75;overflow-wrap:anywhere}
+.ps-ch{margin:8px 0 0;font-size:14px;font-weight:700}
+.ps-cmts{display:grid;border-top:1px solid var(--line)}
+.ps-c{display:grid;gap:2px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.ps-c-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--muted);min-height:32px}
+.ps-c p{margin:0;white-space:pre-wrap;font-size:15px;overflow-wrap:anywhere}
+.ps-c .btn{min-height:36px}
+#psCmtBar .inner{align-items:flex-end}
+#psCmtBar textarea{flex:1;min-height:48px;max-height:140px;overflow-y:auto}
+#psCmtBar .btn{flex:none}
+.ms-nav{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px}
+.ms-nav b{display:block;text-align:center;font-family:var(--font-display);font-size:18px}
+.ms-nav span{display:block;text-align:center;font-size:13px;color:var(--muted)}
+.ms-ro{margin:0;font-size:13px;color:var(--muted)}
+.ms-list{display:grid;gap:10px}
+.ms-item{display:grid;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;min-width:0}
+.ms-item>b{font-size:15.5px;line-height:1.45;overflow-wrap:anywhere}
+.ms-item .l{font-size:13.5px;color:var(--muted);line-height:1.55}
+.ms-item .amt{font-size:14px;font-variant-numeric:tabular-nums}
+.ms-item details{margin-top:4px}
+.ms-item summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink);list-style:none}
+.ms-item summary::-webkit-details-marker{display:none}
+.ms-item summary::after{content:"";width:7px;height:7px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:translateY(-2px) rotate(45deg)}
+.ms-item details[open] summary::after{transform:translateY(2px) rotate(-135deg)}
+.ms-item pre{margin:6px 0 0}
+@media (min-width:1000px){
+  #tab-home,#tab-board,.ftabs{width:100%;margin-inline:auto}
+  #tab-home{max-width:1000px}
+  #tab-board,.ftabs{max-width:760px}
+  .hm-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+}
+@media (max-width:360px){.hm-dd b{font-size:38px}.hm-go{grid-template-columns:1fr}}
 </style>
 <!-- 앱 잠금: 회사가 정한 비밀번호(해시만 앱에 들어 있음)를 넣어야 앱이 열립니다. 해시가 비어 있으면 잠그지 않습니다. -->
 <style id="lock-ui">
@@ -426,10 +527,12 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
 })();
 </script>
 
-<!-- 관리자 서식 · 파트장 전용 (2026.10.23): 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')으로 로그인해야 열림.
-     이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도 바로 열리고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
+<!-- 관리자 서식 · 로그인 (2026.10.23-5): 내 아이디로 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
+     직원 계정이면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. 이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도
+     파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
+html.dw-member [data-admin]{display:none!important}
 #dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:24px;background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
 .gt-card{width:100%;max-width:360px;display:grid;gap:14px;text-align:center}
@@ -448,15 +551,15 @@ html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 </style>
 <script>
 (function () {
+  var root = document.documentElement;
   try {
     var s = JSON.parse(localStorage.getItem('dw-sb-auth') || 'null');
-    var ok = false;
     if (s && s.user && s.user.id) {
       var am = s.user.app_metadata || {};
-      ok = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
-    }
-    if (!ok) document.documentElement.classList.add('dw-gated');
-  } catch (e) { document.documentElement.classList.add('dw-gated'); }
+      var lead = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
+      root.classList.add(lead ? 'dw-leader' : 'dw-member');
+    } else root.classList.add('dw-gated');
+  } catch (e) { root.classList.add('dw-gated'); }
 })();
 </script>
 
@@ -499,6 +602,63 @@ html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
     <b>저장에 실패했어요</b>
     기기 저장공간이 부족할 수 있어요. 설정에서 백업 파일을 먼저 받아 두세요.
   </div>
+
+  <!-- ===== 서식 고르기 (주간보고 · 회의록 · 후기보고 · 탁송) — 파트장만 ===== -->
+  <nav class="ftabs" id="formTabs" aria-label="서식 고르기" data-admin hidden>
+    <button type="button" data-ftab="weekly">주간보고</button>
+    <button type="button" data-ftab="minutes">회의록</button>
+    <button type="button" data-ftab="review">후기보고</button>
+    <button type="button" data-ftab="ship">탁송 · 출고</button>
+  </nav>
+
+  <!-- ===== 홈 (2026.10.23-5) ===== -->
+  <section class="tab" id="tab-home" hidden>
+    <div class="hm-top">
+      <p class="hm-who" id="hmWho"></p>
+      <h1 class="hm-date" id="hmDate"></h1>
+    </div>
+    <div class="hm-grid">
+      <div class="hm-col">
+        <section class="card hm-close" aria-labelledby="hmCloseH">
+          <div class="hm-h"><h2 id="hmCloseH">이번 달 마감</h2></div>
+          <div class="hm-dd"><b id="hmDD">D-0</b></div>
+          <p class="hm-dd-t" id="hmDDText"></p>
+        </section>
+        <section class="card hm-month" aria-labelledby="hmMonthH">
+          <div class="hm-h"><h2 id="hmMonthH">이번 달 행사 · 봉투</h2><span class="small-t muted">발인일 기준</span></div>
+          <dl class="hm-led">
+            <div><dt>행사</dt><dd id="hmCases">0건</dd></div>
+            <div><dt>본부장 봉투</dt><dd id="hmPart">0원</dd></div>
+            <div><dt>실장 봉투</dt><dd id="hmMgr">0원</dd></div>
+            <div class="sum"><dt>봉투 합계</dt><dd id="hmAll">0원</dd></div>
+          </dl>
+          <p class="hm-msg" id="hmEnvNote" hidden></p>
+          <div class="hm-go"><button class="btn" type="button" data-go-fu="input">행사 보기</button><button class="btn" type="button" data-go-fu="envelopes">봉투정리 보기</button></div>
+        </section>
+      </div>
+      <div class="hm-col">
+        <section class="card" aria-labelledby="hmNoteH">
+          <div class="hm-h"><h2 id="hmNoteH">파트 공지</h2><button class="btn quiet small" type="button" data-tab-go="board">게시판</button></div>
+          <div class="hm-nlist" id="hmNotices"></div>
+        </section>
+        <section class="card" id="hmTeam" aria-labelledby="hmTeamH" data-admin hidden>
+          <div class="hm-h"><h2 id="hmTeamH">우리 파트 이번 달</h2><span class="small-t muted">보기만</span></div>
+          <div id="hmTeamBody"></div>
+          <button class="btn" type="button" id="hmTeamGo">파트원별로 보기</button>
+        </section>
+        <div id="hmAcctSlot"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 파트 게시판 (2026.10.23-5) ===== -->
+  <section class="tab" id="tab-board" hidden>
+    <div class="tab-head">
+      <h1>파트 게시판</h1>
+      <p>같은 파트 사람끼리만 보여요. 파트장님 공지와 파트원 글 · 댓글을 여기서 나눠요.</p>
+    </div>
+    <div class="tab" id="bdBody"></div>
+  </section>
 
   <!-- ===== 회의록 ===== -->
   <section class="tab" id="tab-minutes" hidden>
@@ -689,32 +849,68 @@ html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 
 <nav class="tabbar" aria-label="메뉴">
   <div class="tabbar-in">
+    <button type="button" data-tab="home" aria-current="page">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11.2 12 4.5l8.5 6.7"/><path d="M6 9.6V20h12V9.6"/><path d="M10 20v-5.5h4V20"/></svg>
+      홈
+    </button>
     <button type="button" data-tab="funeral" aria-current="false" id="tabFuneral" hidden>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2"/></svg>
       장례업무
     </button>
-    <button type="button" data-tab="weekly" aria-current="page">
+    <button type="button" data-tab="forms" aria-current="false" data-admin>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>
-      주간보고
+      서식
     </button>
-    <button type="button" data-tab="minutes" aria-current="false">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v4H9zM9 11h6M9 15h6M9 18h4"/></svg>
-      회의록
+    <button type="button" data-tab="board" aria-current="false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H11l-4.5 3.5V16H4z"/><path d="M8 9h8M8 12h5"/></svg>
+      게시판
     </button>
-    <button type="button" data-tab="review" aria-current="false">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v10.5H10l-4.5 3.5V16H4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>
-      후기보고
-    </button>
-    <button type="button" data-tab="ship" aria-current="false">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 10h4l3 3.2V16h-7z"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
-      탁송·출고
-    </button>
-    <button type="button" data-tab="settings" aria-current="false">
+    <button type="button" data-tab="settings" aria-current="false" data-admin>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 17h3M11 17h9"/><circle cx="15.5" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/></svg>
       설정
     </button>
   </div>
 </nav>
+
+<!-- ===== 게시판 글 보기 ===== -->
+<div class="screen" id="postScreen" hidden>
+  <div class="screen-bar">
+    <button class="back" type="button" id="psBack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>목록</button>
+    <div class="screen-title">파트 게시판</div>
+    <button class="btn small quiet" type="button" id="psEdit" hidden>고치기</button>
+    <button class="btn small danger" type="button" id="psDel" hidden>지우기</button>
+  </div>
+  <div class="screen-body"><div class="inner" id="psBody"></div></div>
+  <div class="screen-actions" id="psCmtBar" hidden>
+    <div class="inner"><textarea id="psCmt" rows="1" maxlength="1000" placeholder="댓글 쓰기" aria-label="댓글"></textarea><button class="btn primary" type="button" id="psCmtGo">등록</button></div>
+  </div>
+</div>
+
+<!-- ===== 게시판 글쓰기 ===== -->
+<div class="screen" id="postEditor" hidden>
+  <div class="screen-bar">
+    <button class="back" type="button" id="peBack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>취소</button>
+    <div class="screen-title" id="peBar">글쓰기</div>
+  </div>
+  <div class="screen-body">
+    <div class="inner">
+      <label class="field"><span>제목</span><input id="peTitle" type="text" maxlength="100" placeholder="예: 11월 마감 안내"></label>
+      <label class="field"><span>내용</span><textarea id="peBody" rows="8" maxlength="5000" placeholder="파트 사람들에게 알릴 내용을 적어 주세요."></textarea></label>
+      <label class="switch boxed" id="peNoticeRow" hidden><span>공지로 올리기<br><small class="muted">맨 위에 고정되고 홈 화면 「파트 공지」에도 보여요</small></span><input type="checkbox" id="peNotice"></label>
+    </div>
+  </div>
+  <div class="screen-actions"><div class="inner"><button class="btn primary" type="button" id="peSave">올리기</button></div></div>
+</div>
+
+<!-- ===== 파트원 장례일정 · 봉투 보기 (파트장, 보기만) ===== -->
+<div class="screen" id="memberScreen" hidden>
+  <div class="screen-bar">
+    <button class="back" type="button" id="msBack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>파트원</button>
+    <div class="screen-title" id="msTitle">파트원</div>
+    <span class="save-state">보기만</span>
+  </div>
+  <div class="screen-body"><div class="inner" id="msBody"></div></div>
+</div>
 
 <!-- ===== 회의록 작성 화면 ===== -->
 <div class="screen" id="minutesEditor" hidden>
@@ -1093,12 +1289,20 @@ function autosize(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHe
 function openScreen(id) { const el = $('#' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
 function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
 function showTab(t) {
+  if (t === 'forms') t = lastFormTab();
+  if (!ALL_TABS.includes(t)) t = 'home';
+  if (isMember() && ADMIN_TABS.includes(t)) t = 'home';   /* 직원 계정: 서식 · 설정은 안 열림 */
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
   S.tab = t; document.body.dataset.view = t;
-  ['weekly', 'minutes', 'review', 'ship', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
-  $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
-  try { localStorage.setItem('mf.tab', t); } catch (e) { /* ignore */ }
+  ALL_TABS.forEach((k) => { $('#tab-' + k).hidden = k !== t; });
+  const isForm = FORM_TABS.includes(t);
+  $('#formTabs').hidden = !isForm;
+  $$('#formTabs [data-ftab]').forEach((b) => b.setAttribute('aria-current', b.dataset.ftab === t ? 'page' : 'false'));
+  $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === (isForm ? 'forms' : t) ? 'page' : 'false'));
+  try { localStorage.setItem('mf.tab', t); if (isForm) localStorage.setItem('mf.formTab', t); sessionStorage.setItem('mf.tabS', t); } catch (e) { /* ignore */ }
   window.scrollTo(0, 0);
+  if (t === 'home') renderHome();
+  if (t === 'board') boardOpen();
   if (t === 'settings') renderSettings();
   if (t === 'review') renderReview();
 }
@@ -2388,6 +2592,7 @@ function bind() {
   $('#bkLater').addEventListener('click', () => { lsSet(BK_SNOOZE, String(Date.now() + 7 * DAY)); $('#bkBanner').hidden = true; });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBackup(); });
   $$('.tabbar button').forEach((b) => b.addEventListener('click', () => (b.dataset.tab === 'funeral' ? goFuneral() : showTab(b.dataset.tab))));
+  bindHomeBoard();
   // 회의록
   $('#newMinutes').addEventListener('click', () => openMinutes());
   $('#minutesList').addEventListener('click', (e) => { const card = e.target.closest('[data-id]'); if (card) openMinutes(card.dataset.id); });
@@ -2721,11 +2926,11 @@ function bindCL() {
 /* ================= 장례업무 (funeral.html, same installed app) ================= */
 const FUNERAL_KEYS = /^(funeral-|hyumu-)/;
 function setLastApp(v) { try { localStorage.setItem('mf.lastApp', v); } catch (e) { /* ignore */ } }
-async function goFuneral() {
+async function goFuneral(tab) {
   if (S.sd) { showTab('settings'); toast('설정을 저장하거나 되돌린 뒤에 이동해 주세요.'); return; }
   await flushWeekly(); await saveReviewNow(); if (!await flushMinutes()) return;
   setLastApp('funeral');
-  location.replace('funeral.html');
+  location.replace('funeral.html' + (typeof tab === 'string' && tab ? '#' + tab : ''));   /* 홈 「봉투정리 보기」 → funeral.html#envelopes */
 }
 function funeralStorage() {
   const out = {};
@@ -2783,7 +2988,7 @@ async function checkVersion() {
 }
 function setupPwa() {
   if (!window.__PWA__) return;
-  $('#tabFuneral').hidden = false; $('.tabbar-in').classList.add('six');
+  $('#tabFuneral').hidden = false;
   setLastApp('forms');
   $('#appVersion').textContent = `앱 버전 ${window.__APP_VERSION__ || '-'}`;
   LABELS.png = '이미지 저장·보내기'; LABELS.pdf = 'PDF 저장·보내기';
@@ -2826,6 +3031,446 @@ function bindPwa() {
   });
 }
 
+/* ================= 홈 · 파트 게시판 · 파트원 보기 (2026.10.23-5) =================
+   홈: 이번 달(발인일 기준) 행사 수 · 봉투 합계 — 장례업무 기록(funeral-band-v2)을 읽기만 함 · 월말 마감 D-N · 파트 공지.
+   게시판 · 파트: 수파베이스 서버 함수(tools/supabase-part.sql)로만 읽고 씀 → window.dwAcct.rpc (leader-gate.html).
+   파트장은 파트원의 장례일정 · 봉투를 보기만 함(dw_member_records). 직원 계정(html.dw-member)은 서식 · 설정이 안 보임. */
+const FORM_TABS = ['weekly', 'minutes', 'review', 'ship'];
+const ADMIN_TABS = FORM_TABS.concat(['settings']);
+const ALL_TABS = ['home'].concat(FORM_TABS, ['board', 'settings']);
+const isMember = () => document.documentElement.classList.contains('dw-member');
+function lastFormTab() { let t = ''; try { t = localStorage.getItem('mf.formTab') || ''; } catch (e) { /* ignore */ } return FORM_TABS.includes(t) ? t : 'weekly'; }
+function whenAcct(fn) { if (window.dwAcct) fn(); else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { if (window.dwAcct) fn(); }, { once: true }); }
+const SVG_R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
+const SVG_L = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+
+/* ---- 장례업무와 같은 계산 (funeral.html 의 caseMonth · envelopeRecordMonth · envelopeValues · envelopeText · caseLabel 을 그대로 옮김, 읽기만) ---- */
+const FU_KEY = 'funeral-band-v2';
+const seoulYMD = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+const MONTH_OK = (m) => /^\d{4}-(0[1-9]|1[0-2])$/.test(String(m || ''));
+function fuDB() { try { const d = JSON.parse(localStorage.getItem(FU_KEY) || 'null'); return d && typeof d === 'object' ? d : null; } catch (e) { return null; } }
+function fuCaseMonth(c) {
+  const f = c.f || {}, d = String(f.depart || f.cremDate || f.hagwanDate || f.death || f.recv || '').slice(0, 7);
+  if (/^\d{4}-\d{2}$/.test(d)) return d;
+  const t = new Date(c.created || c.updated || Date.now()); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}`;
+}
+function fuEnvMeta(r, k) { return String(r.edits && r.edits[k] !== undefined ? r.edits[k] : (r.auto || {})[k] || ''); }
+function fuEnvMonth(r) { const m = fuEnvMeta(r, 'month'); return MONTH_OK(m) ? m : seoulYMD().slice(0, 7); }
+function fuEnvMoney(v) { if (v === '' || v == null) return 0; const n = Number(v); return Number.isFinite(n) && n >= 0 ? Math.round(n * 10000) : 0; }
+function fuEnvVals(r) {
+  const a = r.amounts || {}, auto = r.auto || {};
+  const pick = (k, ak) => (a[k] !== undefined && a[k] !== '' ? fuEnvMoney(a[k]) : Number(auto[ak]) || 0);
+  const v = { partHall: pick('partHall', 'hall'), partBurial: pick('partBurial', 'burialHq'), partOther: pick('partOther', 'otherHq'),
+    managerAltar: pick('managerAltar', 'altar'), managerBurial: pick('managerBurial', 'burialMg'), managerUrn: pick('managerUrn', 'urn'), managerOther: pick('managerOther', 'otherMg') };
+  v.part = v.partHall + v.partBurial + v.partOther; v.manager = v.managerAltar + v.managerBurial + v.managerUrn + v.managerOther;
+  return v;
+}
+function fuWon(w) { if (!w) return ''; const neg = w < 0; w = Math.abs(w); return (neg ? '-' : '') + (w % 10000 === 0 ? `${(w / 10000).toLocaleString('ko-KR')}만원` : `${w.toLocaleString('ko-KR')}원`); }
+const fuWon0 = (w) => fuWon(w) || '0원';
+function fuEnvTitle(r, role) {
+  const ev = fuEnvMeta(r, 'eventNo').trim().replace(/번$/, ''), rank = fuEnvMeta(r, 'rank').trim();
+  return ['행사번호 ' + (ev ? ev + '번' : '미입력'), fuEnvMeta(r, 'place') || '장례식장·호실 미입력', fuEnvMeta(r, 'name'), rank + (role === 'manager' ? '(실장)' : '')].filter(Boolean).join(' ');
+}
+function fuEnvText(r, role) {
+  const v = fuEnvVals(r), notes = r.notes || {}, a = r.amounts || {}, auto = r.auto || {}, show = (w) => (w ? fuWon(w) : '');
+  const otherText = (nk, ak, autoNote, w) => { const note = String(notes[nk] || '').trim(), amtAuto = a[ak] === undefined || a[ak] === ''; return !note && amtAuto && autoNote ? autoNote : [note, show(w)].filter(Boolean).join(' '); };
+  let rows;
+  if (role === 'part') rows = ['식장 : ' + show(v.partHall), '장지 : ' + show(v.partBurial), '기타 : ' + otherText('partOtherNote', 'partOther', auto.otherHqNote, v.partOther), '합계 : ' + fuWon0(v.part)];
+  else {
+    const other = [v.managerUrn ? '유골함 ' + show(v.managerUrn) : '', otherText('managerOtherNote', 'managerOther', auto.otherMgNote, v.managerOther)].filter(Boolean).join(' · ');
+    rows = ['제단 : ' + show(v.managerAltar), '장지 : ' + show(v.managerBurial), '기타 : ' + other, '합계 : ' + fuWon0(v.manager)];
+  }
+  return [fuEnvTitle(r, role), ...rows].join('\n\n');
+}
+function fuCoName(c, set) {
+  const cos = (set && Array.isArray(set.companies)) ? set.companies : [], co = cos.find((x) => x && x.id === c.companyId) || cos.find((x) => x && x.id === 'etc');
+  const own = String((c.f || {}).coName || '').trim();
+  return (!co || co.id === 'etc') && own ? own : (co ? co.name : '');
+}
+function fuCaseLabel(c, set) {
+  const f = c.f || {}, no = String(f.eventNo || '').trim().replace(/번$/, ''), nm = String(f.name || '').trim();
+  const coNm = c.quick && !c.coPicked ? '정산만' : fuCoName(c, set);
+  const custCo = String(coNm || '').replace(/\s/g, '') === '현진시닝' ? String(f.company || '').trim() : '';
+  return [no && `${no}번`, String(f.place || '').trim(), coNm, custCo, nm && `故 ${nm}`].filter(Boolean).join(' ') || '이름 없는 행사';
+}
+const CASE_COLL = new Intl.Collator('ko', { numeric: true });
+function fuByNo(list) {
+  const key = (c) => String((c.f || {}).eventNo || '').trim().replace(/번$/, '');
+  return list.map((c, i) => [c, i]).sort(([a, i], [b, j]) => { const x = key(a), y = key(b); if (!x || !y) return (x ? 0 : 1) - (y ? 0 : 1) || i - j; return CASE_COLL.compare(x, y) || i - j; }).map(([c]) => c);
+}
+function fuDT(v) { const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(String(v || '')); return m ? `${+m[2]}월 ${m[3]}일${m[4] ? ` ${m[4]}:${m[5]}` : ''}` : ''; }
+function fuMonthSum(cases, envs, month) {
+  const cs = (cases || []).filter((c) => c && typeof c === 'object' && fuCaseMonth(c) === month);
+  const es = (envs || []).filter((r) => r && typeof r === 'object' && fuEnvMonth(r) === month);
+  let part = 0, mgr = 0; es.forEach((r) => { const v = fuEnvVals(r); part += v.part; mgr += v.manager; });
+  return { cases: cs, envs: es, part, mgr, all: part + mgr };
+}
+const monthName = (m) => { const [y, mo] = String(m).split('-'); return `${y}년 ${+mo}월`; };
+const shiftMonth = (m, d) => { const [y, mo] = m.split('-').map(Number), t = new Date(Date.UTC(y, mo - 1 + d, 1)); return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}`; };
+
+/* ---- 홈 ---- */
+let homeDay = '';
+function renderHome() {
+  const ymd = seoulYMD(), [y, m, d] = ymd.split('-').map(Number), month = ymd.slice(0, 7);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate(), left = last - d, wd = (dd) => '일월화수목금토'[new Date(Date.UTC(y, m - 1, dd)).getUTCDay()];
+  homeDay = ymd;
+  const db = fuDB(), meF = (db && db.me) || {}, u = window.dwAcct && window.dwAcct.user();
+  const nm = String(meF.name || (u && u.user_metadata && u.user_metadata.name) || '').trim();
+  $('#hmWho').textContent = nm ? `${nm} ${String(meF.rank || '').trim() || (isMember() ? '' : '파트장')}님`.replace(/\s+님$/, '님') : (u ? `${window.dwAcct.id()}님` : '');
+  $('#hmDate').textContent = `${m}월 ${d}일 ${wd(d)}요일`;
+  $('#hmCloseH').textContent = `${m}월 마감`;
+  $('#hmDD').textContent = left === 0 ? 'D-Day' : `D-${left}`;
+  $('#hmDDText').textContent = left === 0 ? `오늘(${m}월 ${last}일 ${wd(last)}요일)이 마감일입니다` : `마감일 ${m}월 ${last}일 ${wd(last)}요일 · ${left}일 남았습니다`;
+  const s = fuMonthSum(db && db.cases, db && db.envelopes, month);
+  $('#hmMonthH').textContent = `${m}월 행사 · 봉투`;
+  $('#hmCases').textContent = `${s.cases.length}건`;
+  $('#hmPart').textContent = fuWon0(s.part);
+  $('#hmMgr').textContent = fuWon0(s.mgr);
+  $('#hmAll').textContent = fuWon0(s.all);
+  const note = $('#hmEnvNote');
+  note.hidden = !!(db && ((db.cases || []).length || (db.envelopes || []).length));
+  note.textContent = '이 기기에 아직 장례 기록이 없어요. 장례업무를 한 번 열면 내 계정에 저장된 기록을 받아오고, 행사를 넣으면 여기에 모여요.';
+  homeAcctSlot();
+  whenAcct(() => { homeNotices(false); homeTeam(false); });
+}
+function homeAcctSlot() {
+  const card = $('#dwAcctCard'); if (!card) return;
+  const want = isMember() ? $('#hmAcctSlot') : $('#tab-settings .tab-head');
+  if (isMember()) { if (card.parentNode !== want) want.appendChild(card); }
+  else if (card.previousElementSibling !== want) want.after(card);
+}
+function pbWhyText(why, leader) {
+  return why === 'offline' ? '인터넷에 연결하면 보여요.'
+    : why === 'noserver' ? (leader ? '게시판이 서버에 아직 준비되지 않았어요. 수파베이스 SQL Editor에서 「파트 · 게시판 준비」 글(tools/supabase-part.sql)을 한 번 실행해 주세요.' : '게시판이 아직 준비되지 않았어요. 파트장님께 말씀해 주세요.')
+    : why === 'login' ? '로그인한 뒤에 보여요.'
+    : '지금은 불러오지 못했어요. 잠시 뒤에 다시 해 주세요.';
+}
+let hmNote = null, hmNoteAt = 0;
+async function homeNotices(force) {
+  const el = $('#hmNotices'); if (!el) return;
+  if (!force && hmNote && Date.now() - hmNoteAt < 60000) { paintNotices(); return; }
+  if (!hmNote) el.innerHTML = '<p class="hm-msg">불러오는 중…</p>';
+  try {
+    const [me, n] = await Promise.all([pbLoadMe(force), window.dwAcct.rpc('dw_notices', { p_limit: 3 })]);
+    hmNote = { me, posts: (n && n.ok && n.posts) || [] };
+  } catch (e) { hmNote = { why: (e && e.why) || 'net' }; }
+  hmNoteAt = Date.now(); paintNotices();
+}
+function paintNotices() {
+  const el = $('#hmNotices'); if (!el || !hmNote) return;
+  if (hmNote.why) { el.innerHTML = `<p class="hm-msg">${esc(pbWhyText(hmNote.why, !isMember()))}</p>`; return; }
+  const parts = (hmNote.me && hmNote.me.parts) || [];
+  if (!parts.length) {
+    el.innerHTML = `<p class="hm-msg">${isMember() ? `파트에 들어가면 파트장님 공지가 여기에 보여요. 파트장님께 내 아이디 <b>${esc(hmNote.me.login_id || '')}</b> 를 알려 주세요.` : '게시판에서 파트를 만들고 파트원 아이디를 넣으면 공지를 올릴 수 있어요.'}</p>`;
+    return;
+  }
+  if (!hmNote.posts.length) { el.innerHTML = '<p class="hm-msg">아직 공지가 없어요.</p>'; return; }
+  const many = parts.length > 1;
+  el.innerHTML = hmNote.posts.map((x) => `<button type="button" class="hm-n" data-post="${esc(x.id)}"><b>${esc(x.title || firstLine(x.body) || '(제목 없음)')}</b><span>${esc([many ? x.part_name : '', x.author, fmtWhen(x.created_at)].filter(Boolean).join(' · '))}</span></button>`).join('');
+}
+async function homeTeam(force) {
+  const card = $('#hmTeam'), body = $('#hmTeamBody'); if (!card) return;
+  if (isMember()) { card.hidden = true; return; }
+  let p = null;
+  try { await pbLoadMe(false); p = pbCur(); } catch (e) { card.hidden = true; return; }
+  if (!p || !p.mine) { card.hidden = true; return; }
+  card.hidden = false;
+  const month = seoulYMD().slice(0, 7);
+  $('#hmTeamH').textContent = `${p.name} · ${+month.slice(5)}월`;
+  const cached = teamCached(p.id, month);
+  if (!cached) body.innerHTML = '<p class="hm-msg">불러오는 중…</p>';
+  else paintHomeTeam(cached);
+  try { const t = await teamLoad(p.id, month, force); paintHomeTeam(t); }
+  catch (e) { if (!cached) body.innerHTML = `<p class="hm-msg">${esc(pbWhyText((e && e.why) || 'net', true))}</p>`; }
+}
+function paintHomeTeam(t) {
+  const body = $('#hmTeamBody'); if (!body) return;
+  const p = pbCur(), cnt = p ? Number(p.members) || 0 : 0;
+  const rows = teamRows(t), tot = rows.reduce((a, r) => ({ n: a.n + r.n, part: a.part + r.part, mgr: a.mgr + r.mgr }), { n: 0, part: 0, mgr: 0 });
+  body.innerHTML = cnt
+    ? `<p class="hm-team-sum">파트원 ${cnt}명 · 행사 <b>${tot.n}건</b><br>본부장 봉투 <b>${esc(fuWon0(tot.part))}</b> · 실장 봉투 <b>${esc(fuWon0(tot.mgr))}</b></p>`
+    : '<p class="hm-msg">아직 파트원이 없어요. 게시판 → 파트원 관리에서 아이디를 넣어 주세요.</p>';
+}
+
+/* ---- 파트 · 게시판 ---- */
+const PB = { me: null, meAt: 0, part: '', view: 'posts', people: null, posts: null, err: '', busy: false, at: 0, team: {}, teamBusy: {} };
+async function pbLoadMe(force) {
+  if (!window.dwAcct) throw { why: 'login' };
+  if (!force && PB.me && Date.now() - PB.meAt < 60000) return PB.me;
+  const d = await window.dwAcct.rpc('dw_me');
+  if (!d || !d.ok) throw { why: (d && d.why) || 'net' };
+  PB.me = d; PB.meAt = Date.now(); pbPickPart(); return d;
+}
+function pbPickPart() {
+  const ps = (PB.me && PB.me.parts) || []; let sel = PB.part;
+  if (!sel) { try { sel = localStorage.getItem('dw-part-sel') || ''; } catch (e) { /* ignore */ } }
+  if (!ps.some((p) => p.id === sel)) sel = (ps.find((p) => p.mine) || ps[0] || {}).id || '';
+  PB.part = sel;
+}
+const pbCur = () => ((PB.me && PB.me.parts) || []).find((p) => p.id === PB.part) || null;
+const pbMine = () => { const p = pbCur(); return !!(p && p.mine && !isMember()); };
+const pName = (x) => String((x && (x.name || x.login_id)) || '');
+function firstLine(s) { return String(s || '').split('\n').map((x) => x.trim()).find(Boolean) || ''; }
+function fmtWhen(iso) {
+  const t = new Date(iso); if (isNaN(t)) return '';
+  const now = new Date(), same = t.toDateString() === now.toDateString();
+  if (same) return `오늘 ${pad(t.getHours())}:${pad(t.getMinutes())}`;
+  return t.getFullYear() === now.getFullYear() ? `${t.getMonth() + 1}월 ${pad(t.getDate())}일 ${pad(t.getHours())}:${pad(t.getMinutes())}` : `${t.getFullYear()}.${pad(t.getMonth() + 1)}.${pad(t.getDate())}`;
+}
+async function boardLoad(force) {
+  if (PB.busy) return; PB.busy = true; paintBoard();
+  try {
+    await pbLoadMe(force);
+    const p = pbCur();
+    if (p) {
+      const [pp, ps] = await Promise.all([window.dwAcct.rpc('dw_part_people', { p_part: p.id }), window.dwAcct.rpc('dw_posts_list', { p_part: p.id, p_limit: 100 })]);
+      if (((pp && pp.why === 'notmember') || (ps && ps.why === 'notmember')) && !PB.retried) { PB.retried = true; PB.busy = false; PB.part = ''; PB.meAt = 0; return boardLoad(true); }   /* 파트에서 빠졌거나 파트가 없어짐 → 다시 */
+      PB.people = (pp && pp.ok && pp.people) || []; PB.posts = (ps && ps.ok && ps.posts) || [];
+    } else { PB.people = []; PB.posts = []; }
+    PB.err = ''; PB.at = Date.now(); PB.retried = false;
+  } catch (e) { PB.err = (e && e.why) || 'net'; }
+  PB.busy = false; paintBoard();
+  if (!PB.err && PB.view === 'people' && pbMine()) teamFor(PB.part, seoulYMD().slice(0, 7), force);
+}
+function boardOpen() { if (!PB.me || Date.now() - PB.at > 30000) whenAcct(() => boardLoad(false)); else paintBoard(); }
+function paintBoard() {
+  const el = $('#bdBody'); if (!el) return;
+  if (!PB.me) { el.innerHTML = PB.err ? `<div class="card"><p class="bd-warn">${esc(pbWhyText(PB.err, !isMember()))}</p><button class="btn" type="button" data-bd="reload">다시 불러오기</button></div>` : '<p class="bd-empty">불러오는 중…</p>'; return; }
+  const parts = PB.me.parts || [], p = pbCur(), canLead = !isMember() && PB.me.leader;
+  let h = '';
+  if (PB.err) h += `<p class="bd-warn" role="status">${esc(pbWhyText(PB.err, canLead))}<button class="btn quiet small" type="button" data-bd="reload">다시 시도</button></p>`;
+  if (!p) {
+    h += canLead ? partCreateCard(true)
+      : `<div class="card"><h2>아직 파트에 들어가 있지 않아요</h2><p>파트장님께 내 아이디 <b>${esc(PB.me.login_id || '')}</b> 를 알려 주세요. 파트에 넣어 주면 이 게시판에서 파트 공지와 글이 보여요.</p></div>`;
+    el.innerHTML = h; return;
+  }
+  h += '<div class="bd-head">';
+  if (parts.length > 1) h += `<label class="field"><span>파트 고르기</span><select id="bdPart">${parts.map((x) => `<option value="${esc(x.id)}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)}${x.mine ? ' (내 파트)' : ''}</option>`).join('')}</select></label>`;
+  h += `<div class="bd-title"><b>${esc(p.name)}</b><span>파트장 ${esc(p.leader_name)} · 파트원 ${Number(p.members) || 0}명</span></div></div>`;
+  if (pbMine()) h += `<div class="seg" role="group" aria-label="보기 고르기"><button type="button" data-bdv="posts" aria-pressed="${PB.view !== 'people'}">게시판</button><button type="button" data-bdv="people" aria-pressed="${PB.view === 'people'}">파트원 관리</button></div>`;
+  h += PB.view === 'people' && pbMine() ? peopleView(p) : postsView();
+  el.innerHTML = h;
+}
+function postsView() {
+  let h = '<button class="btn primary block" type="button" data-bd="write">글쓰기</button>';
+  const ps = PB.posts || [];
+  if (!PB.posts && PB.busy) h += '<p class="bd-empty">불러오는 중…</p>';
+  else if (!ps.length) h += `<p class="bd-empty">아직 글이 없어요. ${pbMine() ? '파트 공지나 안내를 올려 보세요.' : '궁금한 것이나 함께 알 것을 올려 보세요.'}</p>`;
+  else h += '<div class="bd-list">' + ps.map((x) => `<button type="button" class="bd-row${x.notice ? ' notice' : ''}" data-post="${esc(x.id)}"><span class="bd-t">${x.notice ? '<b class="bd-tag">공지</b>' : ''}<span>${esc(x.title || firstLine(x.body) || '(제목 없음)')}</span></span>${x.title && x.body ? `<span class="bd-p">${esc(String(x.body).replace(/\s+/g, ' ').trim())}</span>` : ''}<span class="bd-m">${esc([x.author, fmtWhen(x.created_at), x.comments ? `댓글 ${x.comments}` : ''].filter(Boolean).join(' · '))}</span></button>`).join('') + '</div>';
+  if (!pbMine() && PB.people && PB.people.length) h += `<p class="small-t muted bd-people">함께하는 사람 · ${PB.people.map((x) => esc(pName(x)) + (x.leader ? '(파트장)' : '')).join(', ')}</p>`;
+  return h;
+}
+function partCreateCard(first) {
+  return `<div class="card"><h2>${first ? '파트 만들기' : '파트 하나 더 만들기'}</h2><p class="small-t muted">${first ? '파트를 만들고 파트원 아이디를 넣으면, 파트원끼리 게시판을 쓰고 파트장님은 파트원의 장례일정 · 봉투를 볼 수 있어요.' : '파트를 여러 개 맡을 때만 만드세요.'}</p>
+    <div class="bd-add"><input id="bdNewName" type="text" maxlength="30" placeholder="예: 장례지원 1파트" aria-label="파트 이름"><button class="btn primary" type="button" data-bd="create">만들기</button></div></div>`;
+}
+function peopleView(p) {
+  const month = seoulYMD().slice(0, 7), t = teamCached(p.id, month), mem = (PB.people || []).filter((x) => !x.leader);
+  let h = `<section class="card"><div class="hm-h"><h2>${+month.slice(5)}월 파트원 행사 · 봉투</h2><span class="small-t muted">보기만</span></div>`;
+  if (!mem.length) h += '<p class="bd-empty">아래에서 파트원 아이디를 넣으면 여기에 보여요.</p>';
+  else if (!t) h += `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`;
+  else {
+    const rows = teamRows(t), tot = rows.reduce((a, r) => ({ n: a.n + r.n, part: a.part + r.part, mgr: a.mgr + r.mgr }), { n: 0, part: 0, mgr: 0 });
+    h += `<div class="tm-wrap"><table class="tm-tbl"><thead><tr><th scope="col">이름</th><th scope="col">행사</th><th scope="col">본부장</th><th scope="col">실장</th></tr></thead><tbody>${
+      rows.map((r) => `<tr><td><button type="button" class="tm-name" data-member="${esc(r.user_id)}"><span>${esc(r.name)}</span>${SVG_R}</button></td><td>${r.n}건</td><td>${esc(fuWon0(r.part))}</td><td>${esc(fuWon0(r.mgr))}</td></tr>`).join('')
+    }</tbody><tfoot><tr><td>합계</td><td>${tot.n}건</td><td>${esc(fuWon0(tot.part))}</td><td>${esc(fuWon0(tot.mgr))}</td></tr></tfoot></table></div>
+    <p class="small-t muted">이름을 누르면 그 직원의 장례일정 · 봉투를 달마다 볼 수 있어요. 직원이 로그인해서 저장한 기록만 보여요.</p>`;
+  }
+  h += '</section>';
+  h += `<section class="card"><h2>파트원 넣기</h2><p class="small-t muted">직원이 가입한 아이디를 넣으세요. 넣으면 그 직원도 이 게시판을 보고, 파트장님은 그 직원의 장례일정 · 봉투를 볼 수 있어요.</p>
+    <div class="bd-add"><input id="bdAddId" type="text" maxlength="60" placeholder="예: kim" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="직원 아이디"><button class="btn primary" type="button" data-bd="add">넣기</button></div></section>`;
+  h += `<section class="card"><h2>파트원 명단 · ${mem.length}명</h2>${mem.length ? `<div class="bd-ppl">${mem.map((x) => `<div class="bd-pp"><div><b>${esc(pName(x))}</b>${x.name ? `<small>${esc(x.login_id)}</small>` : ''}</div><button class="btn small quiet" type="button" data-bd="remove" data-uid="${esc(x.user_id)}">빼기</button></div>`).join('')}</div>` : '<p class="bd-empty">아직 파트원이 없어요.</p>'}</section>`;
+  h += `<section class="card"><h2>파트 설정</h2><div class="bd-add"><input id="bdRename" type="text" maxlength="30" value="${esc(p.name)}" aria-label="파트 이름"><button class="btn" type="button" data-bd="rename">이름 바꾸기</button></div>
+    <button class="btn quiet small" type="button" data-bd="more">파트 하나 더 만들기</button><div id="bdMore" hidden>${partCreateCard(false)}</div>
+    <div class="wipe-zone"><p class="small-t muted">파트를 없애면 이 파트 게시판 글 · 댓글과 파트원 명단이 지워져요. 직원 계정과 장례 기록은 그대로예요.</p><button class="btn danger block" type="button" data-bd="delpart">이 파트 없애기</button></div></section>`;
+  return h;
+}
+const WHY_KO = { notleader: '파트장만 할 수 있어요', nouser: '그 아이디로 가입한 직원이 없어요. 아이디를 다시 확인해 주세요', already: '이미 이 파트에 있어요', self: '파트장님은 넣지 않아도 돼요', name: '이름을 넣어 주세요', empty: '내용을 넣어 주세요', denied: '쓴 사람이나 파트장만 할 수 있어요', gone: '지워진 글이에요', notmember: '이 파트 사람만 볼 수 있어요' };
+function pbFail(e) { toast(e && e.why && !WHY_KO[e.why] ? pbWhyText(e.why, !isMember()).replace(/\.$/, '') : (WHY_KO[(e && e.why) || ''] || '지금은 하지 못했어요. 잠시 뒤에 다시 해 주세요')); }
+async function pbCall(fn, args, btn) {
+  if (btn) btn.disabled = true;
+  try { const d = await window.dwAcct.rpc(fn, args); if (!d || !d.ok) { pbFail({ why: (d && d.why) || 'net' }); return null; } return d; }
+  catch (e) { pbFail(e); return null; }
+  finally { if (btn && btn.isConnected) btn.disabled = false; }
+}
+function pbAfterChange() { hmNote = null; PB.meAt = 0; PB.team = {}; boardLoad(true); }
+async function boardClick(e) {
+  const v = e.target.closest('[data-bdv]'); if (v) { PB.view = v.dataset.bdv; paintBoard(); if (PB.view === 'people') teamFor(PB.part, seoulYMD().slice(0, 7), false); return; }
+  const post = e.target.closest('[data-post]'); if (post) { openPost(post.dataset.post); return; }
+  const mem = e.target.closest('[data-member]'); if (mem) { openMember(mem.dataset.member); return; }
+  const b = e.target.closest('[data-bd]'); if (!b) return;
+  const act = b.dataset.bd, p = pbCur();
+  if (act === 'reload') { boardLoad(true); return; }
+  if (act === 'write') { openPostEditor(null); return; }
+  if (act === 'more') { const m = $('#bdMore'); m.hidden = !m.hidden; if (!m.hidden) $('#bdNewName').focus(); return; }
+  if (act === 'create') {
+    const name = String($('#bdNewName').value || '').trim(); if (!name) { toast('파트 이름을 넣어 주세요'); $('#bdNewName').focus(); return; }
+    const d = await pbCall('dw_part_create', { p_name: name }, b); if (!d) return;
+    PB.part = d.id; try { localStorage.setItem('dw-part-sel', d.id); } catch (err) { /* ignore */ }
+    PB.view = 'people'; toast(`「${name}」 파트를 만들었어요. 이제 파트원 아이디를 넣어 주세요`); pbAfterChange(); return;
+  }
+  if (!p) return;
+  if (act === 'add') {
+    const el = $('#bdAddId'), id = String(el.value || '').trim(); if (!id) { toast('직원 아이디를 넣어 주세요'); el.focus(); return; }
+    const d = await pbCall('dw_part_add', { p_part: p.id, p_login: id }, b); if (!d) return;
+    toast(`${d.name || id} 님을 파트원으로 넣었어요`); pbAfterChange(); return;
+  }
+  if (act === 'remove') {
+    const who = (PB.people || []).find((x) => x.user_id === b.dataset.uid);
+    armConfirm(b, '한 번 더 누르면 빼기', async () => { const d = await pbCall('dw_part_remove', { p_part: p.id, p_user: b.dataset.uid }); if (d) { toast(`${pName(who) || '파트원'} 님을 파트에서 뺐어요`); pbAfterChange(); } });
+    return;
+  }
+  if (act === 'rename') {
+    const name = String($('#bdRename').value || '').trim(); if (!name) { toast('파트 이름을 넣어 주세요'); return; }
+    const d = await pbCall('dw_part_rename', { p_part: p.id, p_name: name }, b); if (d) { toast('파트 이름을 바꿨어요'); pbAfterChange(); }
+    return;
+  }
+  if (act === 'delpart') {
+    armConfirm(b, '한 번 더 누르면 파트 없애기', async () => { const d = await pbCall('dw_part_delete', { p_part: p.id }); if (d) { toast(`「${p.name}」 파트를 없앴어요`); PB.part = ''; PB.view = 'posts'; pbAfterChange(); } });
+  }
+}
+
+/* ---- 글 보기 · 쓰기 ---- */
+const PS = { id: '', post: null, err: '' };
+async function openPost(id) {
+  PS.id = id; PS.post = null; PS.err = ''; openScreen('postScreen'); paintPost();
+  try { const d = await window.dwAcct.rpc('dw_post_get', { p_id: id }); if (PS.id !== id) return; if (!d || !d.ok) PS.err = (d && d.why) || 'net'; else PS.post = d.post; }
+  catch (e) { PS.err = (e && e.why) || 'net'; }
+  paintPost();
+}
+function paintPost() {
+  const el = $('#psBody'), q = PS.post;
+  $('#psEdit').hidden = !(q && q.mine); $('#psDel').hidden = !(q && q.can_delete); $('#psCmtBar').hidden = !q;
+  if (!q) { el.innerHTML = `<p class="bd-empty">${PS.err ? esc(WHY_KO[PS.err] || pbWhyText(PS.err, !isMember())) : '불러오는 중…'}</p>`; return; }
+  const cm = q.comments || [];
+  el.innerHTML = `<div class="ps-h">${q.notice ? '<span><b class="bd-tag">공지</b></span>' : ''}<h2>${esc(q.title || firstLine(q.body) || '(제목 없음)')}</h2><span class="ps-meta">${esc([q.author, fmtWhen(q.created_at), q.updated_at && q.updated_at !== q.created_at && new Date(q.updated_at) - new Date(q.created_at) > 60000 ? '고침' : ''].filter(Boolean).join(' · '))}</span></div>
+    ${q.body ? `<p class="ps-body">${esc(q.body)}</p>` : ''}
+    <h3 class="ps-ch">댓글 ${cm.length}</h3>
+    <div class="ps-cmts">${cm.length ? cm.map((c) => `<div class="ps-c"><div class="ps-c-h"><span>${esc(c.author)} · ${esc(fmtWhen(c.created_at))}</span>${c.can_delete ? `<button class="btn small quiet" type="button" data-cdel="${esc(c.id)}">지우기</button>` : ''}</div><p>${esc(c.body)}</p></div>`).join('') : '<p class="bd-empty">아직 댓글이 없어요.</p>'}</div>`;
+}
+function closePost() { closeScreen('postScreen'); PS.id = ''; }
+async function postCommentGo() {
+  const ta = $('#psCmt'), body = String(ta.value || '').trim(); if (!body) { ta.focus(); return; }
+  const d = await pbCall('dw_comment_add', { p_post: PS.id, p_body: body }, $('#psCmtGo')); if (!d) return;
+  ta.value = ''; autosize(ta); PB.at = 0; openPost(PS.id);
+}
+const PE = { id: null, dirty: false };
+function openPostEditor(q) {
+  PE.id = q ? q.id : null; PE.dirty = false;
+  $('#peBar').textContent = q ? '글 고치기' : '글쓰기'; $('#peSave').textContent = q ? '고친 글 올리기' : '올리기';
+  $('#peTitle').value = q ? q.title || '' : ''; $('#peBody').value = q ? q.body || '' : '';
+  const canNotice = pbMine(); $('#peNoticeRow').hidden = !canNotice; $('#peNotice').checked = !!(q && q.notice);
+  openScreen('postEditor'); setTimeout(() => { autosize($('#peBody')); $('#peTitle').focus(); }, 30);
+}
+async function postSave() {
+  const p = pbCur(), title = String($('#peTitle').value || '').trim(), body = String($('#peBody').value || '');
+  if (!p) { toast('파트를 먼저 골라 주세요'); return; }
+  if (!title && !body.trim()) { toast('제목이나 내용을 넣어 주세요'); $('#peTitle').focus(); return; }
+  const d = await pbCall('dw_post_save', { p_part: p.id, p_id: PE.id, p_title: title, p_body: body, p_notice: $('#peNotice').checked && pbMine() }, $('#peSave')); if (!d) return;
+  const wasEdit = !!PE.id; PE.dirty = false; closeScreen('postEditor'); toast(wasEdit ? '글을 고쳤어요' : '글을 올렸어요');
+  hmNote = null; boardLoad(true); if (wasEdit && PS.id) openPost(PS.id);
+}
+
+/* ---- 파트원 장례일정 · 봉투 (파트장, 보기만) ---- */
+const teamKey = (part, month) => part + '|' + month;
+function teamCached(part, month) { return PB.team[teamKey(part, month)] || null; }   /* 오래된 것도 먼저 보여 주고 뒤에서 새로 받음 */
+async function teamLoad(part, month, force) {
+  const k = teamKey(part, month), have = PB.team[k];
+  if (!force && have && Date.now() - have.at < 120000) return have;
+  if (PB.teamBusy[k]) return PB.teamBusy[k];
+  PB.teamBusy[k] = (async () => {
+    if (navigator.onLine === false) throw { why: 'offline' };
+    const c = await window.dwAcct.client(), by = {};
+    for (let from = 0; ; from += 500) {
+      const { data, error } = await c.rpc('dw_member_records', { p_part: part, p_month: month }).range(from, from + 499);
+      if (error) { const m = String(error.message || '') + ' ' + String(error.code || ''); throw { why: /PGRST202|could not find the function|schema cache|does not exist/i.test(m) ? 'noserver' : 'net' }; }
+      (data || []).forEach((r) => {
+        const b = by[r.owner] || (by[r.owner] = { cases: [], envs: [], settings: {} });
+        if (r.rkind === 'case') b.cases.push(r.rdata); else if (r.rkind === 'env') b.envs.push(r.rdata); else if (r.rkind === 'state' && r.rdata && typeof r.rdata === 'object') b.settings = r.rdata;
+      });
+      if (!data || data.length < 500) break;
+    }
+    const t = { part, month, at: Date.now(), by }; PB.team[k] = t; PB.teamErr = ''; return t;
+  })();
+  try { return await PB.teamBusy[k]; } finally { delete PB.teamBusy[k]; }
+}
+async function teamFor(part, month, force) {
+  try { await teamLoad(part, month, force); } catch (e) { PB.teamErr = (e && e.why) || 'net'; }
+  if (S.tab === 'board' && PB.view === 'people') paintBoard();
+  if (!$('#memberScreen').hidden) paintMember();
+}
+function teamRows(t) {
+  const mem = (PB.people && PB.people.length ? PB.people.filter((x) => !x.leader) : Object.keys(t.by).map((id) => ({ user_id: id, name: '', login_id: id.slice(0, 8) })));
+  return mem.map((x) => { const b = t.by[x.user_id] || { cases: [], envs: [] }, s = fuMonthSum(b.cases, b.envs, t.month); return { user_id: x.user_id, name: pName(x), n: s.cases.length, part: s.part, mgr: s.mgr }; });
+}
+const MS = { user: '', month: '', view: 'cases' };
+function openMember(uid) {
+  MS.user = uid; MS.month = seoulYMD().slice(0, 7); MS.view = 'cases';
+  const x = (PB.people || []).find((y) => y.user_id === uid); $('#msTitle').textContent = x ? `${pName(x)} · 장례일정 · 봉투` : '파트원';
+  openScreen('memberScreen'); paintMember(); teamFor(PB.part, MS.month, false);
+}
+function paintMember() {
+  const el = $('#msBody'), t = teamCached(PB.part, MS.month), b = t && (t.by[MS.user] || { cases: [], envs: [], settings: {} });
+  let h = `<div class="ms-nav"><button class="icon-btn" type="button" data-ms-shift="-1" aria-label="이전 달">${SVG_L}</button><div><b>${esc(monthName(MS.month))}</b><span>발인일 기준</span></div><button class="icon-btn" type="button" data-ms-shift="1" aria-label="다음 달">${SVG_L.replace('M15 18l-6-6 6-6', 'M9 18l6-6-6-6')}</button></div>`;
+  h += `<div class="seg" role="group" aria-label="보기 고르기"><button type="button" data-msv="cases" aria-pressed="${MS.view === 'cases'}">장례일정</button><button type="button" data-msv="envs" aria-pressed="${MS.view === 'envs'}">봉투</button></div>`;
+  if (!t) { el.innerHTML = h + `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`; return; }
+  const s = fuMonthSum(b.cases, b.envs, MS.month);
+  h += `<p class="ms-ro">행사 ${s.cases.length}건 · 본부장 봉투 ${esc(fuWon0(s.part))} · 실장 봉투 ${esc(fuWon0(s.mgr))} — 보기만 할 수 있어요 (고치기 안 됨)</p>`;
+  if (MS.view === 'cases') {
+    const list = fuByNo(s.cases);
+    h += list.length ? '<div class="ms-list">' + list.map((c) => {
+      const f = c.f || {}, env = (b.envs || []).find((r) => r && r.sourceCaseId === c.id), set = b.settings;
+      const times = [f.death && `임종 ${fuDT(f.death)}`, f.casket && `입관 ${fuDT(f.casket)}`, f.depart && `발인 ${fuDT(f.depart)}`].filter(Boolean).join(' · ');
+      const more = [f.chief && `상주 ${f.chief}`, (f.burial || f.burial1) && `장지 ${f.burial || [f.burial1, f.burial2].filter(Boolean).join('-')}`, f.product && `상품 ${f.product}`].filter(Boolean).join(' · ');
+      const ev = env ? fuEnvVals(env) : null, st = env && env.auto && String(env.auto.settlement || '').trim();
+      return `<div class="ms-item"><b>${esc(fuCaseLabel(c, set))}</b>${times ? `<span class="l">${esc(times)}</span>` : ''}${more ? `<span class="l">${esc(more)}</span>` : ''}${ev ? `<span class="amt">봉투 · 본부장 ${esc(fuWon0(ev.part))} · 실장 ${esc(fuWon0(ev.manager))}</span>` : ''}${st ? `<details><summary>정산 카톡 보기</summary><pre class="rv-preview">${esc(st)}</pre></details>` : ''}</div>`;
+    }).join('') + '</div>' : '<p class="bd-empty">이 달에는 행사가 없어요.</p>';
+  } else {
+    const list = s.envs.slice().sort((a, c) => CASE_COLL.compare(fuEnvMeta(a, 'eventNo'), fuEnvMeta(c, 'eventNo')));
+    h += list.length ? '<div class="ms-list">' + list.map((r) => { const v = fuEnvVals(r); return `<div class="ms-item"><b>${esc(fuEnvTitle(r, 'part'))}</b><span class="amt">본부장 ${esc(fuWon0(v.part))} · 실장 ${esc(fuWon0(v.manager))}</span><details><summary>봉투 내용 보기</summary><pre class="rv-preview">${esc(fuEnvText(r, 'part'))}</pre><pre class="rv-preview">${esc(fuEnvText(r, 'manager'))}</pre></details></div>`; }).join('') + '</div>' : '<p class="bd-empty">이 달에는 봉투가 없어요.</p>';
+  }
+  el.innerHTML = h;
+}
+function bindHomeBoard() {
+  $('#formTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-ftab]'); if (b) showTab(b.dataset.ftab); });
+  $('#tab-home').addEventListener('click', (e) => {
+    const g = e.target.closest('[data-go-fu]'); if (g) { goFuneral(g.dataset.goFu); return; }
+    const t = e.target.closest('[data-tab-go]'); if (t) { showTab(t.dataset.tabGo); return; }
+    const p = e.target.closest('[data-post]'); if (p) { openPost(p.dataset.post); return; }
+    if (e.target.closest('#hmTeamGo')) { PB.view = 'people'; showTab('board'); }
+  });
+  $('#bdBody').addEventListener('click', boardClick);
+  $('#bdBody').addEventListener('change', (e) => { if (e.target.id === 'bdPart') { PB.part = e.target.value; try { localStorage.setItem('dw-part-sel', PB.part); } catch (err) { /* ignore */ } PB.view = 'posts'; PB.people = null; PB.posts = null; boardLoad(false); } });
+  $('#bdBody').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const map = { bdAddId: 'add', bdNewName: 'create', bdRename: 'rename' }, act = map[e.target.id]; if (act) { e.preventDefault(); const b = e.target.parentNode.querySelector(`[data-bd="${act}"]`); if (b) b.click(); } });
+  $('#psBack').addEventListener('click', closePost);
+  $('#psEdit').addEventListener('click', () => { if (PS.post) openPostEditor(PS.post); });
+  $('#psDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 지우기', async () => { const d = await pbCall('dw_post_delete', { p_id: PS.id }); if (d) { toast('글을 지웠어요'); closePost(); hmNote = null; boardLoad(true); } }));
+  $('#psBody').addEventListener('click', (e) => { const b = e.target.closest('[data-cdel]'); if (b) armConfirm(b, '한 번 더 누르면 지우기', async () => { const d = await pbCall('dw_comment_delete', { p_id: b.dataset.cdel }); if (d) { toast('댓글을 지웠어요'); PB.at = 0; openPost(PS.id); } }); });
+  $('#psCmt').addEventListener('input', (e) => autosize(e.target));
+  $('#psCmtGo').addEventListener('click', postCommentGo);
+  $('#peBack').addEventListener('click', (e) => { if (PE.dirty) { armConfirm(e.currentTarget, '한 번 더 누르면 나가기', () => { PE.dirty = false; closeScreen('postEditor'); }); return; } closeScreen('postEditor'); });
+  ['#peTitle', '#peBody'].forEach((s) => $(s).addEventListener('input', (e) => { PE.dirty = true; if (e.target.tagName === 'TEXTAREA') autosize(e.target); }));
+  $('#peSave').addEventListener('click', postSave);
+  $('#msBack').addEventListener('click', () => closeScreen('memberScreen'));
+  $('#msBody').addEventListener('click', (e) => {
+    const sh = e.target.closest('[data-ms-shift]'); if (sh) { MS.month = shiftMonth(MS.month, Number(sh.dataset.msShift)); paintMember(); teamFor(PB.part, MS.month, false); return; }
+    const v = e.target.closest('[data-msv]'); if (v) { MS.view = v.dataset.msv; paintMember(); }
+  });
+  window.addEventListener('dw-role', () => { if (isMember() && ADMIN_TABS.includes(S.tab)) showTab('home'); else if (S.tab === 'home') renderHome(); else if (S.tab === 'board') paintBoard(); homeAcctSlot(); });
+  window.addEventListener('dw-name', () => { PB.meAt = 0; hmNote = null; if (S.tab === 'board') boardLoad(true); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (S.tab === 'home') { if (homeDay !== seoulYMD()) renderHome(); else { homeNotices(false); homeTeam(false); } }
+    if (S.tab === 'board' && Date.now() - PB.at > 60000) boardLoad(false);
+  });
+  window.addEventListener('storage', (e) => { if (e.key === FU_KEY && S.tab === 'home') renderHome(); });
+  setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    if (S.tab === 'home' && homeDay !== seoulYMD()) renderHome();
+    if (S.tab === 'board' && $('#postScreen').hidden && $('#postEditor').hidden && Date.now() - PB.at > 60000) boardLoad(false);
+  }, 60000);
+}
+
 async function init() {
   bind();
   bindPwa();
@@ -2834,14 +3479,15 @@ async function init() {
   const now = new Date();
   S.logMonth = { y: now.getFullYear(), m: now.getMonth() + 1 };
   S.rpt = { type: 'week', monday: mondayOf(now), y: now.getFullYear(), m: now.getMonth() + 1, qr: true };
-  let tab = 'weekly';
-  try { tab = localStorage.getItem('mf.tab') || 'weekly'; } catch (e) { /* ignore */ }
+  /* 앱을 새로 열면 홈. 같은 창에서 다시 불러올 때(업데이트 등)는 보던 화면. 장례업무에서 돌아올 때는 #home · #weekly … */
+  let tab = 'home';
+  try { tab = sessionStorage.getItem('mf.tabS') || 'home'; } catch (e) { /* ignore */ }
   const fromHash = (location.hash || '').replace('#', '');
-  if (['weekly', 'minutes', 'review', 'ship', 'settings'].includes(fromHash)) {
+  if (ALL_TABS.includes(fromHash) || fromHash === 'forms') {
     tab = fromHash;
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
   }
-  if (!['weekly', 'minutes', 'review', 'ship', 'settings'].includes(tab)) tab = 'weekly';
+  if (!ALL_TABS.includes(tab) && tab !== 'forms') tab = 'home';
   renderAll();
   showTab(tab);
   const ok = await Store.open();
@@ -2871,7 +3517,7 @@ async function init() {
 }
 init();
 </script>
-<!-- 관리자 서식 · 파트장 전용 화면 (leader-gate-head.html 과 같이 씀) -->
+<!-- 관리자 서식 · 로그인 화면 (leader-gate-head.html 과 같이 씀). 2026.10.23-5: 직원도 내 아이디로 로그인 → 관리자 기능만 숨김 -->
 <script>
 (function () {
   'use strict';
@@ -2896,6 +3542,12 @@ init();
       return client;
     });
   }
+  /* 파트장 / 직원 표시: html.dw-leader · html.dw-member (직원이면 [data-admin] 숨김). 바뀌면 화면에 알림(dw-role) */
+  function applyRole(u) {
+    var lead = isLeader(u), was = root.classList.contains('dw-leader');
+    root.classList.toggle('dw-leader', lead); root.classList.toggle('dw-member', !lead);
+    if (was !== lead) { try { window.dispatchEvent(new CustomEvent('dw-role', { detail: { leader: lead } })); } catch (e) {} }
+  }
   var box = null;
   function gate(mode, u) {
     root.classList.add('dw-gated');
@@ -2906,21 +3558,18 @@ init();
     box.hidden = false;
     var who = u ? idOf(u) : '';
     var join = mode === 'join';
-    var form = '<label>아이디<input id="gtId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>'
+    box.innerHTML = '<form class="gt-card" autocomplete="on"><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : '관리자 서식') + '</h1>'
+      + (join ? '<p>아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 파트장으로 지정된 계정은 관리자 메뉴까지 모두 보여요.</p>'
+              : '<p>내 아이디로 로그인하세요. 직원은 홈 · 장례업무 · 게시판이, 파트장은 모든 메뉴가 보여요. 이 기기에서 한 번 로그인하면 다음부터는 바로 열려요.</p>')
+      + '<label>아이디<input id="gtId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>'
       + '<label>비밀번호<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '"></label>'
       + (join ? '<label>비밀번호 확인<input id="gtPw2" type="password" autocomplete="new-password"></label><label>이름<input id="gtName" autocomplete="name" placeholder="예: 서영우"></label>' : '')
       + '<button type="submit" id="gtGo">' + (join ? '가입하기' : '로그인') + '</button>'
-      + '<button type="button" class="gt-sub" id="gtSwap">' + (join ? '이미 아이디가 있어요 · 로그인' : '처음이에요 · 회원가입') + '</button>';
-    box.innerHTML = '<form class="gt-card" autocomplete="on"><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">관리자 서식</h1>'
-      + (mode === 'notLeader'
-        ? '<p>지금 로그인한 아이디(<b></b>)는 파트장 계정이 아니에요. 관리자 서식은 파트장으로 지정된 계정만 쓸 수 있어요.</p><button type="button" class="gt-sub" id="gtOther">다른 아이디로 로그인</button><button type="button" class="gt-sub" id="gtOut">로그아웃</button>'
-        : join ? '<p>아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 가입한 뒤 파트장으로 지정되면 관리자 서식이 열려요.</p>' + form
-        : '<p>파트장 전용이에요. 파트장 아이디로 로그인하세요. 이 기기에서 한 번 로그인하면 다음부터는 바로 열려요.</p>' + form)
-      + '<p class="gt-err" id="gtErr" role="alert"></p><p class="gt-alt">파트장이 아니면 <a href="../jangrye/">장례일정 열기</a></p></form>';
-    if (mode === 'notLeader') { box.querySelector('b').textContent = who; box.querySelector('#gtOther').onclick = function () { gate('login'); }; box.querySelector('#gtOut').onclick = function () { acct.logout(); }; return; }
+      + '<button type="button" class="gt-sub" id="gtSwap">' + (join ? '이미 아이디가 있어요 · 로그인' : '처음이에요 · 회원가입') + '</button>'
+      + '<p class="gt-err" id="gtErr" role="alert"></p></form>';
     box.querySelector('#gtSwap').onclick = function () { gate(join ? 'login' : 'join', u); };
     var f = box.querySelector('form'), idEl = box.querySelector('#gtId'), pwEl = box.querySelector('#gtPw'), go = box.querySelector('#gtGo'), err = box.querySelector('#gtErr');
-    if (who) idEl.value = who;
+    if (who && !join) idEl.value = who;
     setTimeout(function () { (idEl.value ? pwEl : idEl).focus(); }, 50);
     f.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -2932,9 +3581,7 @@ init();
       getClient().then(function (c) { return c.auth.signInWithPassword({ email: email, password: pw }); })
         .then(function (r) {
           if (r.error) { err.textContent = /invalid|credential/i.test(r.error.message || '') ? '아이디나 비밀번호가 맞지 않아요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; return; }
-          var u = r.data && r.data.user; setLeader(u);
-          if (isLeader(u)) { location.reload(); return; }
-          gate('notLeader', u);
+          setLeader(r.data && r.data.user); location.reload();
         })
         .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주세요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; })
         .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '로그인'; } });
@@ -2950,15 +3597,30 @@ init();
         if (r.error) { var m = String(r.error.message || '');
           err.textContent = /already|registered|exists/i.test(m) ? '이미 있는 아이디예요. 다른 아이디로 해 주세요.' : /not allowed|disabled/i.test(m) ? '지금은 회원가입이 꺼져 있어요. 파트장님께 말씀해 주세요.' : /password/i.test(m) ? '비밀번호를 더 길게(6자 이상) 넣어 주세요.' : '가입하지 못했어요. 인터넷을 확인해 주세요.'; return; }
         if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입 신청이 됐어요. 파트장님이 확인해 주면 로그인할 수 있어요.'; return; }
-        var u = r.data.user; setLeader(u); if (isLeader(u)) { location.reload(); return; }
-        gate('notLeader', u); var e3 = box.querySelector('#gtErr'); if (e3) { e3.style.color = 'var(--ink-2,#3d4044)'; e3.textContent = '가입했어요. 파트장으로 지정되면 관리자 서식이 열려요. 장례일정은 지금 바로 이 아이디로 쓸 수 있어요.'; }
+        setLeader(r.data.user); location.reload();
       })
       .catch(function () { err.textContent = '가입하지 못했어요. 인터넷을 확인해 주세요.'; })
       .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '가입하기'; } });
   }
-  /* 관리자 서식 설정 「내 계정」 · 위 막대 표시 (로그아웃 · 회원 탈퇴) */
+  /* 서버 함수 부르기 (게시판 · 파트 · 이름). 실패 이유: login · offline · noserver(서버 준비 안 됨) · net */
+  function rpc(fn, args) {
+    if (!acct.user()) return Promise.reject({ why: 'login' });
+    if (navigator.onLine === false) return Promise.reject({ why: 'offline' });
+    return getClient().then(function (c) { return c.rpc(fn, args || {}); }, function () { return Promise.reject({ why: 'offline' }); }).then(function (r) {
+      if (r.error) {
+        var m = String(r.error.message || '') + ' ' + String(r.error.code || '');
+        return Promise.reject({ why: /PGRST202|could not find the function|schema cache|does not exist/i.test(m) ? 'noserver' : r.error.status === 401 ? 'login' : 'net', error: r.error });
+      }
+      return r.data;
+    }, function (e) { return Promise.reject(e && e.why ? e : { why: navigator.onLine === false ? 'offline' : 'net' }); });
+  }
+  /* 관리자 서식 「내 계정」 · 위 막대 표시 (로그아웃 · 이름 · 회원 탈퇴) */
   var acct = window.dwAcct = {
     user: function () { var s = sess(); return s && s.user || null; },
+    id: function () { return idOf(acct.user()); },
+    leader: function () { return root.classList.contains('dw-leader'); },
+    client: getClient,
+    rpc: rpc,
     logout: function () {
       return getClient().then(function (c) { return c.auth.signOut().catch(function () { return c.auth.signOut({ scope: 'local' }); }); })
         .catch(function () {}).then(function () { try { localStorage.removeItem(LK); localStorage.removeItem(SK); } catch (e) {} location.reload(); });
@@ -2982,7 +3644,9 @@ init();
     if (!card) return;
     if (!u) { card.hidden = true; return; }
     card.hidden = false;
-    card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b> · ' + (isLeader(u) ? '파트장' : '파트장 아님') + '</p>'
+    var nm0 = String((u.user_metadata && u.user_metadata.name) || '');
+    card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b> · ' + (acct.leader() ? '파트장' : '직원') + '</p>'
+      + '<div class="ac-name" id="acNameRow"><label class="field"><span>게시판에 보이는 이름</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
       + '<p class="small-t muted">장례일정과 같은 계정이에요. 로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
       + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
       + '<button class="btn quiet small" type="button" id="acDelOpen">회원 탈퇴</button>'
@@ -2990,6 +3654,18 @@ init();
       + '<label class="field"><span>비밀번호 확인</span><input id="acDelPw" type="password" autocomplete="current-password"></label>'
       + '<div class="grid2"><button class="btn danger" type="button" id="acDelGo">탈퇴하기</button><button class="btn" type="button" id="acDelNo">취소</button></div><p class="small-t" id="acDelMsg" role="alert"></p></div>';
     card.querySelector('b').textContent = idOf(u);
+    var nameEl = card.querySelector('#acName'), nameBtn = card.querySelector('#acNameSave');
+    nameEl.value = nm0;
+    rpc('dw_me').then(function (d) { if (d && d.ok && nameEl.isConnected && document.activeElement !== nameEl) nameEl.value = d.name || ''; })
+      .catch(function (e) { if (e && e.why === 'noserver') { var row = card.querySelector('#acNameRow'); if (row) row.hidden = true; } });
+    nameBtn.onclick = function () {
+      nameBtn.disabled = true;
+      rpc('dw_set_name', { p_name: nameEl.value }).then(function (d) {
+        nameEl.value = (d && d.name) || ''; if (typeof window.toast === 'function') window.toast('이름을 저장했어요');
+        try { window.dispatchEvent(new CustomEvent('dw-name')); } catch (e) {}
+      }).catch(function (e) { if (typeof window.toast === 'function') window.toast(e && e.why === 'offline' ? '인터넷에 연결한 뒤 저장해 주세요' : '이름을 저장하지 못했어요'); })
+        .then(function () { nameBtn.disabled = false; });
+    };
     card.querySelector('#acOut').onclick = function () { this.disabled = true; acct.logout(); };
     card.querySelector('#acDelOpen').onclick = function () { card.querySelector('#acDelBox').hidden = false; this.hidden = true; card.querySelector('#acDelPw').focus(); };
     card.querySelector('#acDelNo').onclick = function () { card.querySelector('#acDelBox').hidden = true; card.querySelector('#acDelOpen').hidden = false; };
@@ -3004,14 +3680,14 @@ init();
       });
     };
   }
-  function open() { root.classList.remove('dw-gated'); if (box) box.hidden = true; renderAcct(); }
-  /* 인터넷이 되면 서버에서 다시 확인 (파트장에서 빠졌으면 다시 잠금) · 인터넷이 안 되면 이 기기 확인 결과대로 */
+  function open(u) { root.classList.remove('dw-gated'); if (box) box.hidden = true; applyRole(u); renderAcct(); }
+  /* 인터넷이 되면 서버에서 다시 확인 (파트장 지정 · 해제 반영, 로그인이 풀렸으면 다시 로그인) · 인터넷이 안 되면 이 기기 확인 결과대로 */
   function verify() {
     var s = sess();
     if (!s || !s.user) { setLeader(null); gate('login'); return; }
     getClient().then(function (c) { return c.auth.getUser(); }).then(function (r) {
       var u = r && r.data && r.data.user;
-      if (u) { setLeader(u); if (isLeader(u)) open(); else gate('notLeader', u); return; }
+      if (u) { setLeader(u); open(u); return; }
       var st = r && r.error && r.error.status;
       if (st === 401 || st === 403) { setLeader(null); gate('login', s.user); }   /* 로그인이 풀림(비밀번호 바뀜 등) → 다시 로그인 */
     }).catch(function () { /* 인터넷 안 됨 → 지금 상태 그대로 */ });

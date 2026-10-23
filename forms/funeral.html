@@ -8,11 +8,13 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.23-4">
-<!-- 관리자 서식 · 파트장 전용 (2026.10.23): 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')으로 로그인해야 열림.
-     이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도 바로 열리고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
+<meta name="app-version" content="2026.10.23-5">
+<!-- 관리자 서식 · 로그인 (2026.10.23-5): 내 아이디로 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
+     직원 계정이면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. 이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도
+     파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
+html.dw-member [data-admin]{display:none!important}
 #dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:24px;background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
 .gt-card{width:100%;max-width:360px;display:grid;gap:14px;text-align:center}
@@ -31,15 +33,15 @@ html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 </style>
 <script>
 (function () {
+  var root = document.documentElement;
   try {
     var s = JSON.parse(localStorage.getItem('dw-sb-auth') || 'null');
-    var ok = false;
     if (s && s.user && s.user.id) {
       var am = s.user.app_metadata || {};
-      ok = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
-    }
-    if (!ok) document.documentElement.classList.add('dw-gated');
-  } catch (e) { document.documentElement.classList.add('dw-gated'); }
+      var lead = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
+      root.classList.add(lead ? 'dw-leader' : 'dw-member');
+    } else root.classList.add('dw-gated');
+  } catch (e) { root.classList.add('dw-gated'); }
 })();
 </script>
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
@@ -2693,7 +2695,7 @@ async function sbPull(full){
   if(!sbc||!sbUser) return 0;
   const since=full?'':(SBM.pullAt||''); let from=0, changed=0, maxAt=SBM.pullAt||'';
   for(;;){
-    let q=sbc.from('dw_records').select('app,kind,id,data,deleted,updated_at,device,server_at').eq('app',SB_APP);
+    let q=sbc.from('dw_records').select('app,kind,id,data,deleted,updated_at,device,server_at').eq('user_id',sbUser.id).eq('app',SB_APP);   /* 내 기록만 (파트장이 파트원 기록을 볼 수 있게 돼도 내 기록에 섞이지 않게) */
     if(since) q=q.gt('server_at',since);
     const {data,error}=await q.order('server_at',{ascending:true}).range(from,from+499); if(error) throw error;
     (data||[]).forEach(r=>{ if(sbApply(r)) changed++; if(r.server_at&&(!maxAt||r.server_at>maxAt)) maxAt=r.server_at; });
@@ -2761,7 +2763,7 @@ function sbSetMode(m){
   document.querySelectorAll('#sbLoginBox [data-sbmode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sbmode===sbMode)));
   $('#sbJoinOnly').hidden=sbMode!=='join'; $('#sbLoginBtn').textContent=sbMode==='join'?'가입하기':'로그인';
   $('#sbPw').autocomplete=sbMode==='join'?'new-password':'current-password';
-  $('#sbHelp').textContent=sbMode==='join'?'아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 가입하면 바로 로그인되고, 이 기기 기록이 내 계정에 올라가요. 관리자 서식은 파트장으로 지정된 계정만 열려요.'
+  $('#sbHelp').textContent=sbMode==='join'?'아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 가입하면 바로 로그인되고, 이 기기 기록이 내 계정에 올라가요. 같은 아이디로 관리자 서식(홈 · 파트 게시판)에도 로그인할 수 있어요.'
     :'처음 로그인하면 이 기기에 있던 기록이 내 계정에 올라가요(그 전에 자동 보관본을 남겨 둬요). 아이디가 없으면 「회원가입」을 누르세요.';
   ($('#sbId').value?$('#sbPw'):$('#sbId')).focus();
 }
@@ -4857,6 +4859,8 @@ const purged=purge();
 if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].includes(db.tab))db.tab='envelopes';
 save();
 renderAll();
+/* 관리자 서식 홈에서 「봉투」 등을 누르면 funeral.html#envelopes 로 옴 → 그 화면을 엶 */
+(()=>{ const h=(location.hash||'').slice(1); if(['input','out','sched','settle','envelopes','duty'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
 $('#sbLoginBox').addEventListener('submit',e=>{ e.preventDefault(); if(sbMode==='join') sbJoin(); else sbLogin(); });
 $('#sbLoginBox').addEventListener('click',e=>{ const b=e.target.closest('[data-sbmode]'); if(b) sbSetMode(b.dataset.sbmode); });
 $('#sbOutBtn').onclick=sbLogout; $('#sbSyncBtn').onclick=sbSyncNow;
@@ -5101,7 +5105,7 @@ h1,h2,h3,.wz-q{text-wrap:balance}
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () {});
 })();
 </script>
-<!-- 서식함 안의 장례업무에만 붙는 부분: 서식함으로 돌아가는 버튼과 메뉴. -->
+<!-- 서식함 안의 장례업무에만 붙는 부분: 관리자 서식 홈으로 돌아가는 버튼과 메뉴. 직원 계정(html.dw-member)이면 [data-admin] 메뉴는 숨김 (leader-gate-head.html) -->
 <style id="mf-bridge">
 .mf-home{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;height:40px;padding:0 11px;border:1px solid var(--edge,#dce3ec);border-radius:12px;background:var(--surface,#fff);color:var(--ink,#182538);font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
 .mf-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -5114,10 +5118,11 @@ h1,h2,h3,.wz-q{text-wrap:balance}
 (function () {
   'use strict';
   function setLast(v) { try { localStorage.setItem('mf.lastApp', v); } catch (e) { /* ignore */ } }
-  function toForms(tab) { setLast('forms'); location.replace('./#' + (tab || 'weekly')); }
+  function toForms(tab) { setLast('forms'); location.replace('./#' + (tab || 'home')); }
   setLast('funeral');
 
   var DOC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>';
+  var HOME = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10 19.5v-5h4v5"/></svg>';
 
   // 앱 위쪽 막대: 서식함으로 돌아가는 버튼
   var bar = document.querySelector('.ab-in');
@@ -5125,9 +5130,9 @@ h1,h2,h3,.wz-q{text-wrap:balance}
     var home = document.createElement('button');
     home.type = 'button';
     home.className = 'mf-home';
-    home.setAttribute('aria-label', '관리자 서식으로 가기');
-    home.innerHTML = DOC + '<span>관리자 서식</span>';
-    home.addEventListener('click', function () { toForms('weekly'); });
+    home.setAttribute('aria-label', '관리자 서식 홈으로 가기');
+    home.innerHTML = HOME + '<span>홈</span>';
+    home.addEventListener('click', function () { toForms('home'); });
     bar.insertBefore(home, document.getElementById('newCase'));
   }
 
@@ -5140,10 +5145,13 @@ h1,h2,h3,.wz-q{text-wrap:balance}
     acc.innerHTML =
       '<button class="acc-h" type="button" aria-expanded="true"><span>' + DOC + '관리자 서식</span><i></i></button>' +
       '<div class="acc-b"><div>' +
-      '<button type="button" data-mf="weekly">주간 파트 보고</button>' +
-      '<button type="button" data-mf="review">후기 일일보고</button>' +
-      '<button type="button" data-mf="ship">용품 · 근조기 탁송</button>' +
-      '<button type="button" data-mf="settings">관리자 서식 설정 · 백업</button>' +
+      '<button type="button" data-mf="home">홈</button>' +
+      '<button type="button" data-mf="board">파트 게시판</button>' +
+      '<button type="button" data-mf="weekly" data-admin>주간 파트 보고</button>' +
+      '<button type="button" data-mf="minutes" data-admin>회의록</button>' +
+      '<button type="button" data-mf="review" data-admin>후기 일일보고</button>' +
+      '<button type="button" data-mf="ship" data-admin>용품 · 근조기 탁송</button>' +
+      '<button type="button" data-mf="settings" data-admin>관리자 서식 설정 · 백업</button>' +
       '</div></div>';
     acc.addEventListener('click', function (e) {
       var b = e.target.closest('[data-mf]');
@@ -5153,7 +5161,7 @@ h1,h2,h3,.wz-q{text-wrap:balance}
   }
 })();
 </script>
-<!-- 관리자 서식 · 파트장 전용 화면 (leader-gate-head.html 과 같이 씀) -->
+<!-- 관리자 서식 · 로그인 화면 (leader-gate-head.html 과 같이 씀). 2026.10.23-5: 직원도 내 아이디로 로그인 → 관리자 기능만 숨김 -->
 <script>
 (function () {
   'use strict';
@@ -5178,6 +5186,12 @@ h1,h2,h3,.wz-q{text-wrap:balance}
       return client;
     });
   }
+  /* 파트장 / 직원 표시: html.dw-leader · html.dw-member (직원이면 [data-admin] 숨김). 바뀌면 화면에 알림(dw-role) */
+  function applyRole(u) {
+    var lead = isLeader(u), was = root.classList.contains('dw-leader');
+    root.classList.toggle('dw-leader', lead); root.classList.toggle('dw-member', !lead);
+    if (was !== lead) { try { window.dispatchEvent(new CustomEvent('dw-role', { detail: { leader: lead } })); } catch (e) {} }
+  }
   var box = null;
   function gate(mode, u) {
     root.classList.add('dw-gated');
@@ -5188,21 +5202,18 @@ h1,h2,h3,.wz-q{text-wrap:balance}
     box.hidden = false;
     var who = u ? idOf(u) : '';
     var join = mode === 'join';
-    var form = '<label>아이디<input id="gtId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>'
+    box.innerHTML = '<form class="gt-card" autocomplete="on"><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : '관리자 서식') + '</h1>'
+      + (join ? '<p>아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 파트장으로 지정된 계정은 관리자 메뉴까지 모두 보여요.</p>'
+              : '<p>내 아이디로 로그인하세요. 직원은 홈 · 장례업무 · 게시판이, 파트장은 모든 메뉴가 보여요. 이 기기에서 한 번 로그인하면 다음부터는 바로 열려요.</p>')
+      + '<label>아이디<input id="gtId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>'
       + '<label>비밀번호<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '"></label>'
       + (join ? '<label>비밀번호 확인<input id="gtPw2" type="password" autocomplete="new-password"></label><label>이름<input id="gtName" autocomplete="name" placeholder="예: 서영우"></label>' : '')
       + '<button type="submit" id="gtGo">' + (join ? '가입하기' : '로그인') + '</button>'
-      + '<button type="button" class="gt-sub" id="gtSwap">' + (join ? '이미 아이디가 있어요 · 로그인' : '처음이에요 · 회원가입') + '</button>';
-    box.innerHTML = '<form class="gt-card" autocomplete="on"><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">관리자 서식</h1>'
-      + (mode === 'notLeader'
-        ? '<p>지금 로그인한 아이디(<b></b>)는 파트장 계정이 아니에요. 관리자 서식은 파트장으로 지정된 계정만 쓸 수 있어요.</p><button type="button" class="gt-sub" id="gtOther">다른 아이디로 로그인</button><button type="button" class="gt-sub" id="gtOut">로그아웃</button>'
-        : join ? '<p>아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 가입한 뒤 파트장으로 지정되면 관리자 서식이 열려요.</p>' + form
-        : '<p>파트장 전용이에요. 파트장 아이디로 로그인하세요. 이 기기에서 한 번 로그인하면 다음부터는 바로 열려요.</p>' + form)
-      + '<p class="gt-err" id="gtErr" role="alert"></p><p class="gt-alt">파트장이 아니면 <a href="../jangrye/">장례일정 열기</a></p></form>';
-    if (mode === 'notLeader') { box.querySelector('b').textContent = who; box.querySelector('#gtOther').onclick = function () { gate('login'); }; box.querySelector('#gtOut').onclick = function () { acct.logout(); }; return; }
+      + '<button type="button" class="gt-sub" id="gtSwap">' + (join ? '이미 아이디가 있어요 · 로그인' : '처음이에요 · 회원가입') + '</button>'
+      + '<p class="gt-err" id="gtErr" role="alert"></p></form>';
     box.querySelector('#gtSwap').onclick = function () { gate(join ? 'login' : 'join', u); };
     var f = box.querySelector('form'), idEl = box.querySelector('#gtId'), pwEl = box.querySelector('#gtPw'), go = box.querySelector('#gtGo'), err = box.querySelector('#gtErr');
-    if (who) idEl.value = who;
+    if (who && !join) idEl.value = who;
     setTimeout(function () { (idEl.value ? pwEl : idEl).focus(); }, 50);
     f.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -5214,9 +5225,7 @@ h1,h2,h3,.wz-q{text-wrap:balance}
       getClient().then(function (c) { return c.auth.signInWithPassword({ email: email, password: pw }); })
         .then(function (r) {
           if (r.error) { err.textContent = /invalid|credential/i.test(r.error.message || '') ? '아이디나 비밀번호가 맞지 않아요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; return; }
-          var u = r.data && r.data.user; setLeader(u);
-          if (isLeader(u)) { location.reload(); return; }
-          gate('notLeader', u);
+          setLeader(r.data && r.data.user); location.reload();
         })
         .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주세요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; })
         .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '로그인'; } });
@@ -5232,15 +5241,30 @@ h1,h2,h3,.wz-q{text-wrap:balance}
         if (r.error) { var m = String(r.error.message || '');
           err.textContent = /already|registered|exists/i.test(m) ? '이미 있는 아이디예요. 다른 아이디로 해 주세요.' : /not allowed|disabled/i.test(m) ? '지금은 회원가입이 꺼져 있어요. 파트장님께 말씀해 주세요.' : /password/i.test(m) ? '비밀번호를 더 길게(6자 이상) 넣어 주세요.' : '가입하지 못했어요. 인터넷을 확인해 주세요.'; return; }
         if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입 신청이 됐어요. 파트장님이 확인해 주면 로그인할 수 있어요.'; return; }
-        var u = r.data.user; setLeader(u); if (isLeader(u)) { location.reload(); return; }
-        gate('notLeader', u); var e3 = box.querySelector('#gtErr'); if (e3) { e3.style.color = 'var(--ink-2,#3d4044)'; e3.textContent = '가입했어요. 파트장으로 지정되면 관리자 서식이 열려요. 장례일정은 지금 바로 이 아이디로 쓸 수 있어요.'; }
+        setLeader(r.data.user); location.reload();
       })
       .catch(function () { err.textContent = '가입하지 못했어요. 인터넷을 확인해 주세요.'; })
       .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '가입하기'; } });
   }
-  /* 관리자 서식 설정 「내 계정」 · 위 막대 표시 (로그아웃 · 회원 탈퇴) */
+  /* 서버 함수 부르기 (게시판 · 파트 · 이름). 실패 이유: login · offline · noserver(서버 준비 안 됨) · net */
+  function rpc(fn, args) {
+    if (!acct.user()) return Promise.reject({ why: 'login' });
+    if (navigator.onLine === false) return Promise.reject({ why: 'offline' });
+    return getClient().then(function (c) { return c.rpc(fn, args || {}); }, function () { return Promise.reject({ why: 'offline' }); }).then(function (r) {
+      if (r.error) {
+        var m = String(r.error.message || '') + ' ' + String(r.error.code || '');
+        return Promise.reject({ why: /PGRST202|could not find the function|schema cache|does not exist/i.test(m) ? 'noserver' : r.error.status === 401 ? 'login' : 'net', error: r.error });
+      }
+      return r.data;
+    }, function (e) { return Promise.reject(e && e.why ? e : { why: navigator.onLine === false ? 'offline' : 'net' }); });
+  }
+  /* 관리자 서식 「내 계정」 · 위 막대 표시 (로그아웃 · 이름 · 회원 탈퇴) */
   var acct = window.dwAcct = {
     user: function () { var s = sess(); return s && s.user || null; },
+    id: function () { return idOf(acct.user()); },
+    leader: function () { return root.classList.contains('dw-leader'); },
+    client: getClient,
+    rpc: rpc,
     logout: function () {
       return getClient().then(function (c) { return c.auth.signOut().catch(function () { return c.auth.signOut({ scope: 'local' }); }); })
         .catch(function () {}).then(function () { try { localStorage.removeItem(LK); localStorage.removeItem(SK); } catch (e) {} location.reload(); });
@@ -5264,7 +5288,9 @@ h1,h2,h3,.wz-q{text-wrap:balance}
     if (!card) return;
     if (!u) { card.hidden = true; return; }
     card.hidden = false;
-    card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b> · ' + (isLeader(u) ? '파트장' : '파트장 아님') + '</p>'
+    var nm0 = String((u.user_metadata && u.user_metadata.name) || '');
+    card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b> · ' + (acct.leader() ? '파트장' : '직원') + '</p>'
+      + '<div class="ac-name" id="acNameRow"><label class="field"><span>게시판에 보이는 이름</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
       + '<p class="small-t muted">장례일정과 같은 계정이에요. 로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
       + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
       + '<button class="btn quiet small" type="button" id="acDelOpen">회원 탈퇴</button>'
@@ -5272,6 +5298,18 @@ h1,h2,h3,.wz-q{text-wrap:balance}
       + '<label class="field"><span>비밀번호 확인</span><input id="acDelPw" type="password" autocomplete="current-password"></label>'
       + '<div class="grid2"><button class="btn danger" type="button" id="acDelGo">탈퇴하기</button><button class="btn" type="button" id="acDelNo">취소</button></div><p class="small-t" id="acDelMsg" role="alert"></p></div>';
     card.querySelector('b').textContent = idOf(u);
+    var nameEl = card.querySelector('#acName'), nameBtn = card.querySelector('#acNameSave');
+    nameEl.value = nm0;
+    rpc('dw_me').then(function (d) { if (d && d.ok && nameEl.isConnected && document.activeElement !== nameEl) nameEl.value = d.name || ''; })
+      .catch(function (e) { if (e && e.why === 'noserver') { var row = card.querySelector('#acNameRow'); if (row) row.hidden = true; } });
+    nameBtn.onclick = function () {
+      nameBtn.disabled = true;
+      rpc('dw_set_name', { p_name: nameEl.value }).then(function (d) {
+        nameEl.value = (d && d.name) || ''; if (typeof window.toast === 'function') window.toast('이름을 저장했어요');
+        try { window.dispatchEvent(new CustomEvent('dw-name')); } catch (e) {}
+      }).catch(function (e) { if (typeof window.toast === 'function') window.toast(e && e.why === 'offline' ? '인터넷에 연결한 뒤 저장해 주세요' : '이름을 저장하지 못했어요'); })
+        .then(function () { nameBtn.disabled = false; });
+    };
     card.querySelector('#acOut').onclick = function () { this.disabled = true; acct.logout(); };
     card.querySelector('#acDelOpen').onclick = function () { card.querySelector('#acDelBox').hidden = false; this.hidden = true; card.querySelector('#acDelPw').focus(); };
     card.querySelector('#acDelNo').onclick = function () { card.querySelector('#acDelBox').hidden = true; card.querySelector('#acDelOpen').hidden = false; };
@@ -5286,14 +5324,14 @@ h1,h2,h3,.wz-q{text-wrap:balance}
       });
     };
   }
-  function open() { root.classList.remove('dw-gated'); if (box) box.hidden = true; renderAcct(); }
-  /* 인터넷이 되면 서버에서 다시 확인 (파트장에서 빠졌으면 다시 잠금) · 인터넷이 안 되면 이 기기 확인 결과대로 */
+  function open(u) { root.classList.remove('dw-gated'); if (box) box.hidden = true; applyRole(u); renderAcct(); }
+  /* 인터넷이 되면 서버에서 다시 확인 (파트장 지정 · 해제 반영, 로그인이 풀렸으면 다시 로그인) · 인터넷이 안 되면 이 기기 확인 결과대로 */
   function verify() {
     var s = sess();
     if (!s || !s.user) { setLeader(null); gate('login'); return; }
     getClient().then(function (c) { return c.auth.getUser(); }).then(function (r) {
       var u = r && r.data && r.data.user;
-      if (u) { setLeader(u); if (isLeader(u)) open(); else gate('notLeader', u); return; }
+      if (u) { setLeader(u); open(u); return; }
       var st = r && r.error && r.error.status;
       if (st === 401 || st === 403) { setLeader(null); gate('login', s.user); }   /* 로그인이 풀림(비밀번호 바뀜 등) → 다시 로그인 */
     }).catch(function () { /* 인터넷 안 됨 → 지금 상태 그대로 */ });

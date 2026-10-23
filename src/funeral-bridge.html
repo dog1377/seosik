@@ -1,4 +1,4 @@
-<!-- 서식함 안의 장례업무에만 붙는 부분: 서식함으로 돌아가는 버튼과 메뉴. -->
+<!-- 서식함 안의 장례업무에만 붙는 부분: 관리자 서식 홈으로 돌아가는 버튼과 메뉴. 직원 계정(html.dw-member)이면 [data-admin] 메뉴는 숨김 (leader-gate-head.html) -->
 <style id="mf-bridge">
 .mf-home{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;height:40px;padding:0 11px;border:1px solid var(--edge,#dce3ec);border-radius:12px;background:var(--surface,#fff);color:var(--ink,#182538);font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
 .mf-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -11,10 +11,11 @@
 (function () {
   'use strict';
   function setLast(v) { try { localStorage.setItem('mf.lastApp', v); } catch (e) { /* ignore */ } }
-  function toForms(tab) { setLast('forms'); location.replace('./#' + (tab || 'weekly')); }
+  function toForms(tab) { setLast('forms'); location.replace('./#' + (tab || 'home')); }
   setLast('funeral');
 
   var DOC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>';
+  var HOME = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10 19.5v-5h4v5"/></svg>';
 
   // 앱 위쪽 막대: 서식함으로 돌아가는 버튼
   var bar = document.querySelector('.ab-in');
@@ -22,9 +23,9 @@
     var home = document.createElement('button');
     home.type = 'button';
     home.className = 'mf-home';
-    home.setAttribute('aria-label', '관리자 서식으로 가기');
-    home.innerHTML = DOC + '<span>관리자 서식</span>';
-    home.addEventListener('click', function () { toForms('weekly'); });
+    home.setAttribute('aria-label', '관리자 서식 홈으로 가기');
+    home.innerHTML = HOME + '<span>홈</span>';
+    home.addEventListener('click', function () { toForms('home'); });
     bar.insertBefore(home, document.getElementById('newCase'));
   }
 
@@ -37,10 +38,13 @@
     acc.innerHTML =
       '<button class="acc-h" type="button" aria-expanded="true"><span>' + DOC + '관리자 서식</span><i></i></button>' +
       '<div class="acc-b"><div>' +
-      '<button type="button" data-mf="weekly">주간 파트 보고</button>' +
-      '<button type="button" data-mf="review">후기 일일보고</button>' +
-      '<button type="button" data-mf="ship">용품 · 근조기 탁송</button>' +
-      '<button type="button" data-mf="settings">관리자 서식 설정 · 백업</button>' +
+      '<button type="button" data-mf="home">홈</button>' +
+      '<button type="button" data-mf="board">파트 게시판</button>' +
+      '<button type="button" data-mf="weekly" data-admin>주간 파트 보고</button>' +
+      '<button type="button" data-mf="minutes" data-admin>회의록</button>' +
+      '<button type="button" data-mf="review" data-admin>후기 일일보고</button>' +
+      '<button type="button" data-mf="ship" data-admin>용품 · 근조기 탁송</button>' +
+      '<button type="button" data-mf="settings" data-admin>관리자 서식 설정 · 백업</button>' +
       '</div></div>';
     acc.addEventListener('click', function (e) {
       var b = e.target.closest('[data-mf]');

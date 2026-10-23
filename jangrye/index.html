@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.23-4">
+<meta name="app-version" content="2026.10.23-5">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="장례일정">
@@ -2660,7 +2660,7 @@ async function sbPull(full){
   if(!sbc||!sbUser) return 0;
   const since=full?'':(SBM.pullAt||''); let from=0, changed=0, maxAt=SBM.pullAt||'';
   for(;;){
-    let q=sbc.from('dw_records').select('app,kind,id,data,deleted,updated_at,device,server_at').eq('app',SB_APP);
+    let q=sbc.from('dw_records').select('app,kind,id,data,deleted,updated_at,device,server_at').eq('user_id',sbUser.id).eq('app',SB_APP);   /* 내 기록만 (파트장이 파트원 기록을 볼 수 있게 돼도 내 기록에 섞이지 않게) */
     if(since) q=q.gt('server_at',since);
     const {data,error}=await q.order('server_at',{ascending:true}).range(from,from+499); if(error) throw error;
     (data||[]).forEach(r=>{ if(sbApply(r)) changed++; if(r.server_at&&(!maxAt||r.server_at>maxAt)) maxAt=r.server_at; });
@@ -2728,7 +2728,7 @@ function sbSetMode(m){
   document.querySelectorAll('#sbLoginBox [data-sbmode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sbmode===sbMode)));
   $('#sbJoinOnly').hidden=sbMode!=='join'; $('#sbLoginBtn').textContent=sbMode==='join'?'가입하기':'로그인';
   $('#sbPw').autocomplete=sbMode==='join'?'new-password':'current-password';
-  $('#sbHelp').textContent=sbMode==='join'?'아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 가입하면 바로 로그인되고, 이 기기 기록이 내 계정에 올라가요. 관리자 서식은 파트장으로 지정된 계정만 열려요.'
+  $('#sbHelp').textContent=sbMode==='join'?'아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 가입하면 바로 로그인되고, 이 기기 기록이 내 계정에 올라가요. 같은 아이디로 관리자 서식(홈 · 파트 게시판)에도 로그인할 수 있어요.'
     :'처음 로그인하면 이 기기에 있던 기록이 내 계정에 올라가요(그 전에 자동 보관본을 남겨 둬요). 아이디가 없으면 「회원가입」을 누르세요.';
   ($('#sbId').value?$('#sbPw'):$('#sbId')).focus();
 }
@@ -4824,6 +4824,8 @@ const purged=purge();
 if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].includes(db.tab))db.tab='envelopes';
 save();
 renderAll();
+/* 관리자 서식 홈에서 「봉투」 등을 누르면 funeral.html#envelopes 로 옴 → 그 화면을 엶 */
+(()=>{ const h=(location.hash||'').slice(1); if(['input','out','sched','settle','envelopes','duty'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
 $('#sbLoginBox').addEventListener('submit',e=>{ e.preventDefault(); if(sbMode==='join') sbJoin(); else sbLogin(); });
 $('#sbLoginBox').addEventListener('click',e=>{ const b=e.target.closest('[data-sbmode]'); if(b) sbSetMode(b.dataset.sbmode); });
 $('#sbOutBtn').onclick=sbLogout; $('#sbSyncBtn').onclick=sbSyncNow;

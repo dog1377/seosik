@@ -1,7 +1,9 @@
-<!-- 관리자 서식 · 파트장 전용 (2026.10.23): 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')으로 로그인해야 열림.
-     이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도 바로 열리고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
+<!-- 관리자 서식 · 로그인 (2026.10.23-5): 내 아이디로 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
+     직원 계정이면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. 이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도
+     파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
+html.dw-member [data-admin]{display:none!important}
 #dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:24px;background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
 .gt-card{width:100%;max-width:360px;display:grid;gap:14px;text-align:center}
@@ -20,14 +22,14 @@ html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 </style>
 <script>
 (function () {
+  var root = document.documentElement;
   try {
     var s = JSON.parse(localStorage.getItem('dw-sb-auth') || 'null');
-    var ok = false;
     if (s && s.user && s.user.id) {
       var am = s.user.app_metadata || {};
-      ok = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
-    }
-    if (!ok) document.documentElement.classList.add('dw-gated');
-  } catch (e) { document.documentElement.classList.add('dw-gated'); }
+      var lead = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
+      root.classList.add(lead ? 'dw-leader' : 'dw-member');
+    } else root.classList.add('dw-gated');
+  } catch (e) { root.classList.add('dw-gated'); }
 })();
 </script>
