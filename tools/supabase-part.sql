@@ -1,4 +1,4 @@
--- DW 업무 앱 · 파트 · 파트 게시판 준비 (2026.10.23)
+-- DW장례업무 · 파트 · 파트 게시판 준비 (2026.10.23, -6: 한 사람은 한 파트에만 · 파트장은 다른 파트를 못 봄)
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -6,6 +6,7 @@
 --   · 직원 명단(아이디 · 이름): 가입하면 자동으로 생기고, 이미 있는 계정도 넣어 둠
 --   · 파트: 파트장이 파트를 만들고 직원 아이디를 넣고 뺌
 --   · 파트 게시판: 같은 파트 사람끼리만 보임. 파트장은 공지, 파트원도 글 · 댓글
+--   · 한 직원은 한 파트에만 들어감. 파트장 계정은 다른 파트에 못 들어감 → 파트장은 자기 파트 게시판 · 파트원만 봄
 --   · 파트장은 자기 파트원의 장례일정 · 봉투를 볼 수만 있음 (고치기 안 됨)
 -- 표는 앱에서 바로 건드릴 수 없고, 아래 함수(누가 무엇을 할 수 있는지 검사함)로만 읽고 씁니다.
 
@@ -92,7 +93,8 @@ $$;
 create or replace function public.dw_in_part(p_part uuid, p_user uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
   select exists (select 1 from public.dw_parts t where t.id = p_part and t.leader_id = p_user)
-      or exists (select 1 from public.dw_part_members m where m.part_id = p_part and m.user_id = p_user)
+      or (exists (select 1 from public.dw_part_members m where m.part_id = p_part and m.user_id = p_user)
+          and not public.dw_is_leader(p_user))   -- 파트장 계정은 다른 파트 게시판을 못 봄
 $$;
 
 create or replace function public.dw_name(p_user uuid) returns text
@@ -119,6 +121,13 @@ insert into public.dw_profiles (user_id, login_id, name)
 select u.id, public.dw_login_of(u.email, u.id), left(btrim(coalesce(u.raw_user_meta_data ->> 'name', '')), 20)
 from auth.users u
 on conflict do nothing;
+
+-- 한 사람은 한 파트에만 · 파트장 계정은 파트원이 될 수 없음 (예전에 넣은 것도 정리: 파트장은 빼고, 두 파트에 있으면 먼저 넣은 파트만 남김)
+delete from public.dw_part_members m
+where public.dw_is_leader(m.user_id) or exists (select 1 from public.dw_parts t where t.leader_id = m.user_id);
+delete from public.dw_part_members a using public.dw_part_members b
+where a.user_id = b.user_id and (a.added_at, a.part_id::text) > (b.added_at, b.part_id::text);
+create unique index if not exists dw_part_members_one on public.dw_part_members (user_id);
 
 -- ---------- 앱에서 부르는 함수 ----------
 -- 내 정보 + 내가 속한 파트
@@ -162,6 +171,7 @@ begin
   if not public.dw_is_leader(me) then return jsonb_build_object('ok', false, 'why', 'notleader'); end if;
   if n = '' then return jsonb_build_object('ok', false, 'why', 'name'); end if;
   perform public.dw_profile_ensure(me);
+  delete from public.dw_part_members where user_id = me;   -- 파트원이었다가 파트장이 되면 예전 파트에서 빠짐
   insert into public.dw_parts (name, leader_id) values (n, me) returning id into v;
   return jsonb_build_object('ok', true, 'id', v);
 end $$;
@@ -202,6 +212,12 @@ begin
     return jsonb_build_object('ok', false, 'why', 'nouser');
   end if;
   if v = me then return jsonb_build_object('ok', false, 'why', 'self'); end if;
+  if public.dw_is_leader(v) or exists (select 1 from public.dw_parts t where t.leader_id = v) then
+    return jsonb_build_object('ok', false, 'why', 'leader');   -- 파트장 계정은 파트원으로 못 넣음
+  end if;
+  if exists (select 1 from public.dw_part_members m where m.user_id = v and m.part_id <> p_part) then
+    return jsonb_build_object('ok', false, 'why', 'otherpart');   -- 한 직원은 한 파트에만
+  end if;
   insert into public.dw_part_members (part_id, user_id) values (p_part, v) on conflict do nothing;
   get diagnostics n = row_count;
   if n = 0 then return jsonb_build_object('ok', false, 'why', 'already'); end if;

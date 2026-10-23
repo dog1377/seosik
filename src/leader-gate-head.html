@@ -1,24 +1,22 @@
-<!-- 관리자 서식 · 로그인 (2026.10.23-5): 내 아이디로 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
-     직원 계정이면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. 이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도
-     파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
+<!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
+     아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장이 아니면 홈으로.
+     이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도 파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 html.dw-member [data-admin]{display:none!important}
 #dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:24px;background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
-.gt-card{width:100%;max-width:360px;display:grid;gap:14px;text-align:center}
-.gt-card img{width:64px;height:64px;border-radius:6px;margin:0 auto}
-.gt-card h1{margin:0;font-family:var(--serif,var(--font-display,serif));font-size:22px;line-height:1.35}
-.gt-card p{margin:0;font-size:14px;color:var(--muted,#5a5e63);line-height:1.6;word-break:keep-all}
-.gt-card label{display:grid;gap:6px;text-align:left;font-size:13.5px;font-weight:600;color:var(--ink-2,#3d4044)}
-.gt-card input{width:100%;box-sizing:border-box;font:inherit;font-size:17px;text-align:center;min-height:50px;padding:10px 14px;border-radius:4px;border:1px solid var(--edge,var(--line-2,#9a9d9a));background:var(--surface,#fff);color:inherit}
+.gt-card{width:100%;max-width:340px;display:grid;gap:12px;text-align:center}
+.gt-card img{width:72px;height:72px;border-radius:6px;margin:0 auto 4px}
+.gt-card h1{margin:0 0 10px;font-family:var(--serif,var(--font-display,serif));font-size:24px;line-height:1.35}
+.gt-card input{width:100%;box-sizing:border-box;font:inherit;font-size:17px;text-align:center;min-height:52px;padding:10px 14px;border-radius:4px;border:1px solid var(--edge,var(--line-2,#9a9d9a));background:var(--surface,#fff);color:inherit}
+.gt-card input::placeholder{color:var(--ph,var(--muted,#6a6e73));opacity:1}
 .gt-card input:focus{outline:none;border-color:var(--ink,#1c1d1f);box-shadow:0 0 0 1px var(--ink,#1c1d1f)}
-.gt-card button{font:inherit;font-size:16px;font-weight:700;min-height:50px;border-radius:4px;cursor:pointer;border:1px solid var(--ink,#1c1d1f);background:var(--accent,#1c1d1f);color:var(--accent-ink,#fff)}
-.gt-card button.gt-sub{background:var(--surface,#fff);color:var(--ink,#1c1d1f);font-weight:600}
+.gt-card button{font:inherit;font-size:16px;font-weight:700;min-height:52px;border-radius:4px;cursor:pointer;border:1px solid var(--ink,#1c1d1f);background:var(--accent,#1c1d1f);color:var(--accent-ink,#fff);margin-top:4px}
+.gt-card button.gt-link{justify-self:center;min-height:44px;margin:0;padding:0 12px;border:0;background:none;color:var(--muted,#5a5e63);font-size:15px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
 .gt-card button:disabled{opacity:.5}
-.gt-err{min-height:20px;font-size:13.5px!important;color:var(--warn,#9a3b1e)!important;font-weight:600}
-.gt-alt{font-size:13.5px!important}
-.gt-alt a{color:var(--ink,#1c1d1f);font-weight:700}
+.gt-err{margin:0;min-height:20px;font-size:14px;color:var(--warn,#9a3b1e);font-weight:600;line-height:1.5;word-break:keep-all}
+.gt-err:empty{min-height:0}
 </style>
 <script>
 (function () {
@@ -29,6 +27,7 @@ html.dw-member [data-admin]{display:none!important}
       var am = s.user.app_metadata || {};
       var lead = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
       root.classList.add(lead ? 'dw-leader' : 'dw-member');
+      if (!lead && window.DW_LEADER_ONLY) location.replace('./#home');
     } else root.classList.add('dw-gated');
   } catch (e) { root.classList.add('dw-gated'); }
 })();

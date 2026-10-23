@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="파트장용 주간보고·탁송 보고서 앱. 기록은 각자 휴대폰에만 저장됩니다.">
+<meta name="description" content="DW장례업무 · 디더블유 장례의전 업무 앱 (장례업무 · 정산 · 봉투 · 파트 게시판 · 서식).">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="관리자 서식">
+<meta name="apple-mobile-web-app-title" content="DW장례업무">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.23-5";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.23-6";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>관리자 서식</title>
+<title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
@@ -434,7 +434,8 @@ p{text-wrap:pretty}
   #tab-board,.ftabs{max-width:760px}
   .hm-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
 }
-@media (max-width:360px){.hm-dd b{font-size:38px}.hm-go{grid-template-columns:1fr}}
+@media (max-width:480px){.ftabs button{padding:0 7px;font-size:14.5px}}
+@media (max-width:360px){.hm-dd b{font-size:38px}.hm-go{grid-template-columns:1fr}.ftabs button{padding:0 5px;font-size:14px}}
 </style>
 <!-- 앱 잠금: 회사가 정한 비밀번호(해시만 앱에 들어 있음)를 넣어야 앱이 열립니다. 해시가 비어 있으면 잠그지 않습니다. -->
 <style id="lock-ui">
@@ -459,7 +460,7 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
 <script>
 (function () {
   'use strict';
-  var C = {"hash": "", "key": "mf", "title": "관리자 서식", "who": "파트장", "remember": true, "relockMin": 0, "alt": "장례일정만 쓰실 분은 <a href=\"../jangrye/\">장례일정 열기</a>"};
+  var C = {"hash": "", "key": "mf", "title": "DW장례업무", "who": "파트장", "remember": true, "relockMin": 0, "alt": ""};
   // C = { hash: 'p2$반복$소금$해시' 또는 '', key: 'mf', title: '관리자 서식함', who: '파트장', remember: true, relockMin: 0, alt: '' }
   if (!C || !C.hash || !window.crypto || !crypto.subtle) return;
   var TOKEN = C.hash.slice(-20);
@@ -527,27 +528,25 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
 })();
 </script>
 
-<!-- 관리자 서식 · 로그인 (2026.10.23-5): 내 아이디로 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
-     직원 계정이면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. 이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도
-     파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
+<!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
+     아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장이 아니면 홈으로.
+     이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도 파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 html.dw-member [data-admin]{display:none!important}
 #dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:24px;background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
-.gt-card{width:100%;max-width:360px;display:grid;gap:14px;text-align:center}
-.gt-card img{width:64px;height:64px;border-radius:6px;margin:0 auto}
-.gt-card h1{margin:0;font-family:var(--serif,var(--font-display,serif));font-size:22px;line-height:1.35}
-.gt-card p{margin:0;font-size:14px;color:var(--muted,#5a5e63);line-height:1.6;word-break:keep-all}
-.gt-card label{display:grid;gap:6px;text-align:left;font-size:13.5px;font-weight:600;color:var(--ink-2,#3d4044)}
-.gt-card input{width:100%;box-sizing:border-box;font:inherit;font-size:17px;text-align:center;min-height:50px;padding:10px 14px;border-radius:4px;border:1px solid var(--edge,var(--line-2,#9a9d9a));background:var(--surface,#fff);color:inherit}
+.gt-card{width:100%;max-width:340px;display:grid;gap:12px;text-align:center}
+.gt-card img{width:72px;height:72px;border-radius:6px;margin:0 auto 4px}
+.gt-card h1{margin:0 0 10px;font-family:var(--serif,var(--font-display,serif));font-size:24px;line-height:1.35}
+.gt-card input{width:100%;box-sizing:border-box;font:inherit;font-size:17px;text-align:center;min-height:52px;padding:10px 14px;border-radius:4px;border:1px solid var(--edge,var(--line-2,#9a9d9a));background:var(--surface,#fff);color:inherit}
+.gt-card input::placeholder{color:var(--ph,var(--muted,#6a6e73));opacity:1}
 .gt-card input:focus{outline:none;border-color:var(--ink,#1c1d1f);box-shadow:0 0 0 1px var(--ink,#1c1d1f)}
-.gt-card button{font:inherit;font-size:16px;font-weight:700;min-height:50px;border-radius:4px;cursor:pointer;border:1px solid var(--ink,#1c1d1f);background:var(--accent,#1c1d1f);color:var(--accent-ink,#fff)}
-.gt-card button.gt-sub{background:var(--surface,#fff);color:var(--ink,#1c1d1f);font-weight:600}
+.gt-card button{font:inherit;font-size:16px;font-weight:700;min-height:52px;border-radius:4px;cursor:pointer;border:1px solid var(--ink,#1c1d1f);background:var(--accent,#1c1d1f);color:var(--accent-ink,#fff);margin-top:4px}
+.gt-card button.gt-link{justify-self:center;min-height:44px;margin:0;padding:0 12px;border:0;background:none;color:var(--muted,#5a5e63);font-size:15px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
 .gt-card button:disabled{opacity:.5}
-.gt-err{min-height:20px;font-size:13.5px!important;color:var(--warn,#9a3b1e)!important;font-weight:600}
-.gt-alt{font-size:13.5px!important}
-.gt-alt a{color:var(--ink,#1c1d1f);font-weight:700}
+.gt-err{margin:0;min-height:20px;font-size:14px;color:var(--warn,#9a3b1e);font-weight:600;line-height:1.5;word-break:keep-all}
+.gt-err:empty{min-height:0}
 </style>
 <script>
 (function () {
@@ -558,6 +557,7 @@ html.dw-member [data-admin]{display:none!important}
       var am = s.user.app_metadata || {};
       var lead = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
       root.classList.add(lead ? 'dw-leader' : 'dw-member');
+      if (!lead && window.DW_LEADER_ONLY) location.replace('./#home');
     } else root.classList.add('dw-gated');
   } catch (e) { root.classList.add('dw-gated'); }
 })();
@@ -567,7 +567,7 @@ html.dw-member [data-admin]{display:none!important}
 <body>
 <header class="appbar">
   <div class="appbar-in">
-    <div class="brand">관리자 서식</div>
+    <div class="brand">DW장례업무</div>
     <div class="local" title="입력한 내용은 이 기기 안에만 저장됩니다">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
       <span>이 기기에만 저장</span>
@@ -608,7 +608,8 @@ html.dw-member [data-admin]{display:none!important}
     <button type="button" data-ftab="weekly">주간보고</button>
     <button type="button" data-ftab="minutes">회의록</button>
     <button type="button" data-ftab="review">후기보고</button>
-    <button type="button" data-ftab="ship">탁송 · 출고</button>
+    <button type="button" data-ftab="ship">탁송</button>
+    <button type="button" data-goco>회사 서류</button>
   </nav>
 
   <!-- ===== 홈 (2026.10.23-5) ===== -->
@@ -840,7 +841,7 @@ html.dw-member [data-admin]{display:none!important}
         <div class="grid2" id="afBtns"><button class="btn primary" type="button" id="afOn">자동 백업 켜기</button><button class="btn" type="button" id="afOpen">예전 파일 연결</button></div>
         <div class="grid2" id="afBtns2" hidden><button class="btn primary" type="button" id="afFix">다시 연결</button><button class="btn" type="button" id="afNow">지금 백업</button><button class="btn" type="button" id="afRestore">이 파일에서 되살리기</button><button class="btn" type="button" id="afOff">끄기</button></div>
       </div>
-      <div class="wipe-zone"><p class="small-t muted">이 기기의 관리자 서식 기록을 모두 지웁니다. 지우기 전에 위에서 백업 파일을 먼저 받아 두세요.</p>
+      <div class="wipe-zone"><p class="small-t muted">이 기기의 서식 기록(주간보고 · 회의록 · 후기 · 탁송 · 설정)을 모두 지웁니다. 지우기 전에 위에서 백업 파일을 먼저 받아 두세요.</p>
       <button class="btn danger block" type="button" id="wipeBtn">모든 기록 삭제</button></div>
     </div>
     <p class="ver" id="appVersion"></p>
@@ -2582,7 +2583,7 @@ async function wipeAll() {
   S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
-  toast(window.__PWA__ ? '관리자 서식 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.' : '모든 기록을 삭제했어요');
+  toast(window.__PWA__ ? '서식 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.' : '모든 기록을 삭제했어요');
 }
 function renderAll() { renderWeeklyList(); renderMinutesList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
 
@@ -2932,6 +2933,11 @@ async function goFuneral(tab) {
   setLastApp('funeral');
   location.replace('funeral.html' + (typeof tab === 'string' && tab ? '#' + tab : ''));   /* 홈 「봉투정리 보기」 → funeral.html#envelopes */
 }
+async function goCompany() {   /* 회사 서류 (예전 DW관리, 파트장만) — forms/admin.html */
+  if (S.sd) { showTab('settings'); toast('설정을 저장하거나 되돌린 뒤에 이동해 주세요.'); return; }
+  await flushWeekly(); await saveReviewNow(); if (!await flushMinutes()) return;
+  location.replace('admin.html');
+}
 function funeralStorage() {
   const out = {};
   try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (FUNERAL_KEYS.test(k)) out[k] = localStorage.getItem(k); } } catch (e) { /* ignore */ }
@@ -3004,7 +3010,7 @@ function setupPwa() {
   }
   renderInstall();
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; renderInstall(); });
-  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「관리자 서식」 아이콘으로 열어 주세요.'); });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「DW장례업무」 아이콘으로 열어 주세요.'); });
   if ('serviceWorker' in navigator) {
     const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.register('./sw.js').then((reg) => {
@@ -3161,7 +3167,7 @@ function paintNotices() {
   if (hmNote.why) { el.innerHTML = `<p class="hm-msg">${esc(pbWhyText(hmNote.why, !isMember()))}</p>`; return; }
   const parts = (hmNote.me && hmNote.me.parts) || [];
   if (!parts.length) {
-    el.innerHTML = `<p class="hm-msg">${isMember() ? `파트에 들어가면 파트장님 공지가 여기에 보여요. 파트장님께 내 아이디 <b>${esc(hmNote.me.login_id || '')}</b> 를 알려 주세요.` : '게시판에서 파트를 만들고 파트원 아이디를 넣으면 공지를 올릴 수 있어요.'}</p>`;
+    el.innerHTML = `<p class="hm-msg">${isMember() ? `파트에 들어가면 파트장님 공지가 여기에 보여요. 파트장님께 내 계정(<b>${esc(hmNote.me.login_id || '')}</b>)을 알려 주세요.` : '게시판에서 파트를 만들고 파트원을 넣으면 공지를 올릴 수 있어요.'}</p>`;
     return;
   }
   if (!hmNote.posts.length) { el.innerHTML = '<p class="hm-msg">아직 공지가 없어요.</p>'; return; }
@@ -3189,7 +3195,7 @@ function paintHomeTeam(t) {
   const rows = teamRows(t), tot = rows.reduce((a, r) => ({ n: a.n + r.n, part: a.part + r.part, mgr: a.mgr + r.mgr }), { n: 0, part: 0, mgr: 0 });
   body.innerHTML = cnt
     ? `<p class="hm-team-sum">파트원 ${cnt}명 · 행사 <b>${tot.n}건</b><br>본부장 봉투 <b>${esc(fuWon0(tot.part))}</b> · 실장 봉투 <b>${esc(fuWon0(tot.mgr))}</b></p>`
-    : '<p class="hm-msg">아직 파트원이 없어요. 게시판 → 파트원 관리에서 아이디를 넣어 주세요.</p>';
+    : '<p class="hm-msg">아직 파트원이 없어요. 게시판 → 파트원 관리에서 넣어 주세요.</p>';
 }
 
 /* ---- 파트 · 게시판 ---- */
@@ -3241,7 +3247,7 @@ function paintBoard() {
   if (PB.err) h += `<p class="bd-warn" role="status">${esc(pbWhyText(PB.err, canLead))}<button class="btn quiet small" type="button" data-bd="reload">다시 시도</button></p>`;
   if (!p) {
     h += canLead ? partCreateCard(true)
-      : `<div class="card"><h2>아직 파트에 들어가 있지 않아요</h2><p>파트장님께 내 아이디 <b>${esc(PB.me.login_id || '')}</b> 를 알려 주세요. 파트에 넣어 주면 이 게시판에서 파트 공지와 글이 보여요.</p></div>`;
+      : `<div class="card"><h2>아직 파트에 들어가 있지 않아요</h2><p>파트장님께 내 계정(<b>${esc(PB.me.login_id || '')}</b>)을 알려 주세요. 파트에 넣어 주면 이 게시판에서 파트 공지와 글이 보여요.</p></div>`;
     el.innerHTML = h; return;
   }
   h += '<div class="bd-head">';
@@ -3261,13 +3267,13 @@ function postsView() {
   return h;
 }
 function partCreateCard(first) {
-  return `<div class="card"><h2>${first ? '파트 만들기' : '파트 하나 더 만들기'}</h2><p class="small-t muted">${first ? '파트를 만들고 파트원 아이디를 넣으면, 파트원끼리 게시판을 쓰고 파트장님은 파트원의 장례일정 · 봉투를 볼 수 있어요.' : '파트를 여러 개 맡을 때만 만드세요.'}</p>
+  return `<div class="card"><h2>${first ? '파트 만들기' : '파트 하나 더 만들기'}</h2><p class="small-t muted">${first ? '파트를 만들고 파트원을 넣으면 파트 게시판을 같이 쓰고, 파트원의 장례일정 · 봉투를 볼 수 있어요.' : '파트를 여러 개 맡을 때만 만드세요.'}</p>
     <div class="bd-add"><input id="bdNewName" type="text" maxlength="30" placeholder="예: 장례지원 1파트" aria-label="파트 이름"><button class="btn primary" type="button" data-bd="create">만들기</button></div></div>`;
 }
 function peopleView(p) {
   const month = seoulYMD().slice(0, 7), t = teamCached(p.id, month), mem = (PB.people || []).filter((x) => !x.leader);
   let h = `<section class="card"><div class="hm-h"><h2>${+month.slice(5)}월 파트원 행사 · 봉투</h2><span class="small-t muted">보기만</span></div>`;
-  if (!mem.length) h += '<p class="bd-empty">아래에서 파트원 아이디를 넣으면 여기에 보여요.</p>';
+  if (!mem.length) h += '<p class="bd-empty">아래에서 파트원을 넣으면 여기에 보여요.</p>';
   else if (!t) h += `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`;
   else {
     const rows = teamRows(t), tot = rows.reduce((a, r) => ({ n: a.n + r.n, part: a.part + r.part, mgr: a.mgr + r.mgr }), { n: 0, part: 0, mgr: 0 });
@@ -3277,15 +3283,15 @@ function peopleView(p) {
     <p class="small-t muted">이름을 누르면 그 직원의 장례일정 · 봉투를 달마다 볼 수 있어요. 직원이 로그인해서 저장한 기록만 보여요.</p>`;
   }
   h += '</section>';
-  h += `<section class="card"><h2>파트원 넣기</h2><p class="small-t muted">직원이 가입한 아이디를 넣으세요. 넣으면 그 직원도 이 게시판을 보고, 파트장님은 그 직원의 장례일정 · 봉투를 볼 수 있어요.</p>
-    <div class="bd-add"><input id="bdAddId" type="text" maxlength="60" placeholder="예: kim" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="직원 아이디"><button class="btn primary" type="button" data-bd="add">넣기</button></div></section>`;
+  h += `<section class="card"><h2>파트원 넣기</h2><p class="small-t muted">직원이 가입할 때 쓴 이메일을 넣으세요. 한 직원은 한 파트에만 들어갈 수 있어요.</p>
+    <div class="bd-add"><input id="bdAddId" type="email" inputmode="email" maxlength="80" placeholder="이메일 입력" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="직원 이메일"><button class="btn primary" type="button" data-bd="add">넣기</button></div></section>`;
   h += `<section class="card"><h2>파트원 명단 · ${mem.length}명</h2>${mem.length ? `<div class="bd-ppl">${mem.map((x) => `<div class="bd-pp"><div><b>${esc(pName(x))}</b>${x.name ? `<small>${esc(x.login_id)}</small>` : ''}</div><button class="btn small quiet" type="button" data-bd="remove" data-uid="${esc(x.user_id)}">빼기</button></div>`).join('')}</div>` : '<p class="bd-empty">아직 파트원이 없어요.</p>'}</section>`;
   h += `<section class="card"><h2>파트 설정</h2><div class="bd-add"><input id="bdRename" type="text" maxlength="30" value="${esc(p.name)}" aria-label="파트 이름"><button class="btn" type="button" data-bd="rename">이름 바꾸기</button></div>
     <button class="btn quiet small" type="button" data-bd="more">파트 하나 더 만들기</button><div id="bdMore" hidden>${partCreateCard(false)}</div>
     <div class="wipe-zone"><p class="small-t muted">파트를 없애면 이 파트 게시판 글 · 댓글과 파트원 명단이 지워져요. 직원 계정과 장례 기록은 그대로예요.</p><button class="btn danger block" type="button" data-bd="delpart">이 파트 없애기</button></div></section>`;
   return h;
 }
-const WHY_KO = { notleader: '파트장만 할 수 있어요', nouser: '그 아이디로 가입한 직원이 없어요. 아이디를 다시 확인해 주세요', already: '이미 이 파트에 있어요', self: '파트장님은 넣지 않아도 돼요', name: '이름을 넣어 주세요', empty: '내용을 넣어 주세요', denied: '쓴 사람이나 파트장만 할 수 있어요', gone: '지워진 글이에요', notmember: '이 파트 사람만 볼 수 있어요' };
+const WHY_KO = { notleader: '파트장만 할 수 있어요', nouser: '그 이메일로 가입한 직원이 없어요. 다시 확인해 주세요', already: '이미 이 파트에 있어요', leader: '파트장 계정은 파트원으로 넣을 수 없어요', otherpart: '이미 다른 파트에 있는 직원이에요', self: '파트장님은 넣지 않아도 돼요', name: '이름을 넣어 주세요', empty: '내용을 넣어 주세요', denied: '쓴 사람이나 파트장만 할 수 있어요', gone: '지워진 글이에요', notmember: '이 파트 사람만 볼 수 있어요' };
 function pbFail(e) { toast(e && e.why && !WHY_KO[e.why] ? pbWhyText(e.why, !isMember()).replace(/\.$/, '') : (WHY_KO[(e && e.why) || ''] || '지금은 하지 못했어요. 잠시 뒤에 다시 해 주세요')); }
 async function pbCall(fn, args, btn) {
   if (btn) btn.disabled = true;
@@ -3307,11 +3313,11 @@ async function boardClick(e) {
     const name = String($('#bdNewName').value || '').trim(); if (!name) { toast('파트 이름을 넣어 주세요'); $('#bdNewName').focus(); return; }
     const d = await pbCall('dw_part_create', { p_name: name }, b); if (!d) return;
     PB.part = d.id; try { localStorage.setItem('dw-part-sel', d.id); } catch (err) { /* ignore */ }
-    PB.view = 'people'; toast(`「${name}」 파트를 만들었어요. 이제 파트원 아이디를 넣어 주세요`); pbAfterChange(); return;
+    PB.view = 'people'; toast(`「${name}」 파트를 만들었어요. 이제 파트원을 넣어 주세요`); pbAfterChange(); return;
   }
   if (!p) return;
   if (act === 'add') {
-    const el = $('#bdAddId'), id = String(el.value || '').trim(); if (!id) { toast('직원 아이디를 넣어 주세요'); el.focus(); return; }
+    const el = $('#bdAddId'), id = String(el.value || '').trim(); if (!id) { toast('직원 이메일을 넣어 주세요'); el.focus(); return; }
     const d = await pbCall('dw_part_add', { p_part: p.id, p_login: id }, b); if (!d) return;
     toast(`${d.name || id} 님을 파트원으로 넣었어요`); pbAfterChange(); return;
   }
@@ -3432,7 +3438,7 @@ function paintMember() {
   el.innerHTML = h;
 }
 function bindHomeBoard() {
-  $('#formTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-ftab]'); if (b) showTab(b.dataset.ftab); });
+  $('#formTabs').addEventListener('click', (e) => { if (e.target.closest('[data-goco]')) { goCompany(); return; } const b = e.target.closest('[data-ftab]'); if (b) showTab(b.dataset.ftab); });
   $('#tab-home').addEventListener('click', (e) => {
     const g = e.target.closest('[data-go-fu]'); if (g) { goFuneral(g.dataset.goFu); return; }
     const t = e.target.closest('[data-tab-go]'); if (t) { showTab(t.dataset.tabGo); return; }
@@ -3517,7 +3523,7 @@ async function init() {
 }
 init();
 </script>
-<!-- 관리자 서식 · 로그인 화면 (leader-gate-head.html 과 같이 씀). 2026.10.23-5: 직원도 내 아이디로 로그인 → 관리자 기능만 숨김 -->
+<!-- DW장례업무 · 로그인 화면 (leader-gate-head.html 과 같이 씀). 2026.10.23-6: 설명 없이 이메일 · 비밀번호만, 파트장이 아니면 관리자 기능만 숨김 -->
 <script>
 (function () {
   'use strict';
@@ -3545,10 +3551,13 @@ init();
   /* 파트장 / 직원 표시: html.dw-leader · html.dw-member (직원이면 [data-admin] 숨김). 바뀌면 화면에 알림(dw-role) */
   function applyRole(u) {
     var lead = isLeader(u), was = root.classList.contains('dw-leader');
+    if (!lead && window.DW_LEADER_ONLY) { location.replace('./#home'); return; }   /* 회사 서류: 파트장만 */
     root.classList.toggle('dw-leader', lead); root.classList.toggle('dw-member', !lead);
     if (was !== lead) { try { window.dispatchEvent(new CustomEvent('dw-role', { detail: { leader: lead } })); } catch (e) {} }
   }
   var box = null;
+  /* 이메일 칸: 이메일을 그대로 넣거나, @ 없이 아이디만 넣으면 아이디@dwfuneral.com */
+  function toEmail(v) { v = String(v || '').trim().toLowerCase(); return !v ? '' : v.indexOf('@') >= 0 ? v : v + '@' + DOMAIN; }
   function gate(mode, u) {
     root.classList.add('dw-gated');
     if (!box) {
@@ -3556,31 +3565,27 @@ init();
       document.body.appendChild(box);
     }
     box.hidden = false;
-    var who = u ? idOf(u) : '';
     var join = mode === 'join';
-    box.innerHTML = '<form class="gt-card" autocomplete="on"><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : '관리자 서식') + '</h1>'
-      + (join ? '<p>아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 파트장으로 지정된 계정은 관리자 메뉴까지 모두 보여요.</p>'
-              : '<p>내 아이디로 로그인하세요. 직원은 홈 · 장례업무 · 게시판이, 파트장은 모든 메뉴가 보여요. 이 기기에서 한 번 로그인하면 다음부터는 바로 열려요.</p>')
-      + '<label>아이디<input id="gtId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>'
-      + '<label>비밀번호<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '"></label>'
-      + (join ? '<label>비밀번호 확인<input id="gtPw2" type="password" autocomplete="new-password"></label><label>이름<input id="gtName" autocomplete="name" placeholder="예: 서영우"></label>' : '')
+    box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
+      + '<input id="gtId" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="이메일 입력" aria-label="이메일">'
+      + '<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '" placeholder="비밀번호 입력" aria-label="비밀번호">'
+      + (join ? '<input id="gtPw2" type="password" autocomplete="new-password" placeholder="비밀번호 확인" aria-label="비밀번호 확인"><input id="gtName" autocomplete="name" placeholder="이름 입력" aria-label="이름">' : '')
       + '<button type="submit" id="gtGo">' + (join ? '가입하기' : '로그인') + '</button>'
-      + '<button type="button" class="gt-sub" id="gtSwap">' + (join ? '이미 아이디가 있어요 · 로그인' : '처음이에요 · 회원가입') + '</button>'
-      + '<p class="gt-err" id="gtErr" role="alert"></p></form>';
+      + '<p class="gt-err" id="gtErr" role="alert"></p>'
+      + '<button type="button" class="gt-link" id="gtSwap">' + (join ? '로그인으로 돌아가기' : '회원가입') + '</button></form>';
     box.querySelector('#gtSwap').onclick = function () { gate(join ? 'login' : 'join', u); };
     var f = box.querySelector('form'), idEl = box.querySelector('#gtId'), pwEl = box.querySelector('#gtPw'), go = box.querySelector('#gtGo'), err = box.querySelector('#gtErr');
-    if (who && !join) idEl.value = who;
+    if (u && u.email && !join) idEl.value = u.email;
     setTimeout(function () { (idEl.value ? pwEl : idEl).focus(); }, 50);
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       var id = String(idEl.value || '').trim(), pw = String(pwEl.value || '');
-      if (join) { joinSubmit(id.toLowerCase(), pw, String((box.querySelector('#gtPw2') || {}).value || ''), String((box.querySelector('#gtName') || {}).value || '').trim(), go, err); return; }
-      if (!id || !pw) { err.textContent = '아이디와 비밀번호를 넣어 주세요.'; return; }
-      var email = id.indexOf('@') >= 0 ? id : id + '@' + DOMAIN;
+      if (join) { joinSubmit(id, pw, String((box.querySelector('#gtPw2') || {}).value || ''), String((box.querySelector('#gtName') || {}).value || '').trim(), go, err); return; }
+      if (!id || !pw) { err.textContent = '이메일과 비밀번호를 넣어 주세요.'; (id ? pwEl : idEl).focus(); return; }
       go.disabled = true; go.textContent = '로그인 중…'; err.textContent = '';
-      getClient().then(function (c) { return c.auth.signInWithPassword({ email: email, password: pw }); })
+      getClient().then(function (c) { return c.auth.signInWithPassword({ email: toEmail(id), password: pw }); })
         .then(function (r) {
-          if (r.error) { err.textContent = /invalid|credential/i.test(r.error.message || '') ? '아이디나 비밀번호가 맞지 않아요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; return; }
+          if (r.error) { err.textContent = /invalid|credential/i.test(r.error.message || '') ? '이메일이나 비밀번호가 맞지 않아요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; return; }
           setLeader(r.data && r.data.user); location.reload();
         })
         .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주세요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; })
@@ -3588,15 +3593,17 @@ init();
     });
   }
   function joinSubmit(id, pw, pw2, name, go, err) {
-    if (!/^[a-z0-9][a-z0-9._-]{2,19}$/.test(id)) { err.textContent = '아이디는 영어 소문자 · 숫자로 3~20자로 넣어 주세요.'; return; }
+    var v = String(id || '').trim().toLowerCase();
+    var ok = v.indexOf('@') >= 0 ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) : /^[a-z0-9][a-z0-9._-]{2,19}$/.test(v);
+    if (!ok) { err.textContent = '이메일을 확인해 주세요.'; return; }
     if (pw.length < 6) { err.textContent = '비밀번호는 6자 이상으로 넣어 주세요.'; return; }
     if (pw !== pw2) { err.textContent = '비밀번호 확인이 달라요.'; return; }
     go.disabled = true; go.textContent = '가입 중…'; err.textContent = '';
-    getClient().then(function (c) { return c.auth.signUp({ email: id + '@' + DOMAIN, password: pw, options: { data: name ? { name: name } : {} } }); })
+    getClient().then(function (c) { return c.auth.signUp({ email: toEmail(v), password: pw, options: { data: name ? { name: name } : {} } }); })
       .then(function (r) {
         if (r.error) { var m = String(r.error.message || '');
-          err.textContent = /already|registered|exists/i.test(m) ? '이미 있는 아이디예요. 다른 아이디로 해 주세요.' : /not allowed|disabled/i.test(m) ? '지금은 회원가입이 꺼져 있어요. 파트장님께 말씀해 주세요.' : /password/i.test(m) ? '비밀번호를 더 길게(6자 이상) 넣어 주세요.' : '가입하지 못했어요. 인터넷을 확인해 주세요.'; return; }
-        if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입 신청이 됐어요. 파트장님이 확인해 주면 로그인할 수 있어요.'; return; }
+          err.textContent = /already|registered|exists/i.test(m) ? '이미 가입된 이메일이에요.' : /not allowed|disabled/i.test(m) ? '지금은 회원가입을 할 수 없어요.' : /password/i.test(m) ? '비밀번호를 더 길게(6자 이상) 넣어 주세요.' : /email|invalid/i.test(m) ? '이메일을 확인해 주세요.' : '가입하지 못했어요. 인터넷을 확인해 주세요.'; return; }
+        if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입 신청이 됐어요. 확인되면 로그인할 수 있어요.'; return; }
         setLeader(r.data.user); location.reload();
       })
       .catch(function () { err.textContent = '가입하지 못했어요. 인터넷을 확인해 주세요.'; })
@@ -3645,9 +3652,9 @@ init();
     if (!u) { card.hidden = true; return; }
     card.hidden = false;
     var nm0 = String((u.user_metadata && u.user_metadata.name) || '');
-    card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b> · ' + (acct.leader() ? '파트장' : '직원') + '</p>'
+    card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b></p>'
       + '<div class="ac-name" id="acNameRow"><label class="field"><span>게시판에 보이는 이름</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
-      + '<p class="small-t muted">장례일정과 같은 계정이에요. 로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
+      + '<p class="small-t muted">로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
       + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
       + '<button class="btn quiet small" type="button" id="acDelOpen">회원 탈퇴</button>'
       + '<div id="acDelBox" class="ac-del" hidden><p class="small-t" style="color:var(--warn)">탈퇴하면 내 계정과 서버에 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 기기에 있는 기록은 그대로 남아요.</p>'
@@ -3675,7 +3682,7 @@ init();
       b.disabled = true; b.textContent = '탈퇴하는 중…';
       acct.deleteMe(pw).then(function (r) {
         if (r === 'ok') { location.reload(); return; }
-        msg.textContent = r === 'pw' ? '비밀번호가 맞지 않아요.' : r === 'nofn' ? '탈퇴 기능이 서버에 아직 준비되지 않았어요. 파트장님께 말씀해 주세요.' : '지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요.';
+        msg.textContent = r === 'pw' ? '비밀번호가 맞지 않아요.' : r === 'nofn' ? '지금은 탈퇴할 수 없어요. 잠시 뒤에 다시 해 주세요.' : '지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요.';
         b.disabled = false; b.textContent = '탈퇴하기';
       });
     };

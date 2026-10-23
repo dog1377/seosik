@@ -1,13 +1,14 @@
 # AGENTS.md — 작업 규칙 (Codex · Claude 등 AI가 이 저장소를 고칠 때 먼저 읽는 파일)
 
-디더블유 장례의전(DW) 직원들이 휴대폰에 설치해서 쓰는 웹앱(PWA) 3개의 저장소입니다.
+디더블유 장례의전(DW) 직원들이 휴대폰에 설치해서 쓰는 웹앱(PWA) **「DW장례업무」 하나**의 저장소입니다. (2026.10.23-6 사용자 요청으로 예전 세 앱 — 관리자 서식 · 장례일정 · DW관리 — 을 하나로 합침)
 `main` 브랜치에 합치는 순간 GitHub Pages로 **https://dwfuneral.com 에 바로 배포**되고, 모든 직원 앱이 다음에 열 때 새 버전을 받습니다.
 
-| 앱 | 주소 | 원본 |
+| 화면 | 주소 | 원본 |
 |---|---|---|
-| 관리자 서식 (내 아이디로 로그인: 파트장은 모든 메뉴, 직원은 홈 · 장례업무 · 파트 게시판) | https://dwfuneral.com/forms/ (맨 앞 주소 dwfuneral.com 은 여기로 넘겨 줌) | `src/app.html` |
-| 장례일정 (직원용: 행사 입력 · 보고서 · 정산 · 봉투 · 휴무/당직) | https://dwfuneral.com/jangrye/ | `src/funeral.html` |
-| DW관리 (회사 관리자용) | https://dwfuneral.com/admin/ | `src/admin.html` |
+| DW장례업무 (로그인 필수: 파트장은 모든 메뉴, 직원은 홈 · 장례업무 · 파트 게시판) — 홈 · 서식 · 게시판 · 설정 | https://dwfuneral.com/forms/ (맨 앞 주소 dwfuneral.com 은 여기로 넘겨 줌, 앱 신분증은 예전 관리자 서식 그대로) | `src/app.html` |
+| 장례업무 (행사 입력 · 보고서 · 정산 · 봉투 · 휴무/당직) | https://dwfuneral.com/forms/funeral.html | `src/funeral.html` + `src/funeral-bridge.html` |
+| 회사 서류 (예전 DW관리: 공지사항 · 인사발령 · 재직증명서 · 시말서 · 사직서 · 인사기록카드, **파트장만**) | https://dwfuneral.com/forms/admin.html | `src/admin.html` + `src/admin-bridge.html` |
+| 예전 앱 자리 — 장례일정 · DW관리 (이미 깔린 아이콘으로 열면 「DW장례업무로 합쳐졌어요」 + 그 앱에 남은 기록 백업 받기, 브라우저로 열면 바로 넘어감) | https://dwfuneral.com/jangrye/ · /admin/ | `src/moved.html` |
 
 - 서버는 없습니다. 모든 기록은 **각 사람 휴대폰 안(localStorage · IndexedDB)에만** 저장됩니다.
 - 요청하는 사람은 파트장이고 **개발자가 아닙니다.** 결과는 쉬운 한국어로, "무엇이 바뀌었는지"만 짧게 알려 주세요. 전문용어는 쓰지 마세요.
@@ -26,7 +27,7 @@
 3. 장례일정의 **「자동 보관본」**(`autoSnapshot`, 업데이트 전 · 하루 한 번 IndexedDB `funeral-safe`에 보관) 기능을 없애지 않는다.
 4. **앱 신분증(`manifest.webmanifest`의 `"id"`)과 관리자 서식 manifest 위치를 바꾸지 않는다.** 관리자 서식 `"./"`(= dwfuneral.com/, manifest는 맨 앞 `/manifest.webmanifest`에 두고 `start_url`·`scope`만 `forms/`), 장례일정 `"/jangrye/"`, DW관리 `"/admin/"`. **관리자 서식을 다시 맨 앞 주소(/)로 옮기지 않는다** — 맨 앞 주소 앱은 그 아래 /jangrye/ · /admin/ 까지 자기 앱으로 덮어서 안드로이드에서 다른 두 앱을 설치할 수 없게 된다 (2026.10.16 forms/ 로 옮김, 맨 앞 `/` · `/funeral.html`은 넘겨 주는 안내 페이지, 맨 앞 `sw.js`는 그 두 페이지만 맡음). `id`는 주소의 맨 앞(도메인)을 기준으로 읽혀서, 예전처럼 셋 다 `"./"`이면 휴대폰이 세 앱을 같은 앱으로 알고 "이미 설치됨"이 뜬다 (2026.10.16 고침). 바꾸면 이미 깔린 앱이 다른 앱으로 취급된다.
 4-1. **사용자에게 앱을 지웠다가 다시 깔라고 안내하지 않는다.** 안드로이드에서 설치된 앱을 지우면 dwfuneral.com 기록(세 앱이 같은 저장 공간을 씀: 관리자 서식 · 장례일정 · 휴무 · DW관리)이 같이 지워질 수 있다 (2026.10.17 실제로 지워짐). 꼭 필요하면 반드시 백업 파일부터 받게 하고, 가능하면 앱이 스스로 업데이트되기를 기다리게 한다.
-5. **자동으로 만들어지는 파일을 직접 고치지 않는다**: `forms/` 폴더 전부, `index.html`, `funeral.html`, `jangrye/index.html`, `admin/index.html`, `sw.js`, `jangrye/sw.js`, `admin/sw.js`, `version.json`, `admin/version.json`. (고쳐도 다음 빌드 때 덮어써집니다.)
+5. **자동으로 만들어지는 파일을 직접 고치지 않는다**: `forms/` 폴더 전부(`forms/index.html` · `forms/funeral.html` · `forms/admin.html`), `index.html`, `funeral.html`, `jangrye/index.html`, `admin/index.html`(둘 다 예전 앱 자리 안내), `sw.js`, `jangrye/sw.js`, `admin/sw.js`, `version.json`, `admin/version.json`. (고쳐도 다음 빌드 때 덮어써집니다.)
 6. **비밀번호를 채팅으로 받지 않는다.** 앱 잠금은 DW관리 → 설정 → 「앱 비밀번호」에서 만든 코드(`admin:p2$…`, `forms:p2$…`)만 받아 `locks.json`에 넣는다. 지금 `locks.json`은 비어 있어 잠금이 꺼져 있다.
 7. **돈 계산 규칙이 애매하면 만들기 전에 먼저 물어본다.** 짐작해서 만들지 않는다. 보기를 몇 개 주고 고르게 하면 좋다.
 
@@ -35,9 +36,9 @@
 ## 2. 고치는 순서
 
 1. **`src/` 안의 원본만 고친다.**
-   - `src/funeral.html` — 장례일정 · 정산 · 봉투 · 휴무/당직 (관리자 서식 안의 「장례업무」와 장례일정 앱이 이 파일 하나를 같이 씀)
-   - `src/app.html` — 관리자 서식, `src/admin.html` — DW관리, `src/lock.html` — 비밀번호 잠금 화면
-   - `src/funeral-theme.html`(장례일정 색 · 글꼴), `src/funeral-bridge.html`, `src/jangrye-bridge.html`
+   - `src/funeral.html` — 장례업무(장례일정 · 정산 · 봉투 · 휴무/당직) → `forms/funeral.html`
+   - `src/app.html` — DW장례업무 첫 화면(홈 · 서식 · 게시판 · 설정), `src/admin.html` — 회사 서류(예전 DW관리) → `forms/admin.html`, `src/lock.html` — 예전 비밀번호 잠금 화면(locks.json 비어 있어 꺼짐)
+   - `src/leader-gate-head.html` · `src/leader-gate.html`(로그인 화면 · 파트장/직원 구분), `src/funeral-theme.html`(장례업무 색 · 글꼴), `src/funeral-bridge.html`(장례업무의 홈 버튼 · 메뉴), `src/admin-bridge.html`(회사 서류의 홈 버튼), `src/moved.html`(예전 앱 자리 안내)
 2. **빌드**: `python3 build.py 2026.MM.DD-N`
    - 버전은 **날짜-순번**, 매번 올린다. 지금 버전은 `version.json`을 보고 확인한다. (같은 날이면 순번 +1, 날짜가 바뀌면 `-1`부터)
    - 버전이 안 바뀌면 직원들 휴대폰 앱이 새 버전을 받지 않는다.
@@ -78,6 +79,12 @@
 - **실시간 저장 · 내 계정 (수파베이스)**(2026.10.23-2, 사용자 「각자 아이디 부여, 각자 것은 각자만」 · 무료 요금제): 프로젝트 `https://bruqeidlbougfdveomag.supabase.co`, 공개 키 `sb_publishable_…`(앱에 넣어도 되는 키 — 남의 기록은 RLS로 막힘. **secret · service_role 키와 비밀번호는 절대 받지 않음/넣지 않음**). 서버 준비는 `tools/supabase-setup.sql`(사용자가 SQL Editor에서 실행): 표 `dw_records`(user_id · app · kind 'case'|'env'|'state' · id · data jsonb · deleted · updated_at ms · device · server_at), RLS 내 것만 select/insert/update(**delete 규칙 없음** → 완전 삭제 불가), 트리거 `dw_records_guard`(더 오래된 updated_at 은 무시, data 없이 오면 내용 유지), 실시간 publication. 계정은 파트장이 수파베이스 Authentication → Users → Add user(`아이디@dwfuneral.com`, Auto Confirm), 가입(sign up)은 꺼 둠. 앱(`src/funeral.html` sb* 함수): 설정 → 백업 · 공유 맨 위 「실시간 저장 · 내 계정」에서 아이디(@dwfuneral.com 자동) · 비밀번호 로그인, 연결 도구 `vendor/supabase.js`(supabase-js 2.117.0 UMD, 빌드가 jangrye/vendor · forms/vendor 로 복사, 로그인할 때만 불러옴). 저장(`save`) 1초 뒤 바뀐 기록만 올림(`sbPush`: 행사 `case:id` · 봉투 `env:id` · 설정 `state:settings`(SB_SET_KEYS: companies · lists · crems · defaultItems · settleRules · me · dispatchTpl · offTpl · envelopeSkipped) · 휴무 `state:duty`(hyumu-* 값)), 지운 행사 · 봉투는 `deleted:true` 표시만. 받기(`sbPull` 처음 전체, 이후 server_at 이후만) · 실시간(`postgres_changes` filter user_id) → `sbApply`: 더 나중에 고친 쪽(updated)이 이김, 설정 · 휴무는 이 기기에서 아직 안 올린 변경이 있으면 이 기기 것 우선. 화면 열 때 · 인터넷 다시 연결 · 1분마다 다시 맞춤. 이 계정과 처음 맞출 때 자동 보관본(이유 「내 계정 맞추기 전」) + 휴무 사본 `dw-sb-dutybak`. 새 이 기기 저장값: `dw-sb-auth`(로그인 세션) · `dw-sb-meta`(올린 기록 표시) · `dw-sb-dev`(기기 번호) — 이름 바꾸지 말 것. 화면: 위 막대 「실시간 저장됨 / 올리는 중 / 연결 끊김 · 이 기기에 보관」, 왼쪽 메뉴 아래 「내 계정(아이디)에 실시간 저장」(누르면 설정), 저장 버튼 알림 「이 기기와 내 계정에 저장돼요」. 이 작업 환경에서는 supabase.co 접속이 막혀 있어 테스트는 가짜 서버(`sb_mock.js` 식)로 함. 관리자 서식(주간보고 등)은 아직 안 옮김.
 - **관리자 서식 · 파트장 전용**(2026.10.23-3, 사용자 「관리자 서식은 파트장들한테만」): `forms/index.html` · `forms/funeral.html` 둘 다 파트장 계정으로 로그인해야 열림. 파트장 = 수파베이스 사용자 `app_metadata.dw_role = 'leader'`(사용자는 스스로 못 바꾸는 칸) — 지정은 `tools/supabase-leader.sql`(SQL Editor). 빌드가 `src/leader-gate-head.html`(head: 화면 숨김 + 이 기기 확인)과 `src/leader-gate.html`(body 끝: 로그인 화면 · 서버 확인)을 넣음(`GATE_HEAD` · `GATE_BODY`, `make_funeral(head_extra=)`). 로그인은 장례일정과 같은 세션(`dw-sb-auth`)이라 한쪽에서 하면 다른 쪽도 됨. 이 기기에서 한 번 파트장으로 확인되면 `dw-leader`(사용자 id)에 남겨 인터넷이 없어도 바로 열고, 인터넷이 되면 `auth.getUser()`로 다시 확인(파트장에서 빠졌으면 다시 잠금, 로그인 풀림 401/403 → 다시 로그인). 장례업무 화면은 실시간 저장 연결(`sbClient`)을 같이 씀(연결 하나). (2026.10.23-5부터 파트장이 아니어도 로그인하면 열림 → 아래 「홈 · 파트 게시판」) 장례일정 앱은 잠금 없음. 예전 비밀번호 잠금(locks.json)은 그대로(비어 있음).
 - **계정 · 회원가입 · 탈퇴 · 아이콘**(2026.10.23-4, 사용자 요청): 장례일정 설정 → 「내 계정 · 백업」(예전 「백업 · 공유」) 맨 위에서 **로그인 / 회원가입**(아이디 영어 소문자 · 숫자 3~20자 → `아이디@dwfuneral.com`, 비밀번호 6자 이상 + 확인, 이름은 `user_metadata.name` 이고 내 이름이 비었으면 `me().name` 에 넣음, `sbJoin`) · **로그아웃**(설정, 왼쪽 메뉴 아래 「로그아웃」 버튼 `[data-sbout]`) · **회원 탈퇴**(비밀번호 다시 확인 → 서버 함수 `dw_delete_me()` → 내 계정 · 서버 기록 삭제, 이 기기 기록은 남음, `sbDeleteMe`). 가입이 되려면 수파베이스 Authentication에서 「Allow new users to sign up」 켜고 「Confirm email」 끄기(가짜 이메일이라 확인 메일을 못 받음). 관리자 서식: 잠금 화면에 「처음이에요 · 회원가입」(가입해도 파트장 지정 전에는 안 열림), 설정 맨 위 「내 계정」 카드(`#dwAcctCard`: 로그아웃 · 회원 탈퇴), 위 막대 「아이디 · 내 계정」(누르면 그 카드) — 코드는 `src/leader-gate.html` 의 `window.dwAcct`. 탈퇴 함수 SQL은 `tools/supabase-setup.sql` 맨 아래. **앱 아이콘**: (2026.10.23-5) 사용자가 보낸 사진(검은 바탕 흰 국화)으로 바꿈 — 꽃을 가운데로 잘라 `icons/`, `jangrye/icons/`, `admin/icons/` 의 gukhwa-*.png 같은 이름 그대로(512 · 192 꽃 84%, 애플 180 80%, maskable 512 66%(동그랗게 잘려도 꽃이 안 잘림), 32), manifest `background_color` #000000.
+- **앱 하나로 통일 · 깔끔한 로그인 · 파트 나누기**(2026.10.23-6, 사용자 요청: 「DW관리랑 장례일정 없애고 DW장례업무로 앱 통일 · 구구절절 파트원 · 파트장 설명 없이 깔끔하게 로그인 화면만, 이메일 칸 예시는 「이메일 입력」만 · 각 파트장은 다른 파트 게시판이나 파트원 열람 불가」).
+  - **이름**: 앱 이름(manifest name · short_name · 위 막대 · 페이지 제목)을 「DW장례업무」로. 앱 신분증(id "./")·주소(forms/)는 그대로라 이미 깔린 관리자 서식 앱이 그대로 DW장례업무가 됨. 아래 메뉴 「서식」 위쪽 탭: 주간보고 · 회의록 · 후기보고 · 탁송 · **회사 서류**(누르면 `admin.html`, `goCompany`). 장례업무 왼쪽 메뉴에도 「회사 서류」.
+  - **회사 서류**(`forms/admin.html`): 예전 DW관리 원본 그대로(저장소 IndexedDB `company-admin` · `ca.*` 그대로 → 같은 주소라 안드로이드에서는 기록이 바로 보임). 머리에 `window.DW_LEADER_ONLY = true` → 직원 계정이면 `./#home` 으로 돌려보냄(leader-gate-head · applyRole). 위 막대에 「홈」 버튼(`src/admin-bridge.html`). 「앱 비밀번호」 카드는 로그인으로 대신해서 숨김(`#pwCard hidden`).
+  - **예전 앱 자리**(`src/moved.html` → `jangrye/index.html` · `admin/index.html`, 빌드가 __KIND__ 등을 넣음): 예전 아이콘(설치된 앱, standalone)으로 열면 「DW장례업무로 합쳐졌어요」 + 「DW장례업무 열기」, 그 앱 저장 공간에 기록이 있으면 「기록 백업 파일 받기」(장례일정 = `funeral-maker-backup` 모양 → 장례업무 설정에서 불러오기, DW관리 = `company-admin` 모양 → 회사 서류 설정에서 불러오기; **아이폰은 홈 화면 앱마다 저장 공간이 따로**라서 필요). IndexedDB는 `indexedDB.databases()` 목록에 있을 때만 열고 새로 만들어지려 하면 취소(빈 저장소를 만들면 회사 서류가 망가짐). 「예전 아이콘을 지우면 이 기기의 기록이 같이 지워질 수 있어요」 안내. 브라우저로 열면 바로 DW장례업무로 넘어감. 예전 manifest(`jangrye/` · `admin/`)와 아이콘 · sw.js 는 남겨 둠(깔린 앱이 계속 업데이트 받게). `src/jangrye-bridge.html` · `jangrye/vendor` · `admin/vendor` 는 지움.
+  - **로그인 화면**: 설명 문단 없이 국화 · 「DW장례업무」 · 이메일 칸(예시 「이메일 입력」) · 비밀번호 칸(「비밀번호 입력」) · 로그인 · 「회원가입」 글자 버튼. 회원가입도 이메일 · 비밀번호 · 비밀번호 확인 · 이름 · 가입하기 · 「로그인으로 돌아가기」. 칸 이름은 `aria-label`. 이메일 칸에 `@` 없이 아이디만 넣으면 `아이디@dwfuneral.com`(예전 계정), `@` 가 있으면 그 이메일 그대로 로그인 · 가입(`toEmail`). 장례업무 설정 「내 계정」 칸도 「이메일」. 「내 계정」 카드에 파트장/직원 글자 없앰.
+  - **파트 나누기**(`tools/supabase-part.sql` 다시 실행): 한 직원은 한 파트에만(`dw_part_members_one` 고유 · 넣을 때 `otherpart`), 파트장 계정은 파트원으로 못 넣음(`leader`), 파트장 계정은 파트원으로 들어가 있어도 그 파트를 못 봄(`dw_in_part`), 파트원이 파트장이 되어 파트를 만들면 예전 파트에서 빠짐. 스크립트가 예전에 넣은 겹친 것도 정리(파트장 빼고, 두 파트면 먼저 넣은 쪽만). 파트장은 자기가 만든 파트의 게시판 · 파트원 · 기록만 봄. 파트원 넣는 칸도 「이메일 입력」(아이디도 됨).
 - **홈 · 파트 게시판 · 직원 로그인**(2026.10.23-5, 사용자 요청: 「파트장이 아니면 각자 아이디로 로그인하되 관리자 기능만 안 보이게 · 홈 화면(이번 달 행사 수 · 봉투 금액 · 월말 마감 D-N) · 파트별 게시판 · 파트장은 파트원 봉투 · 장례일정 보기」 + 고른 답: 서식 메뉴 전부 숨김 · 파트장이 파트 만들고 아이디로 추가 · 보기만 · 파트원도 글 · 댓글).
   - **로그인**: `src/leader-gate-head.html` 이 로그인 세션이 있으면 `html.dw-leader` 또는 `html.dw-member`(파트장 아님), 없으면 `dw-gated`(로그인 화면). 직원은 `[data-admin]`(서식 · 설정 탭, 서식 고르는 줄, 장례업무 왼쪽 메뉴의 서식 바로가기)만 안 보임. `src/leader-gate.html`: 로그인 · 회원가입 화면(예전 「파트장 아님 → 장례일정 열기」 없앰), 서버 확인(`getUser`) 뒤 `applyRole` 로 클래스 바꾸고 바뀌면 `dw-role` 이벤트, `window.dwAcct.rpc(함수, 값)`(실패 이유 login · offline · noserver · net), 「내 계정」 카드에 **게시판에 보이는 이름**(`dw_set_name`). 직원은 「내 계정」 카드가 홈 맨 아래로 감(`homeAcctSlot`).
   - **아래 메뉴**(관리자 서식): 파트장 = 홈 · 장례업무 · 서식 · 게시판 · 설정, 직원 = 홈 · 장례업무 · 게시판. 「서식」은 위쪽 밑줄 탭(`#formTabs`)으로 주간보고 · 회의록 · 후기보고 · 탁송 · 출고(마지막 고른 것 `mf.formTab`). 탭 이름 `S.tab` = home · weekly · minutes · review · ship · board · settings (`showTab`, `FORM_TABS` · `ADMIN_TABS` · `ALL_TABS`). 앱을 새로 열면 **홈**(예전 「마지막에 장례업무였으면 장례업무로」 넘기기는 없앰), 같은 창에서 다시 불러오면 보던 탭(`mf.tabS`), 주소 끝 `#board` 등으로도 엶. 장례업무 위 막대 버튼은 「홈」(`./#home`).

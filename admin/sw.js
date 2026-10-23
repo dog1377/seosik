@@ -1,5 +1,5 @@
 /* Service worker for 관리자 서식함. Generated into sw.js by build.py; edit this template. */
-const VERSION = '2026.10.23-5';
+const VERSION = '2026.10.23-6';
 const PREFIX = 'admin-app-';
 const CACHE = PREFIX + VERSION;
 const FONT_CACHE = 'seosik-fonts-v1';
@@ -7,7 +7,6 @@ const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./vendor/jspdf.umd.min.js",
   "./icons/gukhwa-192.png",
   "./icons/gukhwa-512.png",
   "./icons/gukhwa-apple-180.png"

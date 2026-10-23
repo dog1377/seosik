@@ -1,4 +1,4 @@
-<!-- 서식함 안의 장례업무에만 붙는 부분: 관리자 서식 홈으로 돌아가는 버튼과 메뉴. 직원 계정(html.dw-member)이면 [data-admin] 메뉴는 숨김 (leader-gate-head.html) -->
+<!-- DW장례업무 안의 장례업무에만 붙는 부분: 홈으로 돌아가는 버튼과 메뉴. 직원 계정(html.dw-member)이면 [data-admin] 메뉴는 숨김 (leader-gate-head.html) -->
 <style id="mf-bridge">
 .mf-home{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;height:40px;padding:0 11px;border:1px solid var(--edge,#dce3ec);border-radius:12px;background:var(--surface,#fff);color:var(--ink,#182538);font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
 .mf-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -23,7 +23,7 @@
     var home = document.createElement('button');
     home.type = 'button';
     home.className = 'mf-home';
-    home.setAttribute('aria-label', '관리자 서식 홈으로 가기');
+    home.setAttribute('aria-label', 'DW장례업무 홈으로 가기');
     home.innerHTML = HOME + '<span>홈</span>';
     home.addEventListener('click', function () { toForms('home'); });
     bar.insertBefore(home, document.getElementById('newCase'));
@@ -36,7 +36,7 @@
     acc.className = 'acc';
     acc.setAttribute('data-acc', 'forms');
     acc.innerHTML =
-      '<button class="acc-h" type="button" aria-expanded="true"><span>' + DOC + '관리자 서식</span><i></i></button>' +
+      '<button class="acc-h" type="button" aria-expanded="true"><span>' + HOME + 'DW장례업무</span><i></i></button>' +
       '<div class="acc-b"><div>' +
       '<button type="button" data-mf="home">홈</button>' +
       '<button type="button" data-mf="board">파트 게시판</button>' +
@@ -44,11 +44,12 @@
       '<button type="button" data-mf="minutes" data-admin>회의록</button>' +
       '<button type="button" data-mf="review" data-admin>후기 일일보고</button>' +
       '<button type="button" data-mf="ship" data-admin>용품 · 근조기 탁송</button>' +
-      '<button type="button" data-mf="settings" data-admin>관리자 서식 설정 · 백업</button>' +
+      '<button type="button" data-mf="company" data-admin>회사 서류</button>' +
+      '<button type="button" data-mf="settings" data-admin>서식 설정 · 백업</button>' +
       '</div></div>';
     acc.addEventListener('click', function (e) {
       var b = e.target.closest('[data-mf]');
-      if (b) toForms(b.getAttribute('data-mf'));
+      if (b) { if (b.getAttribute('data-mf') === 'company') { setLast('forms'); location.replace('./admin.html'); } else toForms(b.getAttribute('data-mf')); }
     });
     body.appendChild(acc);
   }

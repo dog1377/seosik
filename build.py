@@ -20,7 +20,7 @@ version = sys.argv[1] if len(sys.argv) > 1 else datetime.datetime.now().strftime
 # 앱 잠금: locks.json 에 비밀번호 해시(코드)만 들어 있음. 비어 있으면 잠그지 않음
 LOCKS = json.loads((ROOT / 'locks.json').read_text(encoding='utf-8'))
 LOCK_SNIPPET = (ROOT / 'src' / 'lock.html').read_text(encoding='utf-8')
-# 관리자 서식은 파트장 계정만 (수파베이스 로그인 · app_metadata.dw_role='leader')
+# DW장례업무(forms/)는 로그인해야 열림 (수파베이스). 파트장(app_metadata.dw_role='leader')이 아니면 관리자 기능만 숨김
 GATE_HEAD = (ROOT / 'src' / 'leader-gate-head.html').read_text(encoding='utf-8')
 GATE_BODY = (ROOT / 'src' / 'leader-gate.html').read_text(encoding='utf-8')
 
@@ -40,12 +40,12 @@ html = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="파트장용 주간보고·탁송 보고서 앱. 기록은 각자 휴대폰에만 저장됩니다.">
+<meta name="description" content="DW장례업무 · 디더블유 장례의전 업무 앱 (장례업무 · 정산 · 봉투 · 파트 게시판 · 서식).">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="관리자 서식">
+<meta name="apple-mobile-web-app-title" content="DW장례업무">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
@@ -53,7 +53,7 @@ html = f"""<!doctype html>
 <script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
-{lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': '관리자 서식', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': '장례일정만 쓰실 분은 <a href="../jangrye/">장례일정 열기</a>'})}
+{lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': 'DW장례업무', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': ''})}
 {GATE_HEAD}
 </head>
 <body>
@@ -88,7 +88,7 @@ def redirect_page(target, title):
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="관리자 서식">
+<meta name="apple-mobile-web-app-title" content="DW장례업무">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
@@ -96,15 +96,15 @@ def redirect_page(target, title):
 <noscript><meta http-equiv="refresh" content="0;url={target}"></noscript>
 <style>body{{margin:0;padding:32px 20px;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#1c1d1f;background:#fff}}a{{color:inherit}}@media (prefers-color-scheme:dark){{body{{color:#ecebe8;background:#121314}}}}</style>
 </head>
-<body><p>관리자 서식으로 이동합니다. 넘어가지 않으면 <a href="{target}">여기를 누르세요</a>.</p>
+<body><p>DW장례업무로 이동합니다. 넘어가지 않으면 <a href="{target}">여기를 누르세요</a>.</p>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () {{}});</script>
 </body>
 </html>
 """
 
 
-(ROOT / 'index.html').write_text(redirect_page('forms/', '관리자 서식'), encoding='utf-8')
-(ROOT / 'funeral.html').write_text(redirect_page('forms/funeral.html', '장례업무 · 관리자 서식'), encoding='utf-8')
+(ROOT / 'index.html').write_text(redirect_page('forms/', 'DW장례업무'), encoding='utf-8')
+(ROOT / 'funeral.html').write_text(redirect_page('forms/funeral.html', 'DW장례업무'), encoding='utf-8')
 
 # ---------- 장례 일정 작성기: 서식함 안의 장례업무(funeral.html)와 따로 쓰는 장례일정 앱(jangrye/) ----------
 import re
@@ -146,10 +146,10 @@ def make_sw(prefix, core):
 
 # 서식함 안의 장례업무
 (FM / 'funeral.html').write_text(
-    make_funeral('관리자 서식', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), GATE_BODY], share_title='관리자 서식', page_title='장례업무 · 관리자 서식', manifest_href='../manifest.webmanifest', head_extra=GATE_HEAD),
+    make_funeral('DW장례업무', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), GATE_BODY], share_title='DW장례업무', page_title='DW장례업무', manifest_href='../manifest.webmanifest', head_extra=GATE_HEAD),
     encoding='utf-8')
 (FM / 'sw.js').write_text(make_sw('forms-app-', [
-    './', './index.html', './funeral.html', './vendor/jspdf.umd.min.js',
+    './', './index.html', './funeral.html', './admin.html', './vendor/jspdf.umd.min.js',
     './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
 ]), encoding='utf-8')
 (FM / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
@@ -164,61 +164,65 @@ root_sw = root_sw.replace(scope_line, 'if (!' + json.dumps(ROOT_ONLY) + '.includ
 (ROOT / 'sw.js').write_text(root_sw, encoding='utf-8')
 (ROOT / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
 
-# 따로 쓰는 장례일정 앱 (서식 없음)
+# ---------- 예전 앱 자리 (2026.10.23-6): 장례일정(jangrye/) · DW관리(admin/)는 DW장례업무 하나로 합침 ----------
+# 이미 깔린 예전 앱(manifest id /jangrye/ · /admin/)은 그대로 두고, 열면 「DW장례업무로 합쳐졌어요」 안내 + (그 앱 저장 공간에 기록이 있으면) 백업 파일 받기.
+MOVED = (ROOT / 'src' / 'moved.html').read_text(encoding='utf-8')
+def moved_page(kind, title, msg, target):
+    return (MOVED.replace('__KIND__', kind).replace('__TITLE__', title).replace('__MSG__', msg)
+                 .replace('__TARGET__', target).replace('__VERSION__', version))
 JR = ROOT / 'jangrye'
 JR.mkdir(exist_ok=True)
-(JR / 'vendor').mkdir(exist_ok=True)
-shutil.copyfile(ROOT / 'vendor' / 'supabase.js', JR / 'vendor' / 'supabase.js')   # 실시간 저장 (수파베이스 연결 도구, 로그인할 때만 불러옴)
-(JR / 'index.html').write_text(
-    make_funeral('장례일정', [(ROOT / 'src' / 'jangrye-bridge.html').read_text(encoding='utf-8')], page_title='장례일정'),
-    encoding='utf-8')
+(JR / 'index.html').write_text(moved_page('funeral', '장례일정', '장례일정은 이제 DW장례업무 앱에서 써요. 로그인하면 기록이 그대로 이어져요.', '../forms/'), encoding='utf-8')
 (JR / 'sw.js').write_text(make_sw('jangrye-app-', [
     './', './index.html', './manifest.webmanifest',
     './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
 ]), encoding='utf-8')
-
-# 회사 관리 앱 (admin/): 공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드
-import shutil
 AD = ROOT / 'admin'
-(AD / 'vendor').mkdir(parents=True, exist_ok=True)
-shutil.copyfile(ROOT / 'vendor' / 'jspdf.umd.min.js', AD / 'vendor' / 'jspdf.umd.min.js')
+AD.mkdir(exist_ok=True)
+(AD / 'index.html').write_text(moved_page('admin', 'DW관리', 'DW관리는 이제 DW장례업무 「서식 → 회사 서류」에서 써요.', '../forms/admin.html'), encoding='utf-8')
+(AD / 'sw.js').write_text(make_sw('admin-app-', [
+    './', './index.html', './manifest.webmanifest',
+    './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
+]), encoding='utf-8')
+(AD / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
+
+# ---------- 회사 서류 (예전 DW관리: 공지사항 · 인사발령 · 재직증명서 · 시말서 · 사직서 · 인사기록카드) → forms/admin.html, 파트장만 ----------
 asrc = (ROOT / 'src' / 'admin.html').read_text(encoding='utf-8')
 asplit = asrc.index('<header class="appbar">')
 ahead, abody = asrc[:asplit].strip(), asrc[asplit:].strip()
 if CDN_JSPDF not in abody:
     raise SystemExit('jsPDF script tag not found in src/admin.html')
 abody = abody.replace(CDN_JSPDF, LOCAL_JSPDF)
+ADMIN_BRIDGE = (ROOT / 'src' / 'admin-bridge.html').read_text(encoding='utf-8')
 admin_html = f"""<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="DW관리 · 회사 관리자용 공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드. 기록은 이 휴대폰에만 저장됩니다.">
+<meta name="description" content="DW장례업무 · 회사 서류 (공지사항·인사발령·재직증명서·시말서·사직서·인사기록카드). 기록은 이 휴대폰에만 저장됩니다.">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="DW관리">
+<meta name="apple-mobile-web-app-title" content="DW장례업무">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="robots" content="noindex">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 <script>window.__LOCK_STATE__ = {json.dumps({k: bool(v) for k, v in LOCKS.items()})};</script>
 {ahead}
-{lock_html({'hash': LOCKS.get('admin', ''), 'key': 'ca', 'title': 'DW관리', 'who': '관리자', 'remember': False, 'relockMin': 10, 'alt': ''})}
+{lock_html({'hash': LOCKS.get('admin', ''), 'key': 'ca', 'title': '회사 서류', 'who': '관리자', 'remember': False, 'relockMin': 10, 'alt': ''})}
+{GATE_HEAD}
 </head>
 <body>
 {abody}
+{ADMIN_BRIDGE}
+{GATE_BODY}
 </body>
 </html>
 """
-(AD / 'index.html').write_text(admin_html, encoding='utf-8')
-(AD / 'sw.js').write_text(make_sw('admin-app-', [
-    './', './index.html', './manifest.webmanifest', './vendor/jspdf.umd.min.js',
-    './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
-]), encoding='utf-8')
-(AD / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
+(FM / 'admin.html').write_text(admin_html, encoding='utf-8')
 print('built version', version)

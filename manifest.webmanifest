@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "관리자 서식",
-  "short_name": "관리자 서식",
-  "description": "파트장용 주간 파트 보고와 용품·근조기 탁송·출고 보고서. 기록은 각자 휴대폰에만 저장됩니다.",
+  "name": "DW장례업무",
+  "short_name": "DW장례업무",
+  "description": "디더블유 장례의전 업무 앱: 장례업무 · 정산 · 봉투 · 파트 게시판 · 서식.",
   "lang": "ko",
   "dir": "ltr",
   "start_url": "forms/",

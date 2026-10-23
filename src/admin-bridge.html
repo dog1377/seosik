@@ -1,0 +1,22 @@
+<!-- DW장례업무 안의 「회사 서류」(예전 DW관리, forms/admin.html)에만 붙는 부분: 홈으로 돌아가는 버튼 (2026.10.23-6) -->
+<style id="co-bridge">
+.appbar-in{justify-content:flex-start}
+.appbar-in .local{margin-left:auto}
+.co-home{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:none;min-height:40px;padding:0 10px 0 6px;border:1px solid var(--line-2,#9a9d9a);border-radius:4px;background:var(--surface,#fff);color:var(--ink,#1c1d1f);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.co-home svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.co-home:focus-visible{outline:2px solid var(--accent,#1c1d1f);outline-offset:2px}
+@media (max-width:360px){.co-home span{display:none}.co-home{width:40px;padding:0}}
+</style>
+<script>
+(function () {
+  var bar = document.querySelector('.appbar-in'); if (!bar) return;
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'co-home'; b.setAttribute('aria-label', 'DW장례업무 홈으로 가기');
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span>홈</span>';
+  b.addEventListener('click', function () {
+    var go = function () { try { localStorage.setItem('mf.lastApp', 'forms'); } catch (e) {} location.replace('./#home'); };
+    try { Promise.all([typeof saveDocNow === 'function' ? saveDocNow() : 0, typeof saveStaffNow === 'function' ? saveStaffNow() : 0]).then(go, go); } catch (e) { go(); }
+  });
+  bar.insertBefore(b, bar.firstChild);
+})();
+</script>
