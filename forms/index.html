@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.23-7";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.23-8";</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -3710,12 +3710,26 @@ init();
       go.disabled = true; go.textContent = '로그인 중…'; err.textContent = '';
       getClient().then(function (c) { return c.auth.signInWithPassword({ email: toEmail(id), password: pw }); })
         .then(function (r) {
-          if (r.error) { err.textContent = /invalid|credential/i.test(r.error.message || '') ? '이메일이나 비밀번호가 맞지 않아요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; return; }
+          if (r.error) { err.textContent = authMsg(r.error, false); return; }
           setLeader(r.data && r.data.user); location.reload();
         })
         .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주세요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; })
         .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '로그인'; } });
     });
+  }
+  /* 로그인 · 가입 오류를 알아듣기 쉽게 (수파베이스 오류 코드 기준). 모르는 오류는 끝에 오류 이름을 붙여 보여 줌 → 화면 캡처로 원인을 알 수 있게 */
+  function authMsg(e, join) {
+    var c = String((e && e.code) || ''), m = String((e && e.message) || ''), st = e && e.status;
+    if (c === 'user_already_exists' || c === 'email_exists' || /already (been )?registered|already exists/i.test(m)) return '이미 가입된 이메일이에요. 로그인해 주세요.';
+    if (c === 'signup_disabled' || c === 'email_provider_disabled' || /signups? not allowed|signup.*disabled/i.test(m)) return '지금은 회원가입이 꺼져 있어요. 관리자에게 말씀해 주세요. (회원가입 꺼짐)';
+    if (c === 'email_address_not_authorized' || c === 'over_email_send_rate_limit' || /not authorized|email rate limit/i.test(m)) return '가입 확인 메일 설정 때문에 가입이 막혔어요. 관리자에게 말씀해 주세요. (이메일 확인 켜짐)';
+    if (c === 'email_not_confirmed' || /not confirmed/i.test(m)) return '가입 확인이 안 된 계정이에요. 관리자에게 말씀해 주세요. (이메일 확인 안 됨)';
+    if (c === 'invalid_credentials' || /invalid login|credentials/i.test(m)) return '이메일이나 비밀번호가 맞지 않아요.';
+    if (c === 'weak_password' || /password/i.test(m)) return '비밀번호를 더 어렵게 해 주세요. (6자 이상, 영문과 숫자를 섞어서)';
+    if (c === 'email_address_invalid' || c === 'validation_failed' || /invalid.*email|email.*invalid/i.test(m)) return '쓸 수 없는 이메일이에요. 다른 이메일로 해 주세요.';
+    if (c === 'over_request_rate_limit' || st === 429) return '잠깐 사이에 너무 많이 시도했어요. 조금 뒤에 다시 해 주세요.';
+    if (navigator.onLine === false) return '인터넷에 연결한 뒤 다시 해 주세요.';
+    return (join ? '가입' : '로그인') + '하지 못했어요. (' + (c || m || '알 수 없는 오류').slice(0, 60) + ')';
   }
   function joinSubmit(id, pw, pw2, name, go, err) {
     var v = String(id || '').trim().toLowerCase();
@@ -3726,9 +3740,8 @@ init();
     go.disabled = true; go.textContent = '가입 중…'; err.textContent = '';
     getClient().then(function (c) { return c.auth.signUp({ email: toEmail(v), password: pw, options: { data: name ? { name: name } : {} } }); })
       .then(function (r) {
-        if (r.error) { var m = String(r.error.message || '');
-          err.textContent = /already|registered|exists/i.test(m) ? '이미 가입된 이메일이에요.' : /not allowed|disabled/i.test(m) ? '지금은 회원가입을 할 수 없어요.' : /password/i.test(m) ? '비밀번호를 더 길게(6자 이상) 넣어 주세요.' : /email|invalid/i.test(m) ? '이메일을 확인해 주세요.' : '가입하지 못했어요. 인터넷을 확인해 주세요.'; return; }
-        if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입 신청이 됐어요. 확인되면 로그인할 수 있어요.'; return; }
+        if (r.error) { err.textContent = authMsg(r.error, true); return; }
+        if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입은 됐는데 「이메일 확인」이 켜져 있어서 아직 로그인이 안 돼요. 관리자에게 말씀해 주세요.'; return; }
         setLeader(r.data.user); location.reload();
       })
       .catch(function () { err.textContent = '가입하지 못했어요. 인터넷을 확인해 주세요.'; })
