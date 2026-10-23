@@ -1,0 +1,80 @@
+<!-- 관리자 서식 · 파트장 전용 화면 (leader-gate-head.html 과 같이 씀) -->
+<script>
+(function () {
+  'use strict';
+  var SK = 'dw-sb-auth', LK = 'dw-leader', DOMAIN = 'dwfuneral.com';
+  var SB_URL = 'https://bruqeidlbougfdveomag.supabase.co', SB_KEY = 'sb_publishable_nA1F7Ye-9e5Xy6Zj4xTQjg_J56YLY2P';
+  var root = document.documentElement, client = null;
+  function sess() { try { return JSON.parse(localStorage.getItem(SK) || 'null'); } catch (e) { return null; } }
+  function idOf(u) { var e = String((u && u.email) || ''); return e.slice(-(DOMAIN.length + 1)) === '@' + DOMAIN ? e.slice(0, -(DOMAIN.length + 1)) : e; }
+  function isLeader(u) { return !!(u && u.app_metadata && u.app_metadata.dw_role === 'leader'); }
+  function setLeader(u) { try { if (u && isLeader(u)) localStorage.setItem(LK, u.id); else localStorage.removeItem(LK); } catch (e) {} }
+  function lib() {
+    return window.supabase && window.supabase.createClient ? Promise.resolve() : new Promise(function (res, rej) {
+      var sc = document.createElement('script'); sc.src = 'vendor/supabase.js'; sc.onload = function () { res(); }; sc.onerror = function () { rej(new Error('lib')); }; document.head.appendChild(sc);
+    });
+  }
+  /* 장례업무 화면에는 실시간 저장용 연결이 이미 있음 → 같은 것을 씀 (연결 두 개 만들지 않게) */
+  function getClient() {
+    if (typeof window.sbClient === 'function') return window.sbClient();
+    if (client) return Promise.resolve(client);
+    return lib().then(function () {
+      client = window.supabase.createClient(SB_URL, SB_KEY, { auth: { storageKey: SK, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+      return client;
+    });
+  }
+  var box = null;
+  function gate(mode, u) {
+    root.classList.add('dw-gated');
+    if (!box) {
+      box = document.createElement('div'); box.id = 'dwGate'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'gtTitle');
+      document.body.appendChild(box);
+    }
+    box.hidden = false;
+    var who = u ? idOf(u) : '';
+    var form = '<label>아이디<input id="gtId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>'
+      + '<label>비밀번호<input id="gtPw" type="password" autocomplete="current-password"></label>'
+      + '<button type="submit" id="gtGo">로그인</button>';
+    box.innerHTML = '<form class="gt-card" autocomplete="on"><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">관리자 서식</h1>'
+      + (mode === 'notLeader'
+        ? '<p>지금 로그인한 아이디(<b></b>)는 파트장 계정이 아니에요. 관리자 서식은 파트장만 쓸 수 있어요.</p><button type="button" class="gt-sub" id="gtOther">다른 아이디로 로그인</button>'
+        : '<p>파트장 전용이에요. 파트장 아이디로 로그인하세요. 이 기기에서 한 번 로그인하면 다음부터는 바로 열려요.</p>' + form)
+      + '<p class="gt-err" id="gtErr" role="alert"></p><p class="gt-alt">파트장이 아니면 <a href="../jangrye/">장례일정 열기</a></p></form>';
+    if (mode === 'notLeader') { box.querySelector('b').textContent = who; box.querySelector('#gtOther').onclick = function () { gate('login'); }; return; }
+    var f = box.querySelector('form'), idEl = box.querySelector('#gtId'), pwEl = box.querySelector('#gtPw'), go = box.querySelector('#gtGo'), err = box.querySelector('#gtErr');
+    if (who) idEl.value = who;
+    setTimeout(function () { (idEl.value ? pwEl : idEl).focus(); }, 50);
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var id = String(idEl.value || '').trim(), pw = String(pwEl.value || '');
+      if (!id || !pw) { err.textContent = '아이디와 비밀번호를 넣어 주세요.'; return; }
+      var email = id.indexOf('@') >= 0 ? id : id + '@' + DOMAIN;
+      go.disabled = true; go.textContent = '로그인 중…'; err.textContent = '';
+      getClient().then(function (c) { return c.auth.signInWithPassword({ email: email, password: pw }); })
+        .then(function (r) {
+          if (r.error) { err.textContent = /invalid|credential/i.test(r.error.message || '') ? '아이디나 비밀번호가 맞지 않아요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; return; }
+          var u = r.data && r.data.user; setLeader(u);
+          if (isLeader(u)) { location.reload(); return; }
+          gate('notLeader', u);
+        })
+        .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주세요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; })
+        .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '로그인'; } });
+    });
+  }
+  function open() { root.classList.remove('dw-gated'); if (box) box.hidden = true; }
+  /* 인터넷이 되면 서버에서 다시 확인 (파트장에서 빠졌으면 다시 잠금) · 인터넷이 안 되면 이 기기 확인 결과대로 */
+  function verify() {
+    var s = sess();
+    if (!s || !s.user) { setLeader(null); gate('login'); return; }
+    getClient().then(function (c) { return c.auth.getUser(); }).then(function (r) {
+      var u = r && r.data && r.data.user;
+      if (u) { setLeader(u); if (isLeader(u)) open(); else gate('notLeader', u); return; }
+      var st = r && r.error && r.error.status;
+      if (st === 401 || st === 403) { setLeader(null); gate('login', s.user); }   /* 로그인이 풀림(비밀번호 바뀜 등) → 다시 로그인 */
+    }).catch(function () { /* 인터넷 안 됨 → 지금 상태 그대로 */ });
+  }
+  if (root.classList.contains('dw-gated')) gate('login', (sess() || {}).user);
+  verify();
+  window.addEventListener('online', verify);
+})();
+</script>

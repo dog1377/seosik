@@ -20,6 +20,9 @@ version = sys.argv[1] if len(sys.argv) > 1 else datetime.datetime.now().strftime
 # 앱 잠금: locks.json 에 비밀번호 해시(코드)만 들어 있음. 비어 있으면 잠그지 않음
 LOCKS = json.loads((ROOT / 'locks.json').read_text(encoding='utf-8'))
 LOCK_SNIPPET = (ROOT / 'src' / 'lock.html').read_text(encoding='utf-8')
+# 관리자 서식은 파트장 계정만 (수파베이스 로그인 · app_metadata.dw_role='leader')
+GATE_HEAD = (ROOT / 'src' / 'leader-gate-head.html').read_text(encoding='utf-8')
+GATE_BODY = (ROOT / 'src' / 'leader-gate.html').read_text(encoding='utf-8')
 
 
 def lock_html(cfg):
@@ -52,9 +55,11 @@ try {{ if (!location.hash && localStorage.getItem('mf.lastApp') === 'funeral') l
 <style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
 {lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': '관리자 서식', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': '장례일정만 쓰실 분은 <a href="../jangrye/">장례일정 열기</a>'})}
+{GATE_HEAD}
 </head>
 <body>
 {body_part}
+{GATE_BODY}
 </body>
 </html>
 """
@@ -108,7 +113,7 @@ FUNERAL_SRC = (ROOT / 'src' / 'funeral.html').read_text(encoding='utf-8')
 THEME = (ROOT / 'src' / 'funeral-theme.html').read_text(encoding='utf-8')
 
 
-def make_funeral(title, extras, share_title=None, page_title=None, manifest_href='manifest.webmanifest'):
+def make_funeral(title, extras, share_title=None, page_title=None, manifest_href='manifest.webmanifest', head_extra=''):
     fsrc = FUNERAL_SRC
     if page_title:
         fsrc = fsrc.replace('<title>장례 일정 작성기</title>', '<title>' + page_title + '</title>', 1)
@@ -119,7 +124,7 @@ def make_funeral(title, extras, share_title=None, page_title=None, manifest_href
         '<meta name="mobile-web-app-capable" content="yes">\n'
         '<meta name="apple-mobile-web-app-capable" content="yes">\n'
         '<meta name="app-version" content="' + version + '">\n'
-    )
+    ) + head_extra
     fsrc = re.sub(r'<link rel="(?:icon|apple-touch-icon)"[^>]*>\s*', '', fsrc)
     fsrc = re.sub(r'<meta name="apple-mobile-web-app-title"[^>]*>', '<meta name="apple-mobile-web-app-title" content="' + title + '">', fsrc)
     fsrc = re.sub(r'(<meta name="viewport"[^>]*>\s*)', lambda m: m.group(1) + head, fsrc, count=1)
@@ -142,7 +147,7 @@ def make_sw(prefix, core):
 
 # 서식함 안의 장례업무
 (FM / 'funeral.html').write_text(
-    make_funeral('관리자 서식', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8')], share_title='관리자 서식', page_title='장례업무 · 관리자 서식', manifest_href='../manifest.webmanifest'),
+    make_funeral('관리자 서식', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), GATE_BODY], share_title='관리자 서식', page_title='장례업무 · 관리자 서식', manifest_href='../manifest.webmanifest', head_extra=GATE_HEAD),
     encoding='utf-8')
 (FM / 'sw.js').write_text(make_sw('forms-app-', [
     './', './index.html', './funeral.html', './vendor/jspdf.umd.min.js',
