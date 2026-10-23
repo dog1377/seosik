@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.23-3">
+<meta name="app-version" content="2026.10.23-4">
 <!-- 관리자 서식 · 파트장 전용 (2026.10.23): 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')으로 로그인해야 열림.
      이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도 바로 열리고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
 <style id="dw-gate-ui">
@@ -306,7 +306,13 @@ svg.ui-icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.
 .ab-title small{font-size:11px;letter-spacing:.02em;font-weight:500}
 .ab-title b{font-size:16px;letter-spacing:-.04em;font-weight:700}
 .ab-menu{width:40px;height:44px;margin-left:-8px}
-.sn-foot{cursor:pointer}
+.sn-foot{cursor:pointer;display:flex;align-items:center;gap:8px}
+.sn-foot .sn-acc{flex:1;min-width:0}
+.sn-foot .sn-out{flex:none;min-height:36px;padding:0 10px;border:1px solid var(--edge);border-radius:4px;background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.sb-form .sb-mode{max-width:280px}
+.sb-del{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:10px}
+.sb-del-open{justify-self:start;border-color:transparent;background:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.note.warn{color:var(--warn)}
 .save-state{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);white-space:nowrap;margin-right:8px}
 .save-dot{width:6px;height:6px;border-radius:50%;background:#62897c}
 .snap-h{margin:8px 0 0;font-size:14px}
@@ -1148,7 +1154,7 @@ body.split #p-sched .sz-pv-done{display:none}
   <section id="p-duty" hidden><iframe id="dutyFrame" title="휴무 · 당직표"></iframe></section>
 
   <section id="p-admin" class="stack" hidden>
-    <div class="out-tabs" id="adminTabs" role="tablist" aria-label="설정 항목"><button type="button" role="tab" data-av-tab="forms">업체 양식</button><button type="button" role="tab" data-av-tab="common">공통 양식</button><button type="button" role="tab" data-av-tab="rules">정산 기준</button><button type="button" role="tab" data-av-tab="lists">선택 목록</button><button type="button" role="tab" data-av-tab="keep">백업 · 공유</button></div>
+    <div class="out-tabs" id="adminTabs" role="tablist" aria-label="설정 항목"><button type="button" role="tab" data-av-tab="forms">업체 양식</button><button type="button" role="tab" data-av-tab="common">공통 양식</button><button type="button" role="tab" data-av-tab="rules">정산 기준</button><button type="button" role="tab" data-av-tab="lists">선택 목록</button><button type="button" role="tab" data-av-tab="keep">내 계정 · 백업</button></div>
     <div class="sec" data-av="forms">
       <div class="sec-head"><h2>업체별 양식</h2></div>
       <div class="chips" id="coChips"></div>
@@ -1205,13 +1211,28 @@ body.split #p-sched .sz-pv-done{display:none}
       <div class="sec-head"><h2>실시간 저장 · 내 계정</h2></div>
       <p class="note">받은 아이디로 로그인하면 내 기록(행사 · 정산 · 봉투 · 설정 · 휴무)이 내 계정에 바로바로 저장되고, 내 다른 기기에도 실시간으로 바뀌어요. 다른 직원은 내 기록을 볼 수 없어요.</p>
       <p class="keep-stats" id="sbStatus"></p>
-      <div id="sbLoginBox" class="fields">
-        <label class="f">아이디<input class="input" id="sbId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>
-        <label class="f">비밀번호<input class="input" id="sbPw" type="password" autocomplete="current-password"></label>
-        <div class="row"><button class="btn primary" id="sbLoginBtn" type="button">로그인</button></div>
-        <p class="note">처음 로그인하면 이 기기에 있던 기록이 내 계정에 올라가요(그 전에 자동 보관본을 남겨 둬요). 아이디가 없으면 파트장님께 받으세요.</p>
+      <form id="sbLoginBox" class="fields sb-form" autocomplete="on">
+        <div class="seg sb-mode" role="tablist" aria-label="로그인 또는 회원가입"><button type="button" role="tab" data-sbmode="login" aria-pressed="true">로그인</button><button type="button" role="tab" data-sbmode="join" aria-pressed="false">회원가입</button></div>
+        <label class="f">아이디<input class="input" id="sbId" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo" enterkeyhint="next"></label>
+        <label class="f">비밀번호<input class="input" id="sbPw" name="password" type="password" autocomplete="current-password" enterkeyhint="go"></label>
+        <div id="sbJoinOnly" class="fields" hidden>
+          <label class="f">비밀번호 확인<input class="input" id="sbPw2" type="password" autocomplete="new-password"></label>
+          <label class="f">이름<input class="input" id="sbName" autocomplete="name" placeholder="예: 서영우"></label>
+        </div>
+        <div class="row"><button class="btn primary" id="sbLoginBtn" type="submit">로그인</button></div>
+        <p class="note" id="sbHelp">처음 로그인하면 이 기기에 있던 기록이 내 계정에 올라가요(그 전에 자동 보관본을 남겨 둬요). 아이디가 없으면 「회원가입」을 누르세요.</p>
+      </form>
+      <div id="sbOnBox" hidden>
+        <div class="row"><button class="btn" id="sbSyncBtn" type="button">지금 맞추기</button><button class="btn primary" id="sbOutBtn" type="button">로그아웃</button></div>
+        <div class="sb-del">
+          <button class="btn sm sb-del-open" id="sbDelOpen" type="button">회원 탈퇴</button>
+          <div id="sbDelBox" class="fields" hidden>
+            <p class="note warn">탈퇴하면 내 계정과 서버에 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 기기에 있는 기록은 그대로 남아요.</p>
+            <label class="f">비밀번호 확인<input class="input" id="sbDelPw" type="password" autocomplete="current-password"></label>
+            <div class="row"><button class="btn danger" id="sbDelGo" type="button">탈퇴하기</button><button class="btn" id="sbDelCancel" type="button">취소</button></div>
+          </div>
+        </div>
       </div>
-      <div id="sbOnBox" class="row" hidden><button class="btn" id="sbSyncBtn" type="button">지금 맞추기</button><button class="btn" id="sbOutBtn" type="button">로그아웃</button></div>
     </div>
     <div class="sec" data-av="keep">
       <div class="sec-head"><h2>행사 기록 보관</h2></div>
@@ -1287,7 +1308,7 @@ body.split #p-sched .sz-pv-done{display:none}
         <button type="button" data-go="admin:common">공통 양식 (배차 · 퇴근)</button>
         <button type="button" data-go="admin:rules">정산 기준</button>
         <button type="button" data-go="admin:lists">선택 목록</button>
-        <button type="button" data-go="admin:keep">백업 · 공유</button>
+        <button type="button" data-go="admin:keep">내 계정 · 백업</button>
       </div></div>
     </div>
   </div>
@@ -2733,11 +2754,60 @@ async function sbLogin(){
   }catch(e){ toast('로그인하지 못했어요. 인터넷을 확인해 주세요'); }
   finally{ b.disabled=false; b.textContent='로그인'; }
 }
+/* 회원가입 · 탈퇴 (2026.10.23-4) — 가입은 아이디@dwfuneral.com, 탈퇴는 서버 함수 dw_delete_me (내 계정 · 서버 기록 삭제, 이 기기 기록은 남음) */
+var sbMode='login';
+function sbSetMode(m){
+  sbMode=m==='join'?'join':'login';
+  document.querySelectorAll('#sbLoginBox [data-sbmode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sbmode===sbMode)));
+  $('#sbJoinOnly').hidden=sbMode!=='join'; $('#sbLoginBtn').textContent=sbMode==='join'?'가입하기':'로그인';
+  $('#sbPw').autocomplete=sbMode==='join'?'new-password':'current-password';
+  $('#sbHelp').textContent=sbMode==='join'?'아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 가입하면 바로 로그인되고, 이 기기 기록이 내 계정에 올라가요. 관리자 서식은 파트장으로 지정된 계정만 열려요.'
+    :'처음 로그인하면 이 기기에 있던 기록이 내 계정에 올라가요(그 전에 자동 보관본을 남겨 둬요). 아이디가 없으면 「회원가입」을 누르세요.';
+  ($('#sbId').value?$('#sbPw'):$('#sbId')).focus();
+}
+async function sbJoin(){
+  const id=String($('#sbId').value||'').trim().toLowerCase(), pw=String($('#sbPw').value||''), pw2=String($('#sbPw2').value||''), name=String($('#sbName').value||'').trim();
+  if(!/^[a-z0-9][a-z0-9._-]{2,19}$/.test(id)){ toast('아이디는 영어 소문자 · 숫자로 3~20자로 넣어 주세요'); $('#sbId').focus(); return; }
+  if(pw.length<6){ toast('비밀번호는 6자 이상으로 넣어 주세요'); $('#sbPw').focus(); return; }
+  if(pw!==pw2){ toast('비밀번호 확인이 달라요'); $('#sbPw2').focus(); return; }
+  const b=$('#sbLoginBtn'); b.disabled=true; b.textContent='가입 중…';
+  try{
+    await sbClient();
+    const {data,error}=await sbc.auth.signUp({email:`${id}@${SB_DOMAIN}`,password:pw,options:{data:name?{name}:{}}});
+    if(error){ const m=String(error.message||'');
+      toast(/already|registered|exists/i.test(m)?'이미 있는 아이디예요. 다른 아이디로 해 주세요'
+        :/not allowed|disabled/i.test(m)?'지금은 회원가입이 꺼져 있어요. 파트장님께 말씀해 주세요'
+        :/password/i.test(m)?'비밀번호를 더 길게(6자 이상) 넣어 주세요'
+        :error.status===429?'잠시 뒤에 다시 해 주세요':'가입하지 못했어요. 인터넷을 확인해 주세요'); return; }
+    if(!data||!data.session){ toast('가입 신청이 됐어요. 파트장님이 확인해 주면 로그인할 수 있어요'); sbSetMode('login'); return; }
+    if(name&&!String(me().name||'').trim()){ me().name=name; save(); }
+    $('#sbPw').value=''; $('#sbPw2').value=''; sbSetMode('login');
+    await sbStart(data.user,true); toast(`가입했어요 · ${id} 로 로그인됐어요`);
+  }catch(e){ toast('가입하지 못했어요. 인터넷을 확인해 주세요'); }
+  finally{ b.disabled=false; b.textContent=sbMode==='join'?'가입하기':'로그인'; }
+}
+async function sbDeleteMe(){
+  if(!sbUser) return; const pw=String($('#sbDelPw').value||''); if(!pw){ toast('비밀번호를 넣어 주세요'); $('#sbDelPw').focus(); return; }
+  const b=$('#sbDelGo'); b.disabled=true; b.textContent='탈퇴하는 중…';
+  try{
+    const email=sbUser.email, chk=await sbc.auth.signInWithPassword({email,password:pw});
+    if(chk.error){ toast(/invalid|credential/i.test(chk.error.message||'')?'비밀번호가 맞지 않아요':'지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요'); return; }
+    const {error}=await sbc.rpc('dw_delete_me');
+    if(error){ toast(/function|not found|PGRST202|schema cache/i.test(String(error.message||'')+String(error.code||''))?'탈퇴 기능이 서버에 아직 준비되지 않았어요. 파트장님께 말씀해 주세요':'지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요'); return; }
+    try{ await sbc.auth.signOut({scope:'local'}); }catch(e){}
+    try{ localStorage.removeItem(SB_META); localStorage.removeItem('dw-leader'); localStorage.removeItem(SB_AUTH); }catch(e){}
+    SBM=sbLoadMeta(); sbStop(); $('#sbDelPw').value=''; $('#sbDelBox').hidden=true; $('#sbDelOpen').hidden=false;
+    toast('탈퇴했어요. 이 기기의 기록은 그대로 있어요');
+  }catch(e){ toast('지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요'); }
+  finally{ b.disabled=false; b.textContent='탈퇴하기'; }
+}
 async function sbLogout(){
   if(!sbUser) return;
   try{ await sbPush(); }catch(e){}
-  try{ await sbc.auth.signOut(); }catch(e){}
+  try{ await sbc.auth.signOut(); }catch(e){ try{ await sbc.auth.signOut({scope:'local'}); }catch(e2){} }
+  try{ localStorage.removeItem('dw-leader'); }catch(e){}
   sbStop(); toast('로그아웃했어요. 이 기기의 기록은 그대로 있어요');
+  if(document.getElementById('dwGate')||document.documentElement.classList.contains('dw-gated')||/\/forms\//.test(location.pathname)) setTimeout(()=>location.reload(),600);
 }
 async function sbSyncNow(){ if(!sbUser) return; try{ sbSetState('sync'); const got=await sbPull(false), sent=await sbPush(); toast(`맞췄어요 · 받은 기록 ${got}건 · 올린 기록 ${sent}건`); }catch(e){ sbSetState('err'); toast('지금은 맞추지 못했어요. 인터넷을 확인해 주세요'); } }
 const sbClock=t=>{ const d=new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
@@ -2750,7 +2820,10 @@ function renderSB(){
       :sbState==='err'?`켜짐 · ${id} · 지금은 올리지 못했어요(인터넷 확인). 이 기기에 먼저 저장해 두고, 연결되면 자동으로 올려요.`
       :`켜짐 · ${id} · ${SBM.at?`마지막 저장 ${sbClock(SBM.at)} · `:''}${sbRt==='SUBSCRIBED'?'다른 기기에서 고치면 바로 바뀌어요':'다른 기기 내용은 앱을 열 때 맞춰요'}`; }
   const ft=$('#snFoot'); if(ft){ const ic=ft.querySelector('svg'); ft.innerHTML=''; if(ic) ft.appendChild(ic);
-    ft.append(...(on?[`내 계정(${id})에 실시간 저장`,document.createElement('br'),'다른 직원은 볼 수 없어요']:['이 기기에만 보관',document.createElement('br'),'로그인하면 내 계정에 실시간 저장'])); ft.classList.toggle('sb-off',!on); }
+    const t=document.createElement('span'); t.className='sn-acc';
+    if(on){ t.append(`내 계정 · ${id}`,document.createElement('br'),'실시간 저장 중'); const o=document.createElement('button'); o.type='button'; o.className='sn-out'; o.dataset.sbout='1'; o.textContent='로그아웃'; ft.append(t,o); }
+    else { t.append('이 기기에만 보관',document.createElement('br'),'로그인 · 회원가입하면 실시간 저장'); ft.append(t); }
+    ft.classList.toggle('sb-off',!on); }
   if(on) updateSaveState('saved');
 }
 window.addEventListener('online',()=>{ if(sbUser) sbPull(false).then(()=>sbPush()).catch(()=>{}); });
@@ -4698,7 +4771,7 @@ $('#resetOffTpl').onclick=()=>{ $('#offTpl').value=OFF_TPL; db.offTpl=''; save()
 $('#saveDispTpl').onclick=()=>{ const t=$('#dispTpl').value.replace(/\s+$/,''); db.dispatchTpl=t&&t!==DISPATCH_TPL?t:''; save(); dirty=true; renderAll(); toast('배차 양식을 저장했습니다'); };
 $('#resetDispTpl').onclick=()=>{ $('#dispTpl').value=DISPATCH_TPL; db.dispatchTpl=''; save(); dirty=true; renderAll(); toast('배차 양식을 기본값으로 되돌렸습니다'); };
 $('#reportCards').onclick=e=>{ if(e.target.closest('[data-xlinput]')){ setTab('sched'); return; } { const b=e.target.closest('[data-xlsave]'); if(b){ szSave(curCase(),b.dataset.xlsave); return; } } { const z=e.target.closest('[data-sz-zoom]'); if(z){ z.classList.toggle('zoom'); return; } } if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
-const ADMIN_TITLES={forms:'업체 양식',common:'공통 양식',rules:'정산 기준',lists:'선택 목록',keep:'백업 · 공유'};
+const ADMIN_TITLES={forms:'업체 양식',common:'공통 양식',rules:'정산 기준',lists:'선택 목록',keep:'내 계정 · 백업'};
 function applyAdminView(){ const v=ADMIN_TITLES[db.adminView]?db.adminView:'forms';
   document.querySelectorAll('#adminTabs [data-av-tab]').forEach(b=>{ const on=b.dataset.avTab===v; b.setAttribute('aria-selected',String(on)); b.tabIndex=on?0:-1; });
   document.querySelectorAll('#p-admin [data-av]').forEach(el=>el.classList.toggle('ov-off',el.dataset.av!==v));
@@ -4784,9 +4857,14 @@ const purged=purge();
 if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].includes(db.tab))db.tab='envelopes';
 save();
 renderAll();
-$('#sbLoginBtn').onclick=sbLogin; $('#sbOutBtn').onclick=sbLogout; $('#sbSyncBtn').onclick=sbSyncNow;
-$('#sbPw').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sbLogin(); } });
-$('#snFoot').addEventListener('click',()=>{ setTab('admin','keep'); closeNav(); });
+$('#sbLoginBox').addEventListener('submit',e=>{ e.preventDefault(); if(sbMode==='join') sbJoin(); else sbLogin(); });
+$('#sbLoginBox').addEventListener('click',e=>{ const b=e.target.closest('[data-sbmode]'); if(b) sbSetMode(b.dataset.sbmode); });
+$('#sbOutBtn').onclick=sbLogout; $('#sbSyncBtn').onclick=sbSyncNow;
+$('#sbDelOpen').onclick=()=>{ $('#sbDelBox').hidden=false; $('#sbDelOpen').hidden=true; $('#sbDelPw').focus(); };
+$('#sbDelCancel').onclick=()=>{ $('#sbDelBox').hidden=true; $('#sbDelOpen').hidden=false; $('#sbDelPw').value=''; };
+$('#sbDelGo').onclick=sbDeleteMe;
+$('#sbDelPw').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sbDeleteMe(); } });
+$('#snFoot').addEventListener('click',e=>{ if(e.target.closest('[data-sbout]')){ e.stopPropagation(); sbLogout(); return; } setTab('admin','keep'); closeNav(); });
 renderSB(); sbBoot();
 setInterval(()=>renderTtl(), 10*60*1000);
 autoSnapshot();
@@ -5109,21 +5187,27 @@ h1,h2,h3,.wz-q{text-wrap:balance}
     }
     box.hidden = false;
     var who = u ? idOf(u) : '';
+    var join = mode === 'join';
     var form = '<label>아이디<input id="gtId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>'
-      + '<label>비밀번호<input id="gtPw" type="password" autocomplete="current-password"></label>'
-      + '<button type="submit" id="gtGo">로그인</button>';
+      + '<label>비밀번호<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '"></label>'
+      + (join ? '<label>비밀번호 확인<input id="gtPw2" type="password" autocomplete="new-password"></label><label>이름<input id="gtName" autocomplete="name" placeholder="예: 서영우"></label>' : '')
+      + '<button type="submit" id="gtGo">' + (join ? '가입하기' : '로그인') + '</button>'
+      + '<button type="button" class="gt-sub" id="gtSwap">' + (join ? '이미 아이디가 있어요 · 로그인' : '처음이에요 · 회원가입') + '</button>';
     box.innerHTML = '<form class="gt-card" autocomplete="on"><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">관리자 서식</h1>'
       + (mode === 'notLeader'
-        ? '<p>지금 로그인한 아이디(<b></b>)는 파트장 계정이 아니에요. 관리자 서식은 파트장만 쓸 수 있어요.</p><button type="button" class="gt-sub" id="gtOther">다른 아이디로 로그인</button>'
+        ? '<p>지금 로그인한 아이디(<b></b>)는 파트장 계정이 아니에요. 관리자 서식은 파트장으로 지정된 계정만 쓸 수 있어요.</p><button type="button" class="gt-sub" id="gtOther">다른 아이디로 로그인</button><button type="button" class="gt-sub" id="gtOut">로그아웃</button>'
+        : join ? '<p>아이디는 영어 소문자 · 숫자로 3~20자, 비밀번호는 6자 이상이에요. 가입한 뒤 파트장으로 지정되면 관리자 서식이 열려요.</p>' + form
         : '<p>파트장 전용이에요. 파트장 아이디로 로그인하세요. 이 기기에서 한 번 로그인하면 다음부터는 바로 열려요.</p>' + form)
       + '<p class="gt-err" id="gtErr" role="alert"></p><p class="gt-alt">파트장이 아니면 <a href="../jangrye/">장례일정 열기</a></p></form>';
-    if (mode === 'notLeader') { box.querySelector('b').textContent = who; box.querySelector('#gtOther').onclick = function () { gate('login'); }; return; }
+    if (mode === 'notLeader') { box.querySelector('b').textContent = who; box.querySelector('#gtOther').onclick = function () { gate('login'); }; box.querySelector('#gtOut').onclick = function () { acct.logout(); }; return; }
+    box.querySelector('#gtSwap').onclick = function () { gate(join ? 'login' : 'join', u); };
     var f = box.querySelector('form'), idEl = box.querySelector('#gtId'), pwEl = box.querySelector('#gtPw'), go = box.querySelector('#gtGo'), err = box.querySelector('#gtErr');
     if (who) idEl.value = who;
     setTimeout(function () { (idEl.value ? pwEl : idEl).focus(); }, 50);
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       var id = String(idEl.value || '').trim(), pw = String(pwEl.value || '');
+      if (join) { joinSubmit(id.toLowerCase(), pw, String((box.querySelector('#gtPw2') || {}).value || ''), String((box.querySelector('#gtName') || {}).value || '').trim(), go, err); return; }
       if (!id || !pw) { err.textContent = '아이디와 비밀번호를 넣어 주세요.'; return; }
       var email = id.indexOf('@') >= 0 ? id : id + '@' + DOMAIN;
       go.disabled = true; go.textContent = '로그인 중…'; err.textContent = '';
@@ -5138,7 +5222,71 @@ h1,h2,h3,.wz-q{text-wrap:balance}
         .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '로그인'; } });
     });
   }
-  function open() { root.classList.remove('dw-gated'); if (box) box.hidden = true; }
+  function joinSubmit(id, pw, pw2, name, go, err) {
+    if (!/^[a-z0-9][a-z0-9._-]{2,19}$/.test(id)) { err.textContent = '아이디는 영어 소문자 · 숫자로 3~20자로 넣어 주세요.'; return; }
+    if (pw.length < 6) { err.textContent = '비밀번호는 6자 이상으로 넣어 주세요.'; return; }
+    if (pw !== pw2) { err.textContent = '비밀번호 확인이 달라요.'; return; }
+    go.disabled = true; go.textContent = '가입 중…'; err.textContent = '';
+    getClient().then(function (c) { return c.auth.signUp({ email: id + '@' + DOMAIN, password: pw, options: { data: name ? { name: name } : {} } }); })
+      .then(function (r) {
+        if (r.error) { var m = String(r.error.message || '');
+          err.textContent = /already|registered|exists/i.test(m) ? '이미 있는 아이디예요. 다른 아이디로 해 주세요.' : /not allowed|disabled/i.test(m) ? '지금은 회원가입이 꺼져 있어요. 파트장님께 말씀해 주세요.' : /password/i.test(m) ? '비밀번호를 더 길게(6자 이상) 넣어 주세요.' : '가입하지 못했어요. 인터넷을 확인해 주세요.'; return; }
+        if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입 신청이 됐어요. 파트장님이 확인해 주면 로그인할 수 있어요.'; return; }
+        var u = r.data.user; setLeader(u); if (isLeader(u)) { location.reload(); return; }
+        gate('notLeader', u); var e3 = box.querySelector('#gtErr'); if (e3) { e3.style.color = 'var(--ink-2,#3d4044)'; e3.textContent = '가입했어요. 파트장으로 지정되면 관리자 서식이 열려요. 장례일정은 지금 바로 이 아이디로 쓸 수 있어요.'; }
+      })
+      .catch(function () { err.textContent = '가입하지 못했어요. 인터넷을 확인해 주세요.'; })
+      .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '가입하기'; } });
+  }
+  /* 관리자 서식 설정 「내 계정」 · 위 막대 표시 (로그아웃 · 회원 탈퇴) */
+  var acct = window.dwAcct = {
+    user: function () { var s = sess(); return s && s.user || null; },
+    logout: function () {
+      return getClient().then(function (c) { return c.auth.signOut().catch(function () { return c.auth.signOut({ scope: 'local' }); }); })
+        .catch(function () {}).then(function () { try { localStorage.removeItem(LK); localStorage.removeItem(SK); } catch (e) {} location.reload(); });
+    },
+    deleteMe: function (pw) {
+      var u = acct.user(); if (!u) return Promise.resolve('none');
+      return getClient().then(function (c) {
+        return c.auth.signInWithPassword({ email: u.email, password: pw }).then(function (r) {
+          if (r.error) return /invalid|credential/i.test(r.error.message || '') ? 'pw' : 'net';
+          return c.rpc('dw_delete_me').then(function (d) {
+            if (d.error) return /function|not found|PGRST202|schema cache/i.test(String(d.error.message || '') + String(d.error.code || '')) ? 'nofn' : 'net';
+            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { localStorage.removeItem(LK); localStorage.removeItem(SK); localStorage.removeItem('dw-sb-meta'); } catch (e) {} return 'ok'; });
+          });
+        });
+      }).catch(function () { return 'net'; });
+    }
+  };
+  function renderAcct() {
+    var u = acct.user(), card = document.getElementById('dwAcctCard'), pill = document.querySelector('.appbar .local span');
+    if (pill && u) { pill.textContent = idOf(u) + ' · 내 계정'; var pl = pill.parentNode; pl.title = '내 계정 · 로그아웃'; pl.style.cursor = 'pointer'; pl.onclick = function () { if (typeof window.showTab === 'function') window.showTab('settings'); setTimeout(function () { var c = document.getElementById('dwAcctCard'); if (c) c.scrollIntoView({ block: 'start' }); }, 50); }; }
+    if (!card) return;
+    if (!u) { card.hidden = true; return; }
+    card.hidden = false;
+    card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b> · ' + (isLeader(u) ? '파트장' : '파트장 아님') + '</p>'
+      + '<p class="small-t muted">장례일정과 같은 계정이에요. 로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
+      + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
+      + '<button class="btn quiet small" type="button" id="acDelOpen">회원 탈퇴</button>'
+      + '<div id="acDelBox" class="ac-del" hidden><p class="small-t" style="color:var(--warn)">탈퇴하면 내 계정과 서버에 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 기기에 있는 기록은 그대로 남아요.</p>'
+      + '<label class="field"><span>비밀번호 확인</span><input id="acDelPw" type="password" autocomplete="current-password"></label>'
+      + '<div class="grid2"><button class="btn danger" type="button" id="acDelGo">탈퇴하기</button><button class="btn" type="button" id="acDelNo">취소</button></div><p class="small-t" id="acDelMsg" role="alert"></p></div>';
+    card.querySelector('b').textContent = idOf(u);
+    card.querySelector('#acOut').onclick = function () { this.disabled = true; acct.logout(); };
+    card.querySelector('#acDelOpen').onclick = function () { card.querySelector('#acDelBox').hidden = false; this.hidden = true; card.querySelector('#acDelPw').focus(); };
+    card.querySelector('#acDelNo').onclick = function () { card.querySelector('#acDelBox').hidden = true; card.querySelector('#acDelOpen').hidden = false; };
+    card.querySelector('#acDelGo').onclick = function () {
+      var b = this, pw = card.querySelector('#acDelPw').value, msg = card.querySelector('#acDelMsg');
+      if (!pw) { msg.textContent = '비밀번호를 넣어 주세요.'; return; }
+      b.disabled = true; b.textContent = '탈퇴하는 중…';
+      acct.deleteMe(pw).then(function (r) {
+        if (r === 'ok') { location.reload(); return; }
+        msg.textContent = r === 'pw' ? '비밀번호가 맞지 않아요.' : r === 'nofn' ? '탈퇴 기능이 서버에 아직 준비되지 않았어요. 파트장님께 말씀해 주세요.' : '지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요.';
+        b.disabled = false; b.textContent = '탈퇴하기';
+      });
+    };
+  }
+  function open() { root.classList.remove('dw-gated'); if (box) box.hidden = true; renderAcct(); }
   /* 인터넷이 되면 서버에서 다시 확인 (파트장에서 빠졌으면 다시 잠금) · 인터넷이 안 되면 이 기기 확인 결과대로 */
   function verify() {
     var s = sess();
@@ -5150,7 +5298,7 @@ h1,h2,h3,.wz-q{text-wrap:balance}
       if (st === 401 || st === 403) { setLeader(null); gate('login', s.user); }   /* 로그인이 풀림(비밀번호 바뀜 등) → 다시 로그인 */
     }).catch(function () { /* 인터넷 안 됨 → 지금 상태 그대로 */ });
   }
-  if (root.classList.contains('dw-gated')) gate('login', (sess() || {}).user);
+  if (root.classList.contains('dw-gated')) gate('login', (sess() || {}).user); else renderAcct();
   verify();
   window.addEventListener('online', verify);
 })();

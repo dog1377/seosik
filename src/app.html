@@ -201,6 +201,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
 
 /* ---------- Install, update, action sheet ---------- */
+.ac-card .btn.quiet{justify-self:start;text-decoration:underline;text-underline-offset:3px}
+.ac-del{display:grid;gap:10px}
 .wipe-zone{display:grid;gap:8px;margin-top:10px;padding-top:16px;border-top:1px solid var(--line)}
 body[data-view="settings"] #installCard{display:none!important}   /* 설정에는 「앱 설치」 칸이 따로 있음 */
 .install-card{background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;display:grid;gap:10px;margin-bottom:16px}
@@ -473,6 +475,7 @@ p{text-wrap:pretty}
       <h1>설정</h1>
       <p>보고서 머리글에 들어갈 정보와 데이터 백업을 관리해요.</p>
     </div>
+    <div class="card ac-card" id="dwAcctCard" hidden></div>
     <div class="card">
       <h2>기본 정보</h2>
       <label class="field"><span>작성자 (파트장 이름)</span><input id="setAuthor" type="text" placeholder="예: 홍길동" autocomplete="name"></label>

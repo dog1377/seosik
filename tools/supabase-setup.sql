@@ -65,3 +65,18 @@ begin
 end $$;
 
 select 'DW 준비 끝' as result;
+
+-- ---------- 회원 탈퇴 (2026.10.23 추가) ----------
+-- 로그인한 본인 계정만 지움. 서버에 있던 내 기록(dw_records)도 같이 지워짐. 이 기기(휴대폰) 기록은 남음.
+create or replace function public.dw_delete_me() returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  if auth.uid() is null then
+    raise exception 'not signed in';
+  end if;
+  delete from auth.users where id = auth.uid();
+end $$;
+revoke all on function public.dw_delete_me() from public, anon;
+grant execute on function public.dw_delete_me() to authenticated;
+
+select 'DW 탈퇴 준비 끝' as result;
