@@ -1043,6 +1043,14 @@ body.split #p-sched .sz-pv-done{display:none}
 .pair2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sz-picks{grid-template-columns:repeat(2,minmax(0,1fr))}
 #p-sched textarea.input{min-height:110px;font-size:16px;line-height:1.55;padding:12px 14px;resize:vertical}
+/* 보고서 입력: 모든 입력 칸 글씨 가운데 (2026.10.23 사용자 요청) */
+#p-sched .wz-card .input,#p-sched .wz-card .input::placeholder{text-align:center}
+#p-sched .wz-card select.input{text-align:center;text-align-last:center}
+#p-sched .wz-card .amt .input{padding-left:56px;padding-right:56px}
+#p-sched .wz-card .ch-btn{justify-content:center;position:relative}
+#p-sched .wz-card .ch-btn span{flex:1;text-align:center}
+#p-sched .wz-card .tp-btn{justify-content:center}
+#p-sched .wz-card .suffix .input{padding-left:52px}
 #xlOut .sz-pv{margin-top:2px}
 </style>
 </head>
@@ -3122,7 +3130,7 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
   set('C7',f.religion); set('F7',schedDT(f.death)); set('K7',schedDT(f.casket)); set('P7',schedDT(f.depart));
   set('E8',f.burial1||(!f.burial2?f.burial:'')); set('J8',f.burial2); set('P8',f.product);
   const pj=String(f.preJoin||'').trim();
-  set('E9',[f.support&&`회사지원 ${money(f.support)}`, f.paid&&`납입 ${money(f.paid)}`, pj&&`사전가입 할인 ${/^\d+(\.\d+)?$/.test(pj.replace(/,/g,''))?money(pj):pj}`].filter(Boolean).join(' / '));
+  set('E9',[f.support,f.paid].map(szWon).filter(Boolean).join(' / '));   /* 회사지원 · 납입금은 금액만 (660,000원) */
   // 수금 결제 구분
   const col=collectNetWon(c), pay=s.pay||'현금';
   if(col){ if(pay==='카드'){ set('E10','V'); set('F10',`결제금액: ${fullWon(col)}`); } else { set('E11','V'); set('F11',`결제금액: ${fullWon(col)}`); } }
@@ -3140,7 +3148,7 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
   [['mournM',29,'남상복'],['mournW',30,'여상복']].forEach(([k,row,item])=>{ const v=String(f[k]||'').trim(); if(!v) return;
     set('D'+row,f.mournBrand); set('F'+row,item); const n=v.match(/^(\d+)\s*(세트|벌)?$/); if(n) set('J'+row,Number(n[1])); else add('K'+row,v); });
   // 장의차량
-  if(f.vehType||f.vehCo||f.route){ set('C32',f.vehType); set('E32',f.vehCo); set('F32',String(f.route||'').trim()||autoRoute(f)); const dt=dispatchDT(f); if(dt) set('Q32','배차 '+schedDT(dt)); }
+  if(f.vehType||f.vehCo||f.route){ set('C32',f.vehType); set('E32',szCoShort(f.vehCo)); set('F32',String(f.route||'').trim()||autoRoute(f)); const dt=dispatchDT(f); if(dt) set('Q32','배차 '+schedDT(dt)); }
   // 도우미
   set('C35',f.helper); if(String(f.helperHours||'').trim()) add('N35',`총 ${String(f.helperHours).trim()}시간`);
   // 추가내역: 맞는 줄의 비고로, 나머지는 맨 아래 특이사항
@@ -3149,6 +3157,7 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
   (s.extras||[]).filter(x=>String(x.text||'').trim()||x.amt).forEach(x=>{ const line=`${[String(x.text||'').trim(),money(x.amt)].filter(Boolean).join(' ')}${x.pay?`(${x.pay})`:''}`;
     const m=MAP.find(([re])=>re.test(String(x.text||''))); if(m) add(m[1],line); else rest.push(line); });
   const notes=[...itemLines(f.note),...itemLines(f.provNote)];
+  if(pj) notes.push(`사전가입 할인 : ${/^\d+(\.\d+)?$/.test(pj.replace(/,/g,''))?money(pj):pj}`);
   if(altarText(f.altar)) notes.push(`제단공제 : ${altarText(f.altar)}`);
   if(String(s.transfer||'').trim()) notes.push(`이송 : ${String(s.transfer).trim()}`);
   if(rest.length) notes.push(`추가 : ${rest.join(' · ')}`);
@@ -3163,6 +3172,8 @@ const SX=c=>{ if(!c.sx||typeof c.sx!=='object') c.sx={}; return c.sx; };
 const sxGet=(c,p)=>String(p.split('.').reduce((o,k)=>o&&typeof o==='object'?o[k]:undefined,SX(c))??'');
 function sxSet(c,p,v){ const ks=p.split('.'); let o=SX(c); ks.slice(0,-1).forEach(k=>{ if(!o[k]||typeof o[k]!=='object') o[k]={}; o=o[k]; }); o[ks[ks.length-1]]=v; }
 const szT=v=>String(v??'').trim();
+const szWon=v=>{ v=szT(v); if(!v) return ''; const w=/^-?[\d,]+(\.\d+)?\s*(만\s*원?|원)?$/.test(v)?toWon(v):0; return w?fullWon(w):v; };   /* 66 → 660,000원 · 글은 그대로 */
+const szCoShort=v=>{ v=szT(v); return v.replace(/\s*(장의차량|장의차|장의버스|운구차)$/,'')||v; };   /* 한맥장의차 → 한맥 */
 const szNum=v=>/^\d+(\.\d+)?$/.test(v)&&v.length<7?Number(v):v;
 function szItemOn(c,n,A){
   const o=(SX(c).itemOn||{})[n]; if(o===true||o===false) return o;
@@ -3171,7 +3182,7 @@ function szItemOn(c,n,A){
 }
 function schedCells(c){
   const A=schedAuto(c), V={...A}, x=SX(c), put=(k,v,num)=>{ v=szT(v); if(v) V[k]=num?szNum(v):v; };
-  put('Q3',x.span); put('E9',x.support); put('P9',x.lodging);
+  put('Q3',x.span); put('E9',szWon(x.support)); put('P9',szWon(x.lodging));
   SZ_GOODS.forEach((g,i)=>put(SZ_GCOL[i]+'15',(x.goods||{})[g],true));
   SZ_ITEMS.forEach(([n,row])=>{
     if(!szItemOn(c,n,A)){ ['C','G','K','L'].forEach(k=>delete V[k+row]); return; }
@@ -3179,7 +3190,7 @@ function schedCells(c){
   put('K29',x.mNoteM); put('K30',x.mNoteW);
   [[29,'남상복'],[30,'여상복']].forEach(([r,l])=>{ if((V['D'+r]||V['J'+r]||V['K'+r])&&!V['F'+r]) V['F'+r]=l; });
   put('N32',x.km1); put('Q32',x.vnote1);
-  if(x.veh2On==='yes'){ const v=x.veh2||{}; put('C33',v.type); put('E33',v.co); put('F33',v.dest); put('N33',v.km); put('Q33',v.note); }
+  if(x.veh2On==='yes'){ const v=x.veh2||{}; put('C33',v.type); put('E33',szCoShort(v.co)); put('F33',v.dest); put('N33',v.km); put('Q33',v.note); }
   const hp=x.help||{}, n2=v=>/^\d+$/.test(v);
   [0,1,2].forEach(i=>{ const h=hp[i]||{}, r=36+i, d=szT(h.d), s=szT(h.s), e=szT(h.e), n=szT(h.n);
     if(d) V['F'+r]=n2(d)?`${pad(Number(d))}일`:d; if(s) V['H'+r]=n2(s)?`${pad(Number(s))}시`:s; if(e) V['J'+r]=n2(e)?`${pad(Number(e))}시`:e; if(n) V['L'+r]=n2(n)?`${n}명`:n; });
@@ -3336,7 +3347,9 @@ function szScreen(c,st,steps){
   else if(st.id==='rel'){ sub='누르면 바로 다음으로 넘어가요.'; body=choice('f:religion',['유교','무교','불교','기독교','천주교','기타'].map(v=>[v,v]),f.religion||'','wz-co')+go(f.religion?'다음':'모름 · 넘어가기'); }
   else if(st.id==='time') body=[['death','임종'],['casket','입관'],['depart','발인']].map(([k,l])=>`<div class="f-wrap"><label class="f">${l}</label>${dtCtl(k,f[k]||'',l)}</div>`).join('')+go();
   else if(st.id==='burial') body=fIn('burial1','1차 장지',ph(!f.burial1&&A.E8,'예: 함안하늘공원'))+fIn('burial2','2차 장지','예: 함안추모공원')+fIn('product','상품','예: 2026 가족장 289')+go();
-  else if(st.id==='money'){ sub='회사 지원 · 납입금은 비우면 행사 입력의 회사지원 · 납입 · 사전 가입 할인으로 자동으로 들어가요.'; body=xIn('support','회사 지원 또는 납입금',ph(A.E9,'예: 10만원 선납 / 10만원 할인'))+xIn('lodging','숙박료','예: 5만원')+go(); }
+  else if(st.id==='money'){ sub='숫자만 넣으면 만원이에요. 일정표에는 「660,000원」처럼 금액만 나가요. 회사지원 · 납입은 행사 입력과 같은 칸이에요.';
+    body=`<label class="f">회사 지원금${amtIn('data-sf="support" aria-label="회사 지원금"',f.support,'예: 66')}</label><label class="f">기존 납입금${amtIn('data-sf="paid" aria-label="기존 납입금"',f.paid,'예: 120')}</label>`
+      +(szT(x.support)?xIn('support','직접 쓴 값 (비우면 위 금액)',''):'')+`<label class="f">숙박료${amtIn('data-sx="lodging" aria-label="숙박료"',x.lodging,'예: 5')}</label>`+go(); }
   else if(st.id==='pay'){ sub='금액은 정산에 넣은 값으로 자동으로 들어가요. 카드/현금 줄은 상품 수금, 추가 줄은 유골함 · 추가내역 · 관꽃장식이에요.';
     const row=(l,on,v)=>`<div class="sz-pr"><span>${l}</span><b>${on?'V ':''}${esc(v||'없음')}</b></div>`;
     body=`<div class="sz-box">${row('카드',A.E10,String(A.F10||'').replace('결제금액: ',''))}${row('현금',A.E11,String(A.F11||'').replace('결제금액: ',''))}${row('추가',A.E12,A.E12?`${[A.G12&&'카드',A.I12&&'현금'].filter(Boolean).join(' · ')} ${String(A.J12||'').replace('금액: ','')}`:'')}</div>
@@ -3353,7 +3366,7 @@ function szScreen(c,st,steps){
   else if(st.id==='mourn'){ sub='업체 · 수량은 행사 입력과 같이 바뀌어요.';
     body=ch('상복 업체',{scope:'f',key:'mournBrand',options:db.lists.mournBrands||[],label:'상복 업체'})+`<div class="pair2">${fIn('mournM','남 수량','예: 2')}${fIn('mournW','여 수량','예: 2')}</div>`
       +xIn('mNoteM','남 비고',ph(A.K29,''))+xIn('mNoteW','여 비고',ph(A.K30,''))+go(); }
-  else if(st.id==='veh'){ sub='차종 · 업체 · 목적지는 행사 입력과 같이 바뀌어요.';
+  else if(st.id==='veh'){ sub='차종 · 업체 · 목적지는 행사 입력과 같이 바뀌어요. 업체는 일정표에 「한맥」처럼 「장의차」를 빼고 나가요.';
     body=ch('구분 (차종)',{scope:'f',key:'vehType',options:db.lists.vehTypes||[],label:'차종'})+ch('업체',{scope:'f',key:'vehCo',options:db.lists.vehCos||[],label:'장의차 업체'})
       +fIn('route','목적지',ph(!f.route&&autoRoute(f),'예: 함안하늘-함안추모-장례식장'))+xIn('km1','실제 주행거리','예: 30km')+xIn('vnote1','비고',ph(A.Q32,''))+go(); }
   else if(st.id==='veh2'){ const on=x.veh2On; body=choice('x:veh2On',[['yes','있어요'],['no','없어요']],on||'');
@@ -3434,6 +3447,7 @@ $('#p-sched').addEventListener('input',e=>{
   else if(t.dataset.s){ let v=t.value; if(t.dataset.s==='rcCashNo'&&/^01\d/.test(v.replace(/\D/g,''))){ const nv=fmtTel(v); if(nv!==v){ t.value=nv; v=nv; } } S(c)[t.dataset.s]=v; }
   else if(t.dataset.sx) sxSet(c,t.dataset.sx,t.value);
   else return;
+  { const box=t.closest('.amt'); if(box){ box.querySelector('.amt-u').textContent=amtUnit(t.value); const r=box.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); } }
   touched(); szLive();
 });
 $('#p-sched').addEventListener('change',e=>{ const c=curCase(); if(!c) return; const dt=e.target.closest('[data-dt]'); if(dt){ c.f[dt.dataset.dt]=composeDT(dt); touched(); szLive(); } });
