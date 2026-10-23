@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.23-1">
+<meta name="app-version" content="2026.10.23-2">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="장례일정">
@@ -273,6 +273,7 @@ svg.ui-icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.
 .ab-title small{font-size:11px;letter-spacing:.02em;font-weight:500}
 .ab-title b{font-size:16px;letter-spacing:-.04em;font-weight:700}
 .ab-menu{width:40px;height:44px;margin-left:-8px}
+.sn-foot{cursor:pointer}
 .save-state{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);white-space:nowrap;margin-right:8px}
 .save-dot{width:6px;height:6px;border-radius:50%;background:#62897c}
 .snap-h{margin:8px 0 0;font-size:14px}
@@ -1167,6 +1168,18 @@ body.split #p-sched .sz-pv-done{display:none}
       <div id="listEdit" class="fields"></div>
       <div class="row"><button class="btn sm primary" id="saveLists" type="button">저장</button></div>
     </div>
+    <div class="sec" data-av="keep" id="sbSec">
+      <div class="sec-head"><h2>실시간 저장 · 내 계정</h2></div>
+      <p class="note">받은 아이디로 로그인하면 내 기록(행사 · 정산 · 봉투 · 설정 · 휴무)이 내 계정에 바로바로 저장되고, 내 다른 기기에도 실시간으로 바뀌어요. 다른 직원은 내 기록을 볼 수 없어요.</p>
+      <p class="keep-stats" id="sbStatus"></p>
+      <div id="sbLoginBox" class="fields">
+        <label class="f">아이디<input class="input" id="sbId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="예: seo"></label>
+        <label class="f">비밀번호<input class="input" id="sbPw" type="password" autocomplete="current-password"></label>
+        <div class="row"><button class="btn primary" id="sbLoginBtn" type="button">로그인</button></div>
+        <p class="note">처음 로그인하면 이 기기에 있던 기록이 내 계정에 올라가요(그 전에 자동 보관본을 남겨 둬요). 아이디가 없으면 파트장님께 받으세요.</p>
+      </div>
+      <div id="sbOnBox" class="row" hidden><button class="btn" id="sbSyncBtn" type="button">지금 맞추기</button><button class="btn" id="sbOutBtn" type="button">로그아웃</button></div>
+    </div>
     <div class="sec" data-av="keep">
       <div class="sec-head"><h2>행사 기록 보관</h2></div>
       <p class="note">행사 기록은 지우지 않는 한 이 기기에 계속 남고, 발인 날짜 기준으로 월별로 정리됩니다. 기기를 바꾸거나 브라우저 데이터를 지우면 사라지니 한 달에 한 번은 백업 파일을 받아 두세요.</p>
@@ -1706,7 +1719,7 @@ if(!db.dwVendorAdded){
 }
 if(!db.vItems17){ db.companies.forEach(x=>{ x.items=BAND_ITEMS.slice(); }); db.vItems17=true; }
 if(!db.vGoiEnd){ const goi=db.companies.find(x=>isGoi(x)); if(goi){ if(!goi.reports) goi.reports=[]; if(!goi.reports.some(r=>r.name==='장례 종료 보고')) goi.reports.push({id:uid(),name:'장례 종료 보고',body:GOI_END_REPORT}); } db.vGoiEnd=true; }
-function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof afSchedule==='function') afSchedule(); if(ok&&typeof clSchedule==='function') clSchedule(); return ok; }
+function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof afSchedule==='function') afSchedule(); if(ok&&typeof clSchedule==='function') clSchedule(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
 // 기타 업체로 작성한 건은 직접 넣은 업체명을 씀
 const caseCoName=c=>{ const co=coById(c&&c.companyId); return co.id===ETC&&String((c.f||{}).coName||'').trim()?String(c.f.coName).trim():co.name; };
@@ -1914,13 +1927,15 @@ function saveNow(msg){
   clearTimeout(saveT); const ok=save(); if(db.tab!=='settle') renderCaseSel(); else renderTtl();
   unsaved=!ok; renderSaveBtn();
   const b=$('#saveNow'); if(b&&ok){ b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
-  const n=new Date(); toast(ok?`${msg||'저장했습니다'} · ${pad(n.getHours())}:${pad(n.getMinutes())} · 이 기기에 보관돼요`:'저장하지 못했습니다. 설정에서 백업 후 오래된 달을 정리해 주세요');
+  if(ok&&typeof sbUser!=='undefined'&&sbUser) sbSchedule(0);
+  const n=new Date(); toast(ok?`${msg||'저장했습니다'} · ${pad(n.getHours())}:${pad(n.getMinutes())} · ${typeof sbUser!=='undefined'&&sbUser?'이 기기와 내 계정에 저장돼요':'이 기기에 보관돼요'}`:'저장하지 못했습니다. 설정에서 백업 후 오래된 달을 정리해 주세요');
   return ok;
 }
 function updateSaveState(state){
   const el=$('#saveState');if(!el)return;
   el.dataset.state=state;
-  el.querySelector('span').textContent=state==='pending'?'저장 중':state==='error'?'저장 공간 확인':'자동 저장됨';
+  const on=typeof sbUser!=='undefined'&&sbUser;
+  el.querySelector('span').textContent=state==='pending'?'저장 중':state==='error'?'저장 공간 확인':on?(sbState==='sync'?'올리는 중':sbState==='err'?'연결 끊김 · 이 기기에 보관':'실시간 저장됨'):'자동 저장됨';
 }
 function updateWorkspace(t){
   document.body.dataset.tab=t;
@@ -2529,6 +2544,186 @@ function renderCL(){
     :`켜짐 · 마지막 클라우드 저장 ${at} · 「클라우드 코드 복사」로 코드를 카톡 「나와의 채팅」에 보관해 두세요.`;
 }
 async function clCopyCode(){ const c=clConf(); if(!c) return; const t=clCode(c); try{ await navigator.clipboard.writeText(t); toast('클라우드 코드를 복사했어요. 카톡 「나와의 채팅」에 붙여 넣어 보관하세요'); }catch(e){ prompt('클라우드 코드 (길게 눌러 복사)',t); } }
+/* ---------- 실시간 저장 · 내 계정 (수파베이스, 2026.10.23) ----------
+   각자 받은 아이디로 로그인 → 내 기록(행사 · 봉투 · 설정 · 휴무)이 내 계정에만 저장되고, 내 다른 기기에도 바로 바뀜. 다른 직원은 못 봄(서버 규칙 RLS).
+   서버 표 dw_records (tools/supabase-setup.sql): user_id · app('funeral') · kind('case'|'env'|'state') · id · data · deleted · updated_at(ms) · device.
+   이 기기 저장(funeral-band-v2)은 그대로 먼저 하고, 1초 뒤 바뀐 기록만 올림. 인터넷이 끊기면 이 기기에 두었다가 다시 연결되면 올림.
+   같은 기록은 더 나중에 고친 쪽이 이김(서버도 오래된 내용은 막음). 지운 기록은 서버에 「지움」 표시만(내용은 남음).
+   공개 키(sb_publishable_…)는 앱에 넣어도 되는 키 — 남의 기록은 서버 규칙으로 막힘. 비밀번호 · secret 키는 앱에 넣지 않음.
+   이 기기 저장값: dw-sb-auth(로그인), dw-sb-meta(무엇을 올렸는지), dw-sb-dev(기기 번호). */
+const SB_URL='https://bruqeidlbougfdveomag.supabase.co', SB_KEY='sb_publishable_nA1F7Ye-9e5Xy6Zj4xTQjg_J56YLY2P';
+const SB_APP='funeral', SB_DOMAIN='dwfuneral.com', SB_AUTH='dw-sb-auth', SB_META='dw-sb-meta', SB_DEV='dw-sb-dev';
+const SB_SET_KEYS=['companies','lists','crems','defaultItems','settleRules','me','dispatchTpl','offTpl','envelopeSkipped'];
+var sbc=null, sbUser=null, sbChan=null, sbBusy=false, sbAgain=false, sbTimer=0, sbState='off', sbRt='', sbNeedRender=false, sbBooting=false;
+const sbDev=(()=>{ try{ let d=localStorage.getItem(SB_DEV); if(!d){ d=Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem(SB_DEV,d); } return d; }catch(e){ return 'x'+Math.random().toString(36).slice(2,10); } })();
+function sbLoadMeta(){ let m={}; try{ m=JSON.parse(localStorage.getItem(SB_META)||'{}')||{}; }catch(e){} ['h','up','known'].forEach(k=>{ if(!m[k]||typeof m[k]!=='object') m[k]={}; }); return m; }
+var SBM=sbLoadMeta();
+function sbSaveMeta(){ try{ localStorage.setItem(SB_META,JSON.stringify(SBM)); }catch(e){} }
+function sbHash(s){ let h=0x811c9dc5; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193); } return (h>>>0).toString(36)+'.'+s.length; }
+function sbSettings(){ const o={}; SB_SET_KEYS.forEach(k=>{ if(db[k]!==undefined) o[k]=db[k]; }); return o; }
+function sbDuty(){ const o={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^hyumu-/.test(k)) o[k]=localStorage.getItem(k); } }catch(e){} return o; }
+function sbLocal(){
+  const m=new Map();
+  (db.cases||[]).forEach(c=>{ if(c&&c.id) m.set('case:'+c.id,{kind:'case',id:c.id,obj:c}); });
+  (db.envelopes||[]).forEach(e=>{ if(e&&e.id) m.set('env:'+e.id,{kind:'env',id:e.id,obj:e}); });
+  m.set('state:settings',{kind:'state',id:'settings',data:sbSettings()});
+  const du=sbDuty(); if(Object.keys(du).length) m.set('state:duty',{kind:'state',id:'duty',data:du});
+  return m;
+}
+const sbIdOf=u=>{ const e=String((u&&u.email)||''); return e.endsWith('@'+SB_DOMAIN)?e.slice(0,-(SB_DOMAIN.length+1)):e; };
+function sbLib(){ return window.supabase&&window.supabase.createClient?Promise.resolve():new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='vendor/supabase.js'; s.onload=()=>res(); s.onerror=()=>rej(new Error('lib')); document.head.appendChild(s); }); }
+async function sbClient(){
+  if(sbc) return sbc; await sbLib();
+  sbc=window.supabase.createClient(SB_URL,SB_KEY,{auth:{storageKey:SB_AUTH,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+  sbc.auth.onAuthStateChange((ev)=>{ if(ev==='SIGNED_OUT'&&sbUser) sbStop(); });
+  return sbc;
+}
+function sbSetState(s){ sbState=s; renderSB(); }
+/* 바뀐 기록만 올림 */
+async function sbPush(){
+  if(!sbc||!sbUser) return 0; if(sbBusy){ sbAgain=true; return 0; }
+  sbBusy=true; sbSetState('sync'); let n=0;
+  try{
+    const L=sbLocal(), rows=[], marks=[], now=Date.now(); let touchedLocal=false;
+    L.forEach((r,key)=>{
+      const prev=Number(SBM.up[key])||0;
+      let js=JSON.stringify(r.obj||r.data), h=sbHash(js); if(SBM.h[key]===h) return;
+      let up=r.obj?Number(r.obj.updated)||0:0; if(up<=prev) up=Math.max(now,prev+1);
+      if(r.obj&&r.obj.updated!==up){ r.obj.updated=up; touchedLocal=true; js=JSON.stringify(r.obj); h=sbHash(js); }
+      rows.push({user_id:sbUser.id,app:SB_APP,kind:r.kind,id:r.id,data:r.obj||r.data,deleted:false,updated_at:up,device:sbDev}); marks.push([key,h,up,false]);
+    });
+    Object.keys(SBM.known).forEach(key=>{ if(L.has(key)) return; const i=key.indexOf(':'), kind=key.slice(0,i), id=key.slice(i+1); if(kind!=='case'&&kind!=='env') return;
+      const up=Math.max(now,(Number(SBM.up[key])||0)+1); rows.push({user_id:sbUser.id,app:SB_APP,kind,id,data:null,deleted:true,updated_at:up,device:sbDev}); marks.push([key,'',up,true]); });
+    if(touchedLocal) store.set(db);
+    for(let i=0;i<rows.length;i+=80){
+      const {error}=await sbc.from('dw_records').upsert(rows.slice(i,i+80),{onConflict:'user_id,app,kind,id'}); if(error) throw error;
+      marks.slice(i,i+80).forEach(([key,h,up,del])=>{ SBM.up[key]=up; if(del){ delete SBM.known[key]; delete SBM.h[key]; } else { SBM.h[key]=h; if(!key.startsWith('state:')) SBM.known[key]=1; } });
+      n+=Math.min(80,rows.length-i); sbSaveMeta();
+    }
+    SBM.at=Date.now(); SBM.err=''; sbSaveMeta(); sbSetState('ok');
+  }catch(e){ SBM.err=String(e&&(e.message||e.code)||e); sbSaveMeta(); sbSetState('err'); clearTimeout(sbTimer); sbTimer=setTimeout(()=>sbPush(),30000); }
+  finally{ sbBusy=false; if(sbAgain){ sbAgain=false; sbSchedule(300); } }
+  return n;
+}
+function sbSchedule(ms){ if(!sbUser) return; clearTimeout(sbTimer); sbTimer=setTimeout(()=>{ sbPush(); },ms==null?1000:ms); }
+/* 서버 기록 하나를 이 기기에 넣음 (더 나중에 고친 쪽이 이김) → 바뀌었으면 true */
+function sbApply(r){
+  if(!r||r.app&&r.app!==SB_APP) return false;
+  const key=r.kind+':'+r.id, up=Number(r.updated_at)||0;
+  if(r.kind==='case'||r.kind==='env'){
+    const arr=r.kind==='case'?db.cases:db.envelopes, i=arr.findIndex(x=>x&&x.id===r.id), loc=i>=0?arr[i]:null, lu=loc?Number(loc.updated)||0:0;
+    if(r.deleted){
+      if(loc&&lu>up){ SBM.known[key]=1; return false; }   // 이 기기에서 더 나중에 고침 → 다음에 올려서 되살림
+      delete SBM.known[key]; delete SBM.h[key]; SBM.up[key]=Math.max(Number(SBM.up[key])||0,up);
+      if(loc){ arr.splice(i,1); return true; } return false;
+    }
+    if(!r.data||typeof r.data!=='object') return false;
+    if(loc&&lu>=up){ SBM.known[key]=1; if(lu===up&&!SBM.h[key]) SBM.h[key]=sbHash(JSON.stringify(loc)); return false; }
+    const obj=r.data; obj.updated=up;
+    if(i>=0) arr[i]=obj; else arr.push(obj);
+    SBM.known[key]=1; SBM.up[key]=up; SBM.h[key]=sbHash(JSON.stringify(obj));
+    return true;
+  }
+  if(r.kind==='state'&&r.data&&typeof r.data==='object'&&!r.deleted){
+    if(up<=(Number(SBM.up[key])||0)) return false;
+    const cur=r.id==='settings'?sbSettings():r.id==='duty'?sbDuty():null; if(!cur) return false;
+    if(SBM.h[key]&&sbHash(JSON.stringify(cur))!==SBM.h[key]) return false;   // 이 기기에서 방금 고친 게 아직 안 올라감 → 이 기기 것을 올림
+    if(r.id==='settings'){ SB_SET_KEYS.forEach(k=>{ if(k in r.data) db[k]=r.data[k]; }); SBM.h[key]=sbHash(JSON.stringify(sbSettings())); }
+    else { Object.entries(r.data).forEach(([k,v])=>{ if(/^hyumu-/.test(k)&&typeof v==='string'){ try{ localStorage.setItem(k,v); }catch(e){} } }); SBM.h[key]=sbHash(JSON.stringify(sbDuty())); sbDutyReload(); }
+    SBM.up[key]=up; return true;
+  }
+  return false;
+}
+function sbDutyReload(){ try{ if(typeof dutyLoaded!=='undefined'&&dutyLoaded){ const w=dutyWin(); if(w) w.location.reload(); } }catch(e){} }
+async function sbPull(full){
+  if(!sbc||!sbUser) return 0;
+  const since=full?'':(SBM.pullAt||''); let from=0, changed=0, maxAt=SBM.pullAt||'';
+  for(;;){
+    let q=sbc.from('dw_records').select('app,kind,id,data,deleted,updated_at,device,server_at').eq('app',SB_APP);
+    if(since) q=q.gt('server_at',since);
+    const {data,error}=await q.order('server_at',{ascending:true}).range(from,from+499); if(error) throw error;
+    (data||[]).forEach(r=>{ if(sbApply(r)) changed++; if(r.server_at&&(!maxAt||r.server_at>maxAt)) maxAt=r.server_at; });
+    if(!data||data.length<500) break; from+=500;
+  }
+  if(maxAt) SBM.pullAt=maxAt; sbSaveMeta();
+  if(changed) sbAfterApply();
+  return changed;
+}
+function sbAfterApply(){
+  if(!db.cases.find(c=>c.id===db.cur)) db.cur=db.cases.length?[...db.cases].sort((a,b)=>(b.updated||0)-(a.updated||0))[0].id:null;
+  save(); dirty=true; try{ renderCaseSel(); }catch(e){}
+  const a=document.activeElement; if(a&&a.closest&&a.closest('#mainContent')&&a.matches('input,textarea,select')){ sbNeedRender=true; return; }
+  sbRefresh();
+}
+function sbRefresh(){
+  sbNeedRender=false; const y=window.scrollY;
+  try{ const t=db.tab; if(t==='input') renderInput(); else if(t==='out') renderOut(); else if(t==='settle') renderSettle(); else if(t==='envelopes') renderEnvelopes(); else if(t==='sched') renderSched(); }catch(e){}
+  window.scrollTo(0,y);
+}
+document.addEventListener('focusout',()=>{ if(sbNeedRender) setTimeout(()=>{ const a=document.activeElement; if(!(a&&a.closest&&a.closest('#mainContent')&&a.matches('input,textarea,select'))) sbRefresh(); },250); });
+function sbSubscribe(){
+  if(!sbc||!sbUser) return; if(sbChan){ try{ sbc.removeChannel(sbChan); }catch(e){} }
+  sbChan=sbc.channel('dw-'+sbUser.id).on('postgres_changes',{event:'*',schema:'public',table:'dw_records',filter:'user_id=eq.'+sbUser.id},p=>{
+    const r=p&&p.new; if(!r||r.app!==SB_APP||r.device===sbDev) return;
+    const ch=sbApply(r); sbSaveMeta(); if(ch) sbAfterApply();
+  }).subscribe(st=>{ sbRt=st; renderSB(); if(st==='SUBSCRIBED') sbPull(false).catch(()=>{}); });
+}
+async function sbStart(user,first){
+  sbUser=user;
+  if(SBM.uid!==user.id){ SBM={uid:user.id,h:{},up:{},known:{},pullAt:''}; sbSaveMeta();
+    /* 이 계정과 처음 맞추기 전: 이 기기 기록을 자동 보관본 · 휴무 사본으로 남김 (설정 · 휴무는 계정 쪽 것으로 바뀔 수 있어서) */
+    try{ if(db.cases.length||db.envelopes.length){ await snapPut({id:Date.now(),at:new Date().toISOString(),reason:'내 계정 맞추기 전',ver:APP_VER,cases:db.cases.length,envs:db.envelopes.length,raw:JSON.stringify(db)}); renderSnaps(); } }catch(e){}
+    try{ const du=sbDuty(); if(Object.keys(du).length) localStorage.setItem('dw-sb-dutybak',JSON.stringify({at:Date.now(),data:du})); }catch(e){} }
+  sbSetState('sync');
+  let got=0, sent=0;
+  try{ got=await sbPull(!SBM.pullAt); sent=await sbPush(); if(first) toast(`내 계정과 맞췄어요 · 받은 기록 ${got}건 · 올린 기록 ${sent}건`); }
+  catch(e){ SBM.err=String(e&&(e.message||e.code)||e); sbSaveMeta(); sbSetState('err'); if(first) toast('로그인은 됐지만 지금은 기록을 맞추지 못했어요. 인터넷이 되면 자동으로 맞춰요'); }
+  sbSubscribe(); renderSB();
+}
+function sbStop(){ if(sbChan&&sbc){ try{ sbc.removeChannel(sbChan); }catch(e){} } sbChan=null; sbUser=null; sbRt=''; clearTimeout(sbTimer); sbSetState('off'); updateSaveState('saved'); }
+async function sbBoot(){
+  let has=false; try{ has=!!localStorage.getItem(SB_AUTH); }catch(e){}
+  if(!has||sbBooting) return; sbBooting=true;
+  try{ await sbClient(); const {data}=await sbc.auth.getSession(); const u=data&&data.session&&data.session.user; if(u) await sbStart(u,false); else renderSB(); }
+  catch(e){ sbState='err'; SBM.err='lib'; renderSB(); }
+  finally{ sbBooting=false; }
+}
+async function sbLogin(){
+  const idEl=$('#sbId'), pwEl=$('#sbPw'); let id=String(idEl.value||'').trim(); const pw=String(pwEl.value||'');
+  if(!id||!pw){ toast('아이디와 비밀번호를 넣어 주세요'); (id?pwEl:idEl).focus(); return; }
+  const email=id.includes('@')?id:`${id}@${SB_DOMAIN}`, b=$('#sbLoginBtn'); b.disabled=true; b.textContent='로그인 중…';
+  try{
+    await sbClient();
+    const {data,error}=await sbc.auth.signInWithPassword({email,password:pw});
+    if(error){ toast(/invalid|credential/i.test(error.message||'')?'아이디나 비밀번호가 맞지 않아요':'로그인하지 못했어요. 인터넷을 확인해 주세요'); return; }
+    pwEl.value=''; await sbStart(data.user,true);
+  }catch(e){ toast('로그인하지 못했어요. 인터넷을 확인해 주세요'); }
+  finally{ b.disabled=false; b.textContent='로그인'; }
+}
+async function sbLogout(){
+  if(!sbUser) return;
+  try{ await sbPush(); }catch(e){}
+  try{ await sbc.auth.signOut(); }catch(e){}
+  sbStop(); toast('로그아웃했어요. 이 기기의 기록은 그대로 있어요');
+}
+async function sbSyncNow(){ if(!sbUser) return; try{ sbSetState('sync'); const got=await sbPull(false), sent=await sbPush(); toast(`맞췄어요 · 받은 기록 ${got}건 · 올린 기록 ${sent}건`); }catch(e){ sbSetState('err'); toast('지금은 맞추지 못했어요. 인터넷을 확인해 주세요'); } }
+const sbClock=t=>{ const d=new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+function renderSB(){
+  const on=!!sbUser, id=on?sbIdOf(sbUser):'';
+  const st=$('#sbStatus');
+  if(st){ $('#sbLoginBox').hidden=on; $('#sbOnBox').hidden=!on;
+    st.textContent=!on?'로그인하지 않았어요. 지금은 이 기기에만 저장돼요.'
+      :sbState==='sync'?`켜짐 · ${id} · 맞추는 중…`
+      :sbState==='err'?`켜짐 · ${id} · 지금은 올리지 못했어요(인터넷 확인). 이 기기에 먼저 저장해 두고, 연결되면 자동으로 올려요.`
+      :`켜짐 · ${id} · ${SBM.at?`마지막 저장 ${sbClock(SBM.at)} · `:''}${sbRt==='SUBSCRIBED'?'다른 기기에서 고치면 바로 바뀌어요':'다른 기기 내용은 앱을 열 때 맞춰요'}`; }
+  const ft=$('#snFoot'); if(ft){ const ic=ft.querySelector('svg'); ft.innerHTML=''; if(ic) ft.appendChild(ic);
+    ft.append(...(on?[`내 계정(${id})에 실시간 저장`,document.createElement('br'),'다른 직원은 볼 수 없어요']:['이 기기에만 보관',document.createElement('br'),'로그인하면 내 계정에 실시간 저장'])); ft.classList.toggle('sb-off',!on); }
+  if(on) updateSaveState('saved');
+}
+window.addEventListener('online',()=>{ if(sbUser) sbPull(false).then(()=>sbPush()).catch(()=>{}); });
+document.addEventListener('visibilitychange',()=>{ if(!sbUser) return; if(document.visibilityState==='hidden') sbPush(); else sbPull(false).then(()=>sbPush()).catch(()=>{}); });
+window.addEventListener('storage',e=>{ if(sbUser&&e.key&&/^hyumu-/.test(e.key)) sbSchedule(1500); });
+setInterval(()=>{ if(sbUser&&navigator.onLine!==false) sbPush(); },60000);
 var afLast="", afTimer=0, afBusy=false;
 async function afWrite(ask){
   if(afBusy) return 'busy';
@@ -4556,6 +4751,10 @@ const purged=purge();
 if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].includes(db.tab))db.tab='envelopes';
 save();
 renderAll();
+$('#sbLoginBtn').onclick=sbLogin; $('#sbOutBtn').onclick=sbLogout; $('#sbSyncBtn').onclick=sbSyncNow;
+$('#sbPw').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sbLogin(); } });
+$('#snFoot').addEventListener('click',()=>{ setTab('admin','keep'); closeNav(); });
+renderSB(); sbBoot();
 setInterval(()=>renderTtl(), 10*60*1000);
 autoSnapshot();
 </script>

@@ -67,6 +67,7 @@ FM = ROOT / 'forms'
 (FM / 'vendor').mkdir(parents=True, exist_ok=True)
 (FM / 'icons').mkdir(parents=True, exist_ok=True)
 shutil.copyfile(ROOT / 'vendor' / 'jspdf.umd.min.js', FM / 'vendor' / 'jspdf.umd.min.js')
+shutil.copyfile(ROOT / 'vendor' / 'supabase.js', FM / 'vendor' / 'supabase.js')   # 실시간 저장 (장례업무)
 for ic in (ROOT / 'icons').glob('*.png'):
     shutil.copyfile(ic, FM / 'icons' / ic.name)
 (FM / 'index.html').write_text(html, encoding='utf-8')
@@ -162,6 +163,8 @@ root_sw = root_sw.replace(scope_line, 'if (!' + json.dumps(ROOT_ONLY) + '.includ
 # 따로 쓰는 장례일정 앱 (서식 없음)
 JR = ROOT / 'jangrye'
 JR.mkdir(exist_ok=True)
+(JR / 'vendor').mkdir(exist_ok=True)
+shutil.copyfile(ROOT / 'vendor' / 'supabase.js', JR / 'vendor' / 'supabase.js')   # 실시간 저장 (수파베이스 연결 도구, 로그인할 때만 불러옴)
 (JR / 'index.html').write_text(
     make_funeral('장례일정', [(ROOT / 'src' / 'jangrye-bridge.html').read_text(encoding='utf-8')], page_title='장례일정'),
     encoding='utf-8')
