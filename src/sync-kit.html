@@ -1,0 +1,102 @@
+<!-- 서버 자동 저장 (2026.10.23-7): 서식(주간보고 · 회의록 · 후기 · 탁송 · 설정 · 서명)과 회사 서류(문서 · 직원 · 회사 정보)를
+     로그인한 내 계정으로 수파베이스 dw_records 에 저장 (app = 'forms' | 'company', 내 것만 — 서버 규칙 RLS).
+     화면 쪽이 window.DW_SYNC = { app, meta, collect(), apply(rows), isEmpty(kind, data), onState(state) } 를 만들어 두면 여기서 맞춤.
+     - collect(): 지금 이 기기 기록 [{kind, id, data, updated}] (불러오기 전이면 null)
+     - apply(rows): 서버에서 받은 것 넣기 → 지금 고치는 중이라 못 넣은 key 목록을 돌려줌
+     순서: 받기(지난번 이후 바뀐 것) → 올리기(바뀐 것만). 같은 기록은 더 나중에 고친 쪽(updated)이 이김.
+     updated 가 없는 것(설정 · 후기 · 서명 · 회사 정보)은 이 기기에서 지난번 맞춘 뒤 안 고쳤으면 서버 것, 고쳤으면 이 기기 것.
+     지운 기록은 서버에 「지움」 표시만(내용은 서버에 남음). 한 번에 많이 지워진 것처럼 보이면(불러오기 실패 등) 지움을 올리지 않음.
+     15초마다 · 화면을 벗어날 때 · 인터넷 다시 연결될 때. 이 기기 저장값: dw-sync-forms · dw-sync-company (이름 바꾸지 말 것). -->
+<script>
+(function () {
+  'use strict';
+  var A = window.DW_SYNC; if (!A || !A.app) return;
+  var DEV = (function () { try { var d = localStorage.getItem('dw-sb-dev'); if (!d) { d = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('dw-sb-dev', d); } return d; } catch (e) { return 'x'; } })();
+  function load() { var m = {}; try { m = JSON.parse(localStorage.getItem(A.meta) || '{}') || {}; } catch (e) {} ['h', 'up', 'known'].forEach(function (k) { if (!m[k] || typeof m[k] !== 'object') m[k] = {}; }); return m; }
+  var M = load();
+  function save() { try { localStorage.setItem(A.meta, JSON.stringify(M)); } catch (e) {} }
+  function hash(s) { var h = 0x811c9dc5; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(36) + '.' + s.length; }
+  var H = function (d) { return hash(JSON.stringify(d === undefined ? null : d)); };
+  var running = false, again = false, timer = 0, state = 'off';
+  function setState(s) { state = s; try { if (A.onState) A.onState(s, M); } catch (e) {} }
+  async function run() {
+    if (running) { again = true; return; }
+    var acct = window.dwAcct, u = acct && acct.user();
+    if (!u || (A.leaderOnly && !acct.leader())) { setState('off'); return; }
+    if (navigator.onLine === false) { setState('wait'); return; }
+    var local = await A.collect(); if (local === false) { setState('off'); return; } if (!local) { schedule(1500); return; }   /* false = 이 기기 저장소를 못 씀 → 맞추지 않음 */
+    running = true; setState('sync');
+    try {
+      var c = await acct.client();
+      if (M.uid !== u.id) { M = { uid: u.id, h: {}, up: {}, known: {}, pullAt: '' }; save(); }
+      /* 1) 받기 */
+      var since = M.pullAt || '', got = [], maxAt = since;
+      for (var from = 0; ; from += 500) {
+        var q = c.from('dw_records').select('kind,id,data,deleted,updated_at,server_at').eq('user_id', u.id).eq('app', A.app);
+        if (since) q = q.gt('server_at', since);
+        var r = await q.order('server_at', { ascending: true }).range(from, from + 499); if (r.error) throw r.error;
+        (r.data || []).forEach(function (x) { got.push(x); if (x.server_at && (!maxAt || x.server_at > maxAt)) maxAt = x.server_at; });
+        if (!r.data || r.data.length < 500) break;
+      }
+      var held = false;
+      if (got.length) {
+        var lmap = {}; local.forEach(function (x) { lmap[x.kind + ':' + x.id] = x; });
+        var take = [], prev = {};
+        got.forEach(function (x) {
+          var key = x.kind + ':' + x.id, up = Number(x.updated_at) || 0, loc = lmap[key];
+          if (x.deleted) {
+            if (loc && (Number(loc.updated) || 0) > up) { M.known[key] = 1; return; }   /* 이 기기에서 더 나중에 고침 → 다시 올려 살림 */
+            prev[key] = [M.h[key], M.up[key], M.known[key]]; delete M.known[key]; delete M.h[key]; M.up[key] = Math.max(Number(M.up[key]) || 0, up);
+            if (loc) take.push({ kind: x.kind, id: x.id, deleted: true, key: key });
+            return;
+          }
+          if (x.data == null) return;
+          var rh = H(x.data), lh = loc ? H(loc.data) : '';
+          if (loc && lh === rh) { M.known[key] = 1; M.h[key] = rh; M.up[key] = Math.max(Number(M.up[key]) || 0, up); return; }
+          if (loc) {
+            var lu = Number(loc.updated) || 0;
+            if (lu || up && x.data && x.data.updatedAt) { if (lu >= up) { M.known[key] = 1; return; } }   /* 고친 시각이 있는 기록: 더 나중 것이 이김 */
+            else if (M.h[key] ? lh !== M.h[key] : !(A.isEmpty && A.isEmpty(x.kind, loc.data))) { M.known[key] = 1; return; }   /* 이 기기에서 고친 게 아직 안 올라감 → 이 기기 것 */
+          }
+          prev[key] = [M.h[key], M.up[key], M.known[key]];
+          take.push({ kind: x.kind, id: x.id, data: x.data, key: key }); M.known[key] = 1; M.up[key] = up; M.h[key] = rh;
+        });
+        if (take.length) {
+          var skipped = (await A.apply(take)) || [];
+          skipped.forEach(function (key) { var p = prev[key]; if (!p) return; if (p[0]) M.h[key] = p[0]; else delete M.h[key]; if (p[1]) M.up[key] = p[1]; else delete M.up[key]; if (p[2]) M.known[key] = 1; held = true; });
+          local = await A.collect(); if (!local) { save(); running = false; schedule(1500); return; }
+        }
+      }
+      if (maxAt && !held) M.pullAt = maxAt;   /* 고치는 중이라 못 넣은 게 있으면 다음에 다시 받음 */
+      save();
+      /* 2) 올리기 */
+      var rows = [], marks = [], now = Date.now(), have = {};
+      local.forEach(function (x) {
+        var key = x.kind + ':' + x.id; have[key] = 1;
+        var h = H(x.data); if (M.h[key] === h) return;
+        var up = Math.max(Number(x.updated) || now, (Number(M.up[key]) || 0) + 1);
+        rows.push({ user_id: u.id, app: A.app, kind: x.kind, id: String(x.id), data: x.data, deleted: false, updated_at: up, device: DEV }); marks.push([key, h, up, false]);
+      });
+      var gone = Object.keys(M.known).filter(function (key) { return !have[key] && key.indexOf('state:') !== 0 && (!A.noTomb || A.noTomb.indexOf(key.split(':')[0]) < 0); });
+      var total = Object.keys(M.known).length;
+      if (gone.length && !(gone.length > 10 && gone.length > total / 2)) {
+        gone.forEach(function (key) { var i = key.indexOf(':'), up = Math.max(now, (Number(M.up[key]) || 0) + 1); rows.push({ user_id: u.id, app: A.app, kind: key.slice(0, i), id: key.slice(i + 1), data: null, deleted: true, updated_at: up, device: DEV }); marks.push([key, '', up, true]); });
+      }
+      for (var i = 0; i < rows.length; i += 40) {
+        var w = await c.from('dw_records').upsert(rows.slice(i, i + 40), { onConflict: 'user_id,app,kind,id' }); if (w.error) throw w.error;
+        marks.slice(i, i + 40).forEach(function (m) { M.up[m[0]] = m[2]; if (m[3]) { delete M.known[m[0]]; delete M.h[m[0]]; } else { M.h[m[0]] = m[1]; M.known[m[0]] = 1; } });
+        save();
+      }
+      M.at = Date.now(); M.err = ''; save(); setState('ok');
+    } catch (e) { M.err = String((e && (e.message || e.code)) || e); save(); setState('err'); }
+    finally { running = false; if (again) { again = false; schedule(1500); } }
+  }
+  function schedule(ms) { clearTimeout(timer); timer = setTimeout(run, ms == null ? 2000 : ms); }
+  window.dwSync = { run: run, schedule: schedule, state: function () { return state; }, meta: function () { return M; } };
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') run(); else schedule(600); });
+  window.addEventListener('online', function () { schedule(600); });
+  window.addEventListener('dw-role', function () { schedule(600); });
+  setInterval(function () { if (document.visibilityState === 'visible') run(); }, 15000);
+  schedule(1200);
+})();
+</script>

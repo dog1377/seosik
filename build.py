@@ -23,6 +23,8 @@ LOCK_SNIPPET = (ROOT / 'src' / 'lock.html').read_text(encoding='utf-8')
 # DW장례업무(forms/)는 로그인해야 열림 (수파베이스). 파트장(app_metadata.dw_role='leader')이 아니면 관리자 기능만 숨김
 GATE_HEAD = (ROOT / 'src' / 'leader-gate-head.html').read_text(encoding='utf-8')
 GATE_BODY = (ROOT / 'src' / 'leader-gate.html').read_text(encoding='utf-8')
+# 서버 자동 저장 (서식 · 회사 서류): 화면이 만든 window.DW_SYNC 로 dw_records 와 맞춤
+SYNC_KIT = (ROOT / 'src' / 'sync-kit.html').read_text(encoding='utf-8')
 
 
 def lock_html(cfg):
@@ -59,6 +61,7 @@ html = f"""<!doctype html>
 <body>
 {body_part}
 {GATE_BODY}
+{SYNC_KIT}
 </body>
 </html>
 """
@@ -221,6 +224,7 @@ admin_html = f"""<!doctype html>
 {abody}
 {ADMIN_BRIDGE}
 {GATE_BODY}
+{SYNC_KIT}
 </body>
 </html>
 """

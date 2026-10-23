@@ -474,7 +474,8 @@ p{text-wrap:pretty}
     </div>
     <div class="card">
       <h2>데이터</h2>
-      <p class="small-t muted">직원 인적사항과 문서는 이 기기의 브라우저 안에만 저장되고 서버로 보내지지 않아요. 브라우저 기록·사이트 데이터를 지우거나 휴대폰을 바꾸면 사라지니, 한 달에 한 번은 백업 파일을 받아 두세요. 백업 파일에는 개인정보가 들어 있으니 다른 사람에게 보내지 마세요.</p>
+      <p class="small-t muted">직원 인적사항과 문서는 이 기기와 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주세요.</p>
+      <p class="small-t" id="srvSync">로그인하면 서버에 자동 저장돼요.</p>
       <p class="small-t" id="dataCount">-</p>
       <div class="grid2">
         <button class="btn" type="button" id="backupBtn">백업 파일 저장</button>
@@ -2106,6 +2107,47 @@ function bindPwa() {
   });
 }
 
+/* ================= 서버 자동 저장 · 회사 서류 (2026.10.23-7) — 맞추는 일은 src/sync-kit.html (dw_records app='company', 내 것만) =================
+   문서 doc · 직원 staff · 사진/직인 img · 회사 정보. 파트장 계정만. */
+let csReady = false;
+const csOpen = (id) => !$('#' + id).hidden;
+window.DW_SYNC = {
+  app: 'company', meta: 'dw-sync-company', leaderOnly: true,
+  async collect() {
+    if (!csReady) return null; if (!Store.ok) return false;
+    const out = [];
+    S.docs.forEach((d) => out.push({ kind: 'doc', id: d.id, data: d, updated: d.updatedAt || 0 }));
+    S.staff.forEach((s) => out.push({ kind: 'staff', id: s.id, data: s, updated: s.updatedAt || 0 }));
+    (await Store.getAll('img')).forEach((im) => { if (im && im.id) out.push({ kind: 'img', id: im.id, data: im, updated: 0 }); });
+    out.push({ kind: 'state', id: 'company', data: S.co, updated: 0 });
+    return out;
+  },
+  isEmpty(kind, d) { return kind === 'state' && (!d || JSON.stringify(d) === JSON.stringify(DEFAULT_CO)); },
+  async apply(rows) {
+    const skipped = []; let co = false;
+    for (const r of rows) {
+      const busy = (r.kind === 'doc' && csOpen('docEditor') && S.ed && S.ed.id === r.id) || (r.kind === 'staff' && csOpen('staffEditor') && S.se && S.se.id === r.id) || (r.id === 'company' && S.cd);
+      if (busy) { skipped.push(r.key); continue; }
+      if (r.kind === 'doc' || r.kind === 'staff') {
+        const m = r.kind === 'doc' ? S.docs : S.staff, store = r.kind === 'doc' ? 'docs' : 'staff';
+        if (r.deleted) { m.delete(r.id); await Store.del(store, r.id); }
+        else if (r.data && r.data.id && (r.kind !== 'doc' || TYPES[r.data.type])) { m.set(r.id, r.data); await Store.put(store, r.data); }
+      } else if (r.kind === 'img') { if (r.deleted) await Store.del('img', r.id); else if (r.data && r.data.id) await Store.put('img', r.data); S.imgCache.delete(r.id); }
+      else if (r.id === 'company' && r.data && typeof r.data === 'object') { S.co = Object.assign(clone(DEFAULT_CO), r.data); co = true; }
+    }
+    if (co) await Store.put('kv', clone(S.co), 'company');
+    renderAll();
+    return skipped;
+  },
+  onState(st, m) {
+    const el = $('#srvSync'); if (!el) return;
+    const d = m && m.at ? new Date(m.at) : null, at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+    el.textContent = st === 'ok' ? `서버 자동 저장 켜짐 · 마지막 저장 ${at}` : st === 'sync' ? '서버에 저장하는 중…'
+      : st === 'err' ? '지금은 서버에 올리지 못했어요. 이 기기에 먼저 저장해 두고 인터넷이 되면 다시 올려요.'
+      : st === 'wait' ? '인터넷이 연결되면 서버에 올려요.' : '로그인하면 서버에 자동 저장돼요.';
+  }
+};
+
 async function init() {
   bind(); bindPwa(); setupPwa(); getDownloads();
   let tab = 'docs';
@@ -2122,6 +2164,7 @@ async function init() {
   }
   renderAll(); showTab(S.tab);
   checkBackup();
+  csReady = true; if (window.dwSync) window.dwSync.schedule(800);   /* 서버 자동 저장 시작 (불러오기 끝난 뒤) */
 }
 init();
 

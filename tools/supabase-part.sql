@@ -1,4 +1,4 @@
--- DW장례업무 · 파트 · 파트 게시판 준비 (2026.10.23, -6: 한 사람은 한 파트에만 · 파트장은 다른 파트를 못 봄)
+-- DW장례업무 · 파트 · 파트 게시판 · 권한 준비 (2026.10.23, -6: 한 사람은 한 파트에만 · 파트장은 다른 파트를 못 봄, -7: 앱에서 파트장 정하기)
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -8,6 +8,7 @@
 --   · 파트 게시판: 같은 파트 사람끼리만 보임. 파트장은 공지, 파트원도 글 · 댓글
 --   · 한 직원은 한 파트에만 들어감. 파트장 계정은 다른 파트에 못 들어감 → 파트장은 자기 파트 게시판 · 파트원만 봄
 --   · 파트장은 자기 파트원의 장례일정 · 봉투를 볼 수만 있음 (고치기 안 됨)
+--   · 관리자(처음 실행할 때의 파트장)는 앱 설정 「직원 권한」에서 직원을 파트장으로 정하거나 직원으로 바꿀 수 있음
 -- 표는 앱에서 바로 건드릴 수 없고, 아래 함수(누가 무엇을 할 수 있는지 검사함)로만 읽고 씁니다.
 
 -- ---------- 표 ----------
@@ -85,6 +86,11 @@ language sql stable security definer set search_path = '' as $$
   select coalesce((select (u.raw_app_meta_data ->> 'dw_role') = 'leader' from auth.users u where u.id = p_user), false)
 $$;
 
+create or replace function public.dw_is_admin(p_user uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select coalesce((select (u.raw_app_meta_data ->> 'dw_admin') = 'true' from auth.users u where u.id = p_user), false)
+$$;
+
 create or replace function public.dw_leads(p_part uuid, p_user uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
   select exists (select 1 from public.dw_parts t where t.id = p_part and t.leader_id = p_user) and public.dw_is_leader(p_user)
@@ -129,6 +135,11 @@ delete from public.dw_part_members a using public.dw_part_members b
 where a.user_id = b.user_id and (a.added_at, a.part_id::text) > (b.added_at, b.part_id::text);
 create unique index if not exists dw_part_members_one on public.dw_part_members (user_id);
 
+-- 관리자(직원을 파트장으로 정할 수 있는 사람): 아직 아무도 없으면 지금 파트장을 관리자로 (처음 한 번)
+update auth.users set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"dw_admin": true}'::jsonb
+where raw_app_meta_data ->> 'dw_role' = 'leader'
+  and not exists (select 1 from auth.users x where x.raw_app_meta_data ->> 'dw_admin' = 'true');
+
 -- ---------- 앱에서 부르는 함수 ----------
 -- 내 정보 + 내가 속한 파트
 create or replace function public.dw_me() returns jsonb
@@ -139,7 +150,7 @@ begin
   perform public.dw_profile_ensure(me);
   select * into p from public.dw_profiles where user_id = me;
   return jsonb_build_object(
-    'ok', true, 'user_id', me, 'login_id', p.login_id, 'name', p.name, 'leader', public.dw_is_leader(me),
+    'ok', true, 'user_id', me, 'login_id', p.login_id, 'name', p.name, 'leader', public.dw_is_leader(me), 'admin', public.dw_is_admin(me),
     'parts', coalesce((
       select jsonb_agg(jsonb_build_object(
                'id', t.id, 'name', t.name, 'leader_id', t.leader_id, 'leader_name', public.dw_name(t.leader_id),
@@ -386,16 +397,56 @@ language sql stable security definer set search_path = '' as $$
   order by x.user_id, x.kind, x.id
 $$;
 
+-- 관리자: 직원 명단과 권한 보기 · 파트장으로 정하기 / 직원으로 바꾸기
+create or replace function public.dw_people() returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid();
+begin
+  if not public.dw_is_admin(me) then return jsonb_build_object('ok', false, 'why', 'notadmin'); end if;
+  insert into public.dw_profiles (user_id, login_id, name)
+  select u.id, public.dw_login_of(u.email, u.id), left(btrim(coalesce(u.raw_user_meta_data ->> 'name', '')), 20) from auth.users u
+  on conflict do nothing;
+  return jsonb_build_object('ok', true, 'people', coalesce((
+    select jsonb_agg(x.o order by x.lead desc, x.nm)
+    from (
+      select public.dw_is_leader(p.user_id) as lead, coalesce(nullif(p.name, ''), p.login_id) as nm,
+             jsonb_build_object('user_id', p.user_id, 'login_id', p.login_id, 'name', p.name,
+               'leader', public.dw_is_leader(p.user_id), 'admin', public.dw_is_admin(p.user_id), 'me', p.user_id = me,
+               'part', (select t.name from public.dw_part_members m join public.dw_parts t on t.id = m.part_id where m.user_id = p.user_id limit 1),
+               'leads', (select count(*) from public.dw_parts t where t.leader_id = p.user_id)) as o
+      from public.dw_profiles p
+    ) x), '[]'::jsonb));
+end $$;
+
+create or replace function public.dw_set_role(p_user uuid, p_leader boolean) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid();
+begin
+  if not public.dw_is_admin(me) then return jsonb_build_object('ok', false, 'why', 'notadmin'); end if;
+  if p_user = me then return jsonb_build_object('ok', false, 'why', 'self'); end if;
+  if not exists (select 1 from auth.users u where u.id = p_user) then return jsonb_build_object('ok', false, 'why', 'nouser'); end if;
+  if coalesce(p_leader, false) then
+    update auth.users set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"dw_role": "leader"}'::jsonb where id = p_user;
+    delete from public.dw_part_members where user_id = p_user;   -- 파트장은 다른 파트의 파트원이 될 수 없음
+  else
+    update auth.users set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) - 'dw_role' - 'dw_admin' where id = p_user;
+  end if;
+  return jsonb_build_object('ok', true);
+end $$;
+
 -- ---------- 누가 부를 수 있는지 ----------
 revoke all on function public.dw_login_of(text, uuid)          from public, anon, authenticated;
 revoke all on function public.dw_profile_ensure(uuid)          from public, anon, authenticated;
 revoke all on function public.dw_is_leader(uuid)               from public, anon, authenticated;
+revoke all on function public.dw_is_admin(uuid)                from public, anon, authenticated;
 revoke all on function public.dw_leads(uuid, uuid)             from public, anon, authenticated;
 revoke all on function public.dw_in_part(uuid, uuid)           from public, anon, authenticated;
 revoke all on function public.dw_name(uuid)                    from public, anon, authenticated;
 revoke all on function public.dw_profile_new()                 from public, anon, authenticated;
 
 revoke all on function public.dw_me()                                        from public, anon;
+revoke all on function public.dw_people()                                    from public, anon;
+revoke all on function public.dw_set_role(uuid, boolean)                     from public, anon;
 revoke all on function public.dw_set_name(text)                              from public, anon;
 revoke all on function public.dw_part_create(text)                           from public, anon;
 revoke all on function public.dw_part_rename(uuid, text)                     from public, anon;
@@ -413,6 +464,8 @@ revoke all on function public.dw_notices(int)                                fro
 revoke all on function public.dw_member_records(uuid, uuid, text)            from public, anon;
 
 grant execute on function public.dw_me()                                        to authenticated;
+grant execute on function public.dw_people()                                    to authenticated;
+grant execute on function public.dw_set_role(uuid, boolean)                     to authenticated;
 grant execute on function public.dw_set_name(text)                              to authenticated;
 grant execute on function public.dw_part_create(text)                           to authenticated;
 grant execute on function public.dw_part_rename(uuid, text)                     to authenticated;

@@ -637,6 +637,7 @@ p{text-wrap:pretty}
       <p>보고서 머리글에 들어갈 정보와 데이터 백업을 관리해요.</p>
     </div>
     <div class="card ac-card" id="dwAcctCard" hidden></div>
+    <div class="card" id="roleCard" hidden><h2>직원 권한</h2><p class="small-t muted">파트장으로 정하면 서식 · 설정 · 회사 서류가 보이고, 파트를 만들어 파트원을 넣을 수 있어요.</p><div id="roleList"></div></div>
     <div class="card">
       <h2>기본 정보</h2>
       <label class="field"><span>작성자 (파트장 이름)</span><input id="setAuthor" type="text" placeholder="예: 홍길동" autocomplete="name"></label>
@@ -675,7 +676,8 @@ p{text-wrap:pretty}
     </div>
     <div class="card">
       <h2>데이터</h2>
-      <p class="small-t muted">모든 기록은 이 기기의 브라우저 안에만 저장되고 서버로 보내지지 않아요. 그래서 브라우저 기록·사이트 데이터를 지우거나 휴대폰을 바꾸면 사라집니다. 항상 같은 방법(같은 브라우저 또는 같은 앱)으로 열어야 기록이 보여요. 한 달에 한 번은 백업 파일을 받아 두세요.</p>
+      <p class="small-t muted">서식 기록(주간보고 · 회의록 · 후기 · 탁송 · 설정 · 서명)은 이 기기와 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요.</p>
+      <p class="small-t" id="srvSync">로그인하면 서버에 자동 저장돼요.</p>
       <p class="small-t" id="dataCount">-</p>
       <div class="grid2">
         <button class="btn" type="button" id="backupBtn">백업 파일 저장</button>
@@ -1160,7 +1162,7 @@ function showTab(t) {
   window.scrollTo(0, 0);
   if (t === 'home') renderHome();
   if (t === 'board') boardOpen();
-  if (t === 'settings') renderSettings();
+  if (t === 'settings') { renderSettings(); roleLoad(); }
   if (t === 'review') renderReview();
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
@@ -2991,7 +2993,8 @@ function renderHome() {
   $('#hmAll').textContent = fuWon0(s.all);
   const note = $('#hmEnvNote');
   note.hidden = !!(db && ((db.cases || []).length || (db.envelopes || []).length));
-  note.textContent = '이 기기에 아직 장례 기록이 없어요. 장례업무를 한 번 열면 내 계정에 저장된 기록을 받아오고, 행사를 넣으면 여기에 모여요.';
+  note.textContent = '이 기기에 아직 장례 기록이 없어요. 장례업무에서 행사를 넣으면 여기에 모여요.';
+  if (!note.hidden) whenAcct(() => homeFromServer(month));
   homeAcctSlot();
   whenAcct(() => { homeNotices(false); homeTeam(false); });
 }
@@ -3302,6 +3305,7 @@ function bindHomeBoard() {
     if (e.target.closest('#hmTeamGo')) { PB.view = 'people'; showTab('board'); }
   });
   $('#bdBody').addEventListener('click', boardClick);
+  $('#roleCard').addEventListener('click', roleClick);
   $('#bdBody').addEventListener('change', (e) => { if (e.target.id === 'bdPart') { PB.part = e.target.value; try { localStorage.setItem('dw-part-sel', PB.part); } catch (err) { /* ignore */ } PB.view = 'posts'; PB.people = null; PB.posts = null; boardLoad(false); } });
   $('#bdBody').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const map = { bdAddId: 'add', bdNewName: 'create', bdRename: 'rename' }, act = map[e.target.id]; if (act) { e.preventDefault(); const b = e.target.parentNode.querySelector(`[data-bd="${act}"]`); if (b) b.click(); } });
   $('#psBack').addEventListener('click', closePost);
@@ -3331,6 +3335,126 @@ function bindHomeBoard() {
     if (S.tab === 'home' && homeDay !== seoulYMD()) renderHome();
     if (S.tab === 'board' && $('#postScreen').hidden && $('#postEditor').hidden && Date.now() - PB.at > 60000) boardLoad(false);
   }, 60000);
+}
+
+/* ================= 서버 자동 저장 · 서식 (2026.10.23-7) — 맞추는 일은 src/sync-kit.html (dw_records app='forms', 내 것만) =================
+   주간보고 weekly · 탁송 ship · 회의록 minute · 사진 img · 후기 review(날짜마다) · 설정 · 후기 제목 · 서명. 파트장 계정만(직원은 서식이 없음). */
+let fsReady = false;
+const fsOpen = (id) => !$('#' + id).hidden;
+window.DW_SYNC = {
+  app: 'forms', meta: 'dw-sync-forms', leaderOnly: true, noTomb: ['review'],
+  async collect() {
+    if (!fsReady) return null; if (!Store.ok) return false;
+    const out = [];
+    S.weekly.forEach((r) => out.push({ kind: 'weekly', id: r.id, data: r, updated: r.updatedAt || 0 }));
+    S.ship.forEach((e) => out.push({ kind: 'ship', id: e.id, data: e, updated: e.updatedAt || 0 }));
+    S.minutes.forEach((m) => out.push({ kind: 'minute', id: m.id, data: m, updated: m.updatedAt || 0 }));
+    (await Store.getAll('img')).forEach((im) => { if (im && im.id) out.push({ kind: 'img', id: im.id, data: im, updated: 0 }); });
+    Object.keys(S.reviews || {}).forEach((d) => out.push({ kind: 'review', id: d, data: { text: String(S.reviews[d] || '') }, updated: 0 }));
+    out.push({ kind: 'state', id: 'settings', data: S.settings, updated: 0 });
+    out.push({ kind: 'state', id: 'reviewTitle', data: { t: S.rvTitle || '' }, updated: 0 });
+    out.push({ kind: 'state', id: 'signature', data: S.sig || { none: true }, updated: 0 });
+    return out;
+  },
+  isEmpty(kind, d) {
+    if (kind === 'review') return !String((d && d.text) || '').trim();
+    if (!d || d.none) return true;
+    if (d.t !== undefined) return !d.t;
+    if (d.author !== undefined) return !d.author && !d.part && !(d.roster || []).length;
+    return false;
+  },
+  async apply(rows) {
+    const skipped = []; let lists = false, mins = false, rv = false, set = false, sig = false;
+    for (const r of rows) {
+      const busy = (r.kind === 'weekly' && fsOpen('weeklyEditor') && S.ew && S.ew.id === r.id)
+        || (r.kind === 'minute' && fsOpen('minutesEditor') && S.em && S.em.id === r.id)
+        || (r.kind === 'ship' && fsOpen('shipEditor') && S.es && S.es.id === r.id)
+        || ((r.kind === 'review' || r.id === 'reviewTitle') && S.rvDirty) || (r.id === 'settings' && S.sd);
+      if (busy) { skipped.push(r.key); continue; }
+      if (r.kind === 'weekly' || r.kind === 'ship') {
+        const m = r.kind === 'weekly' ? S.weekly : S.ship;
+        if (r.deleted) { m.delete(r.id); await Store.del(r.kind, r.id); } else if (r.data && r.data.id) { m.set(r.id, r.data); await Store.put(r.kind, r.data); }
+        lists = true;
+      } else if (r.kind === 'img') { if (r.deleted) await Store.del('img', r.id); else if (r.data && r.data.id) await Store.put('img', r.data); S.imgCache.delete(r.id); lists = true; }
+      else if (r.kind === 'minute') { if (r.deleted) S.minutes.delete(r.id); else { const m = readMinutes(r.data); if (m) S.minutes.set(m.id, m); } mins = true; }
+      else if (r.kind === 'review') { S.reviews[r.id] = String((r.data && r.data.text) || ''); rv = true; }
+      else if (r.id === 'reviewTitle') { S.rvTitle = String((r.data && r.data.t) || ''); rv = true; }
+      else if (r.id === 'settings' && r.data && typeof r.data === 'object') { S.settings = Object.assign(clone(DEFAULT_SETTINGS), r.data); set = true; }
+      else if (r.id === 'signature') { S.sig = r.data && !r.data.none && r.data.data ? r.data : null; sigImgCache = null; sig = true; }
+    }
+    if (mins) await persistMinutes();
+    if (rv) { await Store.put('kv', clone(S.reviews), 'reviews'); await Store.put('kv', S.rvTitle || '', 'reviewTitle'); }
+    if (set) await saveSettings();
+    if (sig) await saveSig();
+    if (lists) { renderWeeklyList(); renderShip(); }
+    if (mins) renderMinutesList();
+    if (rv && S.tab === 'review') renderReview();
+    if ((set || sig) && !S.sd) renderSettings();
+    return skipped;
+  },
+  onState(st, m) { renderSrv(st, m); }
+};
+function renderSrv(st, m) {
+  const el = $('#srvSync'); if (!el) return;
+  const d = m && m.at ? new Date(m.at) : null, at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+  el.textContent = st === 'ok' ? `서버 자동 저장 켜짐 · 마지막 저장 ${at}` : st === 'sync' ? '서버에 저장하는 중…'
+    : st === 'err' ? '지금은 서버에 올리지 못했어요. 이 기기에 먼저 저장해 두고 인터넷이 되면 다시 올려요.'
+    : st === 'wait' ? '인터넷이 연결되면 서버에 올려요.' : '로그인하면 서버에 자동 저장돼요.';
+}
+
+/* ================= 직원 권한 (2026.10.23-7) — 관리자(app_metadata dw_admin)만: 파트장으로 정하기 · 직원으로 바꾸기 ================= */
+let roleList = null;
+async function roleLoad() {
+  const card = $('#roleCard'); if (!card || isMember()) { if (card) card.hidden = true; return; }
+  let me = null; try { me = await pbLoadMe(false); } catch (e) { card.hidden = true; return; }
+  if (!me || !me.admin) { card.hidden = true; return; }
+  card.hidden = false;
+  if (!roleList) $('#roleList').innerHTML = '<p class="bd-empty">불러오는 중…</p>';
+  try { const d = await window.dwAcct.rpc('dw_people'); roleList = (d && d.ok && d.people) || []; }
+  catch (e) { $('#roleList').innerHTML = `<p class="bd-empty">${esc(pbWhyText((e && e.why) || 'net', true))}</p>`; return; }
+  paintRoles();
+}
+function paintRoles() {
+  const el = $('#roleList'); if (!el || !roleList) return;
+  el.innerHTML = roleList.length ? `<div class="bd-ppl">${roleList.map((x) => {
+    const sub = x.me ? '나 · 관리자' : x.leader ? `파트장${x.leads ? ` · 파트 ${x.leads}개` : ''}` : `직원 · ${x.part ? x.part : '파트 없음'}`;
+    const btn = x.me ? '' : `<button class="btn small${x.leader ? ' quiet' : ''}" type="button" data-role="${esc(x.user_id)}" data-to="${x.leader ? 'member' : 'leader'}">${x.leader ? '직원으로' : '파트장으로'}</button>`;
+    return `<div class="bd-pp"><div><b>${esc(pName(x))}</b><small>${esc([x.name ? x.login_id : '', sub].filter(Boolean).join(' · '))}</small></div>${btn}</div>`;
+  }).join('')}</div>` : '<p class="bd-empty">아직 가입한 직원이 없어요.</p>';
+}
+async function roleClick(e) {
+  const b = e.target.closest('[data-role]'); if (!b) return;
+  const x = (roleList || []).find((y) => y.user_id === b.dataset.role), lead = b.dataset.to === 'leader';
+  armConfirm(b, lead ? '한 번 더 누르면 파트장으로' : '한 번 더 누르면 직원으로', async () => {
+    const d = await pbCall('dw_set_role', { p_user: b.dataset.role, p_leader: lead }); if (!d) return;
+    toast(`${pName(x) || '직원'} 님을 ${lead ? '파트장으로 정했어요. 다음에 앱을 열면 서식 · 설정이 보여요' : '직원으로 바꿨어요'}`);
+    roleList = null; PB.meAt = 0; roleLoad();
+  });
+}
+
+/* 홈: 이 기기에 장례 기록이 없으면(앱을 새로 깔았을 때) 서버에 저장된 내 장례 기록으로 이번 달 숫자를 보여 줌 (읽기만) */
+let hmSrv = null, hmSrvAt = 0;
+async function homeServerFuneral() {
+  if (hmSrv && Date.now() - hmSrvAt < 120000) return hmSrv;
+  const c = await window.dwAcct.client(), u = window.dwAcct.user(), cases = [], envs = [];
+  for (let from = 0; ; from += 500) {
+    const { data, error } = await c.from('dw_records').select('kind,id,data,deleted').eq('user_id', u.id).eq('app', 'funeral').range(from, from + 499);
+    if (error) throw error;
+    (data || []).forEach((r) => { if (r.deleted || !r.data) return; if (r.kind === 'case') cases.push(r.data); else if (r.kind === 'env') envs.push(r.data); });
+    if (!data || data.length < 500) break;
+  }
+  hmSrv = { cases, envs }; hmSrvAt = Date.now(); return hmSrv;
+}
+async function homeFromServer(month) {
+  const note = $('#hmEnvNote');
+  if (!window.dwAcct || !window.dwAcct.user()) return;
+  try {
+    const d = await homeServerFuneral(); if (seoulYMD().slice(0, 7) !== month || S.tab !== 'home') return;
+    if (!d.cases.length && !d.envs.length) return;
+    const s = fuMonthSum(d.cases, d.envs, month);
+    $('#hmCases').textContent = `${s.cases.length}건`; $('#hmPart').textContent = fuWon0(s.part); $('#hmMgr').textContent = fuWon0(s.mgr); $('#hmAll').textContent = fuWon0(s.all);
+    note.hidden = false; note.textContent = '내 계정에 저장된 기록이에요. 장례업무를 한 번 열면 이 기기에도 받아와요.';
+  } catch (e) { /* 인터넷 안 됨 → 이 기기 기록 그대로 */ }
 }
 
 async function init() {
@@ -3376,6 +3500,7 @@ async function init() {
   setTimeout(renderSamples, 200);
   renderAF(); setTimeout(() => afWrite(false), 1500);
   renderCL(); if (clConf()) setTimeout(() => clPush(false), 2500);
+  fsReady = true; if (window.dwSync) window.dwSync.schedule(800);   /* 서버 자동 저장 시작 (불러오기 끝난 뒤) */
 }
 init();
 </script>
