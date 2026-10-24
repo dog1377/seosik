@@ -4,7 +4,7 @@
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 html.dw-member [data-admin]{display:none!important}
-#dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:24px;background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
+#dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
 .gt-card{width:100%;max-width:340px;display:grid;gap:12px;text-align:center}
 .gt-card img{width:72px;height:72px;border-radius:6px;margin:0 auto 4px}

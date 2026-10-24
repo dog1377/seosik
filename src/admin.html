@@ -56,7 +56,7 @@ button{cursor:pointer}
 svg{flex:none}
 
 /* ---------- App bar ---------- */
-.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.appbar{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}   /* 휴대폰 위 상태 표시줄 자리까지 막대가 덮음 (2026.10.24: 스크롤하면 글씨가 상태 표시줄 밑으로 비쳐 잘려 보이던 것) */
 .appbar-in{max-width:640px;margin:0 auto;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.03em;white-space:nowrap}
 .local{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;padding:3px 10px 3px 8px;white-space:nowrap}
@@ -705,7 +705,14 @@ function toast(msg) {
   clearTimeout(toastT);
   toastT = setTimeout(() => { t.classList.remove('show'); setTimeout(() => { t.hidden = true; }, 250); }, 2600);
 }
-function armConfirm(btn, label, onConfirm) {
+/* 확인 창 (2026.10.24, src/confirm-kit.html dwConfirm). o = {title, body, ok, danger}. 없으면 예전처럼 두 번 누르기 */
+function undoOr(msg, fn) { if (fn && window.dwUndo) window.dwUndo(msg, fn); else toast(msg); }
+function armConfirm(btn, label, onConfirm, o) {
+  if (window.dwConfirm) {
+    o = o || {}; const k = String(label).replace(/^한 번 더 누르면\s*/, '');
+    window.dwConfirm({ title: o.title || (k === '전부 삭제' ? '이 기기의 회사 서류 기록을 모두 지울까요?' : k === '빼기' ? '이 줄을 뺄까요?' : '지울까요?'), body: o.body || '', ok: o.ok || (k === '빼기' ? '빼기' : k === '전부 삭제' ? '전부 지우기' : '지우기'), danger: true }).then((ok) => { if (ok) onConfirm(); });
+    return;
+  }
   if (btn.dataset.armed === '1') {
     clearTimeout(btn._t); btn.dataset.armed = ''; btn.classList.remove('armed'); btn.innerHTML = btn.dataset.orig; onConfirm(); return;
   }
@@ -1974,7 +1981,8 @@ function bind() {
     if (e.target.closest('#dSign')) { openSig(`${d.f.name || '직원'} 님 서명`, async (data) => { const id = await putImg(data); if (!id) { toast('서명을 저장하지 못했어요'); return; } const old = d.sig; d.sig = id; if (old) Store.del('img', old); saveDocSoon(); renderDocSig(); toast('서명을 넣었어요'); }); return; }
     const sd = e.target.closest('#dSigDel'); if (sd) { armConfirm(sd, '한 번 더 누르면 삭제', () => { if (d.sig) Store.del('img', d.sig); d.sig = null; saveDocSoon(); renderDocSig(); }); return; }
     const dd = e.target.closest('#dDelete');
-    if (dd) armConfirm(dd, '한 번 더 누르면 삭제', async () => { clearTimeout(dTimer); if (d.sig) Store.del('img', d.sig); S.docs.delete(d.id); await Store.del('docs', d.id); S.ed = null; S.edDirty = false; closeScreen('docEditor'); renderDocList(); toast('문서를 삭제했어요'); });
+    if (dd) armConfirm(dd, '한 번 더 누르면 삭제', async () => { clearTimeout(dTimer); const old = clone(d), sigImg = d.sig ? await Store.get('img', d.sig) : null; if (d.sig) Store.del('img', d.sig); S.docs.delete(d.id); await Store.del('docs', d.id); S.ed = null; S.edDirty = false; closeScreen('docEditor'); renderDocList();
+      undoOr('문서를 지웠어요', async () => { if (sigImg) await Store.put('img', sigImg); old.updatedAt = Date.now(); S.docs.set(old.id, old); await Store.put('docs', old); renderDocList(); toast('문서를 되살렸어요'); }); }, { title: '이 문서를 지울까요?', ok: '지우기' });
   });
   $('#dLive').addEventListener('click', async () => { if (!S.ed) return; S.edDirty = true; await saveDocNow(); openPreview(docJob(clone(S.ed))); });
   $('#sLive').addEventListener('click', async () => { if (!S.se) return; S.seDirty = true; await saveStaffNow(); openPreview(staffJob(clone(S.se))); });
@@ -2003,7 +2011,8 @@ function bind() {
     if (del) { const k = del.dataset.rdel, i = +del.dataset.ri; armConfirm(del, '빼기', () => { s[k].splice(i, 1); $(`[data-rlist="${k}"]`).innerHTML = s[k].map((r, j) => rowCardHtml(k, ROWDEF[k], r, j)).join(''); saveStaffSoon(); }); return; }
     const pd = e.target.closest('#sPhotoDel'); if (pd) { if (s.photo) Store.del('img', s.photo); s.photo = null; saveStaffSoon(); renderStaffPhoto(); return; }
     const sd = e.target.closest('#sDelete');
-    if (sd) armConfirm(sd, '한 번 더 누르면 삭제', async () => { clearTimeout(sTimer); if (s.photo) Store.del('img', s.photo); S.staff.delete(s.id); await Store.del('staff', s.id); S.se = null; S.seDirty = false; closeScreen('staffEditor'); renderStaffList(); toast('직원을 삭제했어요'); });
+    if (sd) armConfirm(sd, '한 번 더 누르면 삭제', async () => { clearTimeout(sTimer); const old = clone(s), photo = s.photo ? await Store.get('img', s.photo) : null; if (s.photo) Store.del('img', s.photo); S.staff.delete(s.id); await Store.del('staff', s.id); S.se = null; S.seDirty = false; closeScreen('staffEditor'); renderStaffList();
+      undoOr('직원을 지웠어요', async () => { if (photo) await Store.put('img', photo); old.updatedAt = Date.now(); S.staff.set(old.id, old); await Store.put('staff', old); renderStaffList(); toast('직원을 되살렸어요'); }); }, { title: '이 직원을 지울까요?', body: '인사기록카드가 지워져요.', ok: '지우기' });
   });
   $('#sForm').addEventListener('change', async (e) => {
     if (e.target.id !== 'sPhotoFile') return;

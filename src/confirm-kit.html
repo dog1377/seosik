@@ -1,0 +1,58 @@
+<!-- 확인 창 · 되돌리기 (2026.10.24, 세 화면 공통: DW장례업무 · 장례업무 · 회사 서류).
+     예전 「한 번 더 누르면 삭제」(같은 자리를 3초 안에 두 번 누르기)는 휴대폰에서 헷갈려서 → 아래에서 올라오는 확인 창(「삭제」 · 「취소」 큰 버튼).
+     지운 뒤에는 아래에 「되돌리기」가 7초 동안 보임. window.dwConfirm({title, body, ok, danger}) → Promise(true/false), window.dwUndo(글, 되돌리는 함수). -->
+<style id="dw-confirm-kit">
+.dwc-bg{position:fixed;inset:0;z-index:2147481000;background:rgba(10,12,14,.5);display:flex;align-items:flex-end;justify-content:center}
+.dwc{width:100%;max-width:440px;background:var(--surface,#fff);color:var(--ink,#1c1d1f);border-top:1px solid var(--ink,#1c1d1f);border-radius:6px 6px 0 0;padding:22px 18px calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;box-sizing:border-box}
+.dwc h2{margin:0;font-family:var(--serif,var(--font-display,serif));font-size:19px;line-height:1.4;font-weight:700;word-break:keep-all}
+.dwc p{margin:0;color:var(--muted,#5a5e63);font-size:15px;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere;white-space:pre-line}
+.dwc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.dwc-row button{min-height:52px;border-radius:4px;font:inherit;font-size:16px;font-weight:700;cursor:pointer;border:1px solid var(--line-2,var(--edge,#9a9d9a));background:var(--surface,#fff);color:var(--ink,#1c1d1f);touch-action:manipulation}
+.dwc-row .dwc-ok{background:var(--accent,#1c1d1f);border-color:var(--accent,#1c1d1f);color:var(--accent-ink,#fff)}
+.dwc-row .dwc-ok.danger{background:var(--danger,var(--warn,#a1281f));border-color:var(--danger,var(--warn,#a1281f));color:var(--danger-ink,var(--surface,#fff))}
+.dwc-row button:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px}
+@media (min-width:700px){.dwc-bg{align-items:center}.dwc{border:1px solid var(--line,#d6d7d4);border-radius:6px;padding-bottom:18px}}
+.dwu{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);transform:translateX(-50%);z-index:2147480500;display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100% - 32px);box-sizing:border-box;background:var(--ink,#1c1d1f);color:var(--surface,#fff);padding:6px 6px 6px 16px;border-radius:6px;font-size:14.5px;line-height:1.4}
+.dwu span{min-width:0}
+.dwu button{flex:none;min-height:44px;padding:0 14px;border:1px solid currentColor;border-radius:4px;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.dwc{animation:dwcUp .18s ease-out}.dwu{animation:dwuIn .18s ease-out}}
+@keyframes dwcUp{from{transform:translateY(16px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes dwuIn{from{opacity:0}to{opacity:1}}
+</style>
+<script>
+(function () {
+  'use strict';
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var open = null;
+  window.dwConfirm = function (o) {
+    o = o || {};
+    if (open) open(false);
+    return new Promise(function (res) {
+      var back = document.activeElement, bg = document.createElement('div');
+      bg.className = 'dwc-bg';
+      bg.innerHTML = '<div class="dwc" role="alertdialog" aria-modal="true" aria-labelledby="dwcT"' + (o.body ? ' aria-describedby="dwcB"' : '') + '>'
+        + '<h2 id="dwcT">' + esc(o.title || '계속할까요?') + '</h2>' + (o.body ? '<p id="dwcB">' + esc(o.body) + '</p>' : '')
+        + '<div class="dwc-row"><button type="button" class="dwc-no">' + esc(o.cancel || '취소') + '</button>'
+        + '<button type="button" class="dwc-ok' + (o.danger === false ? '' : ' danger') + '">' + esc(o.ok || '확인') + '</button></div></div>';
+      document.body.appendChild(bg);
+      function done(v) { if (!bg.isConnected) return; bg.remove(); document.removeEventListener('keydown', key, true); open = null; try { if (back && back.focus && back.isConnected) back.focus({ preventScroll: true }); } catch (e) {} res(v); }
+      function key(e) { if (e.key === 'Escape') { e.preventDefault(); done(false); } else if (e.key === 'Tab') { var b = bg.querySelectorAll('button'), f = b[0], l = b[b.length - 1]; if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); } else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); } } }
+      bg.addEventListener('click', function (e) { if (e.target === bg) done(false); });
+      bg.querySelector('.dwc-no').onclick = function () { done(false); };
+      bg.querySelector('.dwc-ok').onclick = function () { done(true); };
+      document.addEventListener('keydown', key, true);
+      open = done;
+      setTimeout(function () { (o.danger === false ? bg.querySelector('.dwc-ok') : bg.querySelector('.dwc-no')).focus(); }, 20);
+    });
+  };
+  var ub = null, ut = 0;
+  window.dwUndo = function (msg, fn, ms) {
+    if (ub) { ub.remove(); ub = null; } clearTimeout(ut);
+    var b = document.createElement('div'); b.className = 'dwu'; b.setAttribute('role', 'status');
+    b.innerHTML = '<span>' + esc(msg) + '</span><button type="button">되돌리기</button>';
+    b.querySelector('button').onclick = function () { clearTimeout(ut); b.remove(); ub = null; try { fn(); } catch (e) {} };
+    document.body.appendChild(b); ub = b;
+    ut = setTimeout(function () { if (ub === b) { b.remove(); ub = null; } }, ms || 7000);
+  };
+})();
+</script>

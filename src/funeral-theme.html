@@ -229,3 +229,18 @@ h1,h2,h3,.wz-q{text-wrap:balance}
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () {});
 })();
 </script>
+
+<style id="ab-compact">
+/* 휴대폰 위 막대 정리 (2026.10.24): 제목(행사 입력 · 정산 · 수당 …)이 「행사 …」로 잘리던 것 → 저장 · 홈 버튼은 아이콘만, 간격 줄임 */
+@media (max-width:560px){
+  body .ab-in{gap:8px;padding-inline:8px 12px}
+  body #saveNow{width:44px;min-width:44px;padding:0;font-size:0;gap:0;justify-content:center}
+  body #saveNow::before{content:"✓";font-size:18px;line-height:1}
+  body #saveNow:not(.saved){width:auto;padding:0 10px}
+  body #saveNow:not(.saved)::before{content:"저장";font-size:13.5px;font-weight:700}
+  body #newCase{padding:0 10px;gap:4px;font-size:13px}
+  body .ab-title b{font-size:16px}
+  body .save-state{display:none}
+}
+@media (max-width:360px){ body #newCase .ui-icon{display:none} }
+</style>

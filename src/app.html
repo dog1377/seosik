@@ -56,7 +56,7 @@ button{cursor:pointer}
 svg{flex:none}
 
 /* ---------- App bar ---------- */
-.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.appbar{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}   /* 휴대폰 위 상태 표시줄 자리까지 막대가 덮음 (2026.10.24: 스크롤하면 글씨가 상태 표시줄 밑으로 비쳐 잘려 보이던 것) */
 .appbar-in{max-width:640px;margin:0 auto;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.03em;white-space:nowrap}
 .local{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;padding:3px 10px 3px 8px;white-space:nowrap}
@@ -79,6 +79,7 @@ svg{flex:none}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .btn.block{width:100%}
 .btn.small{min-height:38px;padding:0 12px;font-size:14px}
+@media (pointer:coarse),(max-width:560px){.btn.small{min-height:44px}}   /* 휴대폰: 누르기 쉬운 크기 (2026.10.24) */
 .btn.quiet{border-color:transparent;background:transparent;color:var(--muted)}
 .btn.danger{color:var(--danger);background:transparent}
 .btn.armed{background:var(--danger);border-color:var(--danger);color:var(--danger-ink)}
@@ -418,6 +419,22 @@ p{text-wrap:pretty}
   .hm-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
 }
 @media (max-width:480px){.ftabs button{padding:0 7px;font-size:14.5px}}
+/* 정산 상태 표시 · 파트 현황판 (2026.10.24) */
+.st-chip{flex:none;display:inline-flex;align-items:center;min-height:24px;padding:0 7px;border:1px solid var(--line);border-radius:4px;font-size:12px;font-weight:700;white-space:nowrap;color:var(--muted)}
+.st-chip.st-open{border-color:var(--ink);color:var(--ink)}
+.st-chip.st-minus,.st-chip.st-changed{border-color:var(--warn);color:var(--warn);background:var(--warn-soft)}
+.ms-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ms-top b{font-size:15.5px;line-height:1.45;overflow-wrap:anywhere;min-width:0}
+.tm-sum{margin:0 0 14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--ink);border-bottom:1px solid var(--line)}
+.tm-sum>div{display:grid;gap:3px;align-content:start;padding:10px 12px;border-left:1px solid var(--line)}
+.tm-sum>div:first-child{border-left:0;padding-left:2px}
+.tm-sum dt{color:var(--muted);font-size:13px}
+.tm-sum dd{margin:0;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tm-sum dd.warn,.tm-tbl td.warn{color:var(--warn)}
+.tm-sum .nw{white-space:nowrap}
+.tm-tbl td.hot{font-weight:700}
+#hmTodo{font-size:16px}
+@media (max-width:520px){.tm-sum{grid-template-columns:1fr 1fr}.tm-sum>div:nth-child(3){border-left:0;padding-left:2px}.tm-sum>div:nth-child(n+3){border-top:1px solid var(--line)}.tm-tbl{font-size:13px}.tm-tbl th,.tm-tbl td{padding-left:3px;padding-right:3px}}
 @media (max-width:360px){.hm-dd b{font-size:38px}.hm-go{grid-template-columns:1fr}.ftabs button{padding:0 5px;font-size:14px}}
 </style>
 
@@ -485,12 +502,13 @@ p{text-wrap:pretty}
           <div class="hm-h"><h2 id="hmMonthH">이번 달 행사 · 봉투</h2><span class="small-t muted">발인일 기준</span></div>
           <dl class="hm-led">
             <div><dt>행사</dt><dd id="hmCases">0건</dd></div>
+            <div><dt>미정산</dt><dd id="hmTodo">0건</dd></div>
             <div><dt>본부장 봉투</dt><dd id="hmPart">0원</dd></div>
             <div><dt>실장 봉투</dt><dd id="hmMgr">0원</dd></div>
             <div class="sum"><dt>봉투 합계</dt><dd id="hmAll">0원</dd></div>
           </dl>
           <p class="hm-msg" id="hmEnvNote" hidden></p>
-          <div class="hm-go"><button class="btn" type="button" data-go-fu="input">행사 보기</button><button class="btn" type="button" data-go-fu="envelopes">봉투정리 보기</button></div>
+          <div class="hm-go"><button class="btn" type="button" data-go-fu="list">행사 목록</button><button class="btn" type="button" data-go-fu="envelopes">봉투정리 보기</button></div>
         </section>
       </div>
       <div class="hm-col">
@@ -501,7 +519,7 @@ p{text-wrap:pretty}
         <section class="card" id="hmTeam" aria-labelledby="hmTeamH" data-admin hidden>
           <div class="hm-h"><h2 id="hmTeamH">우리 파트 이번 달</h2><span class="small-t muted">보기만</span></div>
           <div id="hmTeamBody"></div>
-          <button class="btn" type="button" id="hmTeamGo">파트원별로 보기</button>
+          <button class="btn" type="button" id="hmTeamGo">파트 현황 보기</button>
         </section>
         <div id="hmAcctSlot"></div>
       </div>
@@ -1135,13 +1153,23 @@ function toast(msg) {
   clearTimeout(toastT);
   toastT = setTimeout(() => { t.classList.remove('show'); setTimeout(() => { t.hidden = true; }, 250); }, 2600);
 }
-function armConfirm(btn, label, onConfirm) {
+/* 지우기 · 빼기 같은 동작 확인 (2026.10.24): 아래에서 올라오는 확인 창(src/confirm-kit.html dwConfirm). o = {title, body, ok, danger}.
+   예전처럼 label 만 주면 label 로 제목을 만듦. 확인 창이 없으면 예전처럼 두 번 누르기 */
+const ARM_TITLES = { '전부 삭제': ['이 기기의 서식 기록을 모두 지울까요?', '전부 지우기'], '삭제': ['지울까요?', '지우기'], '지우기': ['지울까요?', '지우기'], '끄기': ['끌까요?', '끄기'], '나가기': ['쓰던 글을 버리고 나갈까요?', '나가기'], '빼기': ['뺄까요?', '빼기'], '댓글 지우기': ['이 댓글을 지울까요?', '지우기'], '파트 없애기': ['이 파트를 없앨까요?', '없애기'], '파트장으로': ['파트장으로 정할까요?', '파트장으로'], '직원으로': ['직원으로 바꿀까요?', '직원으로'] };
+function armConfirm(btn, label, onConfirm, o) {
+  if (window.dwConfirm) {
+    o = o || {}; const k = String(label).replace(/^한 번 더 누르면\s*/, ''), t = ARM_TITLES[k] || [k + '?', '확인'];
+    window.dwConfirm({ title: o.title || t[0], body: o.body || '', ok: o.ok || t[1], danger: o.danger !== undefined ? o.danger : !/파트장으로/.test(k) }).then((ok) => { if (ok) onConfirm(); });
+    return;
+  }
   if (btn.dataset.armed === '1') {
     clearTimeout(btn._t); btn.dataset.armed = ''; btn.classList.remove('armed'); btn.innerHTML = btn.dataset.orig; onConfirm(); return;
   }
   btn.dataset.orig = btn.innerHTML; btn.dataset.armed = '1'; btn.classList.add('armed'); btn.textContent = label;
   btn._t = setTimeout(() => { btn.dataset.armed = ''; btn.classList.remove('armed'); btn.innerHTML = btn.dataset.orig; }, 3500);
 }
+/* 지운 뒤 「되돌리기」 (src/confirm-kit.html dwUndo), 없으면 알림만 */
+function undoOr(msg, fn) { if (fn && window.dwUndo) window.dwUndo(msg, fn); else toast(msg); }
 function autosize(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
 
 /* ================= screens & tabs ================= */
@@ -2476,8 +2504,9 @@ function bind() {
     if (!await flushMinutes()) return;
     const old = S.minutes.get(S.em.id); S.minutes.delete(S.em.id);
     if (!await persistMinutes()) { if (old) S.minutes.set(old.id, old); toast('삭제하지 못했어요. 다시 시도해 주세요.'); return; }
-    S.em = null; S.emDirty = false; closeScreen('minutesEditor'); renderMinutesList(); toast('회의록을 삭제했어요');
-  }));
+    S.em = null; S.emDirty = false; closeScreen('minutesEditor'); renderMinutesList();
+    undoOr('회의록을 지웠어요', old && (async () => { old.updatedAt = Date.now(); S.minutes.set(old.id, old); await persistMinutes(); renderMinutesList(); toast('회의록을 되살렸어요'); }));
+  }, { title: '이 회의록을 지울까요?', body: S.em ? minutesTitle(S.em) : '', ok: '지우기' }));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.emDirty) saveMinutesNow(); });
   // weekly
   $('#newWeekly').addEventListener('click', () => {
@@ -2502,7 +2531,9 @@ function bind() {
   $('#wMembers').addEventListener('click', (e) => {
     const b = e.target.closest('.m-del'); if (!b) return;
     const i = +b.closest('.member').dataset.i;
-    armConfirm(b, '빼기', () => { S.ew.members.splice(i, 1); if (!S.ew.members.length) S.ew.members.push(emptyMember()); renderMembers(); touchWeekly(); });
+    /* 파트원 줄 빼기: 바로 빼고 「되돌리기」 (확인 창 없이) */
+    const gone = S.ew.members.splice(i, 1)[0], wid = S.ew.id; if (!S.ew.members.length) S.ew.members.push(emptyMember()); renderMembers(); touchWeekly();
+    undoOr('파트원 줄을 뺐어요', () => { if (!S.ew || S.ew.id !== wid) return; const m = S.ew.members; if (m.length === 1 && !Object.values(m[0]).some((v) => String(v || '').trim())) m.splice(0, 1); m.splice(Math.min(i, m.length), 0, gone); renderMembers(); touchWeekly(); });
   });
   $('#wAddMember').addEventListener('click', () => {
     S.ew.members.push(emptyMember()); renderMembers(); touchWeekly();
@@ -2510,9 +2541,10 @@ function bind() {
     if (last) { last.focus(); last.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
   });
   $('#wDelete').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => {
-    clearTimeout(wTimer); const id = S.ew.id; S.weekly.delete(id); await Store.del('weekly', id);
-    S.ew = null; S.ewDirty = false; closeScreen('weeklyEditor'); renderWeeklyList(); toast('보고서를 삭제했어요');
-  }));
+    clearTimeout(wTimer); const id = S.ew.id, old = S.weekly.get(id) || clone(S.ew); S.weekly.delete(id); await Store.del('weekly', id);
+    S.ew = null; S.ewDirty = false; closeScreen('weeklyEditor'); renderWeeklyList();
+    undoOr('주간보고를 지웠어요', async () => { old.updatedAt = Date.now(); S.weekly.set(old.id, old); await Store.put('weekly', old); renderWeeklyList(); toast('주간보고를 되살렸어요'); });
+  }, { title: '이 주간보고를 지울까요?', ok: '지우기' }));
   $('#wPreview').addEventListener('click', async () => { await flushWeekly(); openPreview(weeklyJob(clone(S.ew))); });
   // ship
   $('#shipSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.shipView = b.dataset.v; renderShip(); });
@@ -2555,11 +2587,12 @@ function bind() {
   $('#sSave').addEventListener('click', () => saveShip(false));
   $('#sSaveMore').addEventListener('click', () => saveShip(true));
   $('#sDelete').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => {
-    const id = S.es.id, ex = S.ship.get(id);
+    const id = S.es.id, ex = S.ship.get(id), img = ex && ex.qr ? await Store.get('img', ex.qr) : null;
     if (ex && ex.qr) { Store.del('img', ex.qr); S.imgCache.delete(ex.qr); }
     S.ship.delete(id); await Store.del('ship', id);
-    closeScreen('shipEditor'); renderShip(); toast('기록을 삭제했어요');
-  }));
+    closeScreen('shipEditor'); renderShip();
+    undoOr('탁송 · 출고 기록을 지웠어요', ex && (async () => { if (img) await Store.put('img', img); ex.updatedAt = Date.now(); S.ship.set(ex.id, ex); await Store.put('ship', ex); renderShip(); toast('기록을 되살렸어요'); }));
+  }, { title: '이 탁송 · 출고 기록을 지울까요?', ok: '지우기' }));
   // preview
   $('#pvBack').addEventListener('click', () => { closeScreen('previewScreen'); clearPreview(); });
   $('#pvPng').addEventListener('click', savePng);
@@ -2599,7 +2632,7 @@ function bind() {
   $('#sigBack').addEventListener('click', () => { sigReturn = null; closeScreen('sigScreen'); });
   $('#sigEdit').addEventListener('click', () => openSig());
   $('#sigOn').addEventListener('change', async (e) => { if (!S.sig) return; S.sig.on = e.target.checked; await saveSig(); toast(e.target.checked ? '보고서에 서명을 넣어요' : '보고서에서 서명을 뺐어요'); });
-  $('#sigDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => { S.sig = null; sigImgCache = null; await saveSig(); renderSigCard(); toast('서명을 지웠어요'); }));
+  $('#sigDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => { S.sig = null; sigImgCache = null; await saveSig(); renderSigCard(); toast('서명을 지웠어요'); }, { title: '내 서명을 지울까요?', ok: '지우기' }));
   $('#pvSignBtn').addEventListener('click', () => { const job = S.pv && S.pv.job; openSig(() => { if (job) openPreview(job); }); });
   // 후기 일일보고
   $('#rvDays').addEventListener('input', (e) => {
@@ -2616,7 +2649,7 @@ function bind() {
   $('#rvRecent').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.rvEnd = b.dataset.date === toKey(new Date()) ? null : b.dataset.date; renderReview(); window.scrollTo(0, 0); });
   $('#backupBtn').addEventListener('click', exportBackup);
   $('#restoreFile').addEventListener('change', async (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) await importBackup(f); });
-  $('#wipeBtn').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 전부 삭제', wipeAll));
+  $('#wipeBtn').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 전부 삭제', wipeAll, { title: '이 기기의 서식 기록을 모두 지울까요?', body: '주간보고 · 회의록 · 후기 · 탁송 · 설정이 이 기기에서 지워져요. 되돌릴 수 없어요.', ok: '전부 지우기' }));
   bindAF();
   bindCL();
 }
@@ -2963,11 +2996,39 @@ function fuByNo(list) {
   return list.map((c, i) => [c, i]).sort(([a, i], [b, j]) => { const x = key(a), y = key(b); if (!x || !y) return (x ? 0 : 1) - (y ? 0 : 1) || i - j; return CASE_COLL.compare(x, y) || i - j; }).map(([c]) => c);
 }
 function fuDT(v) { const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(String(v || '')); return m ? `${+m[2]}월 ${m[3]}일${m[4] ? ` ${m[4]}:${m[5]}` : ''}` : ''; }
+/* 정산 상태 (장례업무 settleStatus 와 같은 뜻): 입력 전 · 미정산 · 보냄 · 보낸 뒤 바뀜 · 마이너스 · 정리됨.
+   보내는금액은 봉투 기록에 같이 저장된 정산 카톡의 「보내는금액 : …」 줄에서 읽음 (돈 계산을 여기서 다시 하지 않음) */
+const FU_SETTLE_KEYS = ['hall', 'burialAmt', 'chodo', 'kit', 'lunch', 'altarAmt', 'urnCollect', 'urnCost', 'flower', 'trib', 'transfer', 'sendOverride'];
+function fuHasSettle(c) {
+  const f = c.f || {}, s = c.s || {};
+  return [f.collect, ...FU_SETTLE_KEYS.map((k) => s[k])].some((v) => String(v || '').trim()) || (s.extras || []).some((x) => x.amt || x.text) || (s.minus || []).some((x) => x.amt || x.who)
+    || (s.carry || []).length > 0 || String(s.flowerSale || '').trim() !== '' || Object.values(s.comm || {}).some((v) => String(v || '').trim());
+}
+function fuParseWon(t) {
+  t = String(t || '').replace(/\s/g, ''); let m = /^(-?)([\d,]+(?:\.\d+)?)만원$/.exec(t);
+  if (m) return Math.round(parseFloat(m[2].replace(/,/g, '')) * 10000) * (m[1] ? -1 : 1);
+  m = /^(-?)([\d,]+)원$/.exec(t); return m ? parseInt(m[2].replace(/,/g, ''), 10) * (m[1] ? -1 : 1) : null;
+}
+function fuSendOf(env) { const m = /보내는금액\s*:\s*(.+)/.exec(String((env && env.auto && env.auto.settlement) || '')); return m ? fuParseWon(m[1].trim()) : null; }
+function fuStatusFn(cases, envs) {
+  const byCase = {}, carried = new Set();
+  (envs || []).forEach((r) => { if (r && r.sourceCaseId) byCase[r.sourceCaseId] = r; });
+  (cases || []).forEach((c) => ((c && c.s && c.s.carry) || []).forEach((r) => carried.add(r.from)));
+  return (c) => {
+    if (!fuHasSettle(c)) return { k: 'none', t: '입력 전' };
+    const w = fuSendOf(byCase[c.id]), s = c.s || {};
+    if (w != null && w < 0) return carried.has(c.id) ? { k: 'cleared', t: '정리됨', won: w } : { k: 'minus', t: '마이너스', won: w };
+    if (s.sentAt) return s.sentWon != null && w != null && Number(s.sentWon) !== w ? { k: 'changed', t: '보낸 뒤 바뀜', won: w } : { k: 'sent', t: '보냄', won: w };
+    return { k: 'open', t: '미정산', won: w };
+  };
+}
 function fuMonthSum(cases, envs, month) {
   const cs = (cases || []).filter((c) => c && typeof c === 'object' && fuCaseMonth(c) === month);
   const es = (envs || []).filter((r) => r && typeof r === 'object' && fuEnvMonth(r) === month);
   let part = 0, mgr = 0; es.forEach((r) => { const v = fuEnvVals(r); part += v.part; mgr += v.manager; });
-  return { cases: cs, envs: es, part, mgr, all: part + mgr };
+  const stOf = fuStatusFn(cases, envs), cnt = { none: 0, open: 0, sent: 0, changed: 0, minus: 0, cleared: 0 };
+  cs.forEach((c) => { cnt[stOf(c).k]++; });
+  return { cases: cs, envs: es, part, mgr, all: part + mgr, cnt, todo: cnt.open + cnt.changed, stOf };
 }
 const monthName = (m) => { const [y, mo] = String(m).split('-'); return `${y}년 ${+mo}월`; };
 const shiftMonth = (m, d) => { const [y, mo] = m.split('-').map(Number), t = new Date(Date.UTC(y, mo - 1 + d, 1)); return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}`; };
@@ -2988,6 +3049,7 @@ function renderHome() {
   const s = fuMonthSum(db && db.cases, db && db.envelopes, month);
   $('#hmMonthH').textContent = `${m}월 행사 · 봉투`;
   $('#hmCases').textContent = `${s.cases.length}건`;
+  $('#hmTodo').textContent = `${s.todo}건${s.cnt.minus ? ` · 마이너스 ${s.cnt.minus}건` : ''}`;
   $('#hmPart').textContent = fuWon0(s.part);
   $('#hmMgr').textContent = fuWon0(s.mgr);
   $('#hmAll').textContent = fuWon0(s.all);
@@ -3051,9 +3113,9 @@ async function homeTeam(force) {
 function paintHomeTeam(t) {
   const body = $('#hmTeamBody'); if (!body) return;
   const p = pbCur(), cnt = p ? Number(p.members) || 0 : 0;
-  const rows = teamRows(t), tot = rows.reduce((a, r) => ({ n: a.n + r.n, part: a.part + r.part, mgr: a.mgr + r.mgr }), { n: 0, part: 0, mgr: 0 });
+  const rows = teamRows(t), tot = teamTotal(rows);
   body.innerHTML = cnt
-    ? `<p class="hm-team-sum">파트원 ${cnt}명 · 행사 <b>${tot.n}건</b><br>본부장 봉투 <b>${esc(fuWon0(tot.part))}</b> · 실장 봉투 <b>${esc(fuWon0(tot.mgr))}</b></p>`
+    ? `<p class="hm-team-sum">파트원 ${cnt}명 · 행사 <b>${tot.n}건</b> · 미정산 <b>${tot.todo}건</b>${tot.minus ? ` · 마이너스 <b>${tot.minus}건</b>` : ''}<br>본부장 봉투 <b>${esc(fuWon0(tot.part))}</b> · 실장 봉투 <b>${esc(fuWon0(tot.mgr))}</b></p>`
     : '<p class="hm-msg">아직 파트원이 없어요. 게시판 → 파트원 관리에서 넣어 주세요.</p>';
 }
 
@@ -3095,7 +3157,7 @@ async function boardLoad(force) {
     PB.err = ''; PB.at = Date.now(); PB.retried = false;
   } catch (e) { PB.err = (e && e.why) || 'net'; }
   PB.busy = false; paintBoard();
-  if (!PB.err && PB.view === 'people' && pbMine()) teamFor(PB.part, seoulYMD().slice(0, 7), force);
+  if (!PB.err && PB.view === 'status' && pbMine()) teamFor(PB.part, pbMonth(), force);
 }
 function boardOpen() { if (!PB.me || Date.now() - PB.at > 30000) whenAcct(() => boardLoad(false)); else paintBoard(); }
 function paintBoard() {
@@ -3112,8 +3174,8 @@ function paintBoard() {
   h += '<div class="bd-head">';
   if (parts.length > 1) h += `<label class="field"><span>파트 고르기</span><select id="bdPart">${parts.map((x) => `<option value="${esc(x.id)}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)}${x.mine ? ' (내 파트)' : ''}</option>`).join('')}</select></label>`;
   h += `<div class="bd-title"><b>${esc(p.name)}</b><span>파트장 ${esc(p.leader_name)} · 파트원 ${Number(p.members) || 0}명</span></div></div>`;
-  if (pbMine()) h += `<div class="seg" role="group" aria-label="보기 고르기"><button type="button" data-bdv="posts" aria-pressed="${PB.view !== 'people'}">게시판</button><button type="button" data-bdv="people" aria-pressed="${PB.view === 'people'}">파트원 관리</button></div>`;
-  h += PB.view === 'people' && pbMine() ? peopleView(p) : postsView();
+  if (pbMine()) h += `<div class="seg" role="group" aria-label="보기 고르기"><button type="button" data-bdv="posts" aria-pressed="${PB.view === 'posts' || !PB.view}">게시판</button><button type="button" data-bdv="status" aria-pressed="${PB.view === 'status'}">현황</button><button type="button" data-bdv="people" aria-pressed="${PB.view === 'people'}">파트원 관리</button></div>`;
+  h += pbMine() && PB.view === 'people' ? peopleView(p) : pbMine() && PB.view === 'status' ? statusView(p) : postsView();
   el.innerHTML = h;
 }
 function postsView() {
@@ -3129,19 +3191,28 @@ function partCreateCard(first) {
   return `<div class="card"><h2>${first ? '파트 만들기' : '파트 하나 더 만들기'}</h2><p class="small-t muted">${first ? '파트를 만들고 파트원을 넣으면 파트 게시판을 같이 쓰고, 파트원의 장례일정 · 봉투를 볼 수 있어요.' : '파트를 여러 개 맡을 때만 만드세요.'}</p>
     <div class="bd-add"><input id="bdNewName" type="text" maxlength="30" placeholder="예: 장례지원 1파트" aria-label="파트 이름"><button class="btn primary" type="button" data-bd="create">만들기</button></div></div>`;
 }
-function peopleView(p) {
-  const month = seoulYMD().slice(0, 7), t = teamCached(p.id, month), mem = (PB.people || []).filter((x) => !x.leader);
-  let h = `<section class="card"><div class="hm-h"><h2>${+month.slice(5)}월 파트원 행사 · 봉투</h2><span class="small-t muted">보기만</span></div>`;
-  if (!mem.length) h += '<p class="bd-empty">아래에서 파트원을 넣으면 여기에 보여요.</p>';
+/* 파트 현황판 (파트장, 2026.10.24): 달마다 파트원별 행사 · 미정산 · 마이너스 · 봉투 — 이름을 누르면 그 직원 장례일정 · 봉투 */
+const pbMonth = () => PB.month || (PB.month = seoulYMD().slice(0, 7));
+const teamTotal = (rows) => rows.reduce((a, r) => ({ n: a.n + r.n, todo: a.todo + (r.todo || 0), minus: a.minus + (r.minus || 0), part: a.part + r.part, mgr: a.mgr + r.mgr }), { n: 0, todo: 0, minus: 0, part: 0, mgr: 0 });
+function statusView(p) {
+  const month = pbMonth(), t = teamCached(p.id, month), mem = (PB.people || []).filter((x) => !x.leader);
+  let h = `<div class="ms-nav"><button class="icon-btn" type="button" data-pb-shift="-1" aria-label="이전 달">${SVG_L}</button><div><b>${esc(monthName(month))}</b><span>발인일 기준 · 보기만</span></div><button class="icon-btn" type="button" data-pb-shift="1" aria-label="다음 달">${SVG_L.replace('M15 18l-6-6 6-6', 'M9 18l6-6-6-6')}</button></div>`;
+  h += '<section class="card">';
+  if (!mem.length) h += '<p class="bd-empty">「파트원 관리」에서 파트원을 넣으면 여기에 보여요.</p>';
   else if (!t) h += `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`;
   else {
-    const rows = teamRows(t), tot = rows.reduce((a, r) => ({ n: a.n + r.n, part: a.part + r.part, mgr: a.mgr + r.mgr }), { n: 0, part: 0, mgr: 0 });
-    h += `<div class="tm-wrap"><table class="tm-tbl"><thead><tr><th scope="col">이름</th><th scope="col">행사</th><th scope="col">본부장</th><th scope="col">실장</th></tr></thead><tbody>${
-      rows.map((r) => `<tr><td><button type="button" class="tm-name" data-member="${esc(r.user_id)}"><span>${esc(r.name)}</span>${SVG_R}</button></td><td>${r.n}건</td><td>${esc(fuWon0(r.part))}</td><td>${esc(fuWon0(r.mgr))}</td></tr>`).join('')
-    }</tbody><tfoot><tr><td>합계</td><td>${tot.n}건</td><td>${esc(fuWon0(tot.part))}</td><td>${esc(fuWon0(tot.mgr))}</td></tr></tfoot></table></div>
-    <p class="small-t muted">이름을 누르면 그 직원의 장례일정 · 봉투를 달마다 볼 수 있어요. 직원이 로그인해서 저장한 기록만 보여요.</p>`;
+    const rows = teamRows(t), tot = teamTotal(rows);
+    h += `<dl class="tm-sum"><div><dt>행사</dt><dd>${tot.n}건</dd></div><div><dt>미정산</dt><dd>${tot.todo}건</dd></div><div><dt>마이너스</dt><dd class="${tot.minus ? 'warn' : ''}">${tot.minus ? '− ' : ''}${tot.minus}건</dd></div><div><dt>봉투 (본부장 · 실장)</dt><dd><span class="nw">${esc(fuWon0(tot.part))}</span> · <span class="nw">${esc(fuWon0(tot.mgr))}</span></dd></div></dl>`;
+    h += `<div class="tm-wrap"><table class="tm-tbl"><thead><tr><th scope="col">이름</th><th scope="col">행사</th><th scope="col">미정산</th><th scope="col">마이너스</th><th scope="col">본부장</th><th scope="col">실장</th></tr></thead><tbody>${
+      rows.map((r) => `<tr><td><button type="button" class="tm-name" data-member="${esc(r.user_id)}"><span>${esc(r.name)}</span>${SVG_R}</button></td><td>${r.n}건</td><td class="${r.todo ? 'hot' : ''}">${r.todo}건</td><td class="${r.minus ? 'warn' : ''}">${r.minus ? '− ' : ''}${r.minus}건</td><td>${esc(fuWon0(r.part))}</td><td>${esc(fuWon0(r.mgr))}</td></tr>`).join('')
+    }</tbody><tfoot><tr><td>합계</td><td>${tot.n}건</td><td>${tot.todo}건</td><td>${tot.minus}건</td><td>${esc(fuWon0(tot.part))}</td><td>${esc(fuWon0(tot.mgr))}</td></tr></tfoot></table></div>
+    <p class="small-t muted">이름을 누르면 그 직원의 장례일정 · 봉투 · 정산 상태를 볼 수 있어요. 직원이 로그인해서 저장한 기록만 보여요.</p>`;
   }
-  h += '</section>';
+  return h + '</section>';
+}
+function peopleView(p) {
+  const mem = (PB.people || []).filter((x) => !x.leader);
+  let h = '';
   h += `<section class="card"><h2>파트원 넣기</h2><p class="small-t muted">직원이 가입할 때 쓴 이메일을 넣으세요. 한 직원은 한 파트에만 들어갈 수 있어요.</p>
     <div class="bd-add"><input id="bdAddId" type="email" inputmode="email" maxlength="80" placeholder="이메일 입력" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="직원 이메일"><button class="btn primary" type="button" data-bd="add">넣기</button></div></section>`;
   h += `<section class="card"><h2>파트원 명단 · ${mem.length}명</h2>${mem.length ? `<div class="bd-ppl">${mem.map((x) => `<div class="bd-pp"><div><b>${esc(pName(x))}</b>${x.name ? `<small>${esc(x.login_id)}</small>` : ''}</div><button class="btn small quiet" type="button" data-bd="remove" data-uid="${esc(x.user_id)}">빼기</button></div>`).join('')}</div>` : '<p class="bd-empty">아직 파트원이 없어요.</p>'}</section>`;
@@ -3160,7 +3231,8 @@ async function pbCall(fn, args, btn) {
 }
 function pbAfterChange() { hmNote = null; PB.meAt = 0; PB.team = {}; boardLoad(true); }
 async function boardClick(e) {
-  const v = e.target.closest('[data-bdv]'); if (v) { PB.view = v.dataset.bdv; paintBoard(); if (PB.view === 'people') teamFor(PB.part, seoulYMD().slice(0, 7), false); return; }
+  const v = e.target.closest('[data-bdv]'); if (v) { PB.view = v.dataset.bdv; paintBoard(); if (PB.view === 'status') teamFor(PB.part, pbMonth(), false); return; }
+  const sh = e.target.closest('[data-pb-shift]'); if (sh) { PB.month = shiftMonth(pbMonth(), Number(sh.dataset.pbShift)); paintBoard(); teamFor(PB.part, PB.month, false); return; }
   const post = e.target.closest('[data-post]'); if (post) { openPost(post.dataset.post); return; }
   const mem = e.target.closest('[data-member]'); if (mem) { openMember(mem.dataset.member); return; }
   const b = e.target.closest('[data-bd]'); if (!b) return;
@@ -3182,7 +3254,7 @@ async function boardClick(e) {
   }
   if (act === 'remove') {
     const who = (PB.people || []).find((x) => x.user_id === b.dataset.uid);
-    armConfirm(b, '한 번 더 누르면 빼기', async () => { const d = await pbCall('dw_part_remove', { p_part: p.id, p_user: b.dataset.uid }); if (d) { toast(`${pName(who) || '파트원'} 님을 파트에서 뺐어요`); pbAfterChange(); } });
+    armConfirm(b, '한 번 더 누르면 빼기', async () => { const d = await pbCall('dw_part_remove', { p_part: p.id, p_user: b.dataset.uid }); if (d) { toast(`${pName(who) || '파트원'} 님을 파트에서 뺐어요`); pbAfterChange(); } }, { title: `${pName(who) || '이 직원'} 님을 파트에서 뺄까요?`, body: '계정과 장례 기록은 그대로예요. 다시 넣을 수 있어요.', ok: '빼기' });
     return;
   }
   if (act === 'rename') {
@@ -3191,7 +3263,7 @@ async function boardClick(e) {
     return;
   }
   if (act === 'delpart') {
-    armConfirm(b, '한 번 더 누르면 파트 없애기', async () => { const d = await pbCall('dw_part_delete', { p_part: p.id }); if (d) { toast(`「${p.name}」 파트를 없앴어요`); PB.part = ''; PB.view = 'posts'; pbAfterChange(); } });
+    armConfirm(b, '한 번 더 누르면 파트 없애기', async () => { const d = await pbCall('dw_part_delete', { p_part: p.id }); if (d) { toast(`「${p.name}」 파트를 없앴어요`); PB.part = ''; PB.view = 'posts'; pbAfterChange(); } }, { title: `「${p.name}」 파트를 없앨까요?`, body: '게시판 글 · 댓글과 파트원 명단이 지워져요. 직원 계정과 장례 기록은 그대로예요.', ok: '없애기' });
   }
 }
 
@@ -3261,16 +3333,16 @@ async function teamLoad(part, month, force) {
 }
 async function teamFor(part, month, force) {
   try { await teamLoad(part, month, force); } catch (e) { PB.teamErr = (e && e.why) || 'net'; }
-  if (S.tab === 'board' && PB.view === 'people') paintBoard();
+  if (S.tab === 'board' && PB.view === 'status') paintBoard();
   if (!$('#memberScreen').hidden) paintMember();
 }
 function teamRows(t) {
   const mem = (PB.people && PB.people.length ? PB.people.filter((x) => !x.leader) : Object.keys(t.by).map((id) => ({ user_id: id, name: '', login_id: id.slice(0, 8) })));
-  return mem.map((x) => { const b = t.by[x.user_id] || { cases: [], envs: [] }, s = fuMonthSum(b.cases, b.envs, t.month); return { user_id: x.user_id, name: pName(x), n: s.cases.length, part: s.part, mgr: s.mgr }; });
+  return mem.map((x) => { const b = t.by[x.user_id] || { cases: [], envs: [] }, s = fuMonthSum(b.cases, b.envs, t.month); return { user_id: x.user_id, name: pName(x), n: s.cases.length, todo: s.todo, minus: s.cnt.minus, part: s.part, mgr: s.mgr }; });
 }
 const MS = { user: '', month: '', view: 'cases' };
 function openMember(uid) {
-  MS.user = uid; MS.month = seoulYMD().slice(0, 7); MS.view = 'cases';
+  MS.user = uid; MS.month = PB.view === 'status' ? pbMonth() : seoulYMD().slice(0, 7); MS.view = 'cases';
   const x = (PB.people || []).find((y) => y.user_id === uid); $('#msTitle').textContent = x ? `${pName(x)} · 장례일정 · 봉투` : '파트원';
   openScreen('memberScreen'); paintMember(); teamFor(PB.part, MS.month, false);
 }
@@ -3280,7 +3352,7 @@ function paintMember() {
   h += `<div class="seg" role="group" aria-label="보기 고르기"><button type="button" data-msv="cases" aria-pressed="${MS.view === 'cases'}">장례일정</button><button type="button" data-msv="envs" aria-pressed="${MS.view === 'envs'}">봉투</button></div>`;
   if (!t) { el.innerHTML = h + `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`; return; }
   const s = fuMonthSum(b.cases, b.envs, MS.month);
-  h += `<p class="ms-ro">행사 ${s.cases.length}건 · 본부장 봉투 ${esc(fuWon0(s.part))} · 실장 봉투 ${esc(fuWon0(s.mgr))} — 보기만 할 수 있어요 (고치기 안 됨)</p>`;
+  h += `<p class="ms-ro">행사 ${s.cases.length}건 · 미정산 ${s.todo}건${s.cnt.minus ? ` · 마이너스 ${s.cnt.minus}건` : ''} · 본부장 봉투 ${esc(fuWon0(s.part))} · 실장 봉투 ${esc(fuWon0(s.mgr))} — 보기만 할 수 있어요 (고치기 안 됨)</p>`;
   if (MS.view === 'cases') {
     const list = fuByNo(s.cases);
     h += list.length ? '<div class="ms-list">' + list.map((c) => {
@@ -3288,7 +3360,8 @@ function paintMember() {
       const times = [f.death && `임종 ${fuDT(f.death)}`, f.casket && `입관 ${fuDT(f.casket)}`, f.depart && `발인 ${fuDT(f.depart)}`].filter(Boolean).join(' · ');
       const more = [f.chief && `상주 ${f.chief}`, (f.burial || f.burial1) && `장지 ${f.burial || [f.burial1, f.burial2].filter(Boolean).join('-')}`, f.product && `상품 ${f.product}`].filter(Boolean).join(' · ');
       const ev = env ? fuEnvVals(env) : null, st = env && env.auto && String(env.auto.settlement || '').trim();
-      return `<div class="ms-item"><b>${esc(fuCaseLabel(c, set))}</b>${times ? `<span class="l">${esc(times)}</span>` : ''}${more ? `<span class="l">${esc(more)}</span>` : ''}${ev ? `<span class="amt">봉투 · 본부장 ${esc(fuWon0(ev.part))} · 실장 ${esc(fuWon0(ev.manager))}</span>` : ''}${st ? `<details><summary>정산 카톡 보기</summary><pre class="rv-preview">${esc(st)}</pre></details>` : ''}</div>`;
+      const sx = s.stOf(c);
+      return `<div class="ms-item"><div class="ms-top"><b>${esc(fuCaseLabel(c, set))}</b><span class="st-chip st-${sx.k}">${sx.k === 'minus' ? '− ' : sx.k === 'sent' ? '✓ ' : ''}${esc(sx.t)}</span></div>${times ? `<span class="l">${esc(times)}</span>` : ''}${more ? `<span class="l">${esc(more)}</span>` : ''}${ev ? `<span class="amt">봉투 · 본부장 ${esc(fuWon0(ev.part))} · 실장 ${esc(fuWon0(ev.manager))}</span>` : ''}${st ? `<details><summary>정산 카톡 보기</summary><pre class="rv-preview">${esc(st)}</pre></details>` : ''}</div>`;
     }).join('') + '</div>' : '<p class="bd-empty">이 달에는 행사가 없어요.</p>';
   } else {
     const list = s.envs.slice().sort((a, c) => CASE_COLL.compare(fuEnvMeta(a, 'eventNo'), fuEnvMeta(c, 'eventNo')));
@@ -3302,7 +3375,7 @@ function bindHomeBoard() {
     const g = e.target.closest('[data-go-fu]'); if (g) { goFuneral(g.dataset.goFu); return; }
     const t = e.target.closest('[data-tab-go]'); if (t) { showTab(t.dataset.tabGo); return; }
     const p = e.target.closest('[data-post]'); if (p) { openPost(p.dataset.post); return; }
-    if (e.target.closest('#hmTeamGo')) { PB.view = 'people'; showTab('board'); }
+    if (e.target.closest('#hmTeamGo')) { PB.view = 'status'; PB.month = seoulYMD().slice(0, 7); showTab('board'); }
   });
   $('#bdBody').addEventListener('click', boardClick);
   $('#roleCard').addEventListener('click', roleClick);
@@ -3310,11 +3383,11 @@ function bindHomeBoard() {
   $('#bdBody').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const map = { bdAddId: 'add', bdNewName: 'create', bdRename: 'rename' }, act = map[e.target.id]; if (act) { e.preventDefault(); const b = e.target.parentNode.querySelector(`[data-bd="${act}"]`); if (b) b.click(); } });
   $('#psBack').addEventListener('click', closePost);
   $('#psEdit').addEventListener('click', () => { if (PS.post) openPostEditor(PS.post); });
-  $('#psDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 지우기', async () => { const d = await pbCall('dw_post_delete', { p_id: PS.id }); if (d) { toast('글을 지웠어요'); closePost(); hmNote = null; boardLoad(true); } }));
-  $('#psBody').addEventListener('click', (e) => { const b = e.target.closest('[data-cdel]'); if (b) armConfirm(b, '한 번 더 누르면 지우기', async () => { const d = await pbCall('dw_comment_delete', { p_id: b.dataset.cdel }); if (d) { toast('댓글을 지웠어요'); PB.at = 0; openPost(PS.id); } }); });
+  $('#psDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 지우기', async () => { const d = await pbCall('dw_post_delete', { p_id: PS.id }); if (d) { toast('글을 지웠어요'); closePost(); hmNote = null; boardLoad(true); } }, { title: '이 글을 지울까요?', body: '댓글도 같이 지워져요. 되돌릴 수 없어요.', ok: '지우기' }));
+  $('#psBody').addEventListener('click', (e) => { const b = e.target.closest('[data-cdel]'); if (b) armConfirm(b, '댓글 지우기', async () => { const d = await pbCall('dw_comment_delete', { p_id: b.dataset.cdel }); if (d) { toast('댓글을 지웠어요'); PB.at = 0; openPost(PS.id); } }); });
   $('#psCmt').addEventListener('input', (e) => autosize(e.target));
   $('#psCmtGo').addEventListener('click', postCommentGo);
-  $('#peBack').addEventListener('click', (e) => { if (PE.dirty) { armConfirm(e.currentTarget, '한 번 더 누르면 나가기', () => { PE.dirty = false; closeScreen('postEditor'); }); return; } closeScreen('postEditor'); });
+  $('#peBack').addEventListener('click', (e) => { if (PE.dirty) { armConfirm(e.currentTarget, '한 번 더 누르면 나가기', () => { PE.dirty = false; closeScreen('postEditor'); }, { title: '쓰던 글을 버리고 나갈까요?', ok: '나가기' }); return; } closeScreen('postEditor'); });
   ['#peTitle', '#peBody'].forEach((s) => $(s).addEventListener('input', (e) => { PE.dirty = true; if (e.target.tagName === 'TEXTAREA') autosize(e.target); }));
   $('#peSave').addEventListener('click', postSave);
   $('#msBack').addEventListener('click', () => closeScreen('memberScreen'));
@@ -3429,7 +3502,7 @@ async function roleClick(e) {
     const d = await pbCall('dw_set_role', { p_user: b.dataset.role, p_leader: lead }); if (!d) return;
     toast(`${pName(x) || '직원'} 님을 ${lead ? '파트장으로 정했어요. 다음에 앱을 열면 서식 · 설정이 보여요' : '직원으로 바꿨어요'}`);
     roleList = null; PB.meAt = 0; roleLoad();
-  });
+  }, { title: `${pName(x) || '이 직원'} 님을 ${lead ? '파트장으로 정할까요?' : '직원으로 바꿀까요?'}`, body: lead ? '서식 · 설정 · 회사 서류가 보이고 파트를 만들 수 있어요. 지금 들어가 있는 파트에서는 빠져요.' : '서식 · 설정 · 회사 서류가 안 보이게 돼요. 만든 파트는 그대로 남아요.', ok: lead ? '파트장으로' : '직원으로', danger: !lead });
 }
 
 /* 홈: 이 기기에 장례 기록이 없으면(앱을 새로 깔았을 때) 서버에 저장된 내 장례 기록으로 이번 달 숫자를 보여 줌 (읽기만) */
@@ -3452,7 +3525,7 @@ async function homeFromServer(month) {
     const d = await homeServerFuneral(); if (seoulYMD().slice(0, 7) !== month || S.tab !== 'home') return;
     if (!d.cases.length && !d.envs.length) return;
     const s = fuMonthSum(d.cases, d.envs, month);
-    $('#hmCases').textContent = `${s.cases.length}건`; $('#hmPart').textContent = fuWon0(s.part); $('#hmMgr').textContent = fuWon0(s.mgr); $('#hmAll').textContent = fuWon0(s.all);
+    $('#hmCases').textContent = `${s.cases.length}건`; $('#hmTodo').textContent = `${s.todo}건${s.cnt.minus ? ` · 마이너스 ${s.cnt.minus}건` : ''}`; $('#hmPart').textContent = fuWon0(s.part); $('#hmMgr').textContent = fuWon0(s.mgr); $('#hmAll').textContent = fuWon0(s.all);
     note.hidden = false; note.textContent = '내 계정에 저장된 기록이에요. 장례업무를 한 번 열면 이 기기에도 받아와요.';
   } catch (e) { /* 인터넷 안 됨 → 이 기기 기록 그대로 */ }
 }

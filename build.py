@@ -1,7 +1,8 @@
 """Build the installable app from src/app.html.
 
-Usage:  python3 build.py            (version = current date-time)
-        python3 build.py 2026.10.13-1
+Usage:  python3 build.py            (version 자동: 오늘(한국 시간) 날짜-순번. 같은 날 다시 빌드하면 순번 +1)
+        python3 build.py 2026.10.13-1  (직접 정하기)
+        배포까지 한 번에: tools/deploy.sh "바뀐 점"
 
 Writes index.html, sw.js and version.json next to this file.
 Edit only src/app.html (and sw.template.js); never edit the generated files.
@@ -15,7 +16,20 @@ ROOT = pathlib.Path(__file__).resolve().parent
 CDN_JSPDF = '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>'
 LOCAL_JSPDF = '<script src="vendor/jspdf.umd.min.js"></script>'
 
-version = sys.argv[1] if len(sys.argv) > 1 else datetime.datetime.now().strftime('%Y.%m.%d-%H%M')
+def next_version():
+    """forms/version.json 의 지금 버전을 보고 다음 버전을 정함: 오늘 날짜면 -N+1, 아니면 오늘-1 (한국 시간)."""
+    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime('%Y.%m.%d')
+    try:
+        cur = json.loads((ROOT / 'forms' / 'version.json').read_text(encoding='utf-8')).get('version', '')
+    except Exception:
+        cur = ''
+    day, _, n = cur.partition('-')
+    if day == today and n.isdigit():
+        return f'{today}-{int(n) + 1}'
+    return f'{today}-1'
+
+
+version = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1].strip() else next_version()
 
 # 앱 잠금: locks.json 에 비밀번호 해시(코드)만 들어 있음. 비어 있으면 잠그지 않음
 LOCKS = json.loads((ROOT / 'locks.json').read_text(encoding='utf-8'))
@@ -25,6 +39,8 @@ GATE_HEAD = (ROOT / 'src' / 'leader-gate-head.html').read_text(encoding='utf-8')
 GATE_BODY = (ROOT / 'src' / 'leader-gate.html').read_text(encoding='utf-8')
 # 서버 자동 저장 (서식 · 회사 서류): 화면이 만든 window.DW_SYNC 로 dw_records 와 맞춤
 SYNC_KIT = (ROOT / 'src' / 'sync-kit.html').read_text(encoding='utf-8')
+# 확인 창 · 되돌리기 (세 화면 공통)
+CONFIRM_KIT = (ROOT / 'src' / 'confirm-kit.html').read_text(encoding='utf-8')
 
 
 def lock_html(cfg):
@@ -53,13 +69,14 @@ html = f"""<!doctype html>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
-<style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
+<style>:root{{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 {head_part}
 {lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': 'DW장례업무', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': ''})}
 {GATE_HEAD}
 </head>
 <body>
 {body_part}
+{CONFIRM_KIT}
 {GATE_BODY}
 {SYNC_KIT}
 </body>
@@ -149,7 +166,7 @@ def make_sw(prefix, core):
 
 # 서식함 안의 장례업무
 (FM / 'funeral.html').write_text(
-    make_funeral('DW장례업무', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), GATE_BODY], share_title='DW장례업무', page_title='DW장례업무', manifest_href='../manifest.webmanifest', head_extra=GATE_HEAD),
+    make_funeral('DW장례업무', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), CONFIRM_KIT, GATE_BODY], share_title='DW장례업무', page_title='DW장례업무', manifest_href='../manifest.webmanifest', head_extra=GATE_HEAD),
     encoding='utf-8')
 (FM / 'sw.js').write_text(make_sw('forms-app-', [
     './', './index.html', './funeral.html', './admin.html', './vendor/jspdf.umd.min.js',
@@ -214,7 +231,7 @@ admin_html = f"""<!doctype html>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}"; window.DW_LEADER_ONLY = true;</script>
-<style>:root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
+<style>:root{{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 <script>window.__LOCK_STATE__ = {json.dumps({k: bool(v) for k, v in LOCKS.items()})};</script>
 {ahead}
 {lock_html({'hash': LOCKS.get('admin', ''), 'key': 'ca', 'title': '회사 서류', 'who': '관리자', 'remember': False, 'relockMin': 10, 'alt': ''})}
@@ -223,6 +240,7 @@ admin_html = f"""<!doctype html>
 <body>
 {abody}
 {ADMIN_BRIDGE}
+{CONFIRM_KIT}
 {GATE_BODY}
 {SYNC_KIT}
 </body>

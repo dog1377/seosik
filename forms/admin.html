@@ -14,8 +14,8 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.23-8"; window.DW_LEADER_ONLY = true;</script>
-<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.24-1"; window.DW_LEADER_ONLY = true;</script>
+<style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <title>회사 서류 · DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -75,7 +75,7 @@ button{cursor:pointer}
 svg{flex:none}
 
 /* ---------- App bar ---------- */
-.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.appbar{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}   /* 휴대폰 위 상태 표시줄 자리까지 막대가 덮음 (2026.10.24: 스크롤하면 글씨가 상태 표시줄 밑으로 비쳐 잘려 보이던 것) */
 .appbar-in{max-width:640px;margin:0 auto;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.03em;white-space:nowrap}
 .local{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;padding:3px 10px 3px 8px;white-space:nowrap}
@@ -468,7 +468,7 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 html.dw-member [data-admin]{display:none!important}
-#dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:24px;background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
+#dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
 .gt-card{width:100%;max-width:340px;display:grid;gap:12px;text-align:center}
 .gt-card img{width:72px;height:72px;border-radius:6px;margin:0 auto 4px}
@@ -851,7 +851,14 @@ function toast(msg) {
   clearTimeout(toastT);
   toastT = setTimeout(() => { t.classList.remove('show'); setTimeout(() => { t.hidden = true; }, 250); }, 2600);
 }
-function armConfirm(btn, label, onConfirm) {
+/* 확인 창 (2026.10.24, src/confirm-kit.html dwConfirm). o = {title, body, ok, danger}. 없으면 예전처럼 두 번 누르기 */
+function undoOr(msg, fn) { if (fn && window.dwUndo) window.dwUndo(msg, fn); else toast(msg); }
+function armConfirm(btn, label, onConfirm, o) {
+  if (window.dwConfirm) {
+    o = o || {}; const k = String(label).replace(/^한 번 더 누르면\s*/, '');
+    window.dwConfirm({ title: o.title || (k === '전부 삭제' ? '이 기기의 회사 서류 기록을 모두 지울까요?' : k === '빼기' ? '이 줄을 뺄까요?' : '지울까요?'), body: o.body || '', ok: o.ok || (k === '빼기' ? '빼기' : k === '전부 삭제' ? '전부 지우기' : '지우기'), danger: true }).then((ok) => { if (ok) onConfirm(); });
+    return;
+  }
   if (btn.dataset.armed === '1') {
     clearTimeout(btn._t); btn.dataset.armed = ''; btn.classList.remove('armed'); btn.innerHTML = btn.dataset.orig; onConfirm(); return;
   }
@@ -2120,7 +2127,8 @@ function bind() {
     if (e.target.closest('#dSign')) { openSig(`${d.f.name || '직원'} 님 서명`, async (data) => { const id = await putImg(data); if (!id) { toast('서명을 저장하지 못했어요'); return; } const old = d.sig; d.sig = id; if (old) Store.del('img', old); saveDocSoon(); renderDocSig(); toast('서명을 넣었어요'); }); return; }
     const sd = e.target.closest('#dSigDel'); if (sd) { armConfirm(sd, '한 번 더 누르면 삭제', () => { if (d.sig) Store.del('img', d.sig); d.sig = null; saveDocSoon(); renderDocSig(); }); return; }
     const dd = e.target.closest('#dDelete');
-    if (dd) armConfirm(dd, '한 번 더 누르면 삭제', async () => { clearTimeout(dTimer); if (d.sig) Store.del('img', d.sig); S.docs.delete(d.id); await Store.del('docs', d.id); S.ed = null; S.edDirty = false; closeScreen('docEditor'); renderDocList(); toast('문서를 삭제했어요'); });
+    if (dd) armConfirm(dd, '한 번 더 누르면 삭제', async () => { clearTimeout(dTimer); const old = clone(d), sigImg = d.sig ? await Store.get('img', d.sig) : null; if (d.sig) Store.del('img', d.sig); S.docs.delete(d.id); await Store.del('docs', d.id); S.ed = null; S.edDirty = false; closeScreen('docEditor'); renderDocList();
+      undoOr('문서를 지웠어요', async () => { if (sigImg) await Store.put('img', sigImg); old.updatedAt = Date.now(); S.docs.set(old.id, old); await Store.put('docs', old); renderDocList(); toast('문서를 되살렸어요'); }); }, { title: '이 문서를 지울까요?', ok: '지우기' });
   });
   $('#dLive').addEventListener('click', async () => { if (!S.ed) return; S.edDirty = true; await saveDocNow(); openPreview(docJob(clone(S.ed))); });
   $('#sLive').addEventListener('click', async () => { if (!S.se) return; S.seDirty = true; await saveStaffNow(); openPreview(staffJob(clone(S.se))); });
@@ -2149,7 +2157,8 @@ function bind() {
     if (del) { const k = del.dataset.rdel, i = +del.dataset.ri; armConfirm(del, '빼기', () => { s[k].splice(i, 1); $(`[data-rlist="${k}"]`).innerHTML = s[k].map((r, j) => rowCardHtml(k, ROWDEF[k], r, j)).join(''); saveStaffSoon(); }); return; }
     const pd = e.target.closest('#sPhotoDel'); if (pd) { if (s.photo) Store.del('img', s.photo); s.photo = null; saveStaffSoon(); renderStaffPhoto(); return; }
     const sd = e.target.closest('#sDelete');
-    if (sd) armConfirm(sd, '한 번 더 누르면 삭제', async () => { clearTimeout(sTimer); if (s.photo) Store.del('img', s.photo); S.staff.delete(s.id); await Store.del('staff', s.id); S.se = null; S.seDirty = false; closeScreen('staffEditor'); renderStaffList(); toast('직원을 삭제했어요'); });
+    if (sd) armConfirm(sd, '한 번 더 누르면 삭제', async () => { clearTimeout(sTimer); const old = clone(s), photo = s.photo ? await Store.get('img', s.photo) : null; if (s.photo) Store.del('img', s.photo); S.staff.delete(s.id); await Store.del('staff', s.id); S.se = null; S.seDirty = false; closeScreen('staffEditor'); renderStaffList();
+      undoOr('직원을 지웠어요', async () => { if (photo) await Store.put('img', photo); old.updatedAt = Date.now(); S.staff.set(old.id, old); await Store.put('staff', old); renderStaffList(); toast('직원을 되살렸어요'); }); }, { title: '이 직원을 지울까요?', body: '인사기록카드가 지워져요.', ok: '지우기' });
   });
   $('#sForm').addEventListener('change', async (e) => {
     if (e.target.id !== 'sPhotoFile') return;
@@ -2335,6 +2344,65 @@ init();
     try { Promise.all([typeof saveDocNow === 'function' ? saveDocNow() : 0, typeof saveStaffNow === 'function' ? saveStaffNow() : 0]).then(go, go); } catch (e) { go(); }
   });
   bar.insertBefore(b, bar.firstChild);
+})();
+</script>
+
+<!-- 확인 창 · 되돌리기 (2026.10.24, 세 화면 공통: DW장례업무 · 장례업무 · 회사 서류).
+     예전 「한 번 더 누르면 삭제」(같은 자리를 3초 안에 두 번 누르기)는 휴대폰에서 헷갈려서 → 아래에서 올라오는 확인 창(「삭제」 · 「취소」 큰 버튼).
+     지운 뒤에는 아래에 「되돌리기」가 7초 동안 보임. window.dwConfirm({title, body, ok, danger}) → Promise(true/false), window.dwUndo(글, 되돌리는 함수). -->
+<style id="dw-confirm-kit">
+.dwc-bg{position:fixed;inset:0;z-index:2147481000;background:rgba(10,12,14,.5);display:flex;align-items:flex-end;justify-content:center}
+.dwc{width:100%;max-width:440px;background:var(--surface,#fff);color:var(--ink,#1c1d1f);border-top:1px solid var(--ink,#1c1d1f);border-radius:6px 6px 0 0;padding:22px 18px calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;box-sizing:border-box}
+.dwc h2{margin:0;font-family:var(--serif,var(--font-display,serif));font-size:19px;line-height:1.4;font-weight:700;word-break:keep-all}
+.dwc p{margin:0;color:var(--muted,#5a5e63);font-size:15px;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere;white-space:pre-line}
+.dwc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.dwc-row button{min-height:52px;border-radius:4px;font:inherit;font-size:16px;font-weight:700;cursor:pointer;border:1px solid var(--line-2,var(--edge,#9a9d9a));background:var(--surface,#fff);color:var(--ink,#1c1d1f);touch-action:manipulation}
+.dwc-row .dwc-ok{background:var(--accent,#1c1d1f);border-color:var(--accent,#1c1d1f);color:var(--accent-ink,#fff)}
+.dwc-row .dwc-ok.danger{background:var(--danger,var(--warn,#a1281f));border-color:var(--danger,var(--warn,#a1281f));color:var(--danger-ink,var(--surface,#fff))}
+.dwc-row button:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px}
+@media (min-width:700px){.dwc-bg{align-items:center}.dwc{border:1px solid var(--line,#d6d7d4);border-radius:6px;padding-bottom:18px}}
+.dwu{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);transform:translateX(-50%);z-index:2147480500;display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100% - 32px);box-sizing:border-box;background:var(--ink,#1c1d1f);color:var(--surface,#fff);padding:6px 6px 6px 16px;border-radius:6px;font-size:14.5px;line-height:1.4}
+.dwu span{min-width:0}
+.dwu button{flex:none;min-height:44px;padding:0 14px;border:1px solid currentColor;border-radius:4px;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.dwc{animation:dwcUp .18s ease-out}.dwu{animation:dwuIn .18s ease-out}}
+@keyframes dwcUp{from{transform:translateY(16px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes dwuIn{from{opacity:0}to{opacity:1}}
+</style>
+<script>
+(function () {
+  'use strict';
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var open = null;
+  window.dwConfirm = function (o) {
+    o = o || {};
+    if (open) open(false);
+    return new Promise(function (res) {
+      var back = document.activeElement, bg = document.createElement('div');
+      bg.className = 'dwc-bg';
+      bg.innerHTML = '<div class="dwc" role="alertdialog" aria-modal="true" aria-labelledby="dwcT"' + (o.body ? ' aria-describedby="dwcB"' : '') + '>'
+        + '<h2 id="dwcT">' + esc(o.title || '계속할까요?') + '</h2>' + (o.body ? '<p id="dwcB">' + esc(o.body) + '</p>' : '')
+        + '<div class="dwc-row"><button type="button" class="dwc-no">' + esc(o.cancel || '취소') + '</button>'
+        + '<button type="button" class="dwc-ok' + (o.danger === false ? '' : ' danger') + '">' + esc(o.ok || '확인') + '</button></div></div>';
+      document.body.appendChild(bg);
+      function done(v) { if (!bg.isConnected) return; bg.remove(); document.removeEventListener('keydown', key, true); open = null; try { if (back && back.focus && back.isConnected) back.focus({ preventScroll: true }); } catch (e) {} res(v); }
+      function key(e) { if (e.key === 'Escape') { e.preventDefault(); done(false); } else if (e.key === 'Tab') { var b = bg.querySelectorAll('button'), f = b[0], l = b[b.length - 1]; if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); } else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); } } }
+      bg.addEventListener('click', function (e) { if (e.target === bg) done(false); });
+      bg.querySelector('.dwc-no').onclick = function () { done(false); };
+      bg.querySelector('.dwc-ok').onclick = function () { done(true); };
+      document.addEventListener('keydown', key, true);
+      open = done;
+      setTimeout(function () { (o.danger === false ? bg.querySelector('.dwc-ok') : bg.querySelector('.dwc-no')).focus(); }, 20);
+    });
+  };
+  var ub = null, ut = 0;
+  window.dwUndo = function (msg, fn, ms) {
+    if (ub) { ub.remove(); ub = null; } clearTimeout(ut);
+    var b = document.createElement('div'); b.className = 'dwu'; b.setAttribute('role', 'status');
+    b.innerHTML = '<span>' + esc(msg) + '</span><button type="button">되돌리기</button>';
+    b.querySelector('button').onclick = function () { clearTimeout(ut); b.remove(); ub = null; try { fn(); } catch (e) {} };
+    document.body.appendChild(b); ub = b;
+    ut = setTimeout(function () { if (ub === b) { b.remove(); ub = null; } }, ms || 7000);
+  };
 })();
 </script>
 

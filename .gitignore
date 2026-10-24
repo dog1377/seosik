@@ -1,0 +1,3 @@
+tools/test/out/
+__pycache__/
+*.pyc

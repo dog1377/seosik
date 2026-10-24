@@ -39,12 +39,11 @@
    - `src/funeral.html` — 장례업무(장례일정 · 정산 · 봉투 · 휴무/당직) → `forms/funeral.html`
    - `src/app.html` — DW장례업무 첫 화면(홈 · 서식 · 게시판 · 설정), `src/admin.html` — 회사 서류(예전 DW관리) → `forms/admin.html`, `src/lock.html` — 예전 비밀번호 잠금 화면(locks.json 비어 있어 꺼짐)
    - `src/leader-gate-head.html` · `src/leader-gate.html`(로그인 화면 · 파트장/직원 구분), `src/funeral-theme.html`(장례업무 색 · 글꼴), `src/funeral-bridge.html`(장례업무의 홈 버튼 · 메뉴), `src/admin-bridge.html`(회사 서류의 홈 버튼), `src/moved.html`(예전 앱 자리 안내)
-2. **빌드**: `python3 build.py 2026.MM.DD-N`
-   - 버전은 **날짜-순번**, 매번 올린다. 지금 버전은 `version.json`을 보고 확인한다. (같은 날이면 순번 +1, 날짜가 바뀌면 `-1`부터)
+2. **빌드**: `python3 build.py` (2026.10.24~ 버전 자동: 한국 시간 오늘 날짜-순번, 같은 날이면 순번 +1. 직접 정하려면 `python3 build.py 2026.MM.DD-N`)
    - 버전이 안 바뀌면 직원들 휴대폰 앱이 새 버전을 받지 않는다.
-   - 빌드로 바뀐 파일(위 1-4의 파일들)까지 **같이 커밋**한다.
-3. **확인** (아래 4번 참고) — 페이지 오류 0건, 정산 검산 예시 금액 그대로.
-4. 커밋 → PR → 사람이 확인하고 `main`에 합치면 1~2분 뒤 배포. 앱을 다시 열면 적용된다.
+   - 빌드로 바뀐 파일(위 1-5의 파일들)까지 **같이 커밋**한다.
+3. **확인**: `tools/test/run.sh` — 문법 검사 · 돈 계산 검산(아래 5번 예시 금액) · 화면 점검(휴대폰 · 태블릿 · PC, 밝은/어두운 화면, 페이지 오류 0건 · 가로 밀림 없음 · 위 막대 글씨 잘림 없음). 화면 캡처는 `tools/test/out/`(저장소에 안 올라감)에서 눈으로 본다.
+4. **한 번에 배포**: `tools/deploy.sh "바뀐 점"` = 깃허브와 맞추기 → 빌드(버전 자동) → `tools/test/run.sh` → 비밀 키 섞였는지 확인 → 커밋 → `main` push → 배포 끝날 때까지 기다림 → 새 버전 확인. 커밋 끝 줄(Co-Authored-By 등)은 메시지에 같이 넣거나 `DW_TRAILER` 로. 빠르게: `DW_QUICK=1`(휴대폰 · PC 밝은 화면만), 글자만 고쳤을 때 `DW_SKIP_TEST=1`(문법 검사만). 깃허브에 다른 곳에서 올린 새 변경이 있으면 멈추고 알려 줌(먼저 합칠 것). 1~2분 뒤 반영, 앱을 다시 열면 적용된다.
 
 ### 주의
 - `src/funeral.html` 안에는 휴무/당직 앱이 base64로 들어간 **아주 긴 줄(13만 글자 이상)**이 있다. 맨 아래 `SCHED_XLSX`(엑셀 양식, 9만 글자) 줄도 길다. 파일 전체를 한 번에 읽지 말고 필요한 줄 범위만 읽는다. 그 줄을 직접 고치지 말고, 휴무/당직 앱을 고칠 때는 `python3 tools/duty_edit.py out duty.html` 로 꺼내서 고친 뒤 `python3 tools/duty_edit.py in duty.html` 로 다시 넣는다 (넣은 뒤 다시 꺼내 같은지 확인).
@@ -79,6 +78,15 @@
 - **실시간 저장 · 내 계정 (수파베이스)**(2026.10.23-2, 사용자 「각자 아이디 부여, 각자 것은 각자만」 · 무료 요금제): 프로젝트 `https://bruqeidlbougfdveomag.supabase.co`, 공개 키 `sb_publishable_…`(앱에 넣어도 되는 키 — 남의 기록은 RLS로 막힘. **secret · service_role 키와 비밀번호는 절대 받지 않음/넣지 않음**). 서버 준비는 `tools/supabase-setup.sql`(사용자가 SQL Editor에서 실행): 표 `dw_records`(user_id · app · kind 'case'|'env'|'state' · id · data jsonb · deleted · updated_at ms · device · server_at), RLS 내 것만 select/insert/update(**delete 규칙 없음** → 완전 삭제 불가), 트리거 `dw_records_guard`(더 오래된 updated_at 은 무시, data 없이 오면 내용 유지), 실시간 publication. 계정은 파트장이 수파베이스 Authentication → Users → Add user(`아이디@dwfuneral.com`, Auto Confirm), 가입(sign up)은 꺼 둠. 앱(`src/funeral.html` sb* 함수): 설정 → 백업 · 공유 맨 위 「실시간 저장 · 내 계정」에서 아이디(@dwfuneral.com 자동) · 비밀번호 로그인, 연결 도구 `vendor/supabase.js`(supabase-js 2.117.0 UMD, 빌드가 jangrye/vendor · forms/vendor 로 복사, 로그인할 때만 불러옴). 저장(`save`) 1초 뒤 바뀐 기록만 올림(`sbPush`: 행사 `case:id` · 봉투 `env:id` · 설정 `state:settings`(SB_SET_KEYS: companies · lists · crems · defaultItems · settleRules · me · dispatchTpl · offTpl · envelopeSkipped) · 휴무 `state:duty`(hyumu-* 값)), 지운 행사 · 봉투는 `deleted:true` 표시만. 받기(`sbPull` 처음 전체, 이후 server_at 이후만) · 실시간(`postgres_changes` filter user_id) → `sbApply`: 더 나중에 고친 쪽(updated)이 이김, 설정 · 휴무는 이 기기에서 아직 안 올린 변경이 있으면 이 기기 것 우선. 화면 열 때 · 인터넷 다시 연결 · 1분마다 다시 맞춤. 이 계정과 처음 맞출 때 자동 보관본(이유 「내 계정 맞추기 전」) + 휴무 사본 `dw-sb-dutybak`. 새 이 기기 저장값: `dw-sb-auth`(로그인 세션) · `dw-sb-meta`(올린 기록 표시) · `dw-sb-dev`(기기 번호) — 이름 바꾸지 말 것. 화면: 위 막대 「실시간 저장됨 / 올리는 중 / 연결 끊김 · 이 기기에 보관」, 왼쪽 메뉴 아래 「내 계정(아이디)에 실시간 저장」(누르면 설정), 저장 버튼 알림 「이 기기와 내 계정에 저장돼요」. 이 작업 환경에서는 supabase.co 접속이 막혀 있어 테스트는 가짜 서버(`sb_mock.js` 식)로 함. 관리자 서식(주간보고 등)은 아직 안 옮김.
 - **관리자 서식 · 파트장 전용**(2026.10.23-3, 사용자 「관리자 서식은 파트장들한테만」): `forms/index.html` · `forms/funeral.html` 둘 다 파트장 계정으로 로그인해야 열림. 파트장 = 수파베이스 사용자 `app_metadata.dw_role = 'leader'`(사용자는 스스로 못 바꾸는 칸) — 지정은 `tools/supabase-leader.sql`(SQL Editor). 빌드가 `src/leader-gate-head.html`(head: 화면 숨김 + 이 기기 확인)과 `src/leader-gate.html`(body 끝: 로그인 화면 · 서버 확인)을 넣음(`GATE_HEAD` · `GATE_BODY`, `make_funeral(head_extra=)`). 로그인은 장례일정과 같은 세션(`dw-sb-auth`)이라 한쪽에서 하면 다른 쪽도 됨. 이 기기에서 한 번 파트장으로 확인되면 `dw-leader`(사용자 id)에 남겨 인터넷이 없어도 바로 열고, 인터넷이 되면 `auth.getUser()`로 다시 확인(파트장에서 빠졌으면 다시 잠금, 로그인 풀림 401/403 → 다시 로그인). 장례업무 화면은 실시간 저장 연결(`sbClient`)을 같이 씀(연결 하나). (2026.10.23-5부터 파트장이 아니어도 로그인하면 열림 → 아래 「홈 · 파트 게시판」) 장례일정 앱은 잠금 없음. 예전 비밀번호 잠금(locks.json)은 그대로(비어 있음).
 - **계정 · 회원가입 · 탈퇴 · 아이콘**(2026.10.23-4, 사용자 요청): 장례일정 설정 → 「내 계정 · 백업」(예전 「백업 · 공유」) 맨 위에서 **로그인 / 회원가입**(아이디 영어 소문자 · 숫자 3~20자 → `아이디@dwfuneral.com`, 비밀번호 6자 이상 + 확인, 이름은 `user_metadata.name` 이고 내 이름이 비었으면 `me().name` 에 넣음, `sbJoin`) · **로그아웃**(설정, 왼쪽 메뉴 아래 「로그아웃」 버튼 `[data-sbout]`) · **회원 탈퇴**(비밀번호 다시 확인 → 서버 함수 `dw_delete_me()` → 내 계정 · 서버 기록 삭제, 이 기기 기록은 남음, `sbDeleteMe`). 가입이 되려면 수파베이스 Authentication에서 「Allow new users to sign up」 켜고 「Confirm email」 끄기(가짜 이메일이라 확인 메일을 못 받음). 관리자 서식: 잠금 화면에 「처음이에요 · 회원가입」(가입해도 파트장 지정 전에는 안 열림), 설정 맨 위 「내 계정」 카드(`#dwAcctCard`: 로그아웃 · 회원 탈퇴), 위 막대 「아이디 · 내 계정」(누르면 그 카드) — 코드는 `src/leader-gate.html` 의 `window.dwAcct`. 탈퇴 함수 SQL은 `tools/supabase-setup.sql` 맨 아래. **앱 아이콘**: (2026.10.23-5) 사용자가 보낸 사진(검은 바탕 흰 국화)으로 바꿈 — 꽃을 가운데로 잘라 `icons/`, `jangrye/icons/`, `admin/icons/` 의 gukhwa-*.png 같은 이름 그대로(512 · 192 꽃 84%, 애플 180 80%, maskable 512 66%(동그랗게 잘려도 꽃이 안 잘림), 32), manifest `background_color` #000000.
+- **휴대폰 다듬기 · ERP처럼**(2026.10.24, 사용자: 「모바일에서 맨 위 글씨가 잘림 · 수정 · 삭제를 원활하게 · 전문 ERP처럼 · 여기서 바로 고치고 배포하게」 + 고른 답: 파트 현황판 · 행사 목록 표 · 정산 상태 관리 / 수정 · 삭제는 전부).
+  - **맨 위 글씨 잘림**: 아이폰 노치 여백(safe-area)을 `:root` 위쪽 padding 으로 주던 것 때문에 스크롤하면 위 막대 위로 글씨가 비쳐 보였음 → 위 막대 자체가 `top:0` + `padding-top:env(safe-area-inset-top)`(app.html · admin.html), 로그인 화면도 같은 여백. 장례업무 위 막대(≤560px)는 버튼을 아이콘만으로 줄여 제목(「행사 목록」 등)이 안 잘림(`src/funeral-theme.html` `#ab-compact`, 저장 버튼은 ✓ / 저장).
+  - **확인 창 · 되돌리기**(`src/confirm-kit.html`, 빌드가 세 화면에 넣음): 예전 「같은 자리 3초 안에 두 번 누르기」 대신 아래에서 올라오는 확인 창 `window.dwConfirm({title, body, ok, danger})` → Promise(true/false) (큰 「취소」 · 「지우기」 버튼, Esc · 바깥 누르면 취소, 위험한 일은 「취소」에 먼저 초점). 지운 뒤 7초 동안 아래에 「되돌리기」 `window.dwUndo(글, 되돌리는 함수)`. 장례업무: 행사 삭제 · 봉투 삭제 · 달별 지우기 · 자동 보관본 합치기 · 양식 · 업체 · 불러오기 · 정산 값 비우기 등 `arm(btn,label,fn,{title,body,ok})`, 줄 지우기(추가내역 · 실장 몫 · 마이너스 · 제공 항목 · 도우미)는 확인 없이 바로 + 되돌리기(`delRow`). 서식 · 게시판 · 회사 서류: `armConfirm(btn,label,fn,{title,…})`(제목 표 `ARM_TITLES`), 주간보고 · 회의록 · 탁송 · 문서 · 직원 지우기는 되돌리기(`undoOr`). 확인 창이 없는 화면에서는 예전 두 번 누르기로 돌아감.
+  - **누르기 쉬운 크기**: 휴대폰(≤560px 또는 손가락 화면)에서 작은 버튼(`.btn.small`)도 44px, 행사 목록 「보냄」 44px.
+  - **행사 목록**(장례업무 새 탭 `list`, 아래 메뉴 맨 앞 「목록」, 왼쪽 메뉴 · 주소 `funeral.html#list`, `renderList` · `listRows`): 넓은 화면은 표(번호 · 발인 · 행사 · 정산 상태 · 보내는금액 · 본부장 · 실장 봉투), 휴대폰은 행사마다 카드. 검색(고인 · 장례식장 · 행사번호 · 상주) · 달 · 업체 · 상태(할 일 = 미정산 · 마이너스 · 보낸 뒤 바뀜) · 정렬(행사번호 · 발인일 · 최근 고친 것), 고른 것은 `db.listPrefs`. 위에 이번 목록 합계(행사 · 미정산 건수와 금액 · 마이너스 · 봉투). 줄을 누르면 그 행사(정산이 있으면 정산 화면).
+  - **정산 상태**(`settleStatus(c)`): 입력 전 · 미정산 · **보냄** · 보낸 뒤 바뀜 · 마이너스 · 정리됨(다른 행사에서 뺌, `carryUse`). 「보냄」 표시는 정산 확인 화면 「정산 카톡 복사」 아래(`sentRow`) 또는 목록의 「보냄」 버튼 → `case.s.sentAt`(시각) · `case.s.sentWon`(그때 보내는금액)에 저장(새 칸, 행사 기록 안이라 백업 · 서버 저장에 같이 감, 돈 계산에는 안 씀). 보낸 뒤 보내는금액이 바뀌면 「보낸 뒤 바뀜」. 보냄 취소는 확인 창, 보냄은 되돌리기.
+  - **파트 현황판**(파트장, 게시판 「게시판 | 현황 | 파트원 관리」의 「현황」, `statusView`, 달 넘기기 `PB.month`): 파트원별 이번 달 행사 · 미정산 · 마이너스 · 본부장 · 실장 봉투 표 + 합계(두 줄 밑줄), 위에 요약. 이름을 누르면 그 직원 장례일정 · 봉투(같은 달, 행사마다 정산 상태 표시). 예전 「파트원 관리」 안의 표는 여기로 옮김. 정산 상태는 app.html 이 `fuStatusFn`(장례업무 `settleStatus` 와 같은 뜻)으로 계산 — 보내는금액은 봉투 기록에 같이 저장된 정산 카톡의 「보내는금액 : …」 줄에서 읽음(`fuSendOf`, 돈 계산을 다시 하지 않음). **정산 상태 규칙을 바꾸면 `fuStatusFn` · `fuHasSettle`(= `envelopeHasSettlement`)도 같이 바꿀 것.**
+  - **홈**: 「이번 달 행사 · 봉투」에 「미정산 N건 · 마이너스 N건」 줄, 「행사 목록」 버튼(→ `funeral.html#list`). 파트장 「우리 파트 이번 달」에 미정산 · 마이너스 건수와 「파트 현황 보기」.
+  - **배포 도구**: `build.py` 버전 자동, `tools/deploy.sh`, `tools/test/`(위 2 · 4번). 서버 SQL 바꾼 것 없음.
 - **가입 · 로그인 오류 알림**(2026.10.23-8, 사용자: 「회원가입 안 된다는데」): 예전에는 수파베이스 오류 글에 email 이 들어가면(예: 「email rate limit exceeded」, 「Email address … not authorized」 — 「Confirm email」이 켜져 있으면 기본 메일 서비스가 막음) 「이메일을 확인해 주세요」로 잘못 보였음. 이제 오류 코드로 나눔(`authMsg` in leader-gate.html, `sbAuthMsg` in funeral.html): 이미 가입됨 · 회원가입 꺼짐(signup_disabled) · 이메일 확인 때문에 막힘(email_address_not_authorized · over_email_send_rate_limit) · 이메일 확인 안 된 계정(email_not_confirmed) · 비밀번호 틀림 · 쉬운 비밀번호(weak_password) · 쓸 수 없는 이메일 · 너무 많이 시도, 모르는 오류는 끝에 (오류 이름). 가입은 됐는데 세션이 없으면(이메일 확인 켜짐) 그렇게 안내. 수파베이스 설정: Authentication → Sign In / Providers → 「Allow new users to sign up」 켜기, Email 「Confirm email」 끄기. 이미 막힌 계정은 SQL `update auth.users set email_confirmed_at = now() where email_confirmed_at is null;`.
 - **서식 · 회사 서류도 서버 자동 저장 · 앱에서 파트장 정하기**(2026.10.23-7, 사용자: 「서버에 자동저장 시켜달라니까 앱 지웠다 깔았는데…」 — 그때까지 서버에는 장례업무만 올라가고 서식 · 회사 서류는 이 기기에만 있었음 / 「앱 내에서 파트장이나 파트원 권한 부여」).
   - **`src/sync-kit.html`**(빌드가 forms/index.html · forms/admin.html 맨 끝에 넣음): 화면이 만든 `window.DW_SYNC = {app, meta, leaderOnly, noTomb, collect, apply, isEmpty, onState}` 로 `dw_records`(app `forms` · `company`, 내 것만)와 맞춤. 받기(server_at 이후) → 올리기(해시가 바뀐 것만, 40개씩). 고친 시각(updatedAt)이 있는 기록은 더 나중 것이 이김, 없는 것(설정 · 후기 · 서명 · 회사 정보)은 지난번 맞춘 뒤 이 기기에서 안 고쳤으면 서버 것(처음 맞출 때는 이 기기가 비어 있을 때만 서버 것). 지운 기록은 「지움」 표시(내용은 서버에 남음), 한 번에 10개 넘게 · 절반 넘게 사라진 것처럼 보이면 지움을 안 올림(불러오기 실패 보호). 고치는 중인 기록(편집 화면이 열린 것 · 설정 저장 전)은 안 넣고 다음에 다시 받음. 15초마다 · 화면 벗어날 때 · 인터넷 다시 연결 · 파트장 확인 뒤. 저장소를 못 쓰는 화면(Store.ok false)은 맞추지 않음. `window.dwSync.run()` 으로 바로 맞춤.
@@ -112,13 +120,11 @@
 ## 4. 확인 방법
 
 ```bash
-python3 build.py 2026.MM.DD-N
-python3 -m http.server 8765 --bind 127.0.0.1 &
-# 브라우저로 http://127.0.0.1:8765/jangrye/ 를 열어 직접 눌러 보며 확인
+python3 build.py                 # 버전 자동
+tools/test/run.sh                # 전부 (약 2분)  ·  DW_QUICK=1 tools/test/run.sh  (빠르게)
 ```
-- 스크립트 문법 확인(선택):
-  `python3 -c "s=open('src/funeral.html',encoding='utf-8').read();i=s.rfind('<script>');j=s.rfind('</script>');open('/tmp/m.js','w').write(s[i+8:j])" && node --check /tmp/m.js`
-- 가능하면 Playwright(Chromium)로 390×844 · 820×1180 · 1180×820 · 1440×900, 밝은/어두운 화면에서 열어 보고 **페이지 오류(pageerror) 0건**을 확인한다.
+- `tools/test/` (2026.10.24): `syntax.py`(빌드된 화면의 자바스크립트 `node --check`) · `money.py`(돈 계산 검산 — 아래 5번 예시 1~5 + 해양장 · 정산 카톡 마지막 줄, 다르면 실패) · `smoke.py`(가짜 로그인 서버 `mock_server.py` + `mock_supabase.js` 로 파트장 · 직원 로그인 → 홈 · 게시판 · 서식 4개 · 설정, 장례업무 7화면, 회사 서류 3화면, 390×844 · 820×1180 · 1180×820 · 1440×900 밝은/어두운 화면, 직원이 회사 서류에 못 들어가는지). 실제 수파베이스 · 인터넷에 연결하지 않음(바깥 요청은 막음 → 글꼴은 기본 글꼴로 보임). **서버 함수(`tools/supabase-part.sql`)를 바꾸면 `mock_server.py` 도 같이 바꾼다.** Playwright(Chromium)가 필요하다.
+- 직접 눌러 보려면 `python3 -m http.server 8765 --bind 127.0.0.1` 후 http://127.0.0.1:8765/forms/ (로그인은 실제 서버라 이 작업 환경에서는 안 될 수 있음 → 테스트 도구의 가짜 서버를 씀).
 - 정산 · 봉투 · 수당 · 영수증을 건드렸으면 아래 **검산 예시**가 그대로 나오는지 반드시 확인한다. 브라우저 콘솔에서 `settleCalc(c)`, `settleText(c)`, `commText(c)`, `caseEnvelope(c)`, `rcptForms(c)`로 확인할 수 있다.
 
 ---
@@ -238,5 +244,6 @@ python3 -m http.server 8765 --bind 127.0.0.1 &
 
 ## 8. 커밋 · 배포
 - 커밋 메시지는 바뀐 점을 한국어로 짧게.
-- `main`에 합치면 GitHub Actions(pages build and deployment)가 돌고 1~2분 뒤 반영된다. `https://dwfuneral.com/version.json?q=아무값` 이 새 버전이면 배포 완료.
+- **`tools/deploy.sh "바뀐 점"`** 하나로 빌드 · 점검 · 커밋 · push · 배포 확인까지 한다 (위 2번).
+- `main`에 합치면 GitHub Actions(pages build and deployment)가 돌고 1~2분 뒤 반영된다. `https://dwfuneral.com/forms/version.json?q=아무값` 이 새 버전이면 배포 완료 (이 작업 환경에서 사이트 주소가 막혀 있으면 `gh api 'repos/dog1377/seosik/contents/forms/version.json?ref=main'`).
 - 사용자에게는 "앱을 한 번 닫았다가 다시 열면 적용된다"고 안내한다.
