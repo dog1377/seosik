@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.24-1"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.26-1"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <title>회사 서류 · DW장례업무</title>
@@ -463,11 +463,15 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
 </script>
 
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
-     아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장이 아니면 홈으로.
-     이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도 파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
+     아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
+     총괄실장(dw_role = 'chief', 2026.10.26) → html.dw-chief: 서식 · 회사 서류 · 취합 · 설정만 ([data-nochief] 숨김, [data-chief] 보임),
+     window.DW_STAFF_ONLY 인 화면(장례업무)은 총괄실장이면 취합으로.
+     이 기기에서 한 번 확인되면(dw-leader · dw-chief) 인터넷이 없어도 그 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 html.dw-member [data-admin]{display:none!important}
+html.dw-chief [data-nochief]{display:none!important}
+html:not(.dw-chief) [data-chief]{display:none!important}
 #dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
 .gt-card{width:100%;max-width:340px;display:grid;gap:12px;text-align:center}
@@ -490,8 +494,10 @@ html.dw-member [data-admin]{display:none!important}
     if (s && s.user && s.user.id) {
       var am = s.user.app_metadata || {};
       var lead = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
-      root.classList.add(lead ? 'dw-leader' : 'dw-member');
-      if (!lead && window.DW_LEADER_ONLY) location.replace('./#home');
+      var chief = !lead && (am.dw_role === 'chief' || localStorage.getItem('dw-chief') === s.user.id);
+      root.classList.add(lead ? 'dw-leader' : chief ? 'dw-chief' : 'dw-member');
+      if (!lead && !chief && window.DW_LEADER_ONLY) location.replace('./#home');
+      if (chief && window.DW_STAFF_ONLY) location.replace('./#gather');
     } else root.classList.add('dw-gated');
   } catch (e) { root.classList.add('dw-gated'); }
 })();
@@ -2406,17 +2412,22 @@ init();
 })();
 </script>
 
-<!-- DW장례업무 · 로그인 화면 (leader-gate-head.html 과 같이 씀). 2026.10.23-6: 설명 없이 이메일 · 비밀번호만, 파트장이 아니면 관리자 기능만 숨김 -->
+<!-- DW장례업무 · 로그인 화면 (leader-gate-head.html 과 같이 씀). 2026.10.23-6: 설명 없이 이메일 · 비밀번호만, 파트장이 아니면 관리자 기능만 숨김.
+     2026.10.26: 총괄실장(dw_role 'chief') → html.dw-chief, 이 기기 확인 표시 dw-chief -->
 <script>
 (function () {
   'use strict';
-  var SK = 'dw-sb-auth', LK = 'dw-leader', DOMAIN = 'dwfuneral.com';
+  var SK = 'dw-sb-auth', LK = 'dw-leader', CK = 'dw-chief', DOMAIN = 'dwfuneral.com';
   var SB_URL = 'https://bruqeidlbougfdveomag.supabase.co', SB_KEY = 'sb_publishable_nA1F7Ye-9e5Xy6Zj4xTQjg_J56YLY2P';
   var root = document.documentElement, client = null;
   function sess() { try { return JSON.parse(localStorage.getItem(SK) || 'null'); } catch (e) { return null; } }
   function idOf(u) { var e = String((u && u.email) || ''); return e.slice(-(DOMAIN.length + 1)) === '@' + DOMAIN ? e.slice(0, -(DOMAIN.length + 1)) : e; }
   function isLeader(u) { return !!(u && u.app_metadata && u.app_metadata.dw_role === 'leader'); }
-  function setLeader(u) { try { if (u && isLeader(u)) localStorage.setItem(LK, u.id); else localStorage.removeItem(LK); } catch (e) {} }
+  function isChief(u) { return !!(u && u.app_metadata && u.app_metadata.dw_role === 'chief'); }
+  function setLeader(u) {
+    try { if (u && isLeader(u)) localStorage.setItem(LK, u.id); else localStorage.removeItem(LK); } catch (e) {}
+    try { if (u && isChief(u)) localStorage.setItem(CK, u.id); else localStorage.removeItem(CK); } catch (e) {}
+  }
   function lib() {
     return window.supabase && window.supabase.createClient ? Promise.resolve() : new Promise(function (res, rej) {
       var sc = document.createElement('script'); sc.src = 'vendor/supabase.js'; sc.onload = function () { res(); }; sc.onerror = function () { rej(new Error('lib')); }; document.head.appendChild(sc);
@@ -2431,12 +2442,14 @@ init();
       return client;
     });
   }
-  /* 파트장 / 직원 표시: html.dw-leader · html.dw-member (직원이면 [data-admin] 숨김). 바뀌면 화면에 알림(dw-role) */
+  /* 파트장 / 총괄실장 / 직원 표시: html.dw-leader · html.dw-chief · html.dw-member (직원이면 [data-admin] 숨김, 총괄실장이면 [data-nochief] 숨김). 바뀌면 화면에 알림(dw-role) */
   function applyRole(u) {
-    var lead = isLeader(u), was = root.classList.contains('dw-leader');
-    if (!lead && window.DW_LEADER_ONLY) { location.replace('./#home'); return; }   /* 회사 서류: 파트장만 */
-    root.classList.toggle('dw-leader', lead); root.classList.toggle('dw-member', !lead);
-    if (was !== lead) { try { window.dispatchEvent(new CustomEvent('dw-role', { detail: { leader: lead } })); } catch (e) {} }
+    var lead = isLeader(u), chief = !lead && isChief(u);
+    var was = root.classList.contains('dw-leader') ? 'leader' : root.classList.contains('dw-chief') ? 'chief' : 'member', now = lead ? 'leader' : chief ? 'chief' : 'member';
+    if (now === 'member' && window.DW_LEADER_ONLY) { location.replace('./#home'); return; }   /* 회사 서류: 파트장 · 총괄실장만 */
+    if (now === 'chief' && window.DW_STAFF_ONLY) { location.replace('./#gather'); return; }   /* 장례업무: 총괄실장은 안 씀 */
+    root.classList.toggle('dw-leader', lead); root.classList.toggle('dw-chief', chief); root.classList.toggle('dw-member', now === 'member');
+    if (was !== now) { try { window.dispatchEvent(new CustomEvent('dw-role', { detail: { leader: lead, chief: chief, role: now } })); } catch (e) {} }
   }
   var box = null;
   /* 이메일 칸: 이메일을 그대로 넣거나, @ 없이 아이디만 넣으면 아이디@dwfuneral.com */
@@ -2522,11 +2535,12 @@ init();
     user: function () { var s = sess(); return s && s.user || null; },
     id: function () { return idOf(acct.user()); },
     leader: function () { return root.classList.contains('dw-leader'); },
+    chief: function () { return root.classList.contains('dw-chief'); },
     client: getClient,
     rpc: rpc,
     logout: function () {
       return getClient().then(function (c) { return c.auth.signOut().catch(function () { return c.auth.signOut({ scope: 'local' }); }); })
-        .catch(function () {}).then(function () { try { localStorage.removeItem(LK); localStorage.removeItem(SK); } catch (e) {} location.reload(); });
+        .catch(function () {}).then(function () { try { localStorage.removeItem(LK); localStorage.removeItem(CK); localStorage.removeItem(SK); } catch (e) {} location.reload(); });
     },
     deleteMe: function (pw) {
       var u = acct.user(); if (!u) return Promise.resolve('none');
@@ -2535,7 +2549,7 @@ init();
           if (r.error) return /invalid|credential/i.test(r.error.message || '') ? 'pw' : 'net';
           return c.rpc('dw_delete_me').then(function (d) {
             if (d.error) return /function|not found|PGRST202|schema cache/i.test(String(d.error.message || '') + String(d.error.code || '')) ? 'nofn' : 'net';
-            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { localStorage.removeItem(LK); localStorage.removeItem(SK); localStorage.removeItem('dw-sb-meta'); } catch (e) {} return 'ok'; });
+            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { localStorage.removeItem(LK); localStorage.removeItem(CK); localStorage.removeItem(SK); localStorage.removeItem('dw-sb-meta'); } catch (e) {} return 'ok'; });
           });
         });
       }).catch(function () { return 'net'; });
@@ -2625,7 +2639,7 @@ init();
   async function run() {
     if (running) { again = true; return; }
     var acct = window.dwAcct, u = acct && acct.user();
-    if (!u || (A.leaderOnly && !acct.leader())) { setState('off'); return; }
+    if (!u || (A.leaderOnly && !acct.leader() && !(acct.chief && acct.chief()))) { setState('off'); return; }   /* 서식 · 회사 서류: 파트장 · 총괄실장 */
     if (navigator.onLine === false) { setState('wait'); return; }
     var local = await A.collect(); if (local === false) { setState('off'); return; } if (!local) { schedule(1500); return; }   /* false = 이 기기 저장소를 못 씀 → 맞추지 않음 */
     running = true; setState('sync');

@@ -1,9 +1,13 @@
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
-     아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장이 아니면 홈으로.
-     이 기기에서 한 번 파트장으로 확인되면(dw-leader) 인터넷이 없어도 파트장 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
+     아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
+     총괄실장(dw_role = 'chief', 2026.10.26) → html.dw-chief: 서식 · 회사 서류 · 취합 · 설정만 ([data-nochief] 숨김, [data-chief] 보임),
+     window.DW_STAFF_ONLY 인 화면(장례업무)은 총괄실장이면 취합으로.
+     이 기기에서 한 번 확인되면(dw-leader · dw-chief) 인터넷이 없어도 그 메뉴로 열고, 인터넷이 되면 다시 확인함. 화면은 leader-gate.html. -->
 <style id="dw-gate-ui">
 html.dw-gated body>*:not(#dwGate):not(#toast){visibility:hidden!important}
 html.dw-member [data-admin]{display:none!important}
+html.dw-chief [data-nochief]{display:none!important}
+html:not(.dw-chief) [data-chief]{display:none!important}
 #dwGate{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);background:var(--bg,#f3f3f1);color:var(--ink,#1c1d1f);overflow:auto}
 #dwGate[hidden]{display:none!important}
 .gt-card{width:100%;max-width:340px;display:grid;gap:12px;text-align:center}
@@ -26,8 +30,10 @@ html.dw-member [data-admin]{display:none!important}
     if (s && s.user && s.user.id) {
       var am = s.user.app_metadata || {};
       var lead = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
-      root.classList.add(lead ? 'dw-leader' : 'dw-member');
-      if (!lead && window.DW_LEADER_ONLY) location.replace('./#home');
+      var chief = !lead && (am.dw_role === 'chief' || localStorage.getItem('dw-chief') === s.user.id);
+      root.classList.add(lead ? 'dw-leader' : chief ? 'dw-chief' : 'dw-member');
+      if (!lead && !chief && window.DW_LEADER_ONLY) location.replace('./#home');
+      if (chief && window.DW_STAFF_ONLY) location.replace('./#gather');
     } else root.classList.add('dw-gated');
   } catch (e) { root.classList.add('dw-gated'); }
 })();

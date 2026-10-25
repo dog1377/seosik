@@ -436,6 +436,32 @@ p{text-wrap:pretty}
 #hmTodo{font-size:16px}
 @media (max-width:520px){.tm-sum{grid-template-columns:1fr 1fr}.tm-sum>div:nth-child(3){border-left:0;padding-left:2px}.tm-sum>div:nth-child(n+3){border-top:1px solid var(--line)}.tm-tbl{font-size:13px}.tm-tbl th,.tm-tbl td{padding-left:3px;padding-right:3px}}
 @media (max-width:360px){.hm-dd b{font-size:38px}.hm-go{grid-template-columns:1fr}.ftabs button{padding:0 5px;font-size:14px}}
+/* ===== 취합 (총괄실장, 2026.10.26) — 파트장들이 올린 보고를 모아 보기 · 정리. 디자인 A: 먹색 가는 선, 표는 두 줄 밑줄 ===== */
+.gt-tabs{margin:0}
+.gt-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gt-acts.one{grid-template-columns:1fr}
+.gt-iss{margin:2px 0 0;padding:0;list-style:none;display:grid;gap:3px;font-size:14px;line-height:1.55}
+.gt-iss li{min-width:0;overflow-wrap:anywhere}
+.gt-iss li b{font-weight:700;margin-right:4px}
+.gt-iss li.more{color:var(--muted)}
+.ms-item .gt-open{justify-self:start;margin-top:4px}
+.gt-miss{background:var(--surface-2)}
+.gt-who{display:grid;gap:6px}
+.gt-rv{display:grid;border-top:1px solid var(--ink)}
+.gt-rv>div{display:grid;gap:2px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.gt-rv b{font-size:14px}
+.gt-rv p{margin:0;white-space:pre-wrap;font-size:15px;line-height:1.6;overflow-wrap:anywhere}
+.gt-rv p.none{color:var(--muted)}
+.gt-tbl td:not(:first-child),.gt-tbl th:not(:first-child){text-align:right}
+.gt-tbl td{height:44px}
+.s-row.gt-srow{cursor:default}
+.gt-note{margin:0;font-size:13px;color:var(--muted);line-height:1.6}
+.gt-dec{margin:0;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.gt-dec b{margin-right:6px}
+.rl-btns{display:flex;gap:6px;flex:none}
+@media (max-width:420px){.bd-pp.rl{flex-wrap:wrap}.bd-pp.rl .rl-btns{width:100%;justify-content:flex-end;padding-bottom:6px}}
+@media (min-width:1000px){#tab-gather{width:100%;max-width:760px;margin-inline:auto}}
+@media (max-width:360px){.gt-acts{grid-template-columns:1fr}}
 </style>
 
 <header class="appbar">
@@ -533,6 +559,21 @@ p{text-wrap:pretty}
       <p>같은 파트 사람끼리만 보여요. 파트장님 공지와 파트원 글 · 댓글을 여기서 나눠요.</p>
     </div>
     <div class="tab" id="bdBody"></div>
+  </section>
+
+  <!-- ===== 취합 (총괄실장, 2026.10.26): 파트장들이 올린 주간보고 · 회의록 · 후기 · 탁송을 모아 보고 정리 (보기만) ===== -->
+  <section class="tab" id="tab-gather" hidden data-chief>
+    <div class="tab-head">
+      <h1>파트 보고 취합</h1>
+      <p>파트장님들이 올린 보고를 모아 보고, 한 장으로 정리해요. 보기만 할 수 있어요.</p>
+    </div>
+    <nav class="ftabs gt-tabs" id="gtTabs" aria-label="취합할 서식 고르기">
+      <button type="button" data-gv="weekly">주간보고</button>
+      <button type="button" data-gv="minutes">회의록</button>
+      <button type="button" data-gv="review">후기</button>
+      <button type="button" data-gv="ship">탁송</button>
+    </nav>
+    <div class="tab" id="gtBody"></div>
   </section>
 
   <!-- ===== 회의록 ===== -->
@@ -655,10 +696,10 @@ p{text-wrap:pretty}
       <p>보고서 머리글에 들어갈 정보와 데이터 백업을 관리해요.</p>
     </div>
     <div class="card ac-card" id="dwAcctCard" hidden></div>
-    <div class="card" id="roleCard" hidden><h2>직원 권한</h2><p class="small-t muted">파트장으로 정하면 서식 · 설정 · 회사 서류가 보이고, 파트를 만들어 파트원을 넣을 수 있어요.</p><div id="roleList"></div></div>
+    <div class="card" id="roleCard" hidden><h2>직원 권한</h2><p class="small-t muted">파트장으로 정하면 서식 · 설정 · 회사 서류가 보이고, 파트를 만들어 파트원을 넣을 수 있어요. 총괄실장으로 정하면 회의록 · 주간보고 · 후기 · 탁송 · 회사 서류와, 파트장님들이 올린 보고를 모아 보는 「취합」만 보여요.</p><div id="roleList"></div></div>
     <div class="card">
       <h2>기본 정보</h2>
-      <label class="field"><span>작성자 (파트장 이름)</span><input id="setAuthor" type="text" placeholder="예: 홍길동" autocomplete="name"></label>
+      <label class="field"><span id="setAuthorLb">작성자 (파트장 이름)</span><input id="setAuthor" type="text" placeholder="예: 홍길동" autocomplete="name"></label>
       <label class="field"><span>파트명</span><input id="setPart" type="text" placeholder="예: 장례지원 1파트"></label>
       <label class="field"><span>회사명 <span class="opt">(보고서 맨 위에 작게 표시)</span></span><input id="setCompany" type="text" placeholder="회사명"></label>
     </div>
@@ -675,7 +716,7 @@ p{text-wrap:pretty}
     </div>
     <div class="card">
       <h2>내 서명</h2>
-      <p class="small-t muted">한 번 등록하면 보고서 결재란의 「파트장」 칸에 자동으로 들어가요. 서명은 누르는 즉시 저장돼요.</p>
+      <p class="small-t muted">한 번 등록하면 보고서 결재란의 「<span id="sigSlotLb">파트장</span>」 칸에 자동으로 들어가요. 서명은 누르는 즉시 저장돼요.</p>
       <div class="sig-box" id="sigBox"><span>등록된 서명이 없어요</span></div>
       <label class="switch" for="sigOn"><span>보고서에 서명 넣기</span><input type="checkbox" id="sigOn"></label>
       <div class="grid2">
@@ -726,11 +767,15 @@ p{text-wrap:pretty}
 
 <nav class="tabbar" aria-label="메뉴">
   <div class="tabbar-in">
-    <button type="button" data-tab="home" aria-current="page">
+    <button type="button" data-tab="gather" aria-current="false" data-chief>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 3.5 8.5 12 13l8.5-4.5z"/><path d="M3.5 12.5 12 17l8.5-4.5"/><path d="M3.5 16.5 12 21l8.5-4.5"/></svg>
+      취합
+    </button>
+    <button type="button" data-tab="home" aria-current="page" data-nochief>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11.2 12 4.5l8.5 6.7"/><path d="M6 9.6V20h12V9.6"/><path d="M10 20v-5.5h4V20"/></svg>
       홈
     </button>
-    <button type="button" data-tab="funeral" aria-current="false" id="tabFuneral" hidden>
+    <button type="button" data-tab="funeral" aria-current="false" id="tabFuneral" hidden data-nochief>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2"/></svg>
       장례업무
     </button>
@@ -738,7 +783,7 @@ p{text-wrap:pretty}
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>
       서식
     </button>
-    <button type="button" data-tab="board" aria-current="false">
+    <button type="button" data-tab="board" aria-current="false" data-nochief>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H11l-4.5 3.5V16H4z"/><path d="M8 9h8M8 12h5"/></svg>
       게시판
     </button>
@@ -1155,11 +1200,11 @@ function toast(msg) {
 }
 /* 지우기 · 빼기 같은 동작 확인 (2026.10.24): 아래에서 올라오는 확인 창(src/confirm-kit.html dwConfirm). o = {title, body, ok, danger}.
    예전처럼 label 만 주면 label 로 제목을 만듦. 확인 창이 없으면 예전처럼 두 번 누르기 */
-const ARM_TITLES = { '전부 삭제': ['이 기기의 서식 기록을 모두 지울까요?', '전부 지우기'], '삭제': ['지울까요?', '지우기'], '지우기': ['지울까요?', '지우기'], '끄기': ['끌까요?', '끄기'], '나가기': ['쓰던 글을 버리고 나갈까요?', '나가기'], '빼기': ['뺄까요?', '빼기'], '댓글 지우기': ['이 댓글을 지울까요?', '지우기'], '파트 없애기': ['이 파트를 없앨까요?', '없애기'], '파트장으로': ['파트장으로 정할까요?', '파트장으로'], '직원으로': ['직원으로 바꿀까요?', '직원으로'] };
+const ARM_TITLES = { '총괄실장으로': ['총괄실장으로 정할까요?', '총괄실장으로'], '전부 삭제': ['이 기기의 서식 기록을 모두 지울까요?', '전부 지우기'], '삭제': ['지울까요?', '지우기'], '지우기': ['지울까요?', '지우기'], '끄기': ['끌까요?', '끄기'], '나가기': ['쓰던 글을 버리고 나갈까요?', '나가기'], '빼기': ['뺄까요?', '빼기'], '댓글 지우기': ['이 댓글을 지울까요?', '지우기'], '파트 없애기': ['이 파트를 없앨까요?', '없애기'], '파트장으로': ['파트장으로 정할까요?', '파트장으로'], '직원으로': ['직원으로 바꿀까요?', '직원으로'] };
 function armConfirm(btn, label, onConfirm, o) {
   if (window.dwConfirm) {
     o = o || {}; const k = String(label).replace(/^한 번 더 누르면\s*/, ''), t = ARM_TITLES[k] || [k + '?', '확인'];
-    window.dwConfirm({ title: o.title || t[0], body: o.body || '', ok: o.ok || t[1], danger: o.danger !== undefined ? o.danger : !/파트장으로/.test(k) }).then((ok) => { if (ok) onConfirm(); });
+    window.dwConfirm({ title: o.title || t[0], body: o.body || '', ok: o.ok || t[1], danger: o.danger !== undefined ? o.danger : !/파트장으로|총괄실장으로/.test(k) }).then((ok) => { if (ok) onConfirm(); });
     return;
   }
   if (btn.dataset.armed === '1') {
@@ -1179,6 +1224,8 @@ function showTab(t) {
   if (t === 'forms') t = lastFormTab();
   if (!ALL_TABS.includes(t)) t = 'home';
   if (isMember() && ADMIN_TABS.includes(t)) t = 'home';   /* 직원 계정: 서식 · 설정은 안 열림 */
+  if (isChief() && STAFF_TABS.includes(t)) t = 'gather';   /* 총괄실장: 홈 · 게시판 대신 취합 */
+  if (!isChief() && t === 'gather') t = 'home';
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
   S.tab = t; document.body.dataset.view = t;
   ALL_TABS.forEach((k) => { $('#tab-' + k).hidden = k !== t; });
@@ -1192,6 +1239,7 @@ function showTab(t) {
   if (t === 'board') boardOpen();
   if (t === 'settings') { renderSettings(); roleLoad(); }
   if (t === 'review') renderReview();
+  if (t === 'gather') gatherOpen(false);
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
 async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
@@ -1679,13 +1727,13 @@ function headerBlock(o) {
     hl(ctx, RP.M, y + h - 6, CW, 3, RP.ink);
   } };
 }
-function metaBlock(pairs) {
+function metaBlock(pairs, o = {}) {
   const ctx = mctx(); ctx.font = F(400, 22);
-  const lw = 150, half = CW / 2, pad = 16, lh = 32;
-  const rows = []; for (let i = 0; i < pairs.length; i += 2) rows.push(pairs.slice(i, i + 2));
+  const lw = 150, half = CW / 2, pad = 16, lh = 32, per = o.per || 2;
+  const rows = []; for (let i = 0; i < pairs.length; i += per) rows.push(pairs.slice(i, i + per));
   const laid = rows.map((r) => {
     const full = r.length === 1; const vw = (full ? CW : half) - lw - pad * 2;
-    const cells = r.map(([l, v]) => ({ l, lines: wrapLines(ctx, v || '-', vw) }));
+    const cells = r.map(([l, v]) => { let lines = wrapLines(ctx, v || '-', vw); if (o.cap && lines.length > o.cap) lines = lines.slice(0, o.cap - 1).concat(['… (이하 생략 · 원본 참고)']); return { l, lines }; });
     return { full, cells, h: Math.max(58, Math.max(...cells.map((c) => c.lines.length)) * lh + 24) };
   });
   const h = laid.reduce((a, r) => a + r.h, 0);
@@ -1790,11 +1838,13 @@ function noteBlock(text) {
   const h = lines.length * 30 + 8;
   return { h, gapBefore: 12, draw(ctx, y) { drawLines(ctx, lines, RP.M, y, CW, h, 30, 'left', RP.muted, F(400, 21)); } };
 }
-function shipCols(withQr) {
+function shipCols(withQr, withPart) {
   const c = [['No', 48, 'c'], ['날짜', 106, 'c'], ['구분', 84, 'c'], ['품명', 0, 'l'], ['수량', 62, 'c'], ['담당자', 102, 'c'], ['방법', 74, 'c'], ['운임', 74, 'c'], ['배송지', 0, 'l']];
+  if (withPart) c.splice(1, 0, ['파트', 104, 'c']);   /* 총괄실장 취합 보고서 */
   if (withQr) c.push(['QR', 150, 'c']);
   const fixed = c.reduce((a, x) => a + x[1], 0), flex = CW - fixed;
-  c[3][1] = Math.round(flex * 0.53); c[8][1] = flex - c[3][1];
+  const pi = c.findIndex((x) => x[0] === '품명'), di = c.findIndex((x) => x[0] === '배송지');
+  c[pi][1] = Math.round(flex * 0.53); c[di][1] = flex - c[pi][1];
   let x = RP.M; return c.map(([label, w, a]) => { const o = { label, w, a, x }; x += w; return o; });
 }
 function shipHeaderBlock(cols) {
@@ -1808,7 +1858,7 @@ function shipHeaderBlock(cols) {
 }
 function shipRowBlock(cols, e, idx, img, header, last) {
   const ctx = mctx(); const pad = 9, lh = 28;
-  const vals = { No: String(idx + 1), 날짜: fmtDay(e.date), 구분: e.kind, 품명: e.name, 수량: String(e.qty), 담당자: e.manager || '-', 방법: e.method, 운임: e.fee, 배송지: e.dest || '-' };
+  const vals = { No: String(idx + 1), 파트: e._part || '-', 날짜: fmtDay(e.date), 구분: e.kind, 품명: e.name, 수량: String(e.qty), 담당자: e.manager || '-', 방법: e.method, 운임: e.fee, 배송지: e.dest || '-' };
   const cells = cols.filter((c) => c.label !== 'QR').map((c) => {
     const bold = (c.label === '운임' && e.fee === '착불') || c.label === '구분';
     ctx.font = F(bold ? 700 : 400, 20);
@@ -1842,6 +1892,35 @@ function shipRowBlock(cols, e, idx, img, header, last) {
     vl(ctx, RP.M, y, h, 2, RP.line); vl(ctx, RP.W - RP.M - 2, y, h, 2, RP.line);
     if (last) hl(ctx, RP.M, y + h - 2, CW, 2, RP.line); else hl(ctx, RP.M, y + h - 1, CW, 1, RP.thin);
   } };
+}
+/* 일반 표 (총괄실장 취합 보고서, 2026.10.26): spec = [[이름, 너비(0이면 남는 너비를 나눔), 'c'|'l'], …] */
+function tblCols(spec) {
+  const fixed = spec.reduce((a, x) => a + x[1], 0), nf = spec.filter((x) => !x[1]).length, fw = nf ? Math.floor((CW - fixed) / nf) : 0;
+  const cols = spec.map(([label, w, a]) => ({ label, w: w || fw, a, flex: !w }));
+  const rest = CW - cols.reduce((a, c) => a + c.w, 0), lf = [...cols].reverse().find((c) => c.flex) || cols[cols.length - 1]; lf.w += rest;
+  let x = RP.M; cols.forEach((c) => { c.x = x; x += c.w; }); return cols;
+}
+function tblRowBlock(cols, vals, header, last, strong) {
+  const ctx = mctx(), pad = 10, lh = 28;
+  const cells = cols.map((c, i) => {
+    const bold = i === strong, v = vals[i] == null || String(vals[i]).trim() === '' ? '-' : String(vals[i]).trim();
+    ctx.font = F(bold ? 700 : 400, 20);
+    let lines = wrapLines(ctx, v, c.w - pad * 2); if (lines.length > 18) lines = lines.slice(0, 17).concat(['…']);
+    return { c, lines, bold, hh: lines.length * lh };
+  });
+  const h = Math.max(54, ...cells.map((x) => x.hh + 22));
+  return { h, gapBefore: 0, tableHeader: header, draw(ctx, y) {
+    cells.forEach(({ c, lines, bold, hh }) => drawLines(ctx, lines, c.x + pad, y + (h - hh) / 2, c.w - pad * 2, hh, lh, c.a === 'c' ? 'center' : 'left', bold ? RP.strong : RP.ink, F(bold ? 700 : 400, 20)));
+    cols.forEach((c, i) => { if (i) vl(ctx, c.x, y, h, 1, RP.thin); });
+    vl(ctx, RP.M, y, h, 2, RP.line); vl(ctx, RP.W - RP.M - 2, y, h, 2, RP.line);
+    if (last) hl(ctx, RP.M, y + h - 2, CW, 2, RP.line); else hl(ctx, RP.M, y + h - 1, CW, 1, RP.thin);
+  } };
+}
+function tblBlocks(cols, rows, o = {}) {
+  const header = shipHeaderBlock(cols), out = [header];
+  if (!rows.length) out.push(emptyRowBlock(header, o.empty || '내용이 없습니다.'));
+  rows.forEach((v, i) => out.push(tblRowBlock(cols, v, header, i === rows.length - 1, o.strong ? o.strong(v) : -1)));
+  return out;
 }
 function emptyRowBlock(header, text) {
   const h = 92;
@@ -1929,8 +2008,8 @@ function minutesBodyBlocks(text) {
   }
   return blocks;
 }
-function minutesJob(r) {
-  const s = S.settings, date = fmtYMD(fromKey(r.date || toKey(new Date())));
+function minutesJob(r, opts = {}) {
+  const s = opts.settings || S.settings, date = fmtYMD(fromKey(r.date || toKey(new Date())));
   const time = [r.start, r.end].filter(Boolean).join(' ~ ');
   return {
     title: '회의록', text: minutesText(r) + ' ' + [s.company, ...approvalsOf(s)].join(' '),
@@ -1938,7 +2017,7 @@ function minutesJob(r) {
     footerLeft: footerText({ ...s, author: r.author }),
     build: async () => {
       const b = [
-        headerBlock({ title: '회의록', sub: date, company: s.company, approvals: approvalsOf(s), signature: await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
+        headerBlock({ title: '회의록', sub: date, company: s.company, approvals: approvalsOf(s), signature: opts.noSig ? null : await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
         metaBlock([['회의명', minutesTitle(r)]]),
         metaBlock([['회의일', date], ['시간', time], ['파트명', r.part], ['작성자', r.author], ['장소', r.place]]),
       ];
@@ -1961,7 +2040,7 @@ function weeklyJob(r, opts = {}) {
     footerLeft: footerText({ ...s, author: r.author }),
     build: async () => {
       const b = [
-        headerBlock({ title: '주간 파트 보고서', sub: `${wi.year}년 ${wi.label}`, company: s.company, approvals: approvalsOf(s), signature: opts.sample ? null : await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
+        headerBlock({ title: '주간 파트 보고서', sub: `${wi.year}년 ${wi.label}`, company: s.company, approvals: approvalsOf(s), signature: opts.sample || opts.noSig ? null : await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
         metaBlock([['파트명', r.part || '-'], ['작성자', r.author || '-'], ['보고 기간', wi.range], ['작성일', fmtYMD(new Date(r.updatedAt || Date.now()))]]),
         sectionBlock('파트원별 보고', `${members.length}명 · 특이사항 ${issues}건`),
       ];
@@ -1974,23 +2053,24 @@ function weeklyJob(r, opts = {}) {
 }
 function shipJob(p, items, withQr, opts = {}) {
   const s = opts.settings || S.settings;
-  const title = `탁송·출고 ${p.typeLabel} 보고서`;
+  const title = opts.gather ? `탁송·출고 ${p.typeLabel} 취합` : `탁송·출고 ${p.typeLabel} 보고서`;
   const text = [s.company, s.author, ...approvalsOf(s), ...items.flatMap((e) => [e.name, e.manager, e.dest, e.memo, e.kind, e.method, e.fee])].join(' ');
   return {
     title, sample: !!opts.sample, text: text + ` ${title} 보고 구분 작성자 보고 기간 작성일 요약 상세 내역 총 건수 용품 근조기 택배 탁송 선불 착불 담당자별 날짜 구분 품명 수량 배송지 방법 운임`,
-    fileBase: safeName(`탁송출고_${p.typeLabel}_${p.file}`),
+    fileBase: safeName(`탁송출고_${opts.gather ? '취합_' : ''}${p.typeLabel}_${p.file}`),
     footerLeft: footerText(s),
     build: async () => {
       const st = shipStats(items);
       const b = [
         headerBlock({ title, sub: p.label, company: s.company, approvals: approvalsOf(s), signature: opts.sample ? null : await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
-        metaBlock([['보고 구분', `${p.typeLabel} 보고`], ['작성자', s.author || '-'], ['보고 기간', p.range], ['작성일', fmtYMD(new Date())]]),
+        metaBlock([['보고 구분', opts.gather ? `${p.typeLabel} 취합 (파트장 ${opts.gather}명)` : `${p.typeLabel} 보고`], [opts.gather ? '취합' : '작성자', s.author || '-'], ['보고 기간', p.range], ['작성일', fmtYMD(new Date())]]),
         sectionBlock('요약'),
         summaryBlock(st),
       ];
+      if (opts.partLine) b.push(noteBlock(opts.partLine));
       if (st.managers.length) b.push(noteBlock('담당자별  ' + st.managers.map(([n, c]) => `${n} ${c}건`).join('  ·  ')));
       b.push(sectionBlock('상세 내역', `${items.length}건`));
-      const cols = shipCols(withQr);
+      const cols = shipCols(withQr, !!opts.withPart);
       const header = shipHeaderBlock(cols);
       b.push(header);
       if (!items.length) b.push(emptyRowBlock(header, '이 기간에 등록된 탁송·출고 내역이 없습니다.'));
@@ -2056,7 +2136,7 @@ async function openPreview(job) {
   $('#pvSample').hidden = !job.sample;
   $('#pvActions').hidden = !!job.sample;
   $('#pvHint').hidden = !!job.sample;
-  $('#pvSign').hidden = !!job.sample || !!(S.sig && S.sig.data) || approvalsOf(S.settings).length === 0;
+  $('#pvSign').hidden = !!job.sample || !!job.view || !!(S.sig && S.sig.data) || approvalsOf(S.settings).length === 0;
   const pngBtn = $('#pvPng'), pdfBtn = $('#pvPdf');
   pngBtn.disabled = true; pngBtn.textContent = LABELS.png;
   pdfBtn.disabled = true; pdfBtn.textContent = 'PDF 준비 중…';
@@ -2119,7 +2199,10 @@ const INK = '#14181c';
 const SIG_MIN = 1.5, SIG_MAX = 4.6; // stroke width in screen px
 const Sig = { strokes: [], cur: null, W: 1, H: 1, dpr: 1, ctx: null, from: null, lastMid: null };
 let sigImgCache = null;
-function signIndexOf(ap) { const i = ap.findIndex((t) => /파트장/.test(t)); return i >= 0 ? i : 0; }
+function signIndexOf(ap) {   /* 내 서명이 들어갈 결재 칸: 파트장 칸 (총괄실장 계정은 총괄실장 칸, 없으면 안 넣음) */
+  if (isChief()) return ap.findIndex((t) => /총괄/.test(t));
+  const i = ap.findIndex((t) => /파트장/.test(t)); return i >= 0 ? i : 0;
+}
 async function sigImage() {
   if (!S.sig || !S.sig.data || S.sig.on === false) return null;
   if (sigImgCache && sigImgCache.src === S.sig.data) return sigImgCache.img;
@@ -2341,6 +2424,8 @@ function rvShift(days) { const k = toKey(addDays(fromKey(rvDates()[1]), days)); 
 const sdraft = () => (S.sd || (S.sd = clone(S.settings)));
 function renderSettings() {
   const s = S.sd || S.settings;
+  $('#setAuthorLb').textContent = isChief() ? '작성자 (내 이름)' : '작성자 (파트장 이름)';
+  $('#sigSlotLb').textContent = isChief() ? '총괄실장' : '파트장';
   $('#setAuthor').value = s.author || ''; $('#setPart').value = s.part || ''; $('#setCompany').value = s.company || '';
   $('#setShowAppr').checked = !!s.showApproval; $('#setAppr').value = s.approvals || ''; $('#setAppr').disabled = !s.showApproval;
   renderRoster(); renderSaveBar(); fillRanks(); renderSigCard();
@@ -2934,8 +3019,10 @@ function bindPwa() {
    파트장은 파트원의 장례일정 · 봉투를 보기만 함(dw_member_records). 직원 계정(html.dw-member)은 서식 · 설정이 안 보임. */
 const FORM_TABS = ['weekly', 'minutes', 'review', 'ship'];
 const ADMIN_TABS = FORM_TABS.concat(['settings']);
-const ALL_TABS = ['home'].concat(FORM_TABS, ['board', 'settings']);
+const ALL_TABS = ['home', 'gather'].concat(FORM_TABS, ['board', 'settings']);
+const STAFF_TABS = ['home', 'board'];   /* 총괄실장은 안 씀 */
 const isMember = () => document.documentElement.classList.contains('dw-member');
+const isChief = () => document.documentElement.classList.contains('dw-chief');   /* 총괄실장 (2026.10.26) */
 function lastFormTab() { let t = ''; try { t = localStorage.getItem('mf.formTab') || ''; } catch (e) { /* ignore */ } return FORM_TABS.includes(t) ? t : 'weekly'; }
 function whenAcct(fn) { if (window.dwAcct) fn(); else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { if (window.dwAcct) fn(); }, { once: true }); }
 const SVG_R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
@@ -3221,7 +3308,7 @@ function peopleView(p) {
     <div class="wipe-zone"><p class="small-t muted">파트를 없애면 이 파트 게시판 글 · 댓글과 파트원 명단이 지워져요. 직원 계정과 장례 기록은 그대로예요.</p><button class="btn danger block" type="button" data-bd="delpart">이 파트 없애기</button></div></section>`;
   return h;
 }
-const WHY_KO = { notleader: '파트장만 할 수 있어요', nouser: '그 이메일로 가입한 직원이 없어요. 다시 확인해 주세요', already: '이미 이 파트에 있어요', leader: '파트장 계정은 파트원으로 넣을 수 없어요', otherpart: '이미 다른 파트에 있는 직원이에요', self: '파트장님은 넣지 않아도 돼요', name: '이름을 넣어 주세요', empty: '내용을 넣어 주세요', denied: '쓴 사람이나 파트장만 할 수 있어요', gone: '지워진 글이에요', notmember: '이 파트 사람만 볼 수 있어요' };
+const WHY_KO = { chief: '총괄실장 계정은 파트원으로 넣을 수 없어요', notchief: '총괄실장 계정만 볼 수 있어요', role: '권한을 바꾸지 못했어요', notleader: '파트장만 할 수 있어요', nouser: '그 이메일로 가입한 직원이 없어요. 다시 확인해 주세요', already: '이미 이 파트에 있어요', leader: '파트장 계정은 파트원으로 넣을 수 없어요', otherpart: '이미 다른 파트에 있는 직원이에요', self: '파트장님은 넣지 않아도 돼요', name: '이름을 넣어 주세요', empty: '내용을 넣어 주세요', denied: '쓴 사람이나 파트장만 할 수 있어요', gone: '지워진 글이에요', notmember: '이 파트 사람만 볼 수 있어요' };
 function pbFail(e) { toast(e && e.why && !WHY_KO[e.why] ? pbWhyText(e.why, !isMember()).replace(/\.$/, '') : (WHY_KO[(e && e.why) || ''] || '지금은 하지 못했어요. 잠시 뒤에 다시 해 주세요')); }
 async function pbCall(fn, args, btn) {
   if (btn) btn.disabled = true;
@@ -3395,12 +3482,20 @@ function bindHomeBoard() {
     const sh = e.target.closest('[data-ms-shift]'); if (sh) { MS.month = shiftMonth(MS.month, Number(sh.dataset.msShift)); paintMember(); teamFor(PB.part, MS.month, false); return; }
     const v = e.target.closest('[data-msv]'); if (v) { MS.view = v.dataset.msv; paintMember(); }
   });
-  window.addEventListener('dw-role', () => { if (isMember() && ADMIN_TABS.includes(S.tab)) showTab('home'); else if (S.tab === 'home') renderHome(); else if (S.tab === 'board') paintBoard(); homeAcctSlot(); });
+  window.addEventListener('dw-role', () => {
+    if (isMember() && (ADMIN_TABS.includes(S.tab) || S.tab === 'gather')) showTab('home');
+    else if (isChief() && STAFF_TABS.includes(S.tab)) showTab('gather');
+    else if (!isChief() && S.tab === 'gather') showTab('home');
+    else if (S.tab === 'home') renderHome(); else if (S.tab === 'board') paintBoard(); else if (S.tab === 'gather') gatherOpen(true);
+    if (S.tab === 'settings' && !S.sd) renderSettings();
+    homeAcctSlot();
+  });
   window.addEventListener('dw-name', () => { PB.meAt = 0; hmNote = null; if (S.tab === 'board') boardLoad(true); });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
     if (S.tab === 'home') { if (homeDay !== seoulYMD()) renderHome(); else { homeNotices(false); homeTeam(false); } }
     if (S.tab === 'board' && Date.now() - PB.at > 60000) boardLoad(false);
+    if (S.tab === 'gather') gLoadCur(false);
   });
   window.addEventListener('storage', (e) => { if (e.key === FU_KEY && S.tab === 'home') renderHome(); });
   setInterval(() => {
@@ -3490,19 +3585,34 @@ async function roleLoad() {
 function paintRoles() {
   const el = $('#roleList'); if (!el || !roleList) return;
   el.innerHTML = roleList.length ? `<div class="bd-ppl">${roleList.map((x) => {
-    const sub = x.me ? '나 · 관리자' : x.leader ? `파트장${x.leads ? ` · 파트 ${x.leads}개` : ''}` : `직원 · ${x.part ? x.part : '파트 없음'}`;
-    const btn = x.me ? '' : `<button class="btn small${x.leader ? ' quiet' : ''}" type="button" data-role="${esc(x.user_id)}" data-to="${x.leader ? 'member' : 'leader'}">${x.leader ? '직원으로' : '파트장으로'}</button>`;
-    return `<div class="bd-pp"><div><b>${esc(pName(x))}</b><small>${esc([x.name ? x.login_id : '', sub].filter(Boolean).join(' · '))}</small></div>${btn}</div>`;
+    const sub = x.me ? '나 · 관리자' : x.chief ? '총괄실장' : x.leader ? `파트장${x.leads ? ` · 파트 ${x.leads}개` : ''}` : `직원 · ${x.part ? x.part : '파트 없음'}`;
+    const rb = (to, t, q) => `<button class="btn small${q ? ' quiet' : ''}" type="button" data-role="${esc(x.user_id)}" data-to="${to}">${t}</button>`;
+    const btn = x.me ? '' : x.leader || x.chief ? rb('member', '직원으로', true) : `<span class="rl-btns">${rb('leader', '파트장으로')}${rb('chief', '총괄실장으로')}</span>`;
+    return `<div class="bd-pp rl"><div><b>${esc(pName(x))}</b><small>${esc([x.name ? x.login_id : '', sub].filter(Boolean).join(' · '))}</small></div>${btn}</div>`;
   }).join('')}</div>` : '<p class="bd-empty">아직 가입한 직원이 없어요.</p>';
 }
 async function roleClick(e) {
   const b = e.target.closest('[data-role]'); if (!b) return;
-  const x = (roleList || []).find((y) => y.user_id === b.dataset.role), lead = b.dataset.to === 'leader';
-  armConfirm(b, lead ? '한 번 더 누르면 파트장으로' : '한 번 더 누르면 직원으로', async () => {
-    const d = await pbCall('dw_set_role', { p_user: b.dataset.role, p_leader: lead }); if (!d) return;
-    toast(`${pName(x) || '직원'} 님을 ${lead ? '파트장으로 정했어요. 다음에 앱을 열면 서식 · 설정이 보여요' : '직원으로 바꿨어요'}`);
+  const x = (roleList || []).find((y) => y.user_id === b.dataset.role) || {}, to = b.dataset.to, nm = pName(x) || '직원';
+  const T = {
+    leader: ['파트장으로 정할까요?', '서식 · 설정 · 회사 서류가 보이고 파트를 만들 수 있어요. 지금 들어가 있는 파트에서는 빠져요.', '파트장으로', '파트장으로 정했어요. 다음에 앱을 열면 서식 · 설정이 보여요'],
+    chief: ['총괄실장으로 정할까요?', '회의록 · 주간보고 · 후기 · 탁송 · 회사 서류와 「취합」만 보여요. 파트장님들이 올린 보고를 볼 수 있고(고치기 안 됨), 장례업무 · 게시판은 안 보여요.', '총괄실장으로', '총괄실장으로 정했어요. 다음에 앱을 열면 취합 · 서식이 보여요'],
+    member: ['직원으로 바꿀까요?', x.chief ? '취합 · 서식 · 회사 서류가 안 보이게 돼요.' : '서식 · 설정 · 회사 서류가 안 보이게 돼요. 만든 파트는 그대로 남아요.', '직원으로', '직원으로 바꿨어요'],
+  }[to];
+  if (!T) return;
+  armConfirm(b, '한 번 더 누르면 ' + T[2], async () => {
+    b.disabled = true; let d = null;
+    try { d = await window.dwAcct.rpc('dw_set_role_to', { p_user: b.dataset.role, p_role: to }); }
+    catch (err) {
+      if (err && err.why === 'noserver' && to !== 'chief') d = await pbCall('dw_set_role', { p_user: b.dataset.role, p_leader: to === 'leader' });   /* 서버 준비 글을 다시 실행하기 전 (예전 함수) */
+      else { if (b.isConnected) b.disabled = false; toast(err && err.why === 'noserver' ? '총괄실장 기능이 서버에 아직 없어요. 수파베이스 SQL Editor에서 tools/supabase-part.sql 을 한 번 다시 실행해 주세요' : WHY_KO[(err && err.why) || ''] || pbWhyText((err && err.why) || 'net', true)); return; }
+    }
+    if (b.isConnected) b.disabled = false;
+    if (!d) return;
+    if (d.ok === false) { pbFail({ why: d.why }); return; }
+    toast(`${nm} 님을 ${T[3]}`);
     roleList = null; PB.meAt = 0; roleLoad();
-  }, { title: `${pName(x) || '이 직원'} 님을 ${lead ? '파트장으로 정할까요?' : '직원으로 바꿀까요?'}`, body: lead ? '서식 · 설정 · 회사 서류가 보이고 파트를 만들 수 있어요. 지금 들어가 있는 파트에서는 빠져요.' : '서식 · 설정 · 회사 서류가 안 보이게 돼요. 만든 파트는 그대로 남아요.', ok: lead ? '파트장으로' : '직원으로', danger: !lead });
+  }, { title: `${pName(x) || '이 직원'} 님을 ${T[0]}`, body: T[1], ok: T[2], danger: to === 'member' });
 }
 
 /* 홈: 이 기기에 장례 기록이 없으면(앱을 새로 깔았을 때) 서버에 저장된 내 장례 기록으로 이번 달 숫자를 보여 줌 (읽기만) */
@@ -3530,8 +3640,352 @@ async function homeFromServer(month) {
   } catch (e) { /* 인터넷 안 됨 → 이 기기 기록 그대로 */ }
 }
 
+/* ================= 취합 (총괄실장, 2026.10.26) =================
+   파트장들이 서버에 올린 서식 기록(주간보고 · 회의록 · 후기 · 탁송)을 기간별로 받아서 보기만 하고, 한 장(이미지 · PDF) · 카톡 문구로 정리.
+   서버 함수(tools/supabase-part.sql): dw_chief_leaders() 파트장 명단 · dw_chief_records(종류, 시작일, 끝일) 그 기간 기록 + 파트장 설정 · 후기 제목.
+   고치기 없음. 이 기기 저장값: mf.gatherView (마지막으로 본 서식) */
+const G = { view: '', leaders: null, leadersAt: 0, data: {}, busy: {}, err: {}, week: '', month: '', rvEnd: '', shipType: 'week', shipWeek: '', shipMonth: '', who: '' };
+const G_VIEWS = ['weekly', 'minutes', 'review', 'ship'];
+const G_SVG_R = SVG_L.replace('M15 18l-6-6 6-6', 'M9 18l6-6-6-6');
+function gView() {
+  if (!G.view) { let v = ''; try { v = localStorage.getItem('mf.gatherView') || ''; } catch (e) { /* ignore */ } G.view = G_VIEWS.includes(v) ? v : 'weekly'; }
+  return G.view;
+}
+function gInit() {
+  if (!G.week) G.week = toKey(mondayOf(new Date()));
+  if (!G.month) G.month = toKey(new Date()).slice(0, 7);
+  if (!G.shipWeek) G.shipWeek = G.week;
+  if (!G.shipMonth) G.shipMonth = G.month;
+}
+const gRvDates = () => { const end = G.rvEnd || toKey(new Date()); return [toKey(addDays(fromKey(end), -1)), end]; };
+function gShipPeriod() {
+  if (G.shipType === 'week') {
+    const wi = weekInfo(fromKey(G.shipWeek));
+    return { type: 'week', typeLabel: '주간', label: `${wi.year}년 ${wi.label}`, range: wi.range, start: toKey(wi.start), end: toKey(wi.end), file: `${wi.year}_${wi.label.replace(/\s/g, '')}` };
+  }
+  const [y, m] = G.shipMonth.split('-').map(Number), last = new Date(y, m, 0);
+  return { type: 'month', typeLabel: '월간', label: `${y}년 ${m}월`, range: `${y}.${pad(m)}.01 ~ ${pad(m)}.${pad(last.getDate())}`, start: `${y}-${pad(m)}-01`, end: toKey(last), file: `${y}년${m}월` };
+}
+function gRange(v) {
+  if (v === 'weekly') return { kind: 'weekly', from: G.week, to: G.week };
+  if (v === 'minutes') return { kind: 'minute', from: G.month + '-01', to: G.month + '-31' };
+  if (v === 'review') { const d = gRvDates(); return { kind: 'review', from: d[0], to: d[1] }; }
+  const p = gShipPeriod(); return { kind: 'ship', from: p.start, to: p.end };
+}
+const gKey = (r) => `${r.kind}|${r.from}|${r.to}`;
+async function gLeadersLoad(force) {
+  if (!force && G.leaders && Date.now() - G.leadersAt < 120000) return G.leaders;
+  const d = await window.dwAcct.rpc('dw_chief_leaders');
+  if (!d || !d.ok) throw { why: (d && d.why) || 'net' };
+  G.leaders = d.leaders || []; G.leadersAt = Date.now(); return G.leaders;
+}
+async function gFetch(r, force) {
+  const k = gKey(r), have = G.data[k];
+  if (!force && have && Date.now() - have.at < 60000) return have;
+  if (G.busy[k]) return G.busy[k];
+  G.busy[k] = (async () => {
+    if (navigator.onLine === false) throw { why: 'offline' };
+    const c = await window.dwAcct.client(), by = {};
+    for (let from = 0; ; from += 500) {
+      const { data, error } = await c.rpc('dw_chief_records', { p_kind: r.kind, p_from: r.from, p_to: r.to }).range(from, from + 499);
+      if (error) { const m = String(error.message || '') + ' ' + String(error.code || ''); throw { why: /PGRST202|could not find the function|schema cache|does not exist/i.test(m) ? 'noserver' : error.status === 401 ? 'login' : 'net' }; }
+      (data || []).forEach((x) => {
+        const b = by[x.owner] || (by[x.owner] = { settings: {}, rvTitle: '', items: [] });
+        if (x.rkind === 'state') {
+          if (x.rid === 'settings' && x.rdata && typeof x.rdata === 'object') b.settings = x.rdata;
+          else if (x.rid === 'reviewTitle') b.rvTitle = String((x.rdata && x.rdata.t) || '');
+        } else if (x.rkind === r.kind && x.rdata && typeof x.rdata === 'object') b.items.push(x.rkind === 'review' ? { date: x.rid, text: String(x.rdata.text || '') } : x.rdata);
+      });
+      if (!data || data.length < 500) break;
+    }
+    const t = { at: Date.now(), by }; G.data[k] = t; return t;
+  })();
+  try { return await G.busy[k]; } finally { delete G.busy[k]; }
+}
+async function gLoadCur(force) {
+  if (!isChief() || !window.dwAcct) return;
+  const r = gRange(gView()), k = gKey(r);
+  try { await Promise.all([gLeadersLoad(force), gFetch(r, force)]); delete G.err[k]; }
+  catch (e) { G.err[k] = (e && e.why) || 'net'; }
+  if (S.tab === 'gather' && gKey(gRange(gView())) === k) paintGather();
+}
+function gatherOpen(force) { gInit(); paintGather(); whenAcct(() => gLoadCur(force)); }
+/* 파트장마다: 이름 · 파트(설정의 파트명, 없으면 만든 파트 이름) · 그 기간 기록. 파트 이름 순 */
+function gPeople(t) {
+  const ls = (G.leaders || []).map((x) => ({ id: x.user_id, name: pName(x), parts: x.parts || [] }));
+  Object.keys((t && t.by) || {}).forEach((id) => { if (!ls.some((x) => x.id === id)) ls.push({ id, name: '', parts: [] }); });
+  return ls.map((x) => {
+    const b = (t && t.by[x.id]) || { settings: {}, rvTitle: '', items: [] }, set = b.settings || {};
+    const part = String(set.part || '').trim() || x.parts[0] || '', name = x.name || String(set.author || '').trim() || '파트장';
+    return { id: x.id, name, part, label: part ? `${part} · ${name}` : name, b, set };
+  }).sort((a, c) => CASE_COLL.compare(a.part || '힣', c.part || '힣') || CASE_COLL.compare(a.name, c.name));
+}
+/* 취합 보고서의 「취합」 이름: 설정의 작성자, 없으면 가입할 때 넣은 이름 */
+function gSet() {
+  const u = window.dwAcct && window.dwAcct.user(), nm = String(S.settings.author || '').trim() || String((u && u.user_metadata && u.user_metadata.name) || '').trim();
+  return Object.assign({}, S.settings, { author: nm });
+}
+const gOne = (t, n = 90) => { const v = String(t || '').replace(/\s+/g, ' ').trim(); return v.length > n ? v.slice(0, n - 1) + '…' : v; };
+const gWhy = (why) => why === 'noserver' ? '취합 기능이 서버에 아직 준비되지 않았어요. 관리자(파트장님)께 「서버 준비 글(tools/supabase-part.sql)을 한 번 다시 실행해 달라」고 말씀해 주세요.'
+  : why === 'notchief' ? '총괄실장 계정만 볼 수 있어요. 관리자가 권한을 정하면 다음에 앱을 열 때 보여요.' : pbWhyText(why, false);
+function gNavFor(v) {
+  const nav = (label, sub, nextOff) => `<div class="ms-nav"><button class="icon-btn" type="button" data-g-shift="-1" aria-label="이전">${SVG_L}</button><div><b>${esc(label)}</b><span>${esc(sub)}</span></div><button class="icon-btn" type="button" data-g-shift="1" aria-label="다음"${nextOff ? ' disabled' : ''}>${G_SVG_R}</button></div>`;
+  if (v === 'weekly') { const wi = weekInfo(fromKey(G.week)); return nav(`${wi.year}년 ${wi.label}`, wi.range); }
+  if (v === 'minutes') return nav(monthName(G.month), '회의일 기준');
+  if (v === 'review') {
+    const [a, b] = gRvDates(), f = (k) => `${mdLabel(k)}(${DOW[fromKey(k).getDay()]})`, today = toKey(new Date());
+    return nav(`${f(a)} · ${f(b)}`, b === today ? '어제 · 오늘 출상' : b > today ? '내일 포함' : '지난 날짜', b >= toKey(addDays(new Date(), 1)));
+  }
+  const p = gShipPeriod();
+  return `<div class="seg" role="group" aria-label="보고 주기"><button type="button" data-g-ship="week" aria-pressed="${G.shipType === 'week'}">주간</button><button type="button" data-g-ship="month" aria-pressed="${G.shipType === 'month'}">월간</button></div>` + nav(p.label, p.range);
+}
+function paintGather() {
+  const el = $('#gtBody'); if (!el) return;
+  const v = gView(), r = gRange(v), k = gKey(r), t = G.data[k] || null, err = G.err[k];
+  $$('#gtTabs [data-gv]').forEach((b) => b.setAttribute('aria-current', b.dataset.gv === v ? 'page' : 'false'));
+  let h = gNavFor(v);
+  if (!t) { el.innerHTML = h + `<section class="card"><p class="bd-empty">${err ? esc(gWhy(err)) : '불러오는 중…'}</p>${err ? '<button class="btn" type="button" data-g="reload">다시 불러오기</button>' : ''}</section>`; return; }
+  if (err) h += `<p class="bd-warn" role="status">${esc(gWhy(err))}<button class="btn quiet small" type="button" data-g="reload">다시 시도</button></p>`;
+  h += v === 'weekly' ? gWeeklyView(t) : v === 'minutes' ? gMinutesView(t) : v === 'review' ? gReviewView(t) : gShipView(t);
+  el.innerHTML = h;
+}
+const gActs = (n, label) => `<div class="gt-acts"><button class="btn primary" type="button" data-g="report"${n ? '' : ' disabled'}>${label || '취합 보고서'}</button><button class="btn" type="button" data-g="copy"${n ? '' : ' disabled'}>카톡 문구 복사</button></div>`;
+
+/* ---- 주간보고 ---- */
+function gWeeklyRows(t) {
+  return gPeople(t).map((p) => {
+    const r = p.b.items.filter((x) => x && x.weekStart === G.week).sort((a, c) => (c.updatedAt || 0) - (a.updatedAt || 0))[0] || null;
+    const members = r ? (r.members || []).filter((m) => m && ['name', 'rank', 'issue', 'improve', 'action'].some((f) => String(m[f] || '').trim())) : [];
+    return Object.assign(p, { r, members, issues: members.filter((m) => hasIssue(m.issue)) });
+  });
+}
+function gWeeklyText1(x) {
+  const out = [];
+  x.members.forEach((m, i) => {
+    out.push(`${i + 1}. ${[m.name || '(이름 없음)', m.rank].filter(Boolean).join(' ')}`);
+    [['특이사항', m.issue], ['개선사항', m.improve], ['조치사항', m.action]].forEach(([l, v]) => { if (String(v || '').trim()) out.push(`   ${l}: ${String(v).trim()}`); });
+  });
+  if (String(x.r.overall || '').trim()) out.push('', `파트 전체 조치사항: ${x.r.overall.trim()}`);
+  return out.join('\n') || '입력된 내용이 없어요.';
+}
+function gWeeklyView(t) {
+  const rows = gWeeklyRows(t), done = rows.filter((x) => x.r), miss = rows.length - done.length;
+  const iss = done.reduce((a, x) => a + x.issues.length, 0), mem = done.reduce((a, x) => a + x.members.length, 0);
+  let h = `<section class="card"><dl class="tm-sum"><div><dt>제출</dt><dd>${done.length} / ${rows.length}명</dd></div><div><dt>미제출</dt><dd class="${miss ? 'warn' : ''}">${miss}명</dd></div><div><dt>파트원</dt><dd>${mem}명</dd></div><div><dt>특이사항</dt><dd>${iss}건</dd></div></dl>${gActs(done.length)}</section>`;
+  if (!rows.length) return h + '<p class="bd-empty">아직 파트장 계정이 없어요.</p>';
+  h += '<div class="ms-list">' + rows.map((x) => {
+    if (!x.r) return `<div class="ms-item gt-miss"><div class="ms-top"><b>${esc(x.label)}</b><span class="st-chip st-changed">미제출</span></div><span class="l">이 주 보고서를 아직 안 올렸어요.</span></div>`;
+    const li = x.issues.slice(0, 3).map((m) => `<li><b>${esc(m.name || '이름 없음')}</b>${esc(gOne(m.issue))}</li>`).join('') + (x.issues.length > 3 ? `<li class="more">외 ${x.issues.length - 3}건</li>` : '');
+    return `<div class="ms-item"><div class="ms-top"><b>${esc(x.label)}</b><span class="st-chip">✓ 제출</span></div>
+      <span class="l">파트원 ${x.members.length}명 · 특이사항 ${x.issues.length}건 · 고친 때 ${esc(fmtDT(x.r.updatedAt || 0))}</span>
+      ${li ? `<ul class="gt-iss">${li}</ul>` : ''}
+      <details><summary>내용 보기</summary><pre class="rv-preview">${esc(gWeeklyText1(x))}</pre></details>
+      <button class="btn small gt-open" type="button" data-g="open" data-uid="${esc(x.id)}">보고서 원본 보기</button></div>`;
+  }).join('') + '</div>';
+  return h;
+}
+function gWeeklyCopy(rows) {
+  const wi = weekInfo(fromKey(G.week)), done = rows.filter((x) => x.r), miss = rows.filter((x) => !x.r), iss = done.reduce((a, x) => a + x.issues.length, 0), one = (v) => String(v || '').trim().replace(/\s*\n\s*/g, ' ');
+  const out = [`[주간 보고 취합] ${wi.year}년 ${wi.label}`, wi.range, `제출 ${done.length}/${rows.length} · 특이사항 ${iss}건`];
+  done.forEach((x) => {
+    out.push('', `■ ${x.label} (파트원 ${x.members.length}명 · 특이사항 ${x.issues.length ? x.issues.length + '건' : '없음'})`);
+    x.issues.forEach((m) => { out.push(`- ${m.name || '이름 없음'}: ${one(m.issue)}`); if (one(m.action)) out.push(`  → 조치: ${one(m.action)}`); });
+    if (one(x.r.overall)) out.push(`· 파트 전체: ${one(x.r.overall)}`);
+  });
+  if (miss.length) out.push('', `미제출: ${miss.map((x) => x.label).join(', ')}`);
+  return out.join('\n');
+}
+function gWeeklyJob(rows) {
+  const s = gSet(), wi = weekInfo(fromKey(G.week)), done = rows.filter((x) => x.r), iss = done.flatMap((x) => x.issues.map((m) => ({ x, m })));
+  const text = [s.company, s.author, ...approvalsOf(s), ...rows.flatMap((x) => [x.label, x.part, x.name, x.r && x.r.overall]), ...done.flatMap((x) => x.members.flatMap((m) => [m.name, m.rank, m.issue, m.improve, m.action]))].join(' ');
+  return {
+    title: '주간 보고 취합', text: text + ' 주간 보고 취합 파트별 요약 특이사항 모아보기 파트장 파트원 제출 미제출 조치사항 개선사항 보고 기간 작성일 이름 전체',
+    fileBase: safeName(`주간보고취합_${wi.year}_${wi.label}`), footerLeft: footerText(s),
+    build: async () => {
+      const ap = approvalsOf(s);
+      const b = [
+        headerBlock({ title: '주간 보고 취합', sub: `${wi.year}년 ${wi.label}`, company: s.company, approvals: ap, signature: await sigImage(), signIndex: signIndexOf(ap) }),
+        metaBlock([['보고 기간', wi.range], ['제출', `파트장 ${rows.length}명 중 ${done.length}명`], ['취합', s.author || '-'], ['작성일', fmtYMD(new Date())]]),
+        sectionBlock('파트별 요약', `특이사항 ${iss.length}건`),
+        ...tblBlocks(tblCols([['파트', 0, 'l'], ['파트장', 170, 'c'], ['파트원', 110, 'c'], ['특이사항', 120, 'c'], ['제출', 120, 'c']]),
+          rows.map((x) => [x.part || '-', x.name, x.r ? `${x.members.length}명` : '-', x.r ? `${x.issues.length}건` : '-', x.r ? '제출' : '미제출']), { strong: (v) => (v[4] === '미제출' ? 4 : -1), empty: '파트장 계정이 없습니다.' }),
+        sectionBlock('특이사항 모아보기', `${iss.length}건`),
+        ...tblBlocks(tblCols([['파트', 150, 'c'], ['이름', 130, 'c'], ['특이사항', 0, 'l'], ['조치사항', 0, 'l']]),
+          iss.map(({ x, m }) => [x.part || x.name, [m.name, m.rank].filter(Boolean).join(' '), m.issue, m.action]), { empty: '이번 주 특이사항이 없습니다.' }),
+      ];
+      done.forEach((x) => {
+        b.push(sectionBlock(gOne(x.label, 24), `${x.members.length}명 · 특이사항 ${x.issues.length}건`));
+        if (x.members.length) x.members.forEach((m, i) => b.push(memberBlock(i, m, i === 0)));
+        else b.push(textBoxBlock('', '입력된 파트원이 없습니다.'));
+        if (String(x.r.overall || '').trim()) { b.push(sectionBlock('주간 조치사항 (파트 전체)', x.part || x.name)); b.push(textBoxBlock(x.r.overall)); }
+      });
+      return b;
+    },
+  };
+}
+
+/* ---- 회의록 ---- */
+function gMinuteList(t) {
+  return gPeople(t).flatMap((p) => p.b.items.filter((r) => r && String(r.date || '').slice(0, 7) === G.month).map((r) => ({ p, r })))
+    .sort((a, c) => String(c.r.date).localeCompare(String(a.r.date)) || (c.r.updatedAt || 0) - (a.r.updatedAt || 0));
+}
+const gMinuteSel = (t) => { const all = gMinuteList(t); return G.who ? all.filter((x) => x.p.id === G.who) : all; };
+function gMinutesView(t) {
+  const ppl = gPeople(t), all = gMinuteList(t), cnt = (id) => all.filter((x) => x.p.id === id).length;
+  if (G.who && !ppl.some((p) => p.id === G.who)) G.who = '';
+  const list = gMinuteSel(t);
+  let h = `<section class="card"><dl class="tm-sum"><div><dt>회의록</dt><dd>${all.length}건</dd></div><div><dt>올린 파트장</dt><dd>${ppl.filter((p) => cnt(p.id)).length} / ${ppl.length}명</dd></div></dl>`;
+  h += `<label class="field gt-who"><span>파트장 고르기</span><select id="gtWho"><option value="">전체 파트장 (${all.length}건)</option>${ppl.map((p) => `<option value="${esc(p.id)}"${p.id === G.who ? ' selected' : ''}>${esc(p.label)} (${cnt(p.id)}건)</option>`).join('')}</select></label>`;
+  h += gActs(list.length) + '</section>';
+  if (!list.length) return h + `<p class="bd-empty">${esc(monthName(G.month))}에 올라온 회의록이 없어요.</p>`;
+  h += '<div class="ms-list">' + list.map(({ p, r }) => {
+    const time = [r.start, r.end].filter(Boolean).join(' ~ ');
+    return `<div class="ms-item"><div class="ms-top"><b>${esc(minutesTitle(r))}</b><span class="st-chip">${esc(fmtDay(r.date))}</span></div>
+      <span class="l">${esc([p.label, time, r.place].filter(Boolean).join(' · '))}</span>
+      ${String(r.decisions || '').trim() ? `<p class="gt-dec"><b>결정사항</b>${esc(gOne(r.decisions, 100))}</p>` : ''}
+      <details><summary>내용 보기</summary><pre class="rv-preview">${esc(minutesText(r))}</pre></details>
+      <button class="btn small gt-open" type="button" data-g="openm" data-uid="${esc(p.id)}" data-id="${esc(r.id)}">회의록 원본 보기</button></div>`;
+  }).join('') + '</div>';
+  return h;
+}
+function gMinutesCopy(list) {
+  const one = (v) => String(v || '').trim().replace(/\s*\n\s*/g, ' / ');
+  const out = [`[회의록 취합] ${monthName(G.month)} · ${list.length}건`];
+  list.slice().reverse().forEach(({ p, r }) => {
+    out.push('', `■ ${fmtDay(r.date)} ${p.label} — ${minutesTitle(r)}`);
+    if (one(r.agenda)) out.push(`· 안건: ${one(r.agenda)}`);
+    if (one(r.decisions)) out.push(`· 결정사항: ${one(r.decisions)}`);
+    if (one(r.followup)) out.push(`· 후속 조치: ${one(r.followup)}`);
+  });
+  return out.join('\n');
+}
+function gMinutesJob(list) {
+  const s = gSet(), asc = list.slice().reverse(), [y, mo] = G.month.split('-').map(Number), last = new Date(y, mo, 0).getDate();
+  const who = G.who && list[0] ? list[0].p.label : '';
+  const text = [s.company, s.author, ...approvalsOf(s), ...asc.flatMap(({ p, r }) => [p.label, ...MINUTE_FIELDS.map((f) => r[f])])].join(' ');
+  return {
+    title: '회의록 취합', text: text + ' 회의록 취합 회의 목록 기간 건수 작성일 날짜 파트 회의명 장소 시간 참석자 회의 안건 결정사항 후속 조치 이하 생략 원본 참고',
+    fileBase: safeName(`회의록취합_${y}년${mo}월${who ? '_' + who : ''}`), footerLeft: footerText(s),
+    build: async () => {
+      const ap = approvalsOf(s);
+      const b = [
+        headerBlock({ title: '회의록 취합', sub: `${y}년 ${mo}월${who ? ` · ${who}` : ''}`, company: s.company, approvals: ap, signature: await sigImage(), signIndex: signIndexOf(ap) }),
+        metaBlock([['기간', `${y}.${pad(mo)}.01 ~ ${pad(mo)}.${pad(last)}`], ['건수', `${list.length}건`], ['취합', s.author || '-'], ['작성일', fmtYMD(new Date())]]),
+        sectionBlock('회의 목록', `${list.length}건`),
+        ...tblBlocks(tblCols([['날짜', 140, 'c'], ['파트', 230, 'c'], ['회의명', 0, 'l'], ['장소', 200, 'c']]), asc.map(({ p, r }) => [fmtDay(r.date), p.label, minutesTitle(r), r.place]), { empty: '이 기간에 올라온 회의록이 없습니다.' }),
+      ];
+      asc.forEach(({ p, r }) => {
+        const time = [r.start, r.end].filter(Boolean).join(' ~ ');
+        b.push(sectionBlock(gOne(`${fmtDay(r.date)} ${minutesTitle(r)}`, 26), gOne(p.label, 18)));
+        const pairs = [['시간 · 장소', [time, r.place].filter(Boolean).join(' · ')], ['참석자', r.attendees], ['회의 안건', r.agenda], ['결정사항', r.decisions], ['후속 조치', r.followup]].filter(([, v]) => String(v || '').trim());
+        b.push(metaBlock(pairs.length ? pairs : [['결정사항', '-']], { per: 1, cap: 22 }));
+      });
+      return b;
+    },
+  };
+}
+
+/* ---- 후기 ---- */
+function gReviewText(t) {
+  const ppl = gPeople(t), out = ['후기 일일보고 취합', ''];
+  gRvDates().forEach((k) => {
+    out.push(`${mdLabel(k)}일 출상`, '');
+    ppl.forEach((p) => { const it = p.b.items.find((x) => x.date === k), body = it ? String(it.text || '').replace(/\s+$/g, '').replace(/^\s*\n/, '') : ''; out.push(`[${p.label}]`, body.trim() ? body : '없습니다.', ''); });
+  });
+  return out.join('\n').replace(/\n+$/, '');
+}
+function gReviewView(t) {
+  const ppl = gPeople(t), today = toKey(new Date()), yest = toKey(addDays(new Date(), -1));
+  if (!ppl.length) return '<p class="bd-empty">아직 파트장 계정이 없어요.</p>';
+  let h = '';
+  gRvDates().forEach((k) => {
+    const n = ppl.filter((p) => p.b.items.some((x) => x.date === k && String(x.text || '').trim())).length;
+    h += `<section class="card"><div class="hm-h"><h2>${esc(mdLabel(k))}일(${DOW[fromKey(k).getDay()]}) 출상</h2><span class="small-t muted">${k === today ? '오늘 · ' : k === yest ? '어제 · ' : ''}적은 파트 ${n}/${ppl.length}</span></div>`
+      + `<div class="gt-rv">${ppl.map((p) => { const it = p.b.items.find((x) => x.date === k), body = it ? String(it.text || '').trim() : ''; return `<div><b>${esc(p.label)}</b><p${body ? '' : ' class="none"'}>${esc(body || '없습니다.')}</p></div>`; }).join('')}</div></section>`;
+  });
+  const share = !!navigator.share && !!window.__PWA__;
+  h += `<section class="card"><div class="hm-h"><h2>카톡 보고 문구</h2></div><pre class="rv-preview">${esc(gReviewText(t))}</pre><div class="gt-acts${share ? '' : ' one'}"><button class="btn${share ? '' : ' primary'}" type="button" data-g="copy">문구 복사</button>${share ? '<button class="btn primary" type="button" data-g="share">카톡으로 보내기</button>' : ''}</div></section>`;
+  return h;
+}
+
+/* ---- 탁송 ---- */
+function gShipItems(t, p) {
+  return gPeople(t).flatMap((pp) => pp.b.items.filter((e) => e && e.date >= p.start && e.date <= p.end).map((e) => Object.assign({}, e, { _part: pp.part || pp.name, _who: pp.label, _uid: pp.id })))
+    .sort((a, c) => String(a.date).localeCompare(String(c.date)) || (a.createdAt || 0) - (c.createdAt || 0));
+}
+function gShipByPart(t, items) {
+  return gPeople(t).map((pp) => { const its = items.filter((e) => e._uid === pp.id); return { label: pp.label, part: pp.part || pp.name, n: its.length, goods: its.filter((e) => e.kind === '용품').length, flag: its.filter((e) => e.kind === '근조기').length, cod: its.filter((e) => e.fee === '착불').length }; });
+}
+function gShipView(t) {
+  const p = gShipPeriod(), items = gShipItems(t, p), st = shipStats(items), parts = gShipByPart(t, items);
+  const tile = (k, v, cls = '') => `<div class="stat ${cls}"><div class="k">${k}</div><div class="v">${v}<small>건</small></div></div>`;
+  let h = `<div class="stats">${tile('총 건수', st.total, 'hl') + tile('용품', st.goods) + tile('근조기', st.flag) + tile('택배', st.parcel, 'sm') + tile('탁송', st.carrier, 'sm') + tile('선불', st.pre, 'sm') + tile('착불', st.cod, 'sm')}</div>`;
+  h += `<section class="card"><h2>파트별</h2>${parts.length ? `<div class="tm-wrap"><table class="tm-tbl gt-tbl"><thead><tr><th scope="col">파트</th><th scope="col">건수</th><th scope="col">용품</th><th scope="col">근조기</th><th scope="col">착불</th></tr></thead><tbody>${
+    parts.map((x) => `<tr><td>${esc(x.label)}</td><td>${x.n}건</td><td>${x.goods}</td><td>${x.flag}</td><td class="${x.cod ? 'warn' : ''}">${x.cod}</td></tr>`).join('')
+  }</tbody><tfoot><tr><td>합계</td><td>${st.total}건</td><td>${st.goods}</td><td>${st.flag}</td><td>${st.cod}</td></tr></tfoot></table></div>` : '<p class="bd-empty">아직 파트장 계정이 없어요.</p>'}${gActs(1)}</section>`;
+  if (!items.length) return h + '<p class="bd-empty">이 기간에 올라온 탁송 · 출고가 없어요.</p>';
+  const groups = []; items.slice().reverse().forEach((e) => { const g = groups[groups.length - 1]; if (g && g.date === e.date) g.items.push(e); else groups.push({ date: e.date, items: [e] }); });
+  h += groups.map((g) => `<div class="day"><div class="day-h"><span>${fmtDay(g.date)}</span><span>${g.items.length}건</span></div>${g.items.map((e) => `<div class="s-row gt-srow">
+    <div style="min-width:0"><div class="s-main"><span class="chip ${e.kind === '근조기' ? 'gold' : 'kind'}">${esc(e.kind)}</span><span class="s-name">${esc(e.name)}</span><span class="s-qty">× ${esc(e.qty)}</span></div>
+    <div class="s-sub"><span class="chip">${esc(e._part)}</span><span>${esc(e.manager || '담당자 없음')}</span><span class="chip">${esc(e.method)}</span><span class="chip ${e.fee === '착불' ? 'warn' : ''}">${esc(e.fee)}</span>${e.dest ? `<span>${esc(e.dest)}</span>` : ''}</div></div>
+    ${typeof e.qrThumb === 'string' && e.qrThumb.startsWith('data:image/') ? `<img class="s-qr" src="${esc(e.qrThumb)}" alt="QR">` : ''}</div>`).join('')}</div>`).join('');
+  return h;
+}
+function gShipCopy(t) {
+  const p = gShipPeriod(), items = gShipItems(t, p), st = shipStats(items), parts = gShipByPart(t, items).filter((x) => x.n);
+  const out = [`[탁송·출고 ${p.typeLabel} 취합] ${p.label}`, p.range, `총 ${st.total}건 · 용품 ${st.goods} · 근조기 ${st.flag} · 착불 ${st.cod}`];
+  if (parts.length) out.push(`파트별: ${parts.map((x) => `${x.part} ${x.n}건`).join(' · ')}`);
+  if (items.length) out.push('');
+  items.forEach((e) => out.push(`${fmtDay(e.date)} [${e._part}] ${e.kind} ${e.name} ×${e.qty} · ${[e.method, e.fee, e.dest, e.manager].filter(Boolean).join(' · ')}`));
+  return out.join('\n');
+}
+function gShipJob(t) {
+  const p = gShipPeriod(), items = gShipItems(t, p), ppl = gPeople(t), parts = gShipByPart(t, items);
+  return shipJob(p, items, false, { settings: gSet(), gather: ppl.length, withPart: true, partLine: '파트별  ' + (parts.map((x) => `${x.part} ${x.n}건`).join('  ·  ') || '-') });
+}
+
+async function gatherClick(e) {
+  const sh = e.target.closest('[data-g-shift]');
+  if (sh) {
+    const d = Number(sh.dataset.gShift), v = gView();
+    if (v === 'weekly') G.week = toKey(addDays(fromKey(G.week), 7 * d));
+    else if (v === 'minutes') G.month = shiftMonth(G.month, d);
+    else if (v === 'review') { const k = toKey(addDays(fromKey(gRvDates()[1]), d)); G.rvEnd = k === toKey(new Date()) ? '' : k; }
+    else if (G.shipType === 'week') G.shipWeek = toKey(addDays(fromKey(G.shipWeek), 7 * d));
+    else G.shipMonth = shiftMonth(G.shipMonth, d);
+    paintGather(); gLoadCur(false); return;
+  }
+  const ty = e.target.closest('[data-g-ship]'); if (ty) { G.shipType = ty.dataset.gShip; paintGather(); gLoadCur(false); return; }
+  const b = e.target.closest('[data-g]'); if (!b) return;
+  const act = b.dataset.g, v = gView(), t = G.data[gKey(gRange(v))];
+  if (act === 'reload') { G.err = {}; paintGather(); gLoadCur(true); return; }
+  if (!t) return;
+  if (act === 'report') { const job = v === 'weekly' ? gWeeklyJob(gWeeklyRows(t)) : v === 'minutes' ? gMinutesJob(gMinuteSel(t)) : v === 'ship' ? gShipJob(t) : null; if (job) openPreview(job); return; }
+  if (act === 'copy' || act === 'share') {
+    const text = v === 'weekly' ? gWeeklyCopy(gWeeklyRows(t)) : v === 'minutes' ? gMinutesCopy(gMinuteSel(t)) : v === 'review' ? gReviewText(t) : gShipCopy(t);
+    if (act === 'share') { try { await navigator.share({ text }); return; } catch (err) { if (err && err.name === 'AbortError') return; } }
+    const ok = await copyText(text); toast(ok ? '복사했어요. 카톡 대화방에 붙여 넣으세요.' : '복사하지 못했어요. 문구를 길게 눌러 복사해 주세요.'); return;
+  }
+  if (act === 'open') {
+    const x = gWeeklyRows(t).find((y) => y.id === b.dataset.uid); if (!x || !x.r) return;
+    const job = weeklyJob(x.r, { settings: Object.assign(clone(DEFAULT_SETTINGS), x.set), noSig: true });
+    job.title = `주간 파트 보고서 · ${x.label}`; job.view = true; openPreview(job); return;
+  }
+  if (act === 'openm') {
+    const x = gMinuteList(t).find((y) => y.p.id === b.dataset.uid && y.r.id === b.dataset.id); if (!x) return;
+    const job = minutesJob(x.r, { settings: Object.assign(clone(DEFAULT_SETTINGS), x.p.set), noSig: true });
+    job.title = `회의록 · ${x.p.label}`; job.view = true; openPreview(job);
+  }
+}
+function bindGather() {
+  $('#gtTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-gv]'); if (!b) return; G.view = b.dataset.gv; try { localStorage.setItem('mf.gatherView', G.view); } catch (err) { /* ignore */ } paintGather(); gLoadCur(false); });
+  $('#gtBody').addEventListener('click', gatherClick);
+  $('#gtBody').addEventListener('change', (e) => { if (e.target.id === 'gtWho') { G.who = e.target.value; paintGather(); } });
+}
+
 async function init() {
   bind();
+  bindGather();
   bindPwa();
   setupPwa();
   getDownloads();

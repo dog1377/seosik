@@ -166,7 +166,7 @@ def make_sw(prefix, core):
 
 # 서식함 안의 장례업무
 (FM / 'funeral.html').write_text(
-    make_funeral('DW장례업무', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), CONFIRM_KIT, GATE_BODY], share_title='DW장례업무', page_title='DW장례업무', manifest_href='../manifest.webmanifest', head_extra=GATE_HEAD),
+    make_funeral('DW장례업무', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), CONFIRM_KIT, GATE_BODY], share_title='DW장례업무', page_title='DW장례업무', manifest_href='../manifest.webmanifest', head_extra='<script>window.DW_STAFF_ONLY = true;</script>\n' + GATE_HEAD),   # 장례업무: 총괄실장은 안 씀 → 취합으로
     encoding='utf-8')
 (FM / 'sw.js').write_text(make_sw('forms-app-', [
     './', './index.html', './funeral.html', './admin.html', './vendor/jspdf.umd.min.js',

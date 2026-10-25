@@ -22,7 +22,7 @@
   async function run() {
     if (running) { again = true; return; }
     var acct = window.dwAcct, u = acct && acct.user();
-    if (!u || (A.leaderOnly && !acct.leader())) { setState('off'); return; }
+    if (!u || (A.leaderOnly && !acct.leader() && !(acct.chief && acct.chief()))) { setState('off'); return; }   /* 서식 · 회사 서류: 파트장 · 총괄실장 */
     if (navigator.onLine === false) { setState('wait'); return; }
     var local = await A.collect(); if (local === false) { setState('off'); return; } if (!local) { schedule(1500); return; }   /* false = 이 기기 저장소를 못 씀 → 맞추지 않음 */
     running = true; setState('sync');

@@ -6,9 +6,11 @@ def now_iso(): return (datetime.datetime(2026,10,23,9)+datetime.timedelta(second
 class Srv:
     def __init__(s):
         s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.noserver=False; s.calls=[]
-    def add_user(s,login,pw,leader=False,name=''):
+    def add_user(s,login,pw,leader=False,name='',chief=False,admin=False):
         email=login if '@' in login else login+'@dwfuneral.com'; lid=login.split('@')[0] if email.endswith('@dwfuneral.com') else email
-        uid='uid-'+login.split('@')[0]; s.USERS[email]=[pw,uid,{'dw_role':'leader'} if leader else {},{'name':name} if name else {}]
+        am={'dw_role':'leader'} if leader else {'dw_role':'chief'} if chief else {}
+        if admin: am['dw_admin']=True
+        uid='uid-'+login.split('@')[0]; s.USERS[email]=[pw,uid,am,{'name':name} if name else {}]
         s.PROF[uid]={'login_id':lid,'name':name}; return uid
     # auth
     def auth(s,src,email,pw):
@@ -37,13 +39,14 @@ class Srv:
     # helpers
     def leader(s,uid): return any(u[1]==uid and u[2].get('dw_role')=='leader' for u in s.USERS.values())
     def admin(s,uid): return any(u[1]==uid and u[2].get('dw_admin') is True for u in s.USERS.values())
+    def chief(s,uid): return any(u[1]==uid and u[2].get('dw_role')=='chief' for u in s.USERS.values())
     def f_dw_people(s,me):
         if not s.admin(me): return s.no('notadmin')
         out=[]
         for uid,p in s.PROF.items():
             part=next((s.PARTS[a]['name'] for a,b,_ in s.MEM if b==uid and a in s.PARTS),None)
-            out.append(dict(user_id=uid,login_id=p['login_id'],name=p['name'],leader=s.leader(uid),admin=s.admin(uid),me=uid==me,part=part,leads=sum(1 for t in s.PARTS.values() if t['leader_id']==uid)))
-        out.sort(key=lambda x:(not x['leader'],x['name'] or x['login_id']))
+            out.append(dict(user_id=uid,login_id=p['login_id'],name=p['name'],leader=s.leader(uid),chief=s.chief(uid),admin=s.admin(uid),me=uid==me,part=part,leads=sum(1 for t in s.PARTS.values() if t['leader_id']==uid)))
+        out.sort(key=lambda x:(0 if x['chief'] else 1 if x['leader'] else 2,x['name'] or x['login_id']))
         return s.ok(people=out)
     def f_dw_set_role(s,me,p_user,p_leader):
         if not s.admin(me): return s.no('notadmin')
@@ -53,8 +56,37 @@ class Srv:
         if p_leader: u[2]['dw_role']='leader'; s.MEM=[m for m in s.MEM if m[1]!=p_user]
         else: u[2].pop('dw_role',None); u[2].pop('dw_admin',None)
         return s.ok()
+    def f_dw_set_role_to(s,me,p_user,p_role):
+        if not s.admin(me): return s.no('notadmin')
+        if p_user==me: return s.no('self')
+        r=str(p_role or '').strip().lower()
+        if r not in ('leader','chief','member'): return s.no('role')
+        u=next((u for u in s.USERS.values() if u[1]==p_user),None)
+        if not u: return s.no('nouser')
+        if r=='member': u[2].pop('dw_role',None); u[2].pop('dw_admin',None)
+        else:
+            if r=='chief': u[2].pop('dw_admin',None)
+            u[2]['dw_role']=r; s.MEM=[m for m in s.MEM if m[1]!=p_user]
+        return s.ok()
+    def f_dw_chief_leaders(s,me):
+        if not s.chief(me): return s.no('notchief')
+        out=[dict(user_id=uid,login_id=p['login_id'],name=p['name'],parts=[t['name'] for t in sorted(s.PARTS.values(),key=lambda t:t['created']) if t['leader_id']==uid]) for uid,p in s.PROF.items() if s.leader(uid)]
+        return s.ok(leaders=sorted(out,key=lambda x:x['name'] or x['login_id']))
+    def f_dw_chief_records(s,me,p_kind,p_from=None,p_to=None):
+        if not s.chief(me) or p_kind not in ('weekly','minute','review','ship'): return []
+        lo=p_from or '0000'; hi=p_to or '9999'; out=[]
+        for (u,ap,k,i),r in sorted(s.ROWS.items()):
+            if ap!='forms' or r.get('deleted') or r.get('data') is None or not s.leader(u): continue
+            d=r['data']
+            if k=='state' and i in ('settings','reviewTitle'): pass
+            elif k==p_kind:
+                key=str(d.get('weekStart') or '') if k=='weekly' else i if k=='review' else str(d.get('date') or '')
+                if not (lo<=key<=hi): continue
+            else: continue
+            out.append(dict(owner=u,rkind=k,rid=i,rdata=d,rupdated=r['updated_at']))
+        return out
     def leads(s,p,uid): return p in s.PARTS and s.PARTS[p]['leader_id']==uid and s.leader(uid)
-    def inpart(s,p,uid): return p in s.PARTS and (s.PARTS[p]['leader_id']==uid or ((p,uid) in [(a,b) for a,b,_ in s.MEM] and not s.leader(uid)))
+    def inpart(s,p,uid): return p in s.PARTS and (s.PARTS[p]['leader_id']==uid or ((p,uid) in [(a,b) for a,b,_ in s.MEM] and not s.leader(uid) and not s.chief(uid)))
     def name(s,uid): p=s.PROF.get(uid); return (p['name'] or p['login_id']) if p else '나간 직원'
     def rpc(s,src,fn,uid,args,rng):
         s.calls.append(fn)
@@ -73,7 +105,7 @@ class Srv:
         p=s.PROF[me]; parts=[]
         for pid,t in sorted(s.PARTS.items(),key=lambda x:x[1]['created']):
             if s.inpart(pid,me): parts.append({'id':pid,'name':t['name'],'leader_id':t['leader_id'],'leader_name':s.name(t['leader_id']),'mine':t['leader_id']==me,'members':sum(1 for a,b,_ in s.MEM if a==pid)})
-        return s.ok(user_id=me,login_id=p['login_id'],name=p['name'],leader=s.leader(me),admin=s.admin(me),parts=parts)
+        return s.ok(user_id=me,login_id=p['login_id'],name=p['name'],leader=s.leader(me),admin=s.admin(me),chief=s.chief(me),parts=parts)
     def f_dw_set_name(s,me,p_name): s.PROF[me]['name']=p_name.strip()[:20]; return s.ok(name=s.PROF[me]['name'])
     def f_dw_part_create(s,me,p_name):
         if not s.leader(me): return s.no('notleader')
@@ -100,6 +132,7 @@ class Srv:
         if not v: return s.no('nouser')
         if v==me: return s.no('self')
         if s.leader(v) or any(t['leader_id']==v for t in s.PARTS.values()): return s.no('leader')
+        if s.chief(v): return s.no('chief')
         if any(b==v and a!=p_part for a,b,_ in s.MEM): return s.no('otherpart')
         if any(a==p_part and b==v for a,b,_ in s.MEM): return s.no('already')
         s.MEM.append((p_part,v,now_iso())); return s.ok(user_id=v,name=s.name(v))

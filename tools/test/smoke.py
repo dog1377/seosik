@@ -2,7 +2,7 @@
 
     python3 tools/test/smoke.py            (tools/test/run.sh 가 웹서버를 띄우고 부름)
 
-가짜 로그인 서버(mock_server.py · mock_supabase.js)로 파트장 · 직원 둘 다 들어가 본다. 실제 서버 · 인터넷에 연결하지 않음.
+가짜 로그인 서버(mock_server.py · mock_supabase.js)로 파트장 · 직원 · 총괄실장 모두 들어가 본다. 실제 서버 · 인터넷에 연결하지 않음.
 확인: 페이지 오류 0건 · 옆으로 밀리는 화면(가로 스크롤) 없음 · 위 막대 글씨 잘림 없음.
 화면 캡처는 tools/test/out/ 에 저장 (저장소에 올리지 않음) → 눈으로 확인.
 하나라도 문제가 있으면 실패(종료 코드 1).
@@ -52,6 +52,9 @@ def main():
     srv = Srv()
     srv.add_user('seo', 'pw1111', leader=True, name='서영우')
     srv.add_user('kim', 'pw2222', name='김철수')
+    srv.add_user('boss', 'pw5555', chief=True, name='박총괄')   # 총괄실장 (2026.10.26)
+    seo = 'uid-seo'
+    srv.upsert(None, seo, [{'user_id': seo, 'app': 'forms', 'kind': 'state', 'id': 'settings', 'data': {'author': '서영우', 'part': '장례지원 1파트', 'roster': []}, 'deleted': False, 'updated_at': 0}])
     problems, errs = [], []
 
     with sync_playwright() as pw:
@@ -108,6 +111,18 @@ def main():
             p.goto(BASE + 'forms/admin.html'); p.wait_for_timeout(1500)
             if 'admin.html' in p.url:
                 problems.append(f'member {tag}: 직원이 회사 서류에 들어감')
+            ctx.close()
+            # 총괄실장: 취합 · 서식 · 설정만, 장례업무는 못 들어감
+            ctx, p = page(w, h, sc)
+            p.goto(BASE + 'forms/'); login(p, 'boss', 'pw5555')
+            if p.evaluate('S.tab') != 'gather':
+                problems.append(f'chief {tag}: 첫 화면이 취합이 아님')
+            for v in ['weekly', 'minutes', 'review', 'ship']:
+                p.click(f"#gtTabs [data-gv='{v}']"); p.wait_for_timeout(500); look(p, f'chief_{v}_{tag}')
+            p.evaluate("showTab('settings')"); look(p, f'chief_settings_{tag}')
+            p.goto(BASE + 'forms/funeral.html'); p.wait_for_timeout(1500)
+            if 'funeral.html' in p.url:
+                problems.append(f'chief {tag}: 총괄실장이 장례업무에 들어감')
             ctx.close()
         b.close()
 
