@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.26-8";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.26-9";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -603,7 +603,48 @@ html:not(.dw-chief) [data-chief]{display:none!important}
 .gt-card button:disabled{opacity:.5}
 .gt-err{margin:0;min-height:20px;font-size:14px;color:var(--warn,#9a3b1e);font-weight:600;line-height:1.5;word-break:keep-all}
 .gt-err:empty{min-height:0}
+/* 화면 밝기 고르기 (2026.10.26-9) */
+.dw-theme-seg{display:inline-flex;gap:2px;padding:2px;border-radius:5px;background:var(--surface-2,var(--field,#f3f3f1));border:1px solid var(--line,#d6d7d4)}
+.dw-theme-seg button{font:inherit;font-size:13px;font-weight:600;min-height:36px;min-width:52px;padding:0 10px;border:0;border-radius:4px;background:transparent;color:var(--muted,#5a5e63);cursor:pointer}
+.dw-theme-seg button[aria-pressed="true"]{background:var(--surface,#fff);color:var(--ink,#1c1d1f);box-shadow:0 0 0 1px var(--ink,#1c1d1f)}
+.dw-theme-seg button:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:1px}
+.dw-theme-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dw-theme-row>span{font-size:13px;font-weight:600;color:var(--ink,#1c1d1f)}
+@media (max-width:560px){.dw-theme-seg button{min-height:44px}}
 </style>
+<script>
+/* 화면 밝기: 자동(휴대폰 설정 따라) · 밝게 · 어둡게. <html data-theme> 로 색을 바꿈 (각 화면 CSS가 data-theme 를 앎). 같은 기기 모든 화면 · 휴무 화면(iframe)에 같이 적용 */
+(function () {
+  var root = document.documentElement, KEY = 'dw-theme';
+  function get() { try { var v = localStorage.getItem(KEY); return v === 'dark' || v === 'light' ? v : ''; } catch (e) { return ''; } }
+  function isDark(m) { return m === 'dark' || (m !== 'light' && !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)); }
+  function setOn(el, m) { if (!el) return; if (m) el.setAttribute('data-theme', m); else el.removeAttribute('data-theme'); }
+  function sync() {
+    var m = get();
+    setOn(root, m);
+    try { document.querySelectorAll('iframe').forEach(function (f) { try { setOn(f.contentDocument && f.contentDocument.documentElement, m); } catch (e) {} }); } catch (e) {}
+    try { document.querySelectorAll('meta[name="theme-color"]').forEach(function (t) {
+      if (t.dataset.dwC == null) { t.dataset.dwC = t.getAttribute('content') || ''; t.dataset.dwM = t.getAttribute('media') || ''; }
+      if (m) { t.setAttribute('content', isDark(m) ? '#121314' : '#ffffff'); t.removeAttribute('media'); }
+      else { t.setAttribute('content', t.dataset.dwC); if (t.dataset.dwM) t.setAttribute('media', t.dataset.dwM); }
+    }); } catch (e) {}
+    try { document.querySelectorAll('[data-dwtheme]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-dwtheme') === m)); }); } catch (e) {}
+  }
+  window.dwTheme = {
+    get: get, sync: sync, dark: function () { return isDark(get()); },
+    set: function (m) { try { if (m === 'dark' || m === 'light') localStorage.setItem(KEY, m); else localStorage.removeItem(KEY); } catch (e) {} sync(); try { window.dispatchEvent(new CustomEvent('dw-theme', { detail: get() })); } catch (e) {} },
+    seg: function (label) {
+      var m = get(), b = function (v, t) { return '<button type="button" data-dwtheme="' + v + '" aria-pressed="' + (m === v) + '">' + t + '</button>'; };
+      return '<div class="dw-theme-seg" role="group" aria-label="' + (label || '화면 밝기') + '">' + b('', '자동') + b('light', '밝게') + b('dark', '어둡게') + '</div>';
+    }
+  };
+  setOn(root, get());
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-dwtheme]'); if (b) { e.preventDefault(); window.dwTheme.set(b.getAttribute('data-dwtheme')); } });
+  document.addEventListener('DOMContentLoaded', sync);
+  window.addEventListener('storage', function (e) { if (e.key === KEY) sync(); });
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync); } catch (e) {}
+})();
+</script>
 <script>
 (function () {
   var root = document.documentElement;
@@ -4647,6 +4688,7 @@ init();
     card.hidden = false;
     var nm0 = String((u.user_metadata && u.user_metadata.name) || '');
     card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b></p>'
+      + (window.dwTheme ? '<div class="dw-theme-row" style="margin:4px 0 12px"><span>화면</span>' + window.dwTheme.seg() + '</div>' : '')
       + '<div class="ac-name" id="acNameRow"><label class="field"><span>' + (root.classList.contains('dw-chief') ? '내 이름' : '게시판에 보이는 이름') + '</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
       + '<p class="small-t muted">로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
       + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
