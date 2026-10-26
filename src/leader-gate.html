@@ -149,7 +149,7 @@
     card.hidden = false;
     var nm0 = String((u.user_metadata && u.user_metadata.name) || '');
     card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b></p>'
-      + '<div class="ac-name" id="acNameRow"><label class="field"><span>게시판에 보이는 이름</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
+      + '<div class="ac-name" id="acNameRow"><label class="field"><span>' + (root.classList.contains('dw-chief') ? '내 이름' : '게시판에 보이는 이름') + '</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
       + '<p class="small-t muted">로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
       + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
       + '<button class="btn quiet small" type="button" id="acDelOpen">회원 탈퇴</button>'

@@ -459,6 +459,12 @@ p{text-wrap:pretty}
 .gt-dec{margin:0;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
 .gt-dec b{margin-right:6px}
 .gt-note textarea{min-height:84px}
+.gt-pick{text-align:left;width:100%;color:var(--ink);font:inherit;cursor:pointer}
+.gt-pick .ms-top svg{flex:none;width:18px;height:18px;color:var(--muted);margin-top:3px}
+@media (hover:hover){.gt-pick:hover{border-color:var(--ink)}}
+.gt-head{display:flex}
+.gt-head .btn{padding-left:4px;gap:2px}
+.gt-head .btn svg{width:18px;height:18px}
 .rl-btns{display:flex;gap:6px;flex:none}
 @media (max-width:420px){.bd-pp.rl{flex-wrap:wrap}.bd-pp.rl .rl-btns{width:100%;justify-content:flex-end;padding-bottom:6px}}
 @media (min-width:1000px){#tab-gather{width:100%;max-width:760px;margin-inline:auto}}
@@ -573,6 +579,7 @@ p{text-wrap:pretty}
       <button type="button" data-gv="minutes">회의록</button>
       <button type="button" data-gv="review">후기</button>
       <button type="button" data-gv="ship">탁송</button>
+      <button type="button" data-gv="all">전체 열람</button>
     </nav>
     <div class="tab" id="gtBody"></div>
   </section>
@@ -747,14 +754,14 @@ p{text-wrap:pretty}
       <input type="file" id="restoreFile" accept=".json,application/json" class="vh">
       <div class="af-box" id="clBox">
         <h3 class="af-h">클라우드 자동 저장</h3>
-        <p class="small-t muted">구글 드라이브에 기록(주간보고 · 회의록 · 후기 · 탁송 · 설정)이 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 「클라우드 코드」만 넣으면 그대로 돌아와요. 장례업무 기록은 장례업무 화면에서 같은 곳에 저장돼요.</p>
+        <p class="small-t muted">구글 드라이브에 기록(주간보고 · 회의록 · 후기 · 탁송 · 설정)이 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 「클라우드 코드」만 넣으면 그대로 돌아와요.<span data-nochief> 장례업무 기록은 장례업무 화면에서 같은 곳에 저장돼요.</span></p>
         <p class="small-t" id="clStatus"></p>
         <div id="clSetup"><label class="field"><span>클라우드 주소 또는 클라우드 코드</span><input type="text" id="clCode" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"></label><button class="btn primary block" type="button" id="clGo">연결</button></div>
         <div class="grid2" id="clOn" hidden><button class="btn" type="button" id="clNow">지금 저장</button><button class="btn" type="button" id="clCopy">클라우드 코드 복사</button><button class="btn" type="button" id="clPull">클라우드에서 불러오기</button><button class="btn" type="button" id="clOff">끄기</button></div>
       </div>
       <div class="af-box" id="afBox">
         <h3 class="af-h">휴대폰 파일 자동 백업</h3>
-        <p class="small-t muted">처음 한 번 저장할 곳을 고르면, 그다음부터 자동으로 그 파일에 최신 기록(주간보고 · 회의록 · 후기 · 탁송 · 장례업무 · 휴무)이 들어가요. 앱을 지우거나 기록이 사라져도 파일은 휴대폰에 남아서 「백업 불러오기」로 되살릴 수 있어요.</p>
+        <p class="small-t muted">처음 한 번 저장할 곳을 고르면, 그다음부터 자동으로 그 파일에 최신 기록(주간보고 · 회의록 · 후기 · 탁송<span data-nochief> · 장례업무 · 휴무</span>)이 들어가요. 앱을 지우거나 기록이 사라져도 파일은 휴대폰에 남아서 「백업 불러오기」로 되살릴 수 있어요.</p>
         <p class="small-t" id="afStatus"></p>
         <div class="grid2" id="afBtns"><button class="btn primary" type="button" id="afOn">자동 백업 켜기</button><button class="btn" type="button" id="afOpen">예전 파일 연결</button></div>
         <div class="grid2" id="afBtns2" hidden><button class="btn primary" type="button" id="afFix">다시 연결</button><button class="btn" type="button" id="afNow">지금 백업</button><button class="btn" type="button" id="afRestore">이 파일에서 되살리기</button><button class="btn" type="button" id="afOff">끄기</button></div>
@@ -2434,7 +2441,7 @@ function renderSettings() {
   const imgs = [...S.ship.values()].filter((e) => e.qr).length;
   const rvDays = Object.keys(S.reviews).filter((k) => (S.reviews[k] || '').trim()).length;
   const hasFuneral = window.__PWA__ && Object.keys(funeralStorage()).length > 0;
-  $('#dataCount').textContent = `이 기기에 저장된 기록: 주간보고 ${S.weekly.size}건 · 회의록 ${S.minutes.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)${hasFuneral ? ' · 장례업무 기록 있음' : ''}. 백업 파일에는 장례업무 기록도 함께 들어가요.`;
+  $('#dataCount').textContent = `이 기기에 저장된 기록: 주간보고 ${S.weekly.size}건 · 회의록 ${S.minutes.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)${isChief() ? '.' : `${hasFuneral ? ' · 장례업무 기록 있음' : ''}. 백업 파일에는 장례업무 기록도 함께 들어가요.`}`;
 }
 function renderRoster() {
   const list = (S.sd || S.settings).roster || [];
@@ -2561,7 +2568,7 @@ async function wipeAll() {
   S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
-  toast(window.__PWA__ ? '서식 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.' : '모든 기록을 삭제했어요');
+  toast(window.__PWA__ ? (isChief() ? '서식 기록을 모두 삭제했어요.' : '서식 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.') : '모든 기록을 삭제했어요');
 }
 function renderAll() { renderWeeklyList(); renderMinutesList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
 
@@ -3655,8 +3662,9 @@ async function homeFromServer(month) {
    파트장들이 서버에 올린 서식 기록(주간보고 · 회의록 · 후기 · 탁송)을 기간별로 받아서 보기만 하고, 한 장(이미지 · PDF) · 카톡 문구로 정리.
    서버 함수(tools/supabase-part.sql): dw_chief_leaders() 파트장 명단 · dw_chief_records(종류, 시작일, 끝일) 그 기간 기록 + 파트장 설정 · 후기 제목.
    고치기 없음. 이 기기 저장값: mf.gatherView (마지막으로 본 서식) */
-const G = { view: '', leaders: null, leadersAt: 0, data: {}, busy: {}, err: {}, week: '', month: '', rvEnd: '', shipType: 'week', shipWeek: '', shipMonth: '', who: '', noteDirty: {}, deferPaint: false };
-const G_VIEWS = ['weekly', 'minutes', 'review', 'ship'];
+const G = { view: '', leaders: null, leadersAt: 0, data: {}, busy: {}, err: {}, week: '', month: '', rvEnd: '', shipType: 'week', shipWeek: '', shipMonth: '', who: '', noteDirty: {}, deferPaint: false, allWho: '', allKind: 'weekly', allLimit: 30 };
+const G_VIEWS = ['weekly', 'minutes', 'review', 'ship', 'all'];
+const G_ALL_KINDS = ['weekly', 'minute', 'review', 'ship'];   /* 전체 열람 (2026.10.26-3): 기간 상관없이 4가지 전부 */
 const G_SVG_R = SVG_L.replace('M15 18l-6-6 6-6', 'M9 18l6-6-6-6');
 function gView() {
   if (!G.view) { let v = ''; try { v = localStorage.getItem('mf.gatherView') || ''; } catch (e) { /* ignore */ } G.view = G_VIEWS.includes(v) ? v : 'weekly'; }
@@ -3713,12 +3721,14 @@ async function gFetch(r, force) {
   })();
   try { return await G.busy[k]; } finally { delete G.busy[k]; }
 }
+const gAllRanges = () => G_ALL_KINDS.map((kind) => ({ kind, from: '', to: '' }));
+const gErrKey = (v) => (v === 'all' ? 'all' : gKey(gRange(v)));
 async function gLoadCur(force) {
   if (!isChief() || !window.dwAcct) return;
-  const r = gRange(gView()), k = gKey(r);
-  try { await Promise.all([gLeadersLoad(force), gFetch(r, force)]); delete G.err[k]; }
-  catch (e) { G.err[k] = (e && e.why) || 'net'; }
-  if (S.tab === 'gather' && gKey(gRange(gView())) === k) paintGather();
+  const v = gView(), rs = v === 'all' ? gAllRanges() : [gRange(v)], ek = gErrKey(v);
+  try { await Promise.all([gLeadersLoad(force), ...rs.map((r) => gFetch(r, force))]); delete G.err[ek]; }
+  catch (e) { G.err[ek] = (e && e.why) || 'net'; }
+  if (S.tab === 'gather' && gView() === v && gErrKey(v) === ek) paintGather();
 }
 function gatherOpen(force) { gInit(); paintGather(); whenAcct(() => gLoadCur(force)); }
 /* 파트장마다: 이름 · 파트(설정의 파트명, 없으면 만든 파트 이름) · 그 기간 기록. 파트 이름 순 */
@@ -3753,8 +3763,10 @@ function gNavFor(v) {
 function paintGather() {
   const el = $('#gtBody'); if (!el) return;
   if (gNoteFocused()) { G.deferPaint = true; return; }   /* 총괄실장 작성 칸에 쓰는 중이면 화면을 다시 그리지 않음 (다 쓰고 나가면 그림) */
-  const v = gView(), r = gRange(v), k = gKey(r), t = G.data[k] || null, err = G.err[k];
+  const v = gView();
   $$('#gtTabs [data-gv]').forEach((b) => b.setAttribute('aria-current', b.dataset.gv === v ? 'page' : 'false'));
+  if (v === 'all') { paintAll(el); return; }
+  const r = gRange(v), k = gKey(r), t = G.data[k] || null, err = G.err[k];
   let h = gNavFor(v);
   if (!t) { el.innerHTML = h + `<section class="card"><p class="bd-empty">${err ? esc(gWhy(err)) : '불러오는 중…'}</p>${err ? '<button class="btn" type="button" data-g="reload">다시 불러오기</button>' : ''}</section>`; return; }
   if (err) h += `<p class="bd-warn" role="status">${esc(gWhy(err))}<button class="btn quiet small" type="button" data-g="reload">다시 시도</button></p>`;
@@ -4007,7 +4019,93 @@ function gShipJob(t) {
   return shipJob(p, items, false, { settings: gSet(), gather: ppl.length, withPart: true, partLine: '파트별  ' + (parts.map((x) => `${x.part} ${x.n}건`).join('  ·  ') || '-') });
 }
 
+/* ---- 전체 열람 (2026.10.26-3, 사용자: 「취합 기능이랑 전체 열람 가능하게」): 파트장마다 올린 주간보고 · 회의록 · 후기 · 탁송을 기간 상관없이 전부, 보기만 ---- */
+function gAllMerged() {
+  const by = {};
+  for (const kind of G_ALL_KINDS) {
+    const t = G.data[gKey({ kind, from: '', to: '' })]; if (!t) return null;
+    Object.entries(t.by).forEach(([id, b]) => {
+      const m = by[id] || (by[id] = { settings: {}, rvTitle: '', items: [], all: { weekly: [], minute: [], review: [], ship: [] } });
+      if (b.settings && Object.keys(b.settings).length) m.settings = b.settings;
+      if (b.rvTitle) m.rvTitle = b.rvTitle;
+      m.all[kind] = b.items || [];
+    });
+  }
+  return { by };
+}
+const gEmptyAll = () => ({ weekly: [], minute: [], review: [], ship: [] });
+function gAllCounts(a) {
+  const rv = a.review.filter((x) => String(x.text || '').trim());
+  const last = Math.max(0, ...a.weekly.map((x) => x.updatedAt || 0), ...a.minute.map((x) => x.updatedAt || 0), ...a.ship.map((x) => x.updatedAt || 0));
+  return { weekly: a.weekly.length, minute: a.minute.length, review: rv.length, ship: a.ship.length, last, lastRv: rv.map((x) => x.date).sort().pop() || '' };
+}
+function paintAll(el) {
+  const m = gAllMerged(), err = G.err.all;
+  if (!m) { el.innerHTML = `<section class="card"><p class="bd-empty">${err ? esc(gWhy(err)) : '불러오는 중…'}</p>${err ? '<button class="btn" type="button" data-g="reload">다시 불러오기</button>' : ''}</section>`; return; }
+  const ppl = gPeople(m), sel = ppl.find((x) => x.id === G.allWho);
+  let h = err ? `<p class="bd-warn" role="status">${esc(gWhy(err))}<button class="btn quiet small" type="button" data-g="reload">다시 시도</button></p>` : '';
+  h += sel ? gAllDetail(sel) : gAllList(ppl);
+  el.innerHTML = h; G.deferPaint = false;
+}
+function gAllList(ppl) {
+  let h = '<p class="gt-note">파트장님마다 올린 주간보고 · 회의록 · 후기 · 탁송을 기간 상관없이 모두 볼 수 있어요. 보기만 할 수 있어요.</p>';
+  if (!ppl.length) return h + '<p class="bd-empty">아직 파트장 계정이 없어요.</p>';
+  return h + '<div class="ms-list">' + ppl.map((p) => {
+    const c = gAllCounts(p.b.all || gEmptyAll()), lastT = c.last ? fmtDT(c.last) : c.lastRv ? fmtDay(c.lastRv) : '';
+    return `<button type="button" class="ms-item gt-pick" data-g-who="${esc(p.id)}"><span class="ms-top"><b>${esc(p.label)}</b>${SVG_R}</span>
+      <span class="l">주간보고 ${c.weekly}건 · 회의록 ${c.minute}건 · 후기 ${c.review}일 · 탁송 ${c.ship}건</span>
+      <span class="l">${lastT ? `마지막으로 올린 때 ${esc(lastT)}` : '아직 올린 기록이 없어요'}</span></button>`;
+  }).join('') + '</div>';
+}
+function gAllDetail(p) {
+  const a = p.b.all || gEmptyAll(), c = gAllCounts(a), k = G.allKind;
+  let h = `<div class="gt-head"><button class="btn small quiet" type="button" data-g="allback">${SVG_L}<span>파트장 목록</span></button></div>`;
+  h += `<div class="bd-title"><b>${esc(p.label)}</b><span>주간보고 ${c.weekly}건 · 회의록 ${c.minute}건 · 후기 ${c.review}일 · 탁송 ${c.ship}건 · 보기만</span></div>`;
+  h += `<div class="seg" role="group" aria-label="볼 서식 고르기">${[['weekly', '주간보고'], ['minute', '회의록'], ['review', '후기'], ['ship', '탁송']].map(([v, t]) => `<button type="button" data-g-ak="${v}" aria-pressed="${k === v}">${t}</button>`).join('')}</div>`;
+  let items = [], row;
+  if (k === 'weekly') {
+    items = a.weekly.filter((r) => r && r.weekStart).sort((x, y) => String(y.weekStart).localeCompare(String(x.weekStart)) || (y.updatedAt || 0) - (x.updatedAt || 0));
+    row = (r) => {
+      const wi = weekInfo(fromKey(r.weekStart)), ms = (r.members || []).filter((m) => m && ['name', 'rank', 'issue', 'improve', 'action'].some((f) => String(m[f] || '').trim())), iss = ms.filter((m) => hasIssue(m.issue));
+      const x = { members: ms, r };
+      const li = iss.slice(0, 3).map((m) => `<li><b>${esc(m.name || '이름 없음')}</b>${esc(gOne(m.issue))}</li>`).join('') + (iss.length > 3 ? `<li class="more">외 ${iss.length - 3}건</li>` : '');
+      return `<div class="ms-item"><div class="ms-top"><b>${esc(`${wi.year}년 ${wi.label}`)}</b><span class="st-chip">${esc(fmtMD(wi.start))}~</span></div>
+        <span class="l">${esc(wi.range)} · 파트원 ${ms.length}명 · 특이사항 ${iss.length}건</span>${li ? `<ul class="gt-iss">${li}</ul>` : ''}
+        <details><summary>내용 보기</summary><pre class="rv-preview">${esc(gWeeklyText1(x))}</pre></details>
+        <button class="btn small gt-open" type="button" data-g="aopen" data-k="weekly" data-uid="${esc(p.id)}" data-id="${esc(r.id)}">보고서 원본 보기</button></div>`;
+    };
+  } else if (k === 'minute') {
+    items = a.minute.filter((r) => r && r.date).sort((x, y) => String(y.date).localeCompare(String(x.date)) || (y.updatedAt || 0) - (x.updatedAt || 0));
+    row = (r) => {
+      const time = [r.start, r.end].filter(Boolean).join(' ~ ');
+      return `<div class="ms-item"><div class="ms-top"><b>${esc(minutesTitle(r))}</b><span class="st-chip">${esc(fmtYMD(fromKey(r.date)))}</span></div>
+        <span class="l">${esc([time, r.place, r.attendees && `참석 ${gOne(r.attendees, 40)}`].filter(Boolean).join(' · ') || '회의록')}</span>
+        ${String(r.decisions || '').trim() ? `<p class="gt-dec"><b>결정사항</b>${esc(gOne(r.decisions, 100))}</p>` : ''}
+        <details><summary>내용 보기</summary><pre class="rv-preview">${esc(minutesText(r))}</pre></details>
+        <button class="btn small gt-open" type="button" data-g="aopen" data-k="minute" data-uid="${esc(p.id)}" data-id="${esc(r.id)}">회의록 원본 보기</button></div>`;
+    };
+  } else if (k === 'review') {
+    items = a.review.filter((x) => x && x.date && String(x.text || '').trim()).sort((x, y) => String(y.date).localeCompare(String(x.date)));
+    row = (x) => `<div><b>${esc(fmtYMD(fromKey(x.date)))}(${DOW[fromKey(x.date).getDay()]}) 출상</b><p>${esc(String(x.text).trim())}</p></div>`;
+  } else {
+    items = a.ship.filter((e) => e && e.date).sort((x, y) => String(y.date).localeCompare(String(x.date)) || (y.createdAt || 0) - (x.createdAt || 0));
+    row = (e) => `<div class="s-row gt-srow"><div style="min-width:0"><div class="s-main"><span class="chip ${e.kind === '근조기' ? 'gold' : 'kind'}">${esc(e.kind)}</span><span class="s-name">${esc(e.name)}</span><span class="s-qty">× ${esc(e.qty)}</span></div>
+      <div class="s-sub"><span>${esc(fmtYMD(fromKey(e.date)))}</span><span>${esc(e.manager || '담당자 없음')}</span><span class="chip">${esc(e.method)}</span><span class="chip ${e.fee === '착불' ? 'warn' : ''}">${esc(e.fee)}</span>${e.dest ? `<span>${esc(e.dest)}</span>` : ''}</div></div>
+      ${typeof e.qrThumb === 'string' && e.qrThumb.startsWith('data:image/') ? `<img class="s-qr" src="${esc(e.qrThumb)}" alt="QR">` : ''}</div>`;
+  }
+  const label = { weekly: '주간보고', minute: '회의록', review: '후기', ship: '탁송 · 출고' }[k];
+  if (!items.length) return h + `<p class="bd-empty">${{ weekly: '올린 주간보고가 없어요.', minute: '올린 회의록이 없어요.', review: '올린 후기가 없어요.', ship: '올린 탁송 · 출고가 없어요.' }[k]}</p>`;
+  const shown = items.slice(0, G.allLimit), rest = items.length - shown.length;
+  h += `<p class="gt-note">${esc(label)} ${items.length}건 · 최근 것부터</p>`;
+  h += k === 'review' ? `<section class="card"><div class="gt-rv">${shown.map(row).join('')}</div></section>` : `<div class="${k === 'ship' ? 'list' : 'ms-list'}">${shown.map(row).join('')}</div>`;
+  if (rest > 0) h += `<button class="btn block" type="button" data-g="more">더 보기 (남은 ${rest}건)</button>`;
+  return h;
+}
+
 async function gatherClick(e) {
+  const who = e.target.closest('[data-g-who]');
+  if (who) { G.allWho = who.dataset.gWho; G.allKind = 'weekly'; G.allLimit = 30; paintGather(); window.scrollTo(0, 0); return; }
+  const ak = e.target.closest('[data-g-ak]'); if (ak) { G.allKind = ak.dataset.gAk; G.allLimit = 30; paintGather(); return; }
   const sh = e.target.closest('[data-g-shift]');
   if (sh) {
     gNoteSave();
@@ -4021,8 +4119,19 @@ async function gatherClick(e) {
   }
   const ty = e.target.closest('[data-g-ship]'); if (ty) { G.shipType = ty.dataset.gShip; paintGather(); gLoadCur(false); return; }
   const b = e.target.closest('[data-g]'); if (!b) return;
-  const act = b.dataset.g, v = gView(), t = G.data[gKey(gRange(v))];
+  const act = b.dataset.g, v = gView();
   if (act === 'reload') { G.err = {}; paintGather(); gLoadCur(true); return; }
+  if (act === 'allback') { G.allWho = ''; paintGather(); window.scrollTo(0, 0); return; }
+  if (act === 'more') { G.allLimit += 30; paintGather(); return; }
+  if (act === 'aopen') {
+    const m = gAllMerged(), pp = m && gPeople(m).find((x) => x.id === b.dataset.uid); if (!pp) return;
+    const list = (pp.b.all || gEmptyAll())[b.dataset.k] || [], r = list.find((x) => x && x.id === b.dataset.id); if (!r) return;
+    const set = Object.assign(clone(DEFAULT_SETTINGS), pp.set);
+    const job = b.dataset.k === 'weekly' ? weeklyJob(r, { settings: set, noSig: true }) : minutesJob(r, { settings: set, noSig: true });
+    job.title = `${b.dataset.k === 'weekly' ? '주간 파트 보고서' : '회의록'} · ${pp.label}`; job.view = true; openPreview(job); return;
+  }
+  if (v === 'all') return;
+  const t = G.data[gKey(gRange(v))];
   if (!t) return;
   if (act === 'report') { const job = v === 'weekly' ? gWeeklyJob(gWeeklyRows(t)) : v === 'minutes' ? gMinutesJob(gMinuteSel(t)) : v === 'ship' ? gShipJob(t) : null; if (job) openPreview(job); return; }
   if (act === 'copy' || act === 'share') {
