@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.26-1";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.26-2";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -475,6 +475,7 @@ p{text-wrap:pretty}
 .gt-note{margin:0;font-size:13px;color:var(--muted);line-height:1.6}
 .gt-dec{margin:0;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
 .gt-dec b{margin-right:6px}
+.gt-note textarea{min-height:84px}
 .rl-btns{display:flex;gap:6px;flex:none}
 @media (max-width:420px){.bd-pp.rl{flex-wrap:wrap}.bd-pp.rl .rl-btns{width:100%;justify-content:flex-end;padding-bottom:6px}}
 @media (min-width:1000px){#tab-gather{width:100%;max-width:760px;margin-inline:auto}}
@@ -1336,6 +1337,7 @@ const S = {
   rpt: { type: 'week', monday: mondayOf(new Date()), y: 2026, m: 1, qr: true },
   ew: null, ewDirty: false, em: null, emDirty: false, sd: null,
   reviews: {}, rvTitle: '', rvEnd: null, rvDirty: false, sig: null,
+  gnotes: {},   /* 총괄실장이 취합에 덧붙여 쓰는 글 (2026.10.26-2): { 'w:주시작일' | 'm:YYYY-MM': {id, issue, report, updatedAt} } — kv 'gatherNotes' */
   es: null, esImg: null, esImgRemoved: false,
   pv: null,
 };
@@ -2641,7 +2643,7 @@ async function exportBackup() {
   try {
     if (!await flushMinutes()) { toast('회의록 저장 후 다시 백업해 주세요.'); return; }
     const img = await Store.getAll('img');
-    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, funeral: funeralStorage() };
+    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, gatherNotes: S.gnotes, funeral: funeralStorage() };
     const now = new Date();
     const name = `관리자서식_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
     await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요', onDone: markBackup,
@@ -2672,6 +2674,11 @@ async function importBackup(file) {
   }
   if (mt && !await persistMinutes()) { S.minutes = previousMinutes; toast('회의록을 저장하지 못했어요. 다시 불러와 주세요.'); return; }
   if (!S.sig && data.signature && data.signature.data) { S.sig = data.signature; sigImgCache = null; await saveSig(); }
+  if (data.gatherNotes && typeof data.gatherNotes === 'object') {   /* 총괄실장 취합 글: 더 나중에 고친 것 */
+    let gn = 0;
+    Object.values(data.gatherNotes).forEach((n) => { if (n && /^[wm]:/.test(String(n.id || '')) && (n.updatedAt || 0) > ((S.gnotes[n.id] || {}).updatedAt || 0)) { S.gnotes[n.id] = n; gn++; } });
+    if (gn) await Store.put('kv', clone(S.gnotes), 'gatherNotes');
+  }
   let fn = 0, fkept = 0;
   if (data.funeral && typeof data.funeral === 'object') {
     Object.keys(data.funeral).forEach((k) => {
@@ -2700,7 +2707,7 @@ async function importBackup(file) {
 }
 async function wipeAll() {
   await Store.clearAll();
-  S.weekly.clear(); S.minutes.clear(); S.em = null; S.emDirty = false; clearTimeout(mTimer); S.ship.clear(); S.imgCache.clear(); S.reviews = {}; S.rvTitle = ''; S.rvDirty = false; clearTimeout(rvTimer); S.sig = null; sigImgCache = null;
+  S.weekly.clear(); S.minutes.clear(); S.em = null; S.emDirty = false; clearTimeout(mTimer); S.ship.clear(); S.imgCache.clear(); S.reviews = {}; S.rvTitle = ''; S.rvDirty = false; clearTimeout(rvTimer); S.sig = null; sigImgCache = null; S.gnotes = {};
   S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
   samplesDone = { w: false, s: false };
   renderAll(); renderSamples();
@@ -2906,7 +2913,7 @@ const afHasData = (d) => !!d && ((d.weekly || []).length + (d.minutes || []).len
 function afSig() {
   const f = funeralStorage();
   return JSON.stringify({ w: [...S.weekly.values()].map((r) => [r.id, r.updatedAt]), m: [...S.minutes.values()].map((r) => [r.id, r.updatedAt]), s: [...S.ship.values()].map((r) => [r.id, r.updatedAt]),
-    r: S.reviews, t: S.rvTitle || '', set: S.settings, sg: S.sig && S.sig.data ? S.sig.data.length : 0, f: Object.keys(f).sort().map((k) => k + ':' + f[k].length + ':' + f[k].slice(-80)) });
+    r: S.reviews, t: S.rvTitle || '', set: S.settings, gn: Object.values(S.gnotes).map((n) => [n.id, n.updatedAt]), sg: S.sig && S.sig.data ? S.sig.data.length : 0, f: Object.keys(f).sort().map((k) => k + ':' + f[k].length + ':' + f[k].slice(-80)) });
 }
 let afLast = '', afBusy = false;
 async function afWrite(ask) {
@@ -2918,7 +2925,7 @@ async function afWrite(ask) {
     const sig = afSig();
     if (sig === afLast && !ask) { afSetMeta({ need: false }); return 'same'; }
     const img = await Store.getAll('img');
-    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, funeral: funeralStorage(), autoFile: true };
+    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, gatherNotes: S.gnotes, funeral: funeralStorage(), autoFile: true };
     const base = await afReadFile(hd);
     // 안전장치: 이 기기 기록이 비어 있는데 파일에는 기록이 있으면 덮어쓰지 않음 (앱을 다시 깐 직후 등)
     if (!afHasData(data) && afHasData(base)) { afSetMeta({ guard: true, need: false }); renderAF(); return 'guard'; }
@@ -3001,7 +3008,7 @@ async function clPush(force) {
   clBusy = true;
   try {
     const img = await Store.getAll('img');
-    const data = { app: 'dw-cloud', slot: 'forms', v: 1, at: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig };
+    const data = { app: 'dw-cloud', slot: 'forms', v: 1, at: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, gatherNotes: S.gnotes };
     if (clFormsHas(data)) clSetMeta({ guard: false });
     if (!clFormsHas(data)) { const cur = await clGet(c, 'forms'); let d = null; try { d = cur.data ? JSON.parse(cur.data) : null; } catch (e) { /* ignore */ } if (clFormsHas(d)) { clSetMeta({ guard: true }); renderCL(); return 'guard'; } }
     await clPost(c, 'forms', data);
@@ -3059,9 +3066,9 @@ async function goFuneral(tab) {
   setLastApp('funeral');
   location.replace('funeral.html' + (typeof tab === 'string' && tab ? '#' + tab : ''));   /* 홈 「봉투정리 보기」 → funeral.html#envelopes */
 }
-async function goCompany() {   /* 회사 서류 (예전 DW관리, 파트장만) — forms/admin.html */
+async function goCompany() {   /* 회사 서류 (예전 DW관리, 파트장 · 총괄실장) — forms/admin.html */
   if (S.sd) { showTab('settings'); toast('설정을 저장하거나 되돌린 뒤에 이동해 주세요.'); return; }
-  await flushWeekly(); await saveReviewNow(); if (!await flushMinutes()) return;
+  await flushWeekly(); await saveReviewNow(); await gNoteSave(); if (!await flushMinutes()) return;
   location.replace('admin.html');
 }
 function funeralStorage() {
@@ -3101,7 +3108,7 @@ async function copyLink() {
   try { await navigator.clipboard.writeText(url); toast('주소를 복사했어요'); }
   catch (e) { toast(url); }
 }
-function safeToReload() { return $$('.screen').every((s) => s.hidden) && $('#sheet').hidden && !S.ewDirty && !S.emDirty && !S.sd && !S.rvDirty && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#tab-review textarea, #tab-review input')); }
+function safeToReload() { return $$('.screen').every((s) => s.hidden) && $('#sheet').hidden && !S.ewDirty && !S.emDirty && !S.sd && !S.rvDirty && !Object.keys(G.noteDirty).length && !gNoteFocused() && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#tab-review textarea, #tab-review input')); }
 function applyUpdate(ver) {
   if (updatePending) return;
   updatePending = true;
@@ -3672,6 +3679,7 @@ window.DW_SYNC = {
     out.push({ kind: 'state', id: 'settings', data: S.settings, updated: 0 });
     out.push({ kind: 'state', id: 'reviewTitle', data: { t: S.rvTitle || '' }, updated: 0 });
     out.push({ kind: 'state', id: 'signature', data: S.sig || { none: true }, updated: 0 });
+    Object.values(S.gnotes || {}).forEach((n) => { if (n && n.id) out.push({ kind: 'gnote', id: n.id, data: n, updated: n.updatedAt || 0 }); });   /* 총괄실장 취합 글 */
     return out;
   },
   isEmpty(kind, d) {
@@ -3682,12 +3690,13 @@ window.DW_SYNC = {
     return false;
   },
   async apply(rows) {
-    const skipped = []; let lists = false, mins = false, rv = false, set = false, sig = false;
+    const skipped = []; let lists = false, mins = false, rv = false, set = false, sig = false, gn = false;
     for (const r of rows) {
       const busy = (r.kind === 'weekly' && fsOpen('weeklyEditor') && S.ew && S.ew.id === r.id)
         || (r.kind === 'minute' && fsOpen('minutesEditor') && S.em && S.em.id === r.id)
         || (r.kind === 'ship' && fsOpen('shipEditor') && S.es && S.es.id === r.id)
-        || ((r.kind === 'review' || r.id === 'reviewTitle') && S.rvDirty) || (r.id === 'settings' && S.sd);
+        || ((r.kind === 'review' || r.id === 'reviewTitle') && S.rvDirty) || (r.id === 'settings' && S.sd)
+        || (r.kind === 'gnote' && (G.noteDirty[r.id] || gNoteFocused()));
       if (busy) { skipped.push(r.key); continue; }
       if (r.kind === 'weekly' || r.kind === 'ship') {
         const m = r.kind === 'weekly' ? S.weekly : S.ship;
@@ -3699,7 +3708,9 @@ window.DW_SYNC = {
       else if (r.id === 'reviewTitle') { S.rvTitle = String((r.data && r.data.t) || ''); rv = true; }
       else if (r.id === 'settings' && r.data && typeof r.data === 'object') { S.settings = Object.assign(clone(DEFAULT_SETTINGS), r.data); set = true; }
       else if (r.id === 'signature') { S.sig = r.data && !r.data.none && r.data.data ? r.data : null; sigImgCache = null; sig = true; }
+      else if (r.kind === 'gnote') { if (r.deleted) delete S.gnotes[r.id]; else if (r.data && r.data.id) S.gnotes[r.id] = r.data; gn = true; }
     }
+    if (gn) { await Store.put('kv', clone(S.gnotes), 'gatherNotes'); if (S.tab === 'gather') paintGather(); }
     if (mins) await persistMinutes();
     if (rv) { await Store.put('kv', clone(S.reviews), 'reviews'); await Store.put('kv', S.rvTitle || '', 'reviewTitle'); }
     if (set) await saveSettings();
@@ -3794,7 +3805,7 @@ async function homeFromServer(month) {
    파트장들이 서버에 올린 서식 기록(주간보고 · 회의록 · 후기 · 탁송)을 기간별로 받아서 보기만 하고, 한 장(이미지 · PDF) · 카톡 문구로 정리.
    서버 함수(tools/supabase-part.sql): dw_chief_leaders() 파트장 명단 · dw_chief_records(종류, 시작일, 끝일) 그 기간 기록 + 파트장 설정 · 후기 제목.
    고치기 없음. 이 기기 저장값: mf.gatherView (마지막으로 본 서식) */
-const G = { view: '', leaders: null, leadersAt: 0, data: {}, busy: {}, err: {}, week: '', month: '', rvEnd: '', shipType: 'week', shipWeek: '', shipMonth: '', who: '' };
+const G = { view: '', leaders: null, leadersAt: 0, data: {}, busy: {}, err: {}, week: '', month: '', rvEnd: '', shipType: 'week', shipWeek: '', shipMonth: '', who: '', noteDirty: {}, deferPaint: false };
 const G_VIEWS = ['weekly', 'minutes', 'review', 'ship'];
 const G_SVG_R = SVG_L.replace('M15 18l-6-6 6-6', 'M9 18l6-6-6-6');
 function gView() {
@@ -3891,15 +3902,61 @@ function gNavFor(v) {
 }
 function paintGather() {
   const el = $('#gtBody'); if (!el) return;
+  if (gNoteFocused()) { G.deferPaint = true; return; }   /* 총괄실장 작성 칸에 쓰는 중이면 화면을 다시 그리지 않음 (다 쓰고 나가면 그림) */
   const v = gView(), r = gRange(v), k = gKey(r), t = G.data[k] || null, err = G.err[k];
   $$('#gtTabs [data-gv]').forEach((b) => b.setAttribute('aria-current', b.dataset.gv === v ? 'page' : 'false'));
   let h = gNavFor(v);
   if (!t) { el.innerHTML = h + `<section class="card"><p class="bd-empty">${err ? esc(gWhy(err)) : '불러오는 중…'}</p>${err ? '<button class="btn" type="button" data-g="reload">다시 불러오기</button>' : ''}</section>`; return; }
   if (err) h += `<p class="bd-warn" role="status">${esc(gWhy(err))}<button class="btn quiet small" type="button" data-g="reload">다시 시도</button></p>`;
   h += v === 'weekly' ? gWeeklyView(t) : v === 'minutes' ? gMinutesView(t) : v === 'review' ? gReviewView(t) : gShipView(t);
-  el.innerHTML = h;
+  el.innerHTML = h; G.deferPaint = false;
+  $$('#gtBody textarea[data-gn]').forEach(autosize);
 }
 const gActs = (n, label) => `<div class="gt-acts"><button class="btn primary" type="button" data-g="report"${n ? '' : ' disabled'}>${label || '취합 보고서'}</button><button class="btn" type="button" data-g="copy"${n ? '' : ' disabled'}>카톡 문구 복사</button></div>`;
+
+/* ---- 총괄실장 작성 (2026.10.26-2): 주간보고는 주마다, 회의록은 달마다 특이사항 · 보고사항. 취합 보고서와 카톡 문구 맨 앞에 들어감 ----
+   이 기기 kv 'gatherNotes' + 서버 자동 저장(dw_records app 'forms' kind 'gnote', 내 것만) */
+const gNoteFocused = () => { const a = document.activeElement; return !!(a && a.matches && a.matches('#gtBody textarea[data-gn]')); };
+const gNoteKey = (v) => ((v || gView()) === 'minutes' ? 'm:' + G.month : 'w:' + G.week);
+const gNote = (k) => S.gnotes[k] || { id: k, issue: '', report: '', updatedAt: 0 };
+const gNoteHas = (n) => !!(String(n.issue || '').trim() || String(n.report || '').trim());
+function gNoteCard(v) {
+  const k = gNoteKey(v), n = gNote(k), what = v === 'minutes' ? `${monthName(G.month)} 회의록 취합` : `${weekInfo(fromKey(G.week)).label} 주간보고 취합`;
+  return `<section class="card gt-note"><div class="hm-h"><h2>총괄실장 작성</h2><span class="small-t muted" id="gnState">${G.noteDirty[k] ? '저장 중…' : n.updatedAt ? '저장됨' : ''}</span></div>
+    <p class="small-t muted">${esc(what)}에 덧붙일 내용이에요. 취합 보고서와 카톡 문구 맨 앞에 들어가요.</p>
+    <label class="field"><span>특이사항</span><textarea data-gn="issue" data-key="${esc(k)}" rows="3" maxlength="3000" placeholder="예: 2파트 화환 배송 지연이 반복됨 — 업체 변경 검토 필요">${esc(n.issue || '')}</textarea></label>
+    <label class="field"><span>보고사항</span><textarea data-gn="report" data-key="${esc(k)}" rows="3" maxlength="3000" placeholder="예: 다음 주 전 파트 빈소 차림 체크리스트 점검 예정">${esc(n.report || '')}</textarea></label></section>`;
+}
+let gnTimer = 0;
+function gNoteInput(ta) {
+  const k = ta.dataset.key, n = Object.assign({}, gNote(k));
+  n[ta.dataset.gn] = ta.value; n.updatedAt = Date.now(); S.gnotes[k] = n; G.noteDirty[k] = 1;
+  const st = $('#gnState'); if (st) st.textContent = '저장 중…';
+  autosize(ta); clearTimeout(gnTimer); gnTimer = setTimeout(gNoteSave, 600);
+  if (gNoteHas(n)) $$('#gtBody [data-g="report"], #gtBody [data-g="copy"]').forEach((b) => { b.disabled = false; });   /* 올라온 보고가 없어도 내가 쓴 글로 보고서를 만들 수 있게 */
+}
+async function gNoteSave() {
+  clearTimeout(gnTimer);
+  if (!Object.keys(G.noteDirty).length) return true;
+  const was = G.noteDirty; G.noteDirty = {};
+  const ok = await Store.put('kv', clone(S.gnotes), 'gatherNotes');
+  if (!ok) G.noteDirty = Object.assign(was, G.noteDirty); else { requestPersist(); if (window.dwSync) window.dwSync.schedule(1500); }
+  const st = $('#gnState'); if (st && !Object.keys(G.noteDirty).length) st.textContent = ok ? '저장됨' : '저장 안 됨';
+  return ok;
+}
+/* 보고서에 넣는 블록 · 카톡 문구 줄 */
+function gNoteBlocks(k) {
+  const n = gNote(k), b = [];
+  if (String(n.issue || '').trim()) b.push(sectionBlock('총괄실장 특이사항'), ...minutesBodyBlocks(n.issue));
+  if (String(n.report || '').trim()) b.push(sectionBlock('총괄실장 보고사항'), ...minutesBodyBlocks(n.report));
+  return b;
+}
+function gNoteLines(k) {
+  const n = gNote(k), out = [];
+  if (String(n.issue || '').trim()) out.push('', '[총괄실장 특이사항]', n.issue.trim());
+  if (String(n.report || '').trim()) out.push('', '[총괄실장 보고사항]', n.report.trim());
+  return out;
+}
 
 /* ---- 주간보고 ---- */
 function gWeeklyRows(t) {
@@ -3921,7 +3978,8 @@ function gWeeklyText1(x) {
 function gWeeklyView(t) {
   const rows = gWeeklyRows(t), done = rows.filter((x) => x.r), miss = rows.length - done.length;
   const iss = done.reduce((a, x) => a + x.issues.length, 0), mem = done.reduce((a, x) => a + x.members.length, 0);
-  let h = `<section class="card"><dl class="tm-sum"><div><dt>제출</dt><dd>${done.length} / ${rows.length}명</dd></div><div><dt>미제출</dt><dd class="${miss ? 'warn' : ''}">${miss}명</dd></div><div><dt>파트원</dt><dd>${mem}명</dd></div><div><dt>특이사항</dt><dd>${iss}건</dd></div></dl>${gActs(done.length)}</section>`;
+  let h = `<section class="card"><dl class="tm-sum"><div><dt>제출</dt><dd>${done.length} / ${rows.length}명</dd></div><div><dt>미제출</dt><dd class="${miss ? 'warn' : ''}">${miss}명</dd></div><div><dt>파트원</dt><dd>${mem}명</dd></div><div><dt>특이사항</dt><dd>${iss}건</dd></div></dl>${gActs(done.length || gNoteHas(gNote(gNoteKey('weekly'))))}</section>`;
+  h += gNoteCard('weekly');
   if (!rows.length) return h + '<p class="bd-empty">아직 파트장 계정이 없어요.</p>';
   h += '<div class="ms-list">' + rows.map((x) => {
     if (!x.r) return `<div class="ms-item gt-miss"><div class="ms-top"><b>${esc(x.label)}</b><span class="st-chip st-changed">미제출</span></div><span class="l">이 주 보고서를 아직 안 올렸어요.</span></div>`;
@@ -3936,7 +3994,7 @@ function gWeeklyView(t) {
 }
 function gWeeklyCopy(rows) {
   const wi = weekInfo(fromKey(G.week)), done = rows.filter((x) => x.r), miss = rows.filter((x) => !x.r), iss = done.reduce((a, x) => a + x.issues.length, 0), one = (v) => String(v || '').trim().replace(/\s*\n\s*/g, ' ');
-  const out = [`[주간 보고 취합] ${wi.year}년 ${wi.label}`, wi.range, `제출 ${done.length}/${rows.length} · 특이사항 ${iss}건`];
+  const out = [`[주간 보고 취합] ${wi.year}년 ${wi.label}`, wi.range, `제출 ${done.length}/${rows.length} · 특이사항 ${iss}건`, ...gNoteLines(gNoteKey('weekly'))];
   done.forEach((x) => {
     out.push('', `■ ${x.label} (파트원 ${x.members.length}명 · 특이사항 ${x.issues.length ? x.issues.length + '건' : '없음'})`);
     x.issues.forEach((m) => { out.push(`- ${m.name || '이름 없음'}: ${one(m.issue)}`); if (one(m.action)) out.push(`  → 조치: ${one(m.action)}`); });
@@ -3947,15 +4005,17 @@ function gWeeklyCopy(rows) {
 }
 function gWeeklyJob(rows) {
   const s = gSet(), wi = weekInfo(fromKey(G.week)), done = rows.filter((x) => x.r), iss = done.flatMap((x) => x.issues.map((m) => ({ x, m })));
-  const text = [s.company, s.author, ...approvalsOf(s), ...rows.flatMap((x) => [x.label, x.part, x.name, x.r && x.r.overall]), ...done.flatMap((x) => x.members.flatMap((m) => [m.name, m.rank, m.issue, m.improve, m.action]))].join(' ');
+  const gn = gNote(gNoteKey('weekly'));
+  const text = [s.company, s.author, gn.issue, gn.report, ...approvalsOf(s), ...rows.flatMap((x) => [x.label, x.part, x.name, x.r && x.r.overall]), ...done.flatMap((x) => x.members.flatMap((m) => [m.name, m.rank, m.issue, m.improve, m.action]))].join(' ');
   return {
-    title: '주간 보고 취합', text: text + ' 주간 보고 취합 파트별 요약 특이사항 모아보기 파트장 파트원 제출 미제출 조치사항 개선사항 보고 기간 작성일 이름 전체',
+    title: '주간 보고 취합', text: text + ' 주간 보고 취합 파트별 요약 특이사항 모아보기 파트장 파트원 제출 미제출 조치사항 개선사항 보고 기간 작성일 이름 전체 총괄실장 보고사항',
     fileBase: safeName(`주간보고취합_${wi.year}_${wi.label}`), footerLeft: footerText(s),
     build: async () => {
       const ap = approvalsOf(s);
       const b = [
         headerBlock({ title: '주간 보고 취합', sub: `${wi.year}년 ${wi.label}`, company: s.company, approvals: ap, signature: await sigImage(), signIndex: signIndexOf(ap) }),
         metaBlock([['보고 기간', wi.range], ['제출', `파트장 ${rows.length}명 중 ${done.length}명`], ['취합', s.author || '-'], ['작성일', fmtYMD(new Date())]]),
+        ...gNoteBlocks(gNoteKey('weekly')),
         sectionBlock('파트별 요약', `특이사항 ${iss.length}건`),
         ...tblBlocks(tblCols([['파트', 0, 'l'], ['파트장', 170, 'c'], ['파트원', 110, 'c'], ['특이사항', 120, 'c'], ['제출', 120, 'c']]),
           rows.map((x) => [x.part || '-', x.name, x.r ? `${x.members.length}명` : '-', x.r ? `${x.issues.length}건` : '-', x.r ? '제출' : '미제출']), { strong: (v) => (v[4] === '미제출' ? 4 : -1), empty: '파트장 계정이 없습니다.' }),
@@ -3986,7 +4046,8 @@ function gMinutesView(t) {
   const list = gMinuteSel(t);
   let h = `<section class="card"><dl class="tm-sum"><div><dt>회의록</dt><dd>${all.length}건</dd></div><div><dt>올린 파트장</dt><dd>${ppl.filter((p) => cnt(p.id)).length} / ${ppl.length}명</dd></div></dl>`;
   h += `<label class="field gt-who"><span>파트장 고르기</span><select id="gtWho"><option value="">전체 파트장 (${all.length}건)</option>${ppl.map((p) => `<option value="${esc(p.id)}"${p.id === G.who ? ' selected' : ''}>${esc(p.label)} (${cnt(p.id)}건)</option>`).join('')}</select></label>`;
-  h += gActs(list.length) + '</section>';
+  h += gActs(list.length || gNoteHas(gNote(gNoteKey('minutes')))) + '</section>';
+  h += gNoteCard('minutes');
   if (!list.length) return h + `<p class="bd-empty">${esc(monthName(G.month))}에 올라온 회의록이 없어요.</p>`;
   h += '<div class="ms-list">' + list.map(({ p, r }) => {
     const time = [r.start, r.end].filter(Boolean).join(' ~ ');
@@ -4000,7 +4061,7 @@ function gMinutesView(t) {
 }
 function gMinutesCopy(list) {
   const one = (v) => String(v || '').trim().replace(/\s*\n\s*/g, ' / ');
-  const out = [`[회의록 취합] ${monthName(G.month)} · ${list.length}건`];
+  const out = [`[회의록 취합] ${monthName(G.month)} · ${list.length}건`, ...gNoteLines(gNoteKey('minutes'))];
   list.slice().reverse().forEach(({ p, r }) => {
     out.push('', `■ ${fmtDay(r.date)} ${p.label} — ${minutesTitle(r)}`);
     if (one(r.agenda)) out.push(`· 안건: ${one(r.agenda)}`);
@@ -4012,7 +4073,8 @@ function gMinutesCopy(list) {
 function gMinutesJob(list) {
   const s = gSet(), asc = list.slice().reverse(), [y, mo] = G.month.split('-').map(Number), last = new Date(y, mo, 0).getDate();
   const who = G.who && list[0] ? list[0].p.label : '';
-  const text = [s.company, s.author, ...approvalsOf(s), ...asc.flatMap(({ p, r }) => [p.label, ...MINUTE_FIELDS.map((f) => r[f])])].join(' ');
+  const gn = gNote(gNoteKey('minutes'));
+  const text = [s.company, s.author, gn.issue, gn.report, '총괄실장 특이사항 보고사항', ...approvalsOf(s), ...asc.flatMap(({ p, r }) => [p.label, ...MINUTE_FIELDS.map((f) => r[f])])].join(' ');
   return {
     title: '회의록 취합', text: text + ' 회의록 취합 회의 목록 기간 건수 작성일 날짜 파트 회의명 장소 시간 참석자 회의 안건 결정사항 후속 조치 이하 생략 원본 참고',
     fileBase: safeName(`회의록취합_${y}년${mo}월${who ? '_' + who : ''}`), footerLeft: footerText(s),
@@ -4021,6 +4083,7 @@ function gMinutesJob(list) {
       const b = [
         headerBlock({ title: '회의록 취합', sub: `${y}년 ${mo}월${who ? ` · ${who}` : ''}`, company: s.company, approvals: ap, signature: await sigImage(), signIndex: signIndexOf(ap) }),
         metaBlock([['기간', `${y}.${pad(mo)}.01 ~ ${pad(mo)}.${pad(last)}`], ['건수', `${list.length}건`], ['취합', s.author || '-'], ['작성일', fmtYMD(new Date())]]),
+        ...gNoteBlocks(gNoteKey('minutes')),
         sectionBlock('회의 목록', `${list.length}건`),
         ...tblBlocks(tblCols([['날짜', 140, 'c'], ['파트', 230, 'c'], ['회의명', 0, 'l'], ['장소', 200, 'c']]), asc.map(({ p, r }) => [fmtDay(r.date), p.label, minutesTitle(r), r.place]), { empty: '이 기간에 올라온 회의록이 없습니다.' }),
       ];
@@ -4097,6 +4160,7 @@ function gShipJob(t) {
 async function gatherClick(e) {
   const sh = e.target.closest('[data-g-shift]');
   if (sh) {
+    gNoteSave();
     const d = Number(sh.dataset.gShift), v = gView();
     if (v === 'weekly') G.week = toKey(addDays(fromKey(G.week), 7 * d));
     else if (v === 'minutes') G.month = shiftMonth(G.month, d);
@@ -4128,9 +4192,16 @@ async function gatherClick(e) {
   }
 }
 function bindGather() {
-  $('#gtTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-gv]'); if (!b) return; G.view = b.dataset.gv; try { localStorage.setItem('mf.gatherView', G.view); } catch (err) { /* ignore */ } paintGather(); gLoadCur(false); });
+  $('#gtTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-gv]'); if (!b) return; gNoteSave(); G.view = b.dataset.gv; try { localStorage.setItem('mf.gatherView', G.view); } catch (err) { /* ignore */ } paintGather(); gLoadCur(false); });
   $('#gtBody').addEventListener('click', gatherClick);
   $('#gtBody').addEventListener('change', (e) => { if (e.target.id === 'gtWho') { G.who = e.target.value; paintGather(); } });
+  $('#gtBody').addEventListener('input', (e) => { if (e.target.matches('textarea[data-gn]')) gNoteInput(e.target); });
+  $('#gtBody').addEventListener('focusout', (e) => {
+    if (!e.target.matches('textarea[data-gn]')) return;
+    gNoteSave();
+    if (G.deferPaint) setTimeout(() => { if (!gNoteFocused() && G.deferPaint) { G.deferPaint = false; paintGather(); } }, 250);
+  });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') gNoteSave(); });
 }
 
 async function init() {
@@ -4156,7 +4227,8 @@ async function init() {
   const ok = await Store.open();
   $('#storeBanner').hidden = ok;
   if (ok) {
-    const [w, sh, st, rv, rvt, sg, mt] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings'), Store.get('kv', 'reviews'), Store.get('kv', 'reviewTitle'), Store.get('kv', 'signature'), Store.get('kv', 'minutes')]);
+    const [w, sh, st, rv, rvt, sg, mt, gn] = await Promise.all([Store.getAll('weekly'), Store.getAll('ship'), Store.get('kv', 'settings'), Store.get('kv', 'reviews'), Store.get('kv', 'reviewTitle'), Store.get('kv', 'signature'), Store.get('kv', 'minutes'), Store.get('kv', 'gatherNotes')]);
+    if (gn && typeof gn === 'object') S.gnotes = gn;
     (Array.isArray(mt) ? mt : []).forEach((value) => { const r = readMinutes(value); if (r) S.minutes.set(r.id, r); });
     if (sg && sg.data) S.sig = sg;
     if (rv && typeof rv === 'object') S.reviews = rv;
