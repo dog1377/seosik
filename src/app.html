@@ -144,6 +144,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 .s-qty{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .s-sub{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--muted)}
 .s-qr{width:52px;height:52px;border-radius:8px;object-fit:cover;border:1px solid var(--line)}
+.s-pre{align-items:start}
+.s-fee-hint{font-size:12.5px;color:var(--muted);min-height:18px}
 .s-noqr{width:52px;height:52px;border-radius:8px;border:1px dashed var(--line-2);display:grid;place-items:center;font-size:11px;color:var(--muted)}
 .period{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
 .period b{font-size:16px;text-align:center;display:block}
@@ -686,6 +688,7 @@ p{text-wrap:pretty}
       </div>
       <div class="stats" id="rptStats"></div>
       <div class="mgr-line" id="rptMgr"></div>
+      <div class="mgr-line" id="rptFee" hidden></div>
       <label class="switch boxed" for="rptQr">
         <span>보고서에 QR 이미지 넣기</span>
         <input type="checkbox" id="rptQr" checked>
@@ -931,7 +934,10 @@ p{text-wrap:pretty}
         <label class="field"><span>수량</span><input id="sQty" type="number" inputmode="numeric" min="1" step="1" value="1"></label>
         <label class="field"><span>탁송날짜</span><input id="sDate" type="date"></label>
       </div>
-      <label class="field"><span>담당자</span><input id="sManager" type="text" list="dlManagers" autocomplete="off" placeholder="담당자 이름"></label>
+      <div class="grid2">
+        <label class="field"><span>담당자</span><input id="sManager" type="text" list="dlManagers" autocomplete="off" placeholder="담당자 이름"></label>
+        <label class="field"><span class="field-label">보낸 사람 <span class="opt">선택</span></span><input id="sSender" type="text" list="dlManagers" autocomplete="off" placeholder="비우면 담당자"></label>
+      </div>
       <div class="field"><span class="field-label">택배 / 탁송</span>
         <div class="seg choice" data-field="method" role="group" aria-label="택배 또는 탁송">
           <button type="button" data-v="택배">택배</button><button type="button" data-v="탁송">탁송</button>
@@ -941,6 +947,10 @@ p{text-wrap:pretty}
         <div class="seg choice" data-field="fee" role="group" aria-label="선불 또는 착불">
           <button type="button" data-v="선불">선불</button><button type="button" data-v="착불">착불</button>
         </div>
+      </div>
+      <div class="grid2 s-pre" id="sPreBox" hidden>
+        <label class="field"><span>택배비 (선불)</span><input id="sFeeAmt" type="text" inputmode="decimal" autocomplete="off" placeholder="예: 5000"><small class="s-fee-hint" id="sFeeHint" aria-live="polite"></small></label>
+        <label class="field"><span>지불한 사람</span><input id="sPayer" type="text" list="dlManagers" autocomplete="off" placeholder="택배비 낸 사람"></label>
       </div>
       <label class="field"><span class="field-label">배송지 <span class="opt">선택</span></span><input id="sDest" type="text" list="dlDests" autocomplete="off" placeholder="예: ○○병원 장례식장 3호실"></label>
       <div class="field"><span class="field-label">QR코드 이미지 <span class="opt">선택</span></span>
@@ -1494,7 +1504,7 @@ function shipRowHtml(e) {
   return `<button class="s-row" type="button" data-id="${esc(e.id)}">
     <div style="min-width:0">
       <div class="s-main"><span class="chip ${kindCls}">${esc(e.kind)}</span><span class="s-name">${esc(e.name)}</span><span class="s-qty">× ${esc(e.qty)}</span></div>
-      <div class="s-sub"><span>${esc(e.manager || '담당자 없음')}</span><span class="chip">${esc(e.method)}</span><span class="chip ${e.fee === '착불' ? 'warn' : ''}">${esc(e.fee)}</span>${e.dest ? `<span>${esc(e.dest)}</span>` : ''}</div>
+      <div class="s-sub">${shipSubHtml(e)}</div>
     </div>
     ${e.qrThumb ? `<img class="s-qr" src="${e.qrThumb}" alt="QR">` : '<span class="s-noqr">QR 없음</span>'}
   </button>`;
@@ -1525,6 +1535,28 @@ function rptPeriod() {
   const { y, m } = S.rpt; const last = new Date(y, m, 0);
   return { type: 'month', typeLabel: '월간', label: `${y}년 ${m}월`, range: `${y}.${pad(m)}.01 ~ ${pad(m)}.${pad(last.getDate())}`, start: `${y}-${pad(m)}-01`, end: toKey(last), file: `${y}년${m}월` };
 }
+/* 선불 택배비 (2026.10.26-5): 숫자만 넣으면 앱 규칙대로 1000 미만은 만원(0.5 → 5,000원), 1000 이상은 원. 「5천」 「1.2만」 「5,000원」도 읽음 */
+function shipWon(v) {
+  const t = String(v ?? '').replace(/[,\s원]/g, ''); if (!t) return 0;
+  let m = /^(\d+(?:\.\d+)?)만$/.exec(t); if (m) return Math.round(parseFloat(m[1]) * 10000);
+  m = /^(\d+)천$/.exec(t); if (m) return parseInt(m[1], 10) * 1000;
+  if (!/^\d+(?:\.\d+)?$/.test(t)) return 0;
+  const n = parseFloat(t); return Math.round(n < 1000 ? n * 10000 : n);
+}
+const shipFee = (e) => (e && e.fee === '선불' ? shipWon(e.feeAmt) : 0);
+function shipFeeHint() { const el = $('#sFeeHint'); if (!el) return; const v = $('#sFeeAmt').value.trim(), w = shipWon(v); el.textContent = !v ? '숫자만 넣으면 돼요' : w ? `= ${fuWon(w)}` : '숫자로 넣어 주세요'; }
+/* 목록 한 줄 아래쪽: 담당자 · 방법 · 운임(선불이면 택배비) · 보낸 사람 · 지불한 사람 · 배송지 */
+function shipSubHtml(e) {
+  const w = shipFee(e), snd = String(e.sender || '').trim(), pay = e.fee === '선불' ? String(e.payer || '').trim() : '';
+  return `<span>${esc(e.manager || '담당자 없음')}</span><span class="chip">${esc(e.method)}</span><span class="chip ${e.fee === '착불' ? 'warn' : ''}">${esc(e.fee)}${w ? ` ${esc(fuWon(w))}` : ''}</span>`
+    + (snd && snd !== String(e.manager || '').trim() ? `<span>보냄 ${esc(snd)}</span>` : '') + (pay ? `<span>지불 ${esc(pay)}</span>` : '') + (e.dest ? `<span>${esc(e.dest)}</span>` : '');
+}
+/* 선불 택배비 합계 · 지불한 사람별 (정산할 때 보라고) */
+function shipFeeLine(items) {
+  const pm = new Map(); let tot = 0;
+  items.forEach((e) => { const w = shipFee(e); if (!w) return; tot += w; const k = String(e.payer || '').trim() || '지불한 사람 미입력'; pm.set(k, (pm.get(k) || 0) + w); });
+  return tot ? `선불 택배비 ${fuWon(tot)}  ·  지불한 사람별 ` + [...pm.entries()].sort((a, b) => b[1] - a[1]).map(([n, w]) => `${n} ${fuWon(w)}`).join(' · ') : '';
+}
 function shipStats(items) {
   const c = (f, v) => items.filter((e) => e[f] === v).length;
   const mg = new Map();
@@ -1542,6 +1574,7 @@ function renderShipReport() {
   $('#rptStats').innerHTML = tile('총 건수', st.total, 'hl') + tile('용품', st.goods) + tile('근조기', st.flag)
     + tile('택배', st.parcel, 'sm') + tile('탁송', st.carrier, 'sm') + tile('선불', st.pre, 'sm') + tile('착불', st.cod, 'sm');
   $('#rptMgr').textContent = st.managers.length ? '담당자별  ' + st.managers.map(([n, c]) => `${n} ${c}건`).join(' · ') : '이 기간에 등록된 건이 없어요.';
+  const fl = shipFeeLine(items); $('#rptFee').hidden = !fl; $('#rptFee').textContent = fl;
   $('#rptQr').checked = S.rpt.qr;
   $('#rptList').innerHTML = items.slice().reverse().map(shipRowHtml).join('');
   liveShip();
@@ -1562,6 +1595,7 @@ function fillDatalists() {
   const opt = (arr) => arr.map((v) => `<option value="${esc(v)}"></option>`).join('');
   $('#dlNames').innerHTML = opt(uniqueBy('name', (e) => e.kind === S.es.kind));
   const mgrs = uniqueBy('manager'); if (S.settings.author && !mgrs.includes(S.settings.author)) mgrs.push(S.settings.author);
+  [...uniqueBy('sender'), ...uniqueBy('payer')].forEach((v) => { if (!mgrs.includes(v)) mgrs.push(v); });
   rosterOf().forEach((r) => { if (!mgrs.includes(r.name.trim())) mgrs.push(r.name.trim()); });
   $('#dlManagers').innerHTML = opt(mgrs);
   $('#dlDests').innerHTML = opt(uniqueBy('dest'));
@@ -1572,12 +1606,14 @@ function openShip(id, carry) {
     id: uid(), kind: (carry && carry.kind) || '용품', name: '', qty: 1,
     date: (carry && carry.date) || toKey(new Date()), manager: (carry && carry.manager) || S.settings.author || '',
     method: (carry && carry.method) || '', fee: (carry && carry.fee) || '', dest: (carry && carry.dest) || '', memo: '',
+    sender: (carry && carry.sender) || '', feeAmt: '', payer: (carry && carry.payer) || '',   /* 보낸 사람 · 선불 택배비 · 지불한 사람 (2026.10.26-5) */
     qr: null, qrThumb: null, createdAt: Date.now(), updatedAt: Date.now(),
   };
   S.esImg = null; S.esImgRemoved = false;
   $('#sTitle').textContent = ex ? '탁송·출고 수정' : '탁송·출고 등록';
   $('#sName').value = S.es.name; $('#sQty').value = S.es.qty; $('#sDate').value = S.es.date;
   $('#sManager').value = S.es.manager; $('#sDest').value = S.es.dest; $('#sMemo').value = S.es.memo || '';
+  $('#sSender').value = S.es.sender || ''; $('#sFeeAmt').value = S.es.feeAmt || ''; $('#sPayer').value = S.es.payer || ''; shipFeeHint();
   $('#sError').hidden = true;
   $('#sDelete').hidden = !ex;
   $('#sSaveMore').hidden = !!ex;
@@ -1590,6 +1626,7 @@ function renderShipChoices() {
     const f = seg.dataset.field;
     $$('button', seg).forEach((b) => b.setAttribute('aria-pressed', String(S.es[f] === b.dataset.v)));
   });
+  $('#sPreBox').hidden = S.es.fee !== '선불';   /* 선불일 때만 택배비 · 지불한 사람 */
   const isFlag = S.es.kind === '근조기';
   $('#sNameLabel').textContent = isFlag ? '근조기명' : '용품명';
   $('#sName').placeholder = isFlag ? '예: 본사 근조기, ○○협력사 근조기' : '예: 수의(대마), 관, 유골함';
@@ -1628,12 +1665,16 @@ async function saveShip(andMore) {
   e.manager = $('#sManager').value.trim();
   e.dest = $('#sDest').value.trim();
   e.memo = $('#sMemo').value.trim();
+  e.sender = $('#sSender').value.trim();
+  e.feeAmt = e.fee === '선불' ? $('#sFeeAmt').value.trim() : '';
+  e.payer = e.fee === '선불' ? $('#sPayer').value.trim() : '';
   const errs = [];
   if (!e.name) errs.push(e.kind === '근조기' ? '근조기명' : '용품명');
   if (!e.date) errs.push('탁송날짜');
   if (!e.manager) errs.push('담당자');
   if (!e.method) errs.push('택배/탁송');
   if (!e.fee) errs.push('선불/착불');
+  if (e.feeAmt && !shipWon(e.feeAmt)) errs.push('택배비(숫자로)');
   if (errs.length) { $('#sError').textContent = `${errs.join(', ')}을(를) 입력해 주세요.`; $('#sError').hidden = false; $('#sError').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
   $('#sError').hidden = true;
   const oldQr = e.qr;
@@ -1654,7 +1695,7 @@ async function saveShip(andMore) {
   renderShip();
   toast(ok ? '저장했어요' : '저장하지 못했어요');
   if (andMore) {
-    openShip(null, { kind: saved.kind, date: saved.date, manager: saved.manager, method: saved.method, fee: saved.fee, dest: saved.dest });
+    openShip(null, { kind: saved.kind, date: saved.date, manager: saved.manager, method: saved.method, fee: saved.fee, dest: saved.dest, sender: saved.sender, payer: saved.payer });
     setTimeout(() => $('#sName').focus(), 50);
   } else {
     closeScreen('shipEditor');
@@ -1852,8 +1893,8 @@ function noteBlock(text) {
   const h = lines.length * 30 + 8;
   return { h, gapBefore: 12, draw(ctx, y) { drawLines(ctx, lines, RP.M, y, CW, h, 30, 'left', RP.muted, F(400, 21)); } };
 }
-function shipCols(withQr, withPart) {
-  const c = [['No', 48, 'c'], ['날짜', 106, 'c'], ['구분', 84, 'c'], ['품명', 0, 'l'], ['수량', 62, 'c'], ['담당자', 102, 'c'], ['방법', 74, 'c'], ['운임', 74, 'c'], ['배송지', 0, 'l']];
+function shipCols(withQr, withPart, withFee) {
+  const c = [['No', 48, 'c'], ['날짜', 106, 'c'], ['구분', 84, 'c'], ['품명', 0, 'l'], ['수량', 62, 'c'], ['담당자', 102, 'c'], ['방법', 74, 'c'], ['운임', withFee ? 104 : 74, 'c'], ['배송지', 0, 'l']];   /* 선불 택배비가 있으면 운임 칸을 넓혀 금액도 */
   if (withPart) c.splice(1, 0, ['파트', 104, 'c']);   /* 총괄실장 취합 보고서 */
   if (withQr) c.push(['QR', 150, 'c']);
   const fixed = c.reduce((a, x) => a + x[1], 0), flex = CW - fixed;
@@ -1872,13 +1913,15 @@ function shipHeaderBlock(cols) {
 }
 function shipRowBlock(cols, e, idx, img, header, last) {
   const ctx = mctx(); const pad = 9, lh = 28;
-  const vals = { No: String(idx + 1), 파트: e._part || '-', 날짜: fmtDay(e.date), 구분: e.kind, 품명: e.name, 수량: String(e.qty), 담당자: e.manager || '-', 방법: e.method, 운임: e.fee, 배송지: e.dest || '-' };
+  const fw = shipFee(e), snd = String(e.sender || '').trim(), pay = e.fee === '선불' ? String(e.payer || '').trim() : '';
+  const vals = { No: String(idx + 1), 파트: e._part || '-', 날짜: fmtDay(e.date), 구분: e.kind, 품명: e.name, 수량: String(e.qty), 담당자: e.manager || '-', 방법: e.method, 운임: fw ? `${e.fee}\n${fuWon(fw)}` : e.fee, 배송지: e.dest || '-' };
+  const memo = [snd && snd !== String(e.manager || '').trim() ? `보낸 사람 ${snd}` : '', pay ? `지불 ${pay}` : '', e.memo].filter(Boolean).join(' · ');
   const cells = cols.filter((c) => c.label !== 'QR').map((c) => {
     const bold = (c.label === '운임' && e.fee === '착불') || c.label === '구분';
     ctx.font = F(bold ? 700 : 400, 20);
     const lines = wrapLines(ctx, vals[c.label], c.w - pad * 2);
     let sub = null;
-    if (c.label === '품명' && e.memo) { ctx.font = F(400, 17); sub = wrapLines(ctx, e.memo, c.w - pad * 2); }
+    if (c.label === '품명' && memo) { ctx.font = F(400, 17); sub = wrapLines(ctx, memo, c.w - pad * 2); }
     return { c, lines, sub, bold, hh: lines.length * lh + (sub ? sub.length * 24 + 4 : 0) };
   });
   const qrCol = cols.find((c) => c.label === 'QR');
@@ -2069,7 +2112,7 @@ function weeklyJob(r, opts = {}) {
 function shipJob(p, items, withQr, opts = {}) {
   const s = opts.settings || S.settings;
   const title = opts.gather ? `탁송·출고 ${p.typeLabel} 취합` : `탁송·출고 ${p.typeLabel} 보고서`;
-  const text = [s.company, s.author, ...approvalsOf(s), ...items.flatMap((e) => [e.name, e.manager, e.dest, e.memo, e.kind, e.method, e.fee])].join(' ');
+  const text = [s.company, s.author, ...approvalsOf(s), ...items.flatMap((e) => [e.name, e.manager, e.dest, e.memo, e.kind, e.method, e.fee, e.sender, e.payer, fuWon(shipFee(e))])].join(' ') + ' 선불 택배비 지불한 사람별 보낸 사람 지불 미입력 원 만원';
   return {
     title, sample: !!opts.sample, text: text + ` ${title} 보고 구분 작성자 보고 기간 작성일 요약 상세 내역 총 건수 용품 근조기 택배 탁송 선불 착불 담당자별 날짜 구분 품명 수량 배송지 방법 운임`,
     fileBase: safeName(`탁송출고_${opts.gather ? '취합_' : ''}${p.typeLabel}_${p.file}`),
@@ -2084,8 +2127,9 @@ function shipJob(p, items, withQr, opts = {}) {
       ];
       if (opts.partLine) b.push(noteBlock(opts.partLine));
       if (st.managers.length) b.push(noteBlock('담당자별  ' + st.managers.map(([n, c]) => `${n} ${c}건`).join('  ·  ')));
+      const fl = shipFeeLine(items); if (fl) b.push(noteBlock(fl));
       b.push(sectionBlock('상세 내역', `${items.length}건`));
-      const cols = shipCols(withQr, !!opts.withPart);
+      const cols = shipCols(withQr, !!opts.withPart, items.some((e) => shipFee(e)));
       const header = shipHeaderBlock(cols);
       b.push(header);
       if (!items.length) b.push(emptyRowBlock(header, '이 기간에 등록된 탁송·출고 내역이 없습니다.'));
@@ -2114,8 +2158,8 @@ function sampleShipItems() {
   const d = (n) => toKey(addDays(mon, n));
   return [
     { id: 's1', kind: '근조기', name: '본사 근조기', qty: 1, date: d(0), manager: '김민수', method: '탁송', fee: '착불', dest: '○○병원 장례식장 3호실', memo: '', qr: 'placeholder', createdAt: 1 },
-    { id: 's2', kind: '용품', name: '수의(대마)', qty: 2, date: d(1), manager: '이서연', method: '택배', fee: '선불', dest: '○○장례식장', memo: '송장 6012-3456-7890', qr: 'placeholder', createdAt: 2 },
-    { id: 's3', kind: '용품', name: '부의록(우단)', qty: 5, date: d(2), manager: '김민수', method: '택배', fee: '선불', dest: '○○추모공원', memo: '', qr: null, createdAt: 3 },
+    { id: 's2', kind: '용품', name: '수의(대마)', qty: 2, date: d(1), manager: '이서연', method: '택배', fee: '선불', feeAmt: '5000', payer: '이서연', dest: '○○장례식장', memo: '송장 6012-3456-7890', qr: 'placeholder', createdAt: 2 },
+    { id: 's3', kind: '용품', name: '부의록(우단)', qty: 5, date: d(2), manager: '김민수', sender: '박준호', method: '택배', fee: '선불', feeAmt: '4000', payer: '김민수', dest: '○○추모공원', memo: '', qr: null, createdAt: 3 },
     { id: 's4', kind: '근조기', name: '협력사 근조기', qty: 2, date: d(3), manager: '박준호', method: '탁송', fee: '선불', dest: '△△의료원 장례식장', memo: '', qr: 'placeholder', createdAt: 4 },
   ];
 }
@@ -2690,6 +2734,7 @@ function bind() {
   });
   $('#qrBox').addEventListener('click', (e) => { if (e.target.closest('#qrRemove')) { S.esImg = null; S.esImgRemoved = true; renderQrBox(); } });
   $('#sMemo').addEventListener('input', (e) => autosize(e.target));
+  $('#sFeeAmt').addEventListener('input', shipFeeHint);
   $('#sSave').addEventListener('click', () => saveShip(false));
   $('#sSaveMore').addEventListener('click', () => saveShip(true));
   $('#sDelete').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => {
@@ -4021,14 +4066,15 @@ function gShipView(t) {
   const p = gShipPeriod(), items = gShipItems(t, p), st = shipStats(items), parts = gShipByPart(t, items);
   const tile = (k, v, cls = '') => `<div class="stat ${cls}"><div class="k">${k}</div><div class="v">${v}<small>건</small></div></div>`;
   let h = `<div class="stats">${tile('총 건수', st.total, 'hl') + tile('용품', st.goods) + tile('근조기', st.flag) + tile('택배', st.parcel, 'sm') + tile('탁송', st.carrier, 'sm') + tile('선불', st.pre, 'sm') + tile('착불', st.cod, 'sm')}</div>`;
+  const fl = shipFeeLine(items);
   h += `<section class="card"><h2>파트별</h2>${parts.length ? `<div class="tm-wrap"><table class="tm-tbl gt-tbl"><thead><tr><th scope="col">파트</th><th scope="col">건수</th><th scope="col">용품</th><th scope="col">근조기</th><th scope="col">착불</th></tr></thead><tbody>${
     parts.map((x) => `<tr><td>${esc(x.label)}</td><td>${x.n}건</td><td>${x.goods}</td><td>${x.flag}</td><td class="${x.cod ? 'warn' : ''}">${x.cod}</td></tr>`).join('')
-  }</tbody><tfoot><tr><td>합계</td><td>${st.total}건</td><td>${st.goods}</td><td>${st.flag}</td><td>${st.cod}</td></tr></tfoot></table></div>` : '<p class="bd-empty">아직 파트장 계정이 없어요.</p>'}${gActs(1)}</section>`;
+  }</tbody><tfoot><tr><td>합계</td><td>${st.total}건</td><td>${st.goods}</td><td>${st.flag}</td><td>${st.cod}</td></tr></tfoot></table></div>` : '<p class="bd-empty">아직 파트장 계정이 없어요.</p>'}${fl ? `<p class="gt-note">${esc(fl)}</p>` : ''}${gActs(1)}</section>`;
   if (!items.length) return h + '<p class="bd-empty">이 기간에 올라온 탁송 · 출고가 없어요.</p>';
   const groups = []; items.slice().reverse().forEach((e) => { const g = groups[groups.length - 1]; if (g && g.date === e.date) g.items.push(e); else groups.push({ date: e.date, items: [e] }); });
   h += groups.map((g) => `<div class="day"><div class="day-h"><span>${fmtDay(g.date)}</span><span>${g.items.length}건</span></div>${g.items.map((e) => `<div class="s-row gt-srow">
     <div style="min-width:0"><div class="s-main"><span class="chip ${e.kind === '근조기' ? 'gold' : 'kind'}">${esc(e.kind)}</span><span class="s-name">${esc(e.name)}</span><span class="s-qty">× ${esc(e.qty)}</span></div>
-    <div class="s-sub"><span class="chip">${esc(e._part)}</span><span>${esc(e.manager || '담당자 없음')}</span><span class="chip">${esc(e.method)}</span><span class="chip ${e.fee === '착불' ? 'warn' : ''}">${esc(e.fee)}</span>${e.dest ? `<span>${esc(e.dest)}</span>` : ''}</div></div>
+    <div class="s-sub"><span class="chip">${esc(e._part)}</span>${shipSubHtml(e)}</div></div>
     ${typeof e.qrThumb === 'string' && e.qrThumb.startsWith('data:image/') ? `<img class="s-qr" src="${esc(e.qrThumb)}" alt="QR">` : ''}</div>`).join('')}</div>`).join('');
   return h;
 }
@@ -4036,8 +4082,9 @@ function gShipCopy(t) {
   const p = gShipPeriod(), items = gShipItems(t, p), st = shipStats(items), parts = gShipByPart(t, items).filter((x) => x.n);
   const out = [`[탁송·출고 ${p.typeLabel} 취합] ${p.label}`, p.range, `총 ${st.total}건 · 용품 ${st.goods} · 근조기 ${st.flag} · 착불 ${st.cod}`];
   if (parts.length) out.push(`파트별: ${parts.map((x) => `${x.part} ${x.n}건`).join(' · ')}`);
+  const fl = shipFeeLine(items); if (fl) out.push(fl.replace(/\s{2,}/g, ' '));
   if (items.length) out.push('');
-  items.forEach((e) => out.push(`${fmtDay(e.date)} [${e._part}] ${e.kind} ${e.name} ×${e.qty} · ${[e.method, e.fee, e.dest, e.manager].filter(Boolean).join(' · ')}`));
+  items.forEach((e) => { const w = shipFee(e), snd = String(e.sender || '').trim(); out.push(`${fmtDay(e.date)} [${e._part}] ${e.kind} ${e.name} ×${e.qty} · ${[e.method, w ? `${e.fee} ${fuWon(w)}${e.payer ? `(지불 ${e.payer})` : ''}` : e.fee, e.dest, e.manager, snd && snd !== e.manager ? `보냄 ${snd}` : ''].filter(Boolean).join(' · ')}`); });
   return out.join('\n');
 }
 function gShipJob(t) {
@@ -4117,7 +4164,7 @@ function gAllDetail(p) {
   } else {
     items = a.ship.filter((e) => e && e.date).sort((x, y) => String(y.date).localeCompare(String(x.date)) || (y.createdAt || 0) - (x.createdAt || 0));
     row = (e) => `<div class="s-row gt-srow"><div style="min-width:0"><div class="s-main"><span class="chip ${e.kind === '근조기' ? 'gold' : 'kind'}">${esc(e.kind)}</span><span class="s-name">${esc(e.name)}</span><span class="s-qty">× ${esc(e.qty)}</span></div>
-      <div class="s-sub"><span>${esc(fmtYMD(fromKey(e.date)))}</span><span>${esc(e.manager || '담당자 없음')}</span><span class="chip">${esc(e.method)}</span><span class="chip ${e.fee === '착불' ? 'warn' : ''}">${esc(e.fee)}</span>${e.dest ? `<span>${esc(e.dest)}</span>` : ''}</div></div>
+      <div class="s-sub"><span>${esc(fmtYMD(fromKey(e.date)))}</span>${shipSubHtml(e)}</div></div>
       ${typeof e.qrThumb === 'string' && e.qrThumb.startsWith('data:image/') ? `<img class="s-qr" src="${esc(e.qrThumb)}" alt="QR">` : ''}</div>`;
   }
   const label = { weekly: '주간보고', minute: '회의록', review: '후기', ship: '탁송 · 출고' }[k];
