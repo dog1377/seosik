@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.26-3";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.26-4";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -1053,6 +1053,9 @@ html:not(.dw-chief) [data-chief]{display:none!important}
       <label class="field" style="margin-top:6px"><span class="field-label">주간 조치사항 (파트 전체) <span class="opt">선택</span></span>
         <textarea id="wOverall" placeholder="파트원 개인이 아닌 파트 전체에 대해 이번 주 조치한 일 (교육, 정리, 일정 조정 등)"></textarea>
       </label>
+      <label class="field"><span class="field-label">건의사항 (파트 전체) <span class="opt">선택</span></span>
+        <textarea id="wSuggest" placeholder="회사 · 총괄실장님께 올릴 건의 (인력, 용품, 일정, 업체 등)"></textarea>
+      </label>
       <div class="danger-zone"><button class="btn danger small" type="button" id="wDelete" hidden>이 보고서 삭제</button></div>
     </div>
     <aside class="live-pv" id="wLive" aria-label="보고서 미리보기"><div class="live-head"><b>입력하면 바로 바뀌는 보고서</b><button class="btn small" type="button" data-live-open>크게 보기 · 저장</button></div><div class="live-doc"></div></aside>
@@ -1485,7 +1488,7 @@ function newWeeklyFor(monday) {
     id: uid(), weekStart: toKey(monday),
     part: S.settings.part || (last && last.part) || '', author: S.settings.author || (last && last.author) || '',
     members: base.length ? base.map((m) => emptyMember(m.name, m.rank || '')) : [emptyMember()],
-    overall: '', createdAt: Date.now(), updatedAt: Date.now(),
+    overall: '', suggest: '', createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
 function renderWeeklyList() {
@@ -1500,7 +1503,7 @@ function renderWeeklyList() {
     return `<button class="w-card" type="button" data-id="${esc(r.id)}">
       <div class="w-top"><span class="w-label">${esc(wi.label)}</span><span class="w-year">${wi.year}년</span></div>
       <div class="w-range">${esc(wi.range)}</div>
-      <div class="w-meta">${r.part ? `<span class="chip">${esc(r.part)}</span>` : ''}<span class="chip">파트원 ${ms.length}명</span><span class="chip ${issues ? 'alert' : ''}">특이사항 ${issues}건</span><span class="chip">수정 ${fmtDT(r.updatedAt)}</span></div>
+      <div class="w-meta">${r.part ? `<span class="chip">${esc(r.part)}</span>` : ''}<span class="chip">파트원 ${ms.length}명</span><span class="chip ${issues ? 'alert' : ''}">특이사항 ${issues}건</span>${String(r.suggest || '').trim() ? '<span class="chip">건의 있음</span>' : ''}<span class="chip">수정 ${fmtDT(r.updatedAt)}</span></div>
     </button>`;
   }).join('');
   $('#weeklyEmpty').hidden = list.length > 0;
@@ -1549,6 +1552,8 @@ function renderWeeklyEditor() {
   $('#wAuthor').value = S.ew.author || '';
   $('#wOverall').value = S.ew.overall || '';
   autosize($('#wOverall'));
+  $('#wSuggest').value = S.ew.suggest || '';   /* 건의사항 (2026.10.26-4, 예전 보고서에는 없음 → 빈칸) */
+  autosize($('#wSuggest'));
   renderMembers();
   $('#wDelete').hidden = !S.weekly.has(S.ew.id);
   $('#wSaveState').textContent = S.weekly.has(S.ew.id) ? '저장됨' : '';
@@ -2192,7 +2197,7 @@ function weeklyJob(r, opts = {}) {
   const wi = weekInfo(fromKey(r.weekStart));
   const members = r.members.filter((m) => ['name', 'rank', 'issue', 'improve', 'action'].some((f) => (m[f] || '').trim()));
   const issues = members.filter((m) => hasIssue(m.issue)).length;
-  const text = [r.part, r.author, s.company, r.overall, ...approvalsOf(s), ...members.flatMap((m) => [m.name, m.rank, m.issue, m.improve, m.action])].join(' ');
+  const text = [r.part, r.author, s.company, r.overall, r.suggest, '건의사항', ...approvalsOf(s), ...members.flatMap((m) => [m.name, m.rank, m.issue, m.improve, m.action])].join(' ');
   return {
     title: '주간 파트 보고서', sample: !!opts.sample, text: text + ' 주간 파트 보고서 파트원별 보고 조치사항 전체 특이사항 개선사항 보고 기간 작성일 작성자 파트명',
     fileBase: safeName(`주간파트보고_${r.part || ''}_${wi.year}_${wi.label}`),
@@ -2206,6 +2211,7 @@ function weeklyJob(r, opts = {}) {
       if (members.length) members.forEach((m, i) => b.push(memberBlock(i, m, i === 0)));
       else b.push(textBoxBlock('', '입력된 파트원이 없습니다.'));
       if ((r.overall || '').trim()) { b.push(sectionBlock('주간 조치사항 (파트 전체)')); b.push(textBoxBlock(r.overall)); }
+      if ((r.suggest || '').trim()) { b.push(sectionBlock('건의사항 (파트 전체)')); b.push(...minutesBodyBlocks(r.suggest)); }
       return b;
     },
   };
@@ -2251,7 +2257,7 @@ function sampleWeekly() {
       { name: '이서연', rank: '주임', issue: '특이사항 없음', improve: '신규 상품 안내 멘트 숙지 필요', action: '상품 안내 자료 전달' },
       { name: '박준호', rank: '사원', issue: '금요일 발인 운구 인원 1명 부족', improve: '운구 인원 하루 전 재확인', action: '협력 인력 연락처 정리해 공유' },
     ],
-    overall: '파트 전체 용품 창고 정리, 근조기 보관 위치 재배치' };
+    overall: '파트 전체 용품 창고 정리, 근조기 보관 위치 재배치', suggest: '상복 재고가 자주 모자라요. 다음 달 발주량을 늘려 주세요.' };
 }
 function sampleShipItems() {
   const mon = mondayOf(new Date());
@@ -2771,6 +2777,7 @@ function bind() {
   $('#wPart').addEventListener('input', (e) => { S.ew.part = e.target.value; touchWeekly(); });
   $('#wAuthor').addEventListener('input', (e) => { S.ew.author = e.target.value; touchWeekly(); });
   $('#wOverall').addEventListener('input', (e) => { S.ew.overall = e.target.value; autosize(e.target); touchWeekly(); });
+  $('#wSuggest').addEventListener('input', (e) => { S.ew.suggest = e.target.value; autosize(e.target); touchWeekly(); });
   $('#wMembers').addEventListener('input', (e) => {
     const card = e.target.closest('.member'); const f = e.target.dataset.f; if (!card || !f) return;
     S.ew.members[+card.dataset.i][f] = e.target.value;
@@ -3975,7 +3982,7 @@ function gWeeklyRows(t) {
   return gPeople(t).map((p) => {
     const r = p.b.items.filter((x) => x && x.weekStart === G.week).sort((a, c) => (c.updatedAt || 0) - (a.updatedAt || 0))[0] || null;
     const members = r ? (r.members || []).filter((m) => m && ['name', 'rank', 'issue', 'improve', 'action'].some((f) => String(m[f] || '').trim())) : [];
-    return Object.assign(p, { r, members, issues: members.filter((m) => hasIssue(m.issue)) });
+    return Object.assign(p, { r, members, issues: members.filter((m) => hasIssue(m.issue)), sug: r ? String(r.suggest || '').trim() : '' });
   });
 }
 function gWeeklyText1(x) {
@@ -3985,20 +3992,26 @@ function gWeeklyText1(x) {
     [['특이사항', m.issue], ['개선사항', m.improve], ['조치사항', m.action]].forEach(([l, v]) => { if (String(v || '').trim()) out.push(`   ${l}: ${String(v).trim()}`); });
   });
   if (String(x.r.overall || '').trim()) out.push('', `파트 전체 조치사항: ${x.r.overall.trim()}`);
+  if (String(x.r.suggest || '').trim()) out.push('', `건의사항: ${x.r.suggest.trim()}`);
   return out.join('\n') || '입력된 내용이 없어요.';
 }
 function gWeeklyView(t) {
   const rows = gWeeklyRows(t), done = rows.filter((x) => x.r), miss = rows.length - done.length;
-  const iss = done.reduce((a, x) => a + x.issues.length, 0), mem = done.reduce((a, x) => a + x.members.length, 0);
-  let h = `<section class="card"><dl class="tm-sum"><div><dt>제출</dt><dd>${done.length} / ${rows.length}명</dd></div><div><dt>미제출</dt><dd class="${miss ? 'warn' : ''}">${miss}명</dd></div><div><dt>파트원</dt><dd>${mem}명</dd></div><div><dt>특이사항</dt><dd>${iss}건</dd></div></dl>${gActs(done.length || gNoteHas(gNote(gNoteKey('weekly'))))}</section>`;
+  const iss = done.reduce((a, x) => a + x.issues.length, 0);
+  const sugN = done.filter((x) => x.sug).length;
+  let h = `<section class="card"><dl class="tm-sum"><div><dt>제출</dt><dd>${done.length} / ${rows.length}명</dd></div><div><dt>미제출</dt><dd class="${miss ? 'warn' : ''}">${miss}명</dd></div><div><dt>특이사항</dt><dd>${iss}건</dd></div><div><dt>건의사항</dt><dd>${sugN}건</dd></div></dl>${gActs(done.length || gNoteHas(gNote(gNoteKey('weekly'))))}</section>`;
   h += gNoteCard('weekly');
   if (!rows.length) return h + '<p class="bd-empty">아직 파트장 계정이 없어요.</p>';
+  /* 파트별 건의사항 모아 보기 (2026.10.26-4) */
+  h += `<section class="card"><div class="hm-h"><h2>파트별 건의사항</h2><span class="small-t muted">${sugN}건</span></div><div class="gt-rv">${rows.map((x) => `<div><b>${esc(x.label)}</b><p${x.sug ? '' : ' class="none"'}>${esc(!x.r ? '미제출' : x.sug || '없음')}</p></div>`).join('')}</div>
+    <button class="btn" type="button" data-g="copysug"${sugN ? '' : ' disabled'}>건의사항만 카톡 문구 복사</button></section>`;
   h += '<div class="ms-list">' + rows.map((x) => {
     if (!x.r) return `<div class="ms-item gt-miss"><div class="ms-top"><b>${esc(x.label)}</b><span class="st-chip st-changed">미제출</span></div><span class="l">이 주 보고서를 아직 안 올렸어요.</span></div>`;
     const li = x.issues.slice(0, 3).map((m) => `<li><b>${esc(m.name || '이름 없음')}</b>${esc(gOne(m.issue))}</li>`).join('') + (x.issues.length > 3 ? `<li class="more">외 ${x.issues.length - 3}건</li>` : '');
     return `<div class="ms-item"><div class="ms-top"><b>${esc(x.label)}</b><span class="st-chip">✓ 제출</span></div>
       <span class="l">파트원 ${x.members.length}명 · 특이사항 ${x.issues.length}건 · 고친 때 ${esc(fmtDT(x.r.updatedAt || 0))}</span>
       ${li ? `<ul class="gt-iss">${li}</ul>` : ''}
+      ${x.sug ? `<p class="gt-dec"><b>건의사항</b>${esc(gOne(x.sug, 100))}</p>` : ''}
       <details><summary>내용 보기</summary><pre class="rv-preview">${esc(gWeeklyText1(x))}</pre></details>
       <button class="btn small gt-open" type="button" data-g="open" data-uid="${esc(x.id)}">보고서 원본 보기</button></div>`;
   }).join('') + '</div>';
@@ -4011,14 +4024,23 @@ function gWeeklyCopy(rows) {
     out.push('', `■ ${x.label} (파트원 ${x.members.length}명 · 특이사항 ${x.issues.length ? x.issues.length + '건' : '없음'})`);
     x.issues.forEach((m) => { out.push(`- ${m.name || '이름 없음'}: ${one(m.issue)}`); if (one(m.action)) out.push(`  → 조치: ${one(m.action)}`); });
     if (one(x.r.overall)) out.push(`· 파트 전체: ${one(x.r.overall)}`);
+    if (x.sug) out.push(`· 건의: ${one(x.sug)}`);
   });
+  if (miss.length) out.push('', `미제출: ${miss.map((x) => x.label).join(', ')}`);
+  return out.join('\n');
+}
+function gSuggestCopy(rows) {   /* 건의사항만 */
+  const wi = weekInfo(fromKey(G.week)), done = rows.filter((x) => x.r), miss = rows.filter((x) => !x.r);
+  const out = [`[파트별 건의사항] ${wi.year}년 ${wi.label}`, wi.range, `건의 ${done.filter((x) => x.sug).length}건`];
+  done.forEach((x) => out.push('', `■ ${x.label}`, x.sug || '없음'));
   if (miss.length) out.push('', `미제출: ${miss.map((x) => x.label).join(', ')}`);
   return out.join('\n');
 }
 function gWeeklyJob(rows) {
   const s = gSet(), wi = weekInfo(fromKey(G.week)), done = rows.filter((x) => x.r), iss = done.flatMap((x) => x.issues.map((m) => ({ x, m })));
   const gn = gNote(gNoteKey('weekly'));
-  const text = [s.company, s.author, gn.issue, gn.report, ...approvalsOf(s), ...rows.flatMap((x) => [x.label, x.part, x.name, x.r && x.r.overall]), ...done.flatMap((x) => x.members.flatMap((m) => [m.name, m.rank, m.issue, m.improve, m.action]))].join(' ');
+  const sugs = done.filter((x) => x.sug);
+  const text = [s.company, s.author, gn.issue, gn.report, '파트별 건의사항', ...approvalsOf(s), ...rows.flatMap((x) => [x.label, x.part, x.name, x.r && x.r.overall, x.sug]), ...done.flatMap((x) => x.members.flatMap((m) => [m.name, m.rank, m.issue, m.improve, m.action]))].join(' ');
   return {
     title: '주간 보고 취합', text: text + ' 주간 보고 취합 파트별 요약 특이사항 모아보기 파트장 파트원 제출 미제출 조치사항 개선사항 보고 기간 작성일 이름 전체 총괄실장 보고사항',
     fileBase: safeName(`주간보고취합_${wi.year}_${wi.label}`), footerLeft: footerText(s),
@@ -4034,12 +4056,16 @@ function gWeeklyJob(rows) {
         sectionBlock('특이사항 모아보기', `${iss.length}건`),
         ...tblBlocks(tblCols([['파트', 150, 'c'], ['이름', 130, 'c'], ['특이사항', 0, 'l'], ['조치사항', 0, 'l']]),
           iss.map(({ x, m }) => [x.part || x.name, [m.name, m.rank].filter(Boolean).join(' '), m.issue, m.action]), { empty: '이번 주 특이사항이 없습니다.' }),
+        sectionBlock('파트별 건의사항', `${sugs.length}건`),
+        ...tblBlocks(tblCols([['파트', 170, 'c'], ['파트장', 130, 'c'], ['건의사항', 0, 'l']]),
+          sugs.map((x) => [x.part || '-', x.name, x.sug]), { empty: '이번 주 건의사항이 없습니다.' }),
       ];
       done.forEach((x) => {
         b.push(sectionBlock(gOne(x.label, 24), `${x.members.length}명 · 특이사항 ${x.issues.length}건`));
         if (x.members.length) x.members.forEach((m, i) => b.push(memberBlock(i, m, i === 0)));
         else b.push(textBoxBlock('', '입력된 파트원이 없습니다.'));
         if (String(x.r.overall || '').trim()) { b.push(sectionBlock('주간 조치사항 (파트 전체)', x.part || x.name)); b.push(textBoxBlock(x.r.overall)); }
+        if (x.sug) { b.push(sectionBlock('건의사항 (파트 전체)', x.part || x.name)); b.push(...minutesBodyBlocks(x.sug)); }
       });
       return b;
     },
@@ -4221,6 +4247,7 @@ function gAllDetail(p) {
       const li = iss.slice(0, 3).map((m) => `<li><b>${esc(m.name || '이름 없음')}</b>${esc(gOne(m.issue))}</li>`).join('') + (iss.length > 3 ? `<li class="more">외 ${iss.length - 3}건</li>` : '');
       return `<div class="ms-item"><div class="ms-top"><b>${esc(`${wi.year}년 ${wi.label}`)}</b><span class="st-chip">${esc(fmtMD(wi.start))}~</span></div>
         <span class="l">${esc(wi.range)} · 파트원 ${ms.length}명 · 특이사항 ${iss.length}건</span>${li ? `<ul class="gt-iss">${li}</ul>` : ''}
+        ${String(r.suggest || '').trim() ? `<p class="gt-dec"><b>건의사항</b>${esc(gOne(r.suggest, 100))}</p>` : ''}
         <details><summary>내용 보기</summary><pre class="rv-preview">${esc(gWeeklyText1(x))}</pre></details>
         <button class="btn small gt-open" type="button" data-g="aopen" data-k="weekly" data-uid="${esc(p.id)}" data-id="${esc(r.id)}">보고서 원본 보기</button></div>`;
     };
@@ -4284,6 +4311,7 @@ async function gatherClick(e) {
   const t = G.data[gKey(gRange(v))];
   if (!t) return;
   if (act === 'report') { const job = v === 'weekly' ? gWeeklyJob(gWeeklyRows(t)) : v === 'minutes' ? gMinutesJob(gMinuteSel(t)) : v === 'ship' ? gShipJob(t) : null; if (job) openPreview(job); return; }
+  if (act === 'copysug' && v === 'weekly') { const ok = await copyText(gSuggestCopy(gWeeklyRows(t))); toast(ok ? '건의사항을 복사했어요. 카톡 대화방에 붙여 넣으세요.' : '복사하지 못했어요.'); return; }
   if (act === 'copy' || act === 'share') {
     const text = v === 'weekly' ? gWeeklyCopy(gWeeklyRows(t)) : v === 'minutes' ? gMinutesCopy(gMinuteSel(t)) : v === 'review' ? gReviewText(t) : gShipCopy(t);
     if (act === 'share') { try { await navigator.share({ text }); return; } catch (err) { if (err && err.name === 'AbortError') return; } }
