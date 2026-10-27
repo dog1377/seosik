@@ -502,7 +502,7 @@ language sql stable security definer set search_path = '' as $$
 $$;
 
 -- ---------- 물품 수령 · 불출 장부 (2026.10.27) ----------
--- 파트장끼리 같이 쓰는 장부. 부산 · 울산 · 창원에 들어온(입고) · 내보낸(불출) 자잘한 물품을 적고, 남은 수량은 앱이 셈.
+-- 파트장끼리 같이 쓰는 장부. 부산 · 울산 · 창원 본부에 들어온(입고) · 나간(불출) 자잘한 물품을 적음 (남은 수량은 안 셈).
 -- 지우기는 「지움」 표시만 (내용은 남음, 되돌리기 됨). 앱에서 고친 시각(updated_at, ms)이 더 오래된 내용은 무시.
 create table if not exists public.dw_stock (
   id         text primary key,                 -- 앱이 만든 번호 (인터넷이 끊겨도 먼저 적어 둘 수 있게)
@@ -511,7 +511,7 @@ create table if not exists public.dw_stock (
   item       text not null,                    -- 품목
   qty        integer not null check (qty > 0),
   day        date not null,                    -- 받은 날 · 내보낸 날
-  party      text not null default '',         -- 입고: 보낸 곳 · 불출: 받는 곳(사람)
+  party      text not null default '',         -- 입고: 보낸 곳 · 불출: 받는 곳 (예: 울산본부, 본부가 아니면 직접 쓴 글)
   memo       text not null default '',
   author_id  uuid references public.dw_profiles(user_id) on delete set null,   -- 넣은 사람 (탈퇴해도 기록은 남음)
   editor_id  uuid references public.dw_profiles(user_id) on delete set null,   -- 마지막으로 고친 사람
