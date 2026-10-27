@@ -1588,6 +1588,25 @@ const JH_REPORT=`주현라이프[상담완료보고]
 
 * 특이사항
 {특이사항}`;
+/* 대한선진(국향) 회사 양식 (2026.10.27, 사용자가 보낸 예시 그대로) */
+const DAEHAN_REPORT=`장소 : {장소}
+장례기간: {장례기간}
+조합원 : {고객명}
+고인 : {고인성별나이}
+종교 : {종교}
+관계 : {관계}
+상주 : {상주명}
+연락처 : {상주연락처}
+입관 : {입관:md}
+발인 : {발인:md}
+장법 : {장법화장장}
+장지 : {장지}
+상품명 : {상품}
+추가금: {추가금}
+총수금액: {총수금액}
+장례담당자 : {담당팀장}
+연락처 : {담당연락처}`;
+const DAEHAN_ID='daehan';   /* 기기마다 같은 번호 → 서버 저장으로 맞춰도 겹치지 않음 */
 /* 배차 양식 (2026.10.20): 모든 업체 행사의 보고서에 나옴. 설정 → 배차 양식에서 고칠 수 있음(db.dispatchTpl) */
 const DISPATCH_TPL=`{발인날짜}
 장소 : {장소}
@@ -1807,6 +1826,12 @@ if(!db.dwVendorAdded){
   db.dwVendorAdded=true;
 }
 if(!db.vItems17){ db.companies.forEach(x=>{ x.items=BAND_ITEMS.slice(); }); db.vItems17=true; }
+if(!db.vDaehan){   /* 대한선진(국향) 업체 추가 (2026.10.27) */
+  const has=db.companies.find(x=>x.id===DAEHAN_ID||String(x.name||'').replace(/\s/g,'')==='대한선진(국향)');
+  if(!has) db.companies.push({id:DAEHAN_ID,name:'대한선진(국향)',band:GEN_BAND,reports:[{id:uid(),name:'회사 양식',body:DAEHAN_REPORT}],items:BAND_ITEMS.slice(),deduct:[],labels:{customer:'조합원',custRel:'관계 (예: 자)',staff:'장례담당자',chiefTel:'상주 연락처'}});
+  else if(!(has.reports||[]).length) has.reports=[{id:uid(),name:'회사 양식',body:DAEHAN_REPORT}];
+  db.vDaehan=true;
+}
 if(!db.vGoiEnd){ const goi=db.companies.find(x=>isGoi(x)); if(goi){ if(!goi.reports) goi.reports=[]; if(!goi.reports.some(r=>r.name==='장례 종료 보고')) goi.reports.push({id:uid(),name:'장례 종료 보고',body:GOI_END_REPORT}); } db.vGoiEnd=true; }
 function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof afSchedule==='function') afSchedule(); if(ok&&typeof clSchedule==='function') clSchedule(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
@@ -1939,13 +1964,37 @@ function vals(c){
     '대체공제':(c.deductions||[]).filter(d=>d.text.trim()).map((d,i)=>`${i+1}. ${d.text.trim()}`).join('\n'),
     '공제항목':(c.deductions||[]).filter(d=>d.text.trim()).map((d,i)=>`${i+1}.${d.text.trim()}`).join('\n'),
     '화장':isBurial(f)?'':cremStr(f), '화장장':isBurial(f)?'':cremName(f), '하관':hagwanStr(f),
+    '장례기간':daysSpan(f), '고인성별나이':deceasedShort(f), '장법화장장':methodPlace(f), '추가금':money(f.extraAmt), '총수금액':money(f.totalAmt), '담당팀장':staffRank(f.staff),
   };
+}
+/* 대한선진(국향) 양식용 (2026.10.27) */
+function daysSpan(f){   /* 08월08일 ~08월10일 (3일장) — 임종(없으면 접수 · 도착)부터 발인까지 */
+  const a=parseDT(f.death||f.recv||f.arrive), b=parseDT(f.depart), md=p=>`${pad(p.mo)}월${pad(p.d)}일`;
+  if(!a||!b) return a?md(a):b?md(b):'';
+  const n=Math.round((new Date(b.y,b.mo-1,b.d)-new Date(a.y,a.mo-1,a.d))/86400000)+1;
+  return `${md(a)} ~${md(b)}${n>0?` (${n}일장)`:''}`;
+}
+function deceasedShort(f){   /* 김영진(남,70세) */
+  const name=String(f.name||'').trim(), gd=String(f.gender||'').trim(), age=String(f.age||'').trim();
+  const g=/^남/.test(gd)?'남':/^여/.test(gd)?'여':gd, inner=[g,age?age+'세':''].filter(Boolean).join(',');
+  return name+(inner?`(${inner})`:'');
+}
+function methodPlace(f){   /* 화장(김해추모의공원) · 매장 */
+  const m=String(f.method||'').trim(), n0=cremName(f), n=CREM_FULL[n0.replace(/\s/g,'')]||n0;
+  if(m==='매장') return '매장';
+  const mm=m||(n?'화장':'');
+  return n?`${mm}(${n})`:mm;
+}
+function staffRank(v){   /* 최준영 → 최준영팀장 · 이기현 과장 → 이기현과장 */
+  v=String(v||'').trim(); if(!v) return '';
+  const m=v.match(/^(.*?)\s*(팀장|실장|과장|대리|부장|주임|파트장|본부장|차장|사원|지도사|장례지도사)님?$/);
+  return m&&m[1]?m[1]+m[2]:v.replace(/\s*님$/,'')+'팀장';
 }
 // 설정 칸 → 항목: 한 줄에 하나, 앞에 띄어쓰기(들여쓰기)한 줄은 위 항목에 번호 없이 이어짐
 function parseItems(v){ const out=[]; String(v||'').split('\n').forEach(l=>{ if(!l.trim()) return; if(/^\s/.test(l)&&out.length) out[out.length-1]+='\n'+l.trim(); else out.push(l.trim()); }); return out; }
 function itemLines(t){ return String(t||'').split('\n').map(l=>l.trim()).filter(Boolean); }
 const PH_KEYS=Object.keys(vals({f:{},items:[],deductions:[],companyId:ETC}));
-// 날짜 형식: {접수:dot} 2026.09.15. 08:00 · {접수:short} 26-09-25 15:20 · {접수:iso} 2026-09-24 02:35 · {접수:day} 16일 13시 · {접수:long} 09월 16일 13시 00분
+// 날짜 형식: {접수:dot} 2026.09.15. 08:00 · {접수:short} 26-09-25 15:20 · {접수:iso} 2026-09-24 02:35 · {접수:day} 16일 13시 · {접수:long} 09월 16일 13시 00분 · {접수:md} 09월 16일 13:00
 function dtRaw(c){ const f=c.f||{}; return {'접수':f.recv||f.death,'도착':f.arrive,'임종':f.death,'발생':f.death,'입관':f.casket,'발인':f.depart,'화장':!isBurial(f)&&f.cremDate?(f.cremDate+(f.cremTime?'T'+f.cremTime:'')):'','하관':isBurial(f)&&f.hagwanDate?(f.hagwanDate+(f.hagwanFrom?'T'+f.hagwanFrom+':00':'')):''}; }
 function fmtAs(v,fm){
   const p=parseDT(v); if(!p) return ''; const Y=p.y, YY=String(p.y).slice(2), M=pad(p.mo), D=pad(p.d), t=p.h==null?'':` ${pad(p.h)}:${pad(p.mi)}`;
@@ -1953,6 +2002,7 @@ function fmtAs(v,fm){
   if(fm==='short') return `${YY}-${M}-${D}${t}`;
   if(fm==='iso') return `${Y}-${M}-${D}${t}`;
   if(fm==='long') return longDT(v);
+  if(fm==='md') return `${M}월 ${D}일${t}`;   /* 08월 09일 11:00 */
   return dayTime(v);
 }
 function fillTpl(body,c){
@@ -2056,7 +2106,7 @@ const SECTIONS=[
   {t:'고인', key:'name', rows:[[F('eventNo','행사번호','num','번')],[F('name','고인명'),F('mourn','상 구분 (예: 장인상)')],[F('gender','성별','select',['','남자','여자']),F('age','나이','num','세')],[F('origin','본관'),F('religion','종교','select',['','유교','무교','불교','기독교','천주교','기타'])],[F('cause','사망 사유','pick','causes')],[F('addr','주소')]]},
   {t:'상주', rows:[[F('chief','상주명'),F('chiefRel','관계')],[F('chiefTel','연락처','tel')]]},
   {t:'장지', rows:[[F('method','장법','select',['','화장','매장','수목장'])],[F('burial1','1차 장지'),F('burial2','2차 장지')],[F('burial','장지 (밴드 표기)')]]},
-  {t:'상품 · 금액', rows:[[F('product','상품','prod')],[F('altarSup','제단지원 (예: 100만원 공제)')],[F('productShort','상품 약칭 (보고용, 비우면 상품)','combo','productShorts')],[F('support','회사지원','money'),F('paid','납입','money')],[F('balance','잔액','money'),F('collect','수금액','money')]]},
+  {t:'상품 · 금액', rows:[[F('product','상품','prod')],[F('altarSup','제단지원 (예: 100만원 공제)')],[F('productShort','상품 약칭 (보고용, 비우면 상품)','combo','productShorts')],[F('support','회사지원','money'),F('paid','납입','money')],[F('balance','잔액','money'),F('collect','수금액','money')],[F('extraAmt','추가금','money'),F('totalAmt','총수금액','money')]]},
   {t:'담당', rows:[[F('staffOrg','소속 (예: 부산본부)')],[F('staff','담당 · 팀장'),F('staffTel','연락처','tel')],[F('note','특이사항','textarea')]]},
   {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','cnt','세트'),F('mournW','상복 여','cnt','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('dispatchAt','배차','datetime-local'),F('route','운행 경로 (예: 부산영락-부산추모-장례식장)')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('provNote','특이사항 (번호 없는 메모)')]]},
   {t:'확인 사항', rows:[[F('coupon','할인권 사용','select',['','O','X']),F('cardBack','회원증 회수','select',['','O','X'])],[F('certSub','확인서 대체')],[F('preJoin','사전 가입 할인 (비우면 없음)'),F('certDone','이행완료확인서','select',['','하단 첨부','미가입'])]]},
@@ -2068,12 +2118,14 @@ const SECTIONS=[
 const FIELD_PH={place:['장소'],recv:['접수일시','접수'],death:['임종','기간','접수일시'],casket:['입관','입관일시'],depart:['발인','발인일시','기간'],
   company:['회사명'],customer:['고객명'],custRel:['관계'],custTel:['고객연락처'],name:['고인명','고인이름'],gender:['고인명','성별'],age:['고인명','나이'],origin:['고인명','본관'],religion:['종교'],
   chief:['상주명'],chiefRel:['상주관계'],chiefTel:['상주연락처'],burial1:['1차장지','장지'],burial2:['2차장지','장지'],burial:['장지'],product:['상품'],
-  support:['회사지원'],paid:['납입'],balance:['잔액'],collect:['수금액'],staff:['담당'],staffTel:['담당연락처'],note:['특이사항'],
+  support:['회사지원'],paid:['납입'],balance:['잔액'],collect:['수금액'],extraAmt:['추가금'],totalAmt:['총수금액'],staff:['담당'],staffTel:['담당연락처'],note:['특이사항'],
   helper:['도우미','도우미이름'],helperHours:['도우미'],mourning:['상복'],vehicle:['차량'],mournM:['상복'],mournW:['상복'],mournBrand:['상복'],vehType:['차량'],vehCo:['차량'],dispatchAt:['배차'],route:['운행경로','차량경로'],preJoin:['사전가입할인'],certDone:['이행완료확인서'],altar:['제단공제'],shroud:['수의대체'],provNote:['제공특이사항'],
   mourn:['상구분'],staffOrg:['소속'],productShort:['상품약칭'],eventNo:['행사번호'],
   arrive:['도착'],cause:['사망사유'],addr:['주소'],method:['장법'],altarSup:['제단지원'],coupon:['할인권사용'],cardBack:['회원증회수'],certSub:['확인서대체'],affiliate:['계열사'],rank:['직급']};
 const ALWAYS=['eventNo','place','death','casket','depart','name','chief'];   // 부고에 필요한 칸은 항상
-function usedPH(co){ const s=new Set([...[co.band,...activeReports(co).map(r=>r.body),db.dispatchTpl||DISPATCH_TPL].join('\n').matchAll(/\{([^}]+)\}/g)].map(m=>m[1].split(':')[0])); if(s.has('화장하관')){ s.add('화장'); s.add('하관'); } if(s.has('화장장회차')) s.add('화장'); if(s.has('차량경로')){ s.add('차량'); s.add('운행경로'); } if(s.has('발인날짜')) s.add('발인'); return s; }
+function usedPH(co){ const s=new Set([...[co.band,...activeReports(co).map(r=>r.body),db.dispatchTpl||DISPATCH_TPL].join('\n').matchAll(/\{([^}]+)\}/g)].map(m=>m[1].split(':')[0])); if(s.has('화장하관')){ s.add('화장'); s.add('하관'); } if(s.has('화장장회차')) s.add('화장'); if(s.has('차량경로')){ s.add('차량'); s.add('운행경로'); } if(s.has('발인날짜')) s.add('발인');
+  if(s.has('장례기간')){ s.add('임종'); s.add('발인'); } if(s.has('고인성별나이')){ s.add('고인이름'); s.add('성별'); s.add('나이'); } if(s.has('장법화장장')){ s.add('장법'); s.add('화장장'); } if(s.has('담당팀장')) s.add('담당');
+  return s; }
 function visible(k,used){ return ALWAYS.includes(k) || (FIELD_PH[k]||[]).some(p=>used.has(p)); }
 const REQUIRED={place:'장소',death:'임종',depart:'발인',customer:'고객 · 회원명',name:'고인명',chief:'상주명',staff:'담당',cremDate:'화장 날짜',hagwanDate:'하관 날짜'};
 
@@ -2228,7 +2280,7 @@ document.addEventListener('input',e=>{ const t=e.target; if(t.closest&&t.closest
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-cnt]'); if(!b) return; const inp=document.getElementById('f_'+b.dataset.cnt); if(!inp) return;
   inp.value=inp.value.trim()===b.dataset.v?'':b.dataset.v; inp.dispatchEvent(new Event('input',{bubbles:true})); });
 // 업체별 입력 칸 예시 (칸이 비어 있을 때 흐리게 보임)
-const FIELD_EX={'현진시닝':{product:'예: 삼성전기 270 일반형',staffOrg:'예: 부산본부',mourn:'예: 부친상 / 모친상'},'고이장례연구소':{product:'예: 2026 가족장 289'}};
+const FIELD_EX={'현진시닝':{product:'예: 삼성전기 270 일반형',staffOrg:'예: 부산본부',mourn:'예: 부친상 / 모친상'},'고이장례연구소':{product:'예: 2026 가족장 289'},'대한선진(국향)':{product:'예: 170상품',place:'예: 김해교원예움 장례식장 6호'}};
 const exFor=k=>{ const c=curCase(); if(!c) return ''; return (FIELD_EX[caseCoName(c).replace(/\s/g,'')]||{})[k]||''; };
 const exAttr=k=>exFor(k)?` placeholder="${esc(exFor(k))}"`:'';
 function ctl(fd){
@@ -2296,7 +2348,8 @@ function renderInput(){
   const used=usedPH(co);
   SECTIONS.forEach(s=>{
     const filled=k=>String(c.f[k]??'').trim()!=='';
-    const rows=s.rows.map(r=>r.filter(fd=>(fd.k==='recv'?isGoi(co):visible(fd.k,used))||filled(fd.k))).filter(r=>r.length);   // 접수는 고이장례연구소만 (이미 넣은 값은 항상 보임)
+    const sameOn=k=>!!c.f.sameChief&&Object.entries(SAME_MAP).some(([ck,uk])=>uk===k&&visible(ck,used));   /* 상주 = 회원이면 상주 칸이 회원 칸에서 채워짐 */
+    const rows=s.rows.map(r=>r.filter(fd=>(fd.k==='recv'?isGoi(co):visible(fd.k,used))||filled(fd.k)||sameOn(fd.k))).filter(r=>r.length);   // 접수는 고이장례연구소만 (이미 넣은 값은 항상 보임)
     const extra = s.key==='mgr'?(used.has('관리사배치')||(c.mgr||[]).length>0) : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')||(c.deductions||[]).some(d=>String(d.text||'').trim())) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')||['cremName','cremDate','cremTime','hagwanDate'].some(filled)) : false;
     if(!rows.length && !extra) return;
     const sectionKey=s.key||s.rows[0][0].k, meta=SECTION_UI[sectionKey]||{group:'basic',title:s.t};
@@ -3613,8 +3666,10 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
   // 상복
   [['mournM',29,'남상복'],['mournW',30,'여상복']].forEach(([k,row,item])=>{ const v=String(f[k]||'').trim(); if(!v) return;
     set('D'+row,f.mournBrand); set('F'+row,item); const n=v.match(/^(\d+)\s*(세트|벌)?$/); if(n) set('J'+row,Number(n[1])); else add('K'+row,v); });
-  // 장의차량
-  if(f.vehType||f.vehCo||f.route){ set('C32',f.vehType); set('E32',szCoShort(f.vehCo)); set('F32',String(f.route||'').trim()||autoRoute(f)); const dt=dispatchDT(f); if(dt) set('Q32','배차 '+schedDT(dt)); }
+  // 장의차량 — 「버스 리무진」처럼 두 대면 한 줄에 한 대씩 (2026.10.27)
+  if(f.vehType||f.vehCo||f.route){ const vt=vehSplit(f.vehType), co=szCoShort(f.vehCo), rt=String(f.route||'').trim()||autoRoute(f), dt=dispatchDT(f);
+    set('C32',vt[0]||''); set('E32',co); set('F32',rt); if(dt) set('Q32','배차 '+schedDT(dt));
+    if(vt.length>1){ set('C33',vt.slice(1).join(' ')); set('E33',co); set('F33',rt); if(dt) set('Q33','배차 '+schedDT(dt)); } }
   // 도우미
   set('C35',f.helper); if(String(f.helperHours||'').trim()) add('N35',`총 ${String(f.helperHours).trim()}시간`);
   // 추가내역: 맞는 줄의 비고로, 나머지는 맨 아래 특이사항
@@ -3639,6 +3694,9 @@ const sxGet=(c,p)=>String(p.split('.').reduce((o,k)=>o&&typeof o==='object'?o[k]
 function sxSet(c,p,v){ const ks=p.split('.'); let o=SX(c); ks.slice(0,-1).forEach(k=>{ if(!o[k]||typeof o[k]!=='object') o[k]={}; o=o[k]; }); o[ks[ks.length-1]]=v; }
 const szT=v=>String(v??'').trim();
 const szWon=v=>{ v=szT(v); if(!v) return ''; const w=/^-?[\d,]+(\.\d+)?\s*(만\s*원?|원)?$/.test(v)?toWon(v):0; return w?fullWon(w):v; };   /* 66 → 660,000원 · 글은 그대로 */
+/* 차종 나누기: 「버스 리무진」 → [버스, 리무진] (「45인승 버스」처럼 한 대면 그대로) */
+function vehSplit(v){ v=noPlus(v); if(!v) return []; const t=v.split(/[\s,·/]+/).filter(Boolean);
+  return t.length>1&&t.every(w=>/(버스|리무진|운구차|승합차?|캐딜락|앰뷸런스|앰블런스)$/.test(w))?t:[v]; }
 const szCoShort=v=>{ v=szT(v); return v.replace(/\s*(장의차량|장의차|장의버스|운구차)$/,'')||v; };   /* 한맥장의차 → 한맥 */
 const szNum=v=>/^\d+(\.\d+)?$/.test(v)&&v.length<7?Number(v):v;
 function szItemOn(c,n,A){
@@ -3656,7 +3714,7 @@ function schedCells(c){
   put('K29',x.mNoteM); put('K30',x.mNoteW);
   [[29,'남상복'],[30,'여상복']].forEach(([r,l])=>{ if((V['D'+r]||V['J'+r]||V['K'+r])&&!V['F'+r]) V['F'+r]=l; });
   put('N32',x.km1); put('Q32',x.vnote1);
-  if(x.veh2On==='yes'){ const v=x.veh2||{}; put('C33',v.type); put('E33',szCoShort(v.co)); put('F33',v.dest); put('N33',v.km); put('Q33',v.note); }
+  if(x.veh2On==='yes'||A.C33){ const v=x.veh2||{}; put('C33',v.type); put('E33',szCoShort(v.co)); put('F33',v.dest); put('N33',v.km); put('Q33',v.note); }
   const hp=x.help||{}, n2=v=>/^\d+$/.test(v);
   [0,1,2].forEach(i=>{ const h=hp[i]||{}, r=36+i, d=szT(h.d), s=szT(h.s), e=szT(h.e), n=szT(h.n);
     if(d) V['F'+r]=n2(d)?`${pad(Number(d))}일`:d; if(s) V['H'+r]=n2(s)?`${pad(Number(s))}시`:s; if(e) V['J'+r]=n2(e)?`${pad(Number(e))}시`:e; if(n) V['L'+r]=n2(n)?`${n}명`:n; });
@@ -3835,6 +3893,8 @@ function szScreen(c,st,steps){
   else if(st.id==='veh'){ sub='차종 · 업체 · 목적지는 행사 입력과 같이 바뀌어요. 업체는 일정표에 「한맥」처럼 「장의차」를 빼고 나가요.';
     body=ch('구분 (차종)',{scope:'f',key:'vehType',options:db.lists.vehTypes||[],label:'차종'})+ch('업체',{scope:'f',key:'vehCo',options:db.lists.vehCos||[],label:'장의차 업체'})
       +fIn('route','목적지',ph(!f.route&&autoRoute(f),'예: 함안하늘-함안추모-장례식장'))+xIn('km1','실제 주행거리','예: 30km')+xIn('vnote1','비고',ph(A.Q32,''))+go(); }
+  else if(st.id==='veh2'&&A.C33){ q='두 번째 차량을 확인해 주세요'; sub=`행사 입력 차종(${noPlus(f.vehType)})이 두 대라서 ${A.C33}${(k=>k>=0&&k<11172&&k%28?'은':'는')(String(A.C33).charCodeAt(String(A.C33).length-1)-0xAC00)} 일정표 둘째 줄에 따로 들어가요. 다르면 고쳐 주세요.`;
+    body=xIn('veh2.type','구분 (차종)',ph(A.C33,'예: 리무진'))+xIn('veh2.co','업체',ph(A.E33,'예: 한국'))+xIn('veh2.dest','목적지',ph(A.F33,'예: 장례식장-함안하늘'))+xIn('veh2.km','실제 주행거리','예: 20km')+xIn('veh2.note','비고',ph(A.Q33,''))+go(); }
   else if(st.id==='veh2'){ const on=x.veh2On; body=choice('x:veh2On',[['yes','있어요'],['no','없어요']],on||'');
     if(on==='yes') body+=xIn('veh2.type','구분 (차종)','예: 리무진')+xIn('veh2.co','업체','예: 한국')+xIn('veh2.dest','목적지','예: 장례식장-함안하늘')+xIn('veh2.km','실제 주행거리','예: 20km')+xIn('veh2.note','비고',ph(A.Q33,''))+go(); }
   else if(st.id==='help') body=ch('팀장명',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})+`<label class="f">총 시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" placeholder="예: 30" autocomplete="off"><span>시간</span></div></label>`+go();
@@ -3862,7 +3922,7 @@ function szReview(c,A){
     ['goods',goods?`${goods}가지 넣음`:'안 넣음'],
     ['items',items.join(' · ')||'없음'],
     ['mourn',[V.J29!=null&&`남 ${V.J29}`,V.J30!=null&&`여 ${V.J30}`,V.D29||V.D30].filter(Boolean).join(' · ')||'없음'],
-    ['veh',[V.C32,V.E32,x.veh2On==='yes'&&'2대'].filter(Boolean).join(' · ')||'없음'],
+    ['veh',[[V.C32,V.C33].filter(Boolean).join(' · '),V.E32,(V.C33||V.E33||V.F33)&&'2대'].filter(Boolean).join(' · ')||'없음'],
     ['help',[V.C35,hrows&&`${hrows}일`].filter(Boolean).join(' · ')||'없음'],
     ['memo',V.A41?`${String(V.A41).split('\n').length}줄`:'없음'],
   ];
