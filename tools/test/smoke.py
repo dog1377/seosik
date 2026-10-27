@@ -93,7 +93,7 @@ def main():
             # 파트장: 홈 · 게시판 · 서식 · 설정
             ctx, p = page(w, h, sc)
             p.goto(BASE + 'forms/'); login(p, 'seo', 'pw1111')
-            for t in ['home', 'board', 'weekly', 'minutes', 'review', 'ship', 'settings']:
+            for t in ['home', 'board', 'weekly', 'minutes', 'review', 'ship', 'stock', 'settings']:
                 p.evaluate(f"showTab('{t}')"); p.wait_for_timeout(500); look(p, f'forms_{t}_{tag}')
             # 장례업무 (같은 기기 · 로그인 유지)
             p.goto(BASE + 'forms/funeral.html'); p.wait_for_function("typeof setTab==='function'", timeout=15000)
@@ -120,6 +120,9 @@ def main():
             for v in ['weekly', 'minutes', 'review', 'ship']:
                 p.click(f"#gtTabs [data-gv='{v}']"); p.wait_for_timeout(500); look(p, f'chief_{v}_{tag}')
             p.evaluate("showTab('settings')"); look(p, f'chief_settings_{tag}')
+            p.evaluate("showTab('stock')"); p.wait_for_timeout(300)
+            if p.evaluate('S.tab') != 'gather':
+                problems.append(f'chief {tag}: 총괄실장이 물품 장부에 들어감')
             p.goto(BASE + 'forms/funeral.html'); p.wait_for_timeout(1500)
             if 'funeral.html' in p.url:
                 problems.append(f'chief {tag}: 총괄실장이 장례업무에 들어감')

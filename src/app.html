@@ -471,6 +471,62 @@ p{text-wrap:pretty}
 @media (max-width:420px){.bd-pp.rl{flex-wrap:wrap}.bd-pp.rl .rl-btns{width:100%;justify-content:flex-end;padding-bottom:6px}}
 @media (min-width:1000px){#tab-gather{width:100%;max-width:760px;margin-inline:auto}}
 @media (max-width:360px){.gt-acts{grid-template-columns:1fr}}
+/* ===== 물품 수령 · 불출 (2026.10.27) — 파트장끼리 같이 쓰는 장부. 디자인 A: 먹색 가는 선, 남은 수량은 굵게, 모자라면 − 기호 + 「모자람」 글자 ===== */
+.st-sync{margin:0;font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;line-height:1.55;min-height:24px}
+.st-sync.warn{color:var(--warn)}
+.st-sync .btn{min-height:36px;padding:0 10px}
+.st-add .btn{min-height:52px;border-color:var(--ink);font-weight:700;font-size:16px}
+.st-locs{margin:0}
+.st-find input{min-height:46px}
+.st-find[hidden]{display:none}
+.st-card{gap:10px}
+.st-card .hm-h h2{font-size:18px}
+.st-tbl td{height:48px}
+.st-tbl th:not(:first-child),.st-tbl td:not(:first-child){width:4.6em}
+.st-tbl td:first-child{white-space:normal}
+.st-tbl .tm-name{max-width:none}
+.st-tbl td.left{font-weight:700;font-size:15px}
+.st-tbl td.zero{color:var(--muted);font-weight:500}
+.st-tbl td.short{color:var(--warn)}
+.st-tbl td.short small{display:block;font-size:11.5px;font-weight:700;line-height:1.2}
+.st-none{margin:0;padding:2px;color:var(--muted);font-size:14px}
+.st-day{display:grid;gap:8px}
+.st-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 10px;align-items:center;width:100%;min-height:58px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;color:var(--ink);font:inherit}
+@media (hover:hover){.st-row:hover{border-color:var(--ink)}}
+.st-k{grid-row:1/3;align-self:center;font-size:12.5px;font-weight:700;line-height:1.5;border:1px solid var(--ink);border-radius:4px;padding:1px 7px;white-space:nowrap}
+.st-k.out{background:var(--ink);color:var(--surface)}
+.st-name{font-weight:700;font-size:15.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-q{font-weight:700;font-size:16px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.st-sub{grid-column:2/4;font-size:13px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.st-sub b{font-weight:600;color:var(--ink)}
+.st-pend{color:var(--warn);font-weight:600}
+.st-big{display:grid;justify-items:center;gap:6px;text-align:center}
+.st-big .hm-dd b{font-size:40px}
+.st-big .hm-dd b small{font-size:18px;font-weight:700;margin-left:2px}
+.st-big .hm-dd.short{border-color:var(--warn);color:var(--warn)}
+.st-big p{margin:0;font-size:14px;color:var(--muted)}
+.st-sum{margin:0;display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ink);border-bottom:1px solid var(--line)}
+.st-sum>div{display:grid;gap:2px;padding:10px 12px}
+.st-sum>div+div{border-left:1px solid var(--line)}
+.st-sum dt{font-size:13px;color:var(--muted)}
+.st-sum dd{margin:0;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.st-run{font-size:13px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.st-out-box{display:grid;gap:6px}
+.st-out-box[hidden]{display:none}
+.st-out-box p{margin:0}
+.se-quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:-6px}
+.se-quick:empty{display:none}
+.se-quick button{min-height:40px;padding:0 12px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface);color:var(--ink);font-size:14px}
+.se-quick button[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink);font-weight:700}
+.se-left{margin:-4px 0 0;font-size:14px;line-height:1.55}
+.se-left.warn{color:var(--warn);font-weight:600}
+.se-who{margin:0;font-size:13.5px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:10px}
+.se-who.ro{color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+#seFields .seg.choice[aria-disabled="true"] button{opacity:.6;cursor:default}
+@media (pointer:coarse),(max-width:560px){.se-quick button{min-height:44px}}
+@media (min-width:1000px){#tab-stock{width:100%;max-width:760px;margin-inline:auto}}
+@media (max-width:420px){#formTabs button{padding:0 5px;font-size:14px}}
+@media (max-width:370px){#formTabs button{padding:0 3px;font-size:13.5px}}   /* 서식 6칸(주간보고 … 물품 · 회사 서류)이 작은 휴대폰에서도 한 줄에 */
 </style>
 
 <header class="appbar">
@@ -511,12 +567,13 @@ p{text-wrap:pretty}
     기기 저장공간이 부족할 수 있어요. 설정에서 백업 파일을 먼저 받아 두세요.
   </div>
 
-  <!-- ===== 서식 고르기 (주간보고 · 회의록 · 후기보고 · 탁송) — 파트장만 ===== -->
+  <!-- ===== 서식 고르기 (주간보고 · 회의록 · 후기보고 · 탁송 · 물품) — 파트장만 (물품은 총괄실장에게 안 보임) ===== -->
   <nav class="ftabs" id="formTabs" aria-label="서식 고르기" data-admin hidden>
     <button type="button" data-ftab="weekly">주간보고</button>
     <button type="button" data-ftab="minutes">회의록</button>
     <button type="button" data-ftab="review">후기보고</button>
     <button type="button" data-ftab="ship">탁송</button>
+    <button type="button" data-ftab="stock" data-nochief>물품</button>
     <button type="button" data-goco>회사 서류</button>
   </nav>
 
@@ -697,6 +754,33 @@ p{text-wrap:pretty}
       <div class="list" id="rptList"></div>
       </div>
       <aside class="live-pv" id="rptLive" aria-label="보고서 미리보기"><div class="live-head"><b>보고서 미리보기</b><button class="btn small" type="button" data-live-open>크게 보기 · 저장</button></div><div class="live-doc"></div></aside>
+    </div>
+  </section>
+
+  <!-- ===== 물품 수령 · 불출 (2026.10.27): 파트장끼리 같이 쓰는 장부 — 부산 · 울산 · 창원 입고 · 불출 · 남은 수량 ===== -->
+  <section class="tab" id="tab-stock" hidden data-nochief>
+    <div class="tab-head">
+      <h1>물품 수령 · 불출</h1>
+      <p>부산 · 울산 · 창원에 들어온 물품과 내보낸 물품을 적어 두면 남은 수량이 자동으로 계산돼요. 파트장님들이 같이 보는 장부예요.</p>
+    </div>
+    <div class="st-sync" id="stSync" role="status" aria-live="polite"></div>
+    <div class="grid2 st-add">
+      <button class="btn" type="button" data-st-new="in">+ 입고 적기</button>
+      <button class="btn" type="button" data-st-new="out">+ 불출 적기</button>
+    </div>
+    <div class="seg" id="stViewSeg" role="group" aria-label="보기 고르기">
+      <button type="button" data-stv="now" aria-pressed="true">남은 수량</button>
+      <button type="button" data-stv="log" aria-pressed="false">기록</button>
+    </div>
+    <nav class="ftabs st-locs" id="stLocs" aria-label="지역 고르기"></nav>
+    <label class="field st-find" id="stFindRow"><span class="vh">품목 찾기</span><input id="stFind" type="text" enterkeyhint="search" placeholder="품목 찾기" autocomplete="off" aria-label="품목 찾기"></label>
+    <div class="tab" id="stBody"></div>
+    <div class="st-out-box">
+      <div class="grid2">
+        <button class="btn" type="button" id="stCopy">카톡 문구 복사</button>
+        <button class="btn" type="button" id="stReport">현황표 저장</button>
+      </div>
+      <p class="small-t muted" id="stOutNote"></p>
     </div>
   </section>
 
@@ -968,6 +1052,55 @@ p{text-wrap:pretty}
   </div></div>
 </div>
 
+<!-- ===== 물품 한 품목 기록 (지역 · 품목마다 언제 몇 개 들어오고 나갔는지) ===== -->
+<div class="screen" id="stockItem" hidden>
+  <div class="screen-bar">
+    <button class="back" type="button" id="siBack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>목록</button>
+    <div class="screen-title" id="siTitle">품목</div>
+  </div>
+  <div class="screen-body"><div class="inner" id="siBody"></div></div>
+  <div class="screen-actions"><div class="inner">
+    <button class="btn" type="button" data-si-new="in">+ 입고 적기</button>
+    <button class="btn" type="button" data-si-new="out">+ 불출 적기</button>
+  </div></div>
+</div>
+
+<!-- ===== 물품 입고 · 불출 적기 (2026.10.27) ===== -->
+<div class="screen" id="stockEditor" hidden>
+  <div class="screen-bar">
+    <button class="back" type="button" id="seBack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>닫기</button>
+    <div class="screen-title" id="seTitle">입고 적기</div>
+  </div>
+  <div class="screen-body">
+    <div class="inner" id="seFields">
+      <div class="field"><span class="field-label">구분</span>
+        <div class="seg choice" data-sef="kind" role="group" aria-label="입고 또는 불출">
+          <button type="button" data-v="in">입고 (받음)</button><button type="button" data-v="out">불출 (내보냄)</button>
+        </div>
+      </div>
+      <div class="field"><span class="field-label" id="seLocLb">어느 곳에 들어왔나요</span>
+        <div class="seg choice" data-sef="loc" id="seLocs" role="group" aria-labelledby="seLocLb"></div>
+      </div>
+      <label class="field"><span>품목</span><input id="seItem" type="text" list="dlStockItems" autocomplete="off" maxlength="60" placeholder="예: 완장, 리본, 위패"></label>
+      <div class="se-quick" id="seQuick" aria-label="자주 쓰는 품목"></div>
+      <div class="grid2">
+        <label class="field"><span>수량</span><input id="seQty" type="number" inputmode="numeric" min="1" step="1" placeholder="0"></label>
+        <label class="field"><span id="seDayLb">받은 날</span><input id="seDay" type="date"></label>
+      </div>
+      <p class="se-left" id="seLeft" aria-live="polite" hidden></p>
+      <label class="field"><span class="field-label"><span id="sePartyLb">보낸 곳</span><span class="opt" id="sePartyOpt">선택</span></span><input id="seParty" type="text" list="dlStockParty" autocomplete="off" maxlength="60" placeholder="예: 본사, ○○상사"></label>
+      <label class="field"><span class="field-label">비고 <span class="opt">선택</span></span><textarea id="seMemo" maxlength="500" placeholder="예: 박스 훼손 2개, 다음 주 추가 입고 예정"></textarea></label>
+      <p class="se-who" id="seWho" hidden></p>
+      <p class="err" id="seErr" hidden></p>
+      <div class="danger-zone"><button class="btn danger small" type="button" id="seDel" hidden>이 기록 지우기</button></div>
+    </div>
+  </div>
+  <div class="screen-actions" id="seActs"><div class="inner">
+    <button class="btn" type="button" id="seMore">저장 후 하나 더</button>
+    <button class="btn primary" type="button" id="seSave">저장</button>
+  </div></div>
+</div>
+
 <!-- ===== 미리보기 화면 ===== -->
 <div class="screen" id="previewScreen" hidden>
   <div class="screen-bar">
@@ -1026,6 +1159,8 @@ p{text-wrap:pretty}
 <datalist id="dlNames"></datalist>
 <datalist id="dlManagers"></datalist>
 <datalist id="dlDests"></datalist>
+<datalist id="dlStockItems"></datalist>
+<datalist id="dlStockParty"></datalist>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1248,6 +1383,7 @@ function showTab(t) {
   if (isMember() && ADMIN_TABS.includes(t)) t = 'home';   /* 직원 계정: 서식 · 설정은 안 열림 */
   if (isChief() && STAFF_TABS.includes(t)) t = 'gather';   /* 총괄실장: 홈 · 게시판 대신 취합 */
   if (!isChief() && t === 'gather') t = 'home';
+  if (isChief() && t === 'stock') t = 'gather';   /* 물품 장부는 파트장만 */
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
   S.tab = t; document.body.dataset.view = t;
   ALL_TABS.forEach((k) => { $('#tab-' + k).hidden = k !== t; });
@@ -1262,6 +1398,7 @@ function showTab(t) {
   if (t === 'settings') { renderSettings(); roleLoad(); }
   if (t === 'review') renderReview();
   if (t === 'gather') gatherOpen(false);
+  if (t === 'stock') stockOpen();
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
 async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
@@ -3083,13 +3220,13 @@ function bindPwa() {
    홈: 이번 달(발인일 기준) 행사 수 · 봉투 합계 — 장례업무 기록(funeral-band-v2)을 읽기만 함 · 월말 마감 D-N · 파트 공지.
    게시판 · 파트: 수파베이스 서버 함수(tools/supabase-part.sql)로만 읽고 씀 → window.dwAcct.rpc (leader-gate.html).
    파트장은 파트원의 장례일정 · 봉투를 보기만 함(dw_member_records). 직원 계정(html.dw-member)은 서식 · 설정이 안 보임. */
-const FORM_TABS = ['weekly', 'minutes', 'review', 'ship'];
+const FORM_TABS = ['weekly', 'minutes', 'review', 'ship', 'stock'];   /* stock = 물품 수령 · 불출 (2026.10.27, 파트장만 — 총괄실장은 안 봄) */
 const ADMIN_TABS = FORM_TABS.concat(['settings']);
 const ALL_TABS = ['home', 'gather'].concat(FORM_TABS, ['board', 'settings']);
 const STAFF_TABS = ['home', 'board'];   /* 총괄실장은 안 씀 */
 const isMember = () => document.documentElement.classList.contains('dw-member');
 const isChief = () => document.documentElement.classList.contains('dw-chief');   /* 총괄실장 (2026.10.26) */
-function lastFormTab() { let t = ''; try { t = localStorage.getItem('mf.formTab') || ''; } catch (e) { /* ignore */ } return FORM_TABS.includes(t) ? t : 'weekly'; }
+function lastFormTab() { let t = ''; try { t = localStorage.getItem('mf.formTab') || ''; } catch (e) { /* ignore */ } return FORM_TABS.includes(t) && !(t === 'stock' && isChief()) ? t : 'weekly'; }
 function whenAcct(fn) { if (window.dwAcct) fn(); else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { if (window.dwAcct) fn(); }, { once: true }); }
 const SVG_R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
 const SVG_L = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
@@ -3550,7 +3687,7 @@ function bindHomeBoard() {
   });
   window.addEventListener('dw-role', () => {
     if (isMember() && (ADMIN_TABS.includes(S.tab) || S.tab === 'gather')) showTab('home');
-    else if (isChief() && STAFF_TABS.includes(S.tab)) showTab('gather');
+    else if (isChief() && (STAFF_TABS.includes(S.tab) || S.tab === 'stock')) showTab('gather');
     else if (!isChief() && S.tab === 'gather') showTab('home');
     else if (S.tab === 'home') renderHome(); else if (S.tab === 'board') paintBoard(); else if (S.tab === 'gather') gatherOpen(true);
     if (S.tab === 'settings' && !S.sd) renderSettings();
@@ -3562,6 +3699,7 @@ function bindHomeBoard() {
     if (S.tab === 'home') { if (homeDay !== seoulYMD()) renderHome(); else { homeNotices(false); homeTeam(false); } }
     if (S.tab === 'board' && Date.now() - PB.at > 60000) boardLoad(false);
     if (S.tab === 'gather') gLoadCur(false);
+    if (S.tab === 'stock' && Date.now() - ST.at > 20000) stSync();
   });
   window.addEventListener('storage', (e) => { if (e.key === FU_KEY && S.tab === 'home') renderHome(); });
   setInterval(() => {
@@ -3569,6 +3707,384 @@ function bindHomeBoard() {
     if (S.tab === 'home' && homeDay !== seoulYMD()) renderHome();
     if (S.tab === 'board' && $('#postScreen').hidden && $('#postEditor').hidden && Date.now() - PB.at > 60000) boardLoad(false);
   }, 60000);
+  setInterval(() => { if (document.visibilityState === 'visible' && S.tab === 'stock' && $('#stockEditor').hidden && Date.now() - ST.at > 25000) stSync(); }, 30000);   /* 물품 장부: 보고 있으면 30초마다 다른 파트장님이 적은 것 받기 */
+}
+
+/* ================= 물품 수령 · 불출 (2026.10.27) =================
+   파트장끼리 같이 쓰는 장부. 부산 · 울산 · 창원에 들어온 것(입고) · 내보낸 것(불출)을 적으면 남은 수량 = 입고 − 불출 (지역 · 품목마다).
+   서버: 표 dw_stock + 함수 dw_stock_list · dw_stock_save (tools/supabase-part.sql) — 파트장만(총괄실장 · 직원 안 됨),
+   고치기 · 지우기는 적은 사람 또는 관리자, 지우기는 「지움」 표시만(되돌리기 됨).
+   이 기기: localStorage 'mf.stock' = { v:1, by: { 계정id: { cursor, syncedAt, rows:[…], pend:[…] } } } — 받아 둔 장부 + 아직 못 올린 것(pend).
+   인터넷이 끊기거나 서버 준비 전이어도 먼저 적어 두고, 되면 올림. 품목은 띄어쓰기 · 대소문자를 빼고 같은 것으로 셈(stKey). 화면 고른 것은 'mf.stockUi'. */
+const STOCK_LOCS = ['부산', '울산', '창원'];
+const ST = { uid: '', rows: new Map(), pend: new Map(), cursor: '', loaded: false, busy: false, again: false, err: '', at: 0, syncedAt: 0,
+  loc: 'all', view: 'now', month: '', q: '', lastLoc: '', ed: null, edNew: false, edDirty: false, item: null };
+const stKey = (t) => String(t || '').replace(/\s+/g, '').toLowerCase();
+const stTidy = (t) => String(t || '').replace(/\s+/g, ' ').trim();
+const stNum = (n) => Number(n || 0).toLocaleString('ko-KR');
+const stSigned = (n) => (n < 0 ? '−' + stNum(-n) : stNum(n));
+const stSort = (a, b) => a.day.localeCompare(b.day) || (a.createdAt - b.createdAt);
+function stUid() { const u = window.dwAcct && window.dwAcct.user(); return (u && u.id) || ''; }
+function stCacheRead() { try { const o = JSON.parse(localStorage.getItem('mf.stock') || 'null'); return o && typeof o === 'object' && o.by && typeof o.by === 'object' ? o : { v: 1, by: {} }; } catch (e) { return { v: 1, by: {} }; } }
+function stCacheLoad() {
+  const id = stUid(); if (!id || ST.uid === id) return;
+  ST.uid = id; ST.rows = new Map(); ST.pend = new Map(); ST.cursor = ''; ST.loaded = false; ST.at = 0; ST.syncedAt = 0; ST.err = '';
+  const c = stCacheRead().by[id];
+  if (!c) return;
+  (Array.isArray(c.rows) ? c.rows : []).forEach((r) => { if (r && r.id) ST.rows.set(r.id, r); });
+  (Array.isArray(c.pend) ? c.pend : []).forEach((r) => { if (r && r.id) ST.pend.set(r.id, r); });
+  ST.cursor = typeof c.cursor === 'string' ? c.cursor : ''; ST.syncedAt = Number(c.syncedAt) || 0; ST.loaded = !!ST.cursor || ST.rows.size > 0;
+}
+function stCacheSave() {
+  if (!ST.uid) return;
+  const o = stCacheRead(), by = {};
+  Object.entries(o.by).forEach(([k, v]) => { if (k !== ST.uid && v && Array.isArray(v.pend) && v.pend.length) by[k] = { pend: v.pend }; });   /* 다른 계정 것은 아직 못 올린 것만 남김 */
+  by[ST.uid] = { cursor: ST.cursor, syncedAt: ST.syncedAt, rows: [...ST.rows.values()], pend: [...ST.pend.values()] };
+  try { localStorage.setItem('mf.stock', JSON.stringify({ v: 1, by })); return true; } catch (e) { toast('이 기기에 저장하지 못했어요. 저장 공간을 확인해 주세요'); return false; }
+}
+function stUiLoad() {
+  try { const o = JSON.parse(localStorage.getItem('mf.stockUi') || '{}') || {}; if (typeof o.loc === 'string' && o.loc) ST.loc = o.loc; if (o.view === 'log') ST.view = 'log'; if (typeof o.lastLoc === 'string') ST.lastLoc = o.lastLoc; } catch (e) { /* ignore */ }
+}
+function stUiSave() { try { localStorage.setItem('mf.stockUi', JSON.stringify({ loc: ST.loc, view: ST.view, lastLoc: ST.lastLoc })); } catch (e) { /* ignore */ } }
+function stNorm(r) {
+  return { id: String(r.id), kind: r.kind === 'out' ? 'out' : 'in', loc: stTidy(r.loc), item: stTidy(r.item), qty: Math.max(0, parseInt(r.qty, 10) || 0), day: String(r.day || '').slice(0, 10),
+    party: String(r.party || ''), memo: String(r.memo || ''), author: String(r.author || ''), editor: String(r.editor || ''),
+    mine: !!r.mine, canEdit: !!r.can_edit, createdAt: Date.parse(r.created_at) || 0, updatedAt: Number(r.updated_at) || 0 };
+}
+/* 지금 보이는 장부 = 서버에서 받은 것 + 아직 못 올린 것(같은 번호면 이 기기 것) */
+function stLive() {
+  const m = new Map(ST.rows); ST.pend.forEach((r, id) => m.set(id, r));
+  return [...m.values()].filter((r) => r && !r.deleted && r.qty > 0 && r.item && r.loc && /^\d{4}-\d{2}-\d{2}$/.test(r.day));
+}
+function stLocs(rows) { const ex = []; rows.forEach((r) => { if (!STOCK_LOCS.includes(r.loc) && !ex.includes(r.loc)) ex.push(r.loc); }); return STOCK_LOCS.concat(ex.sort(CASE_COLL.compare)); }
+function stBalances(rows) {
+  const by = new Map();
+  rows.slice().sort(stSort).forEach((r) => {
+    if (!by.has(r.loc)) by.set(r.loc, new Map());
+    const m = by.get(r.loc), k = stKey(r.item), b = m.get(k) || { key: k, loc: r.loc, name: r.item, inQ: 0, outQ: 0, left: 0, n: 0 };
+    if (r.kind === 'in') b.inQ += r.qty; else b.outQ += r.qty;
+    b.n++; b.name = r.item; b.left = b.inQ - b.outQ; m.set(k, b);
+  });
+  return by;
+}
+const stItems = (by, loc) => [...((by.get(loc) || new Map()).values())].sort((a, b) => CASE_COLL.compare(a.name, b.name));
+function stLeftAt(loc, item, skipId) { const k = stKey(item); let left = 0, seen = false; stLive().forEach((r) => { if (r.id === skipId || r.loc !== loc || stKey(r.item) !== k) return; seen = true; left += r.kind === 'in' ? r.qty : -r.qty; }); return { left, seen }; }
+function stMyName() {
+  const u = window.dwAcct && window.dwAcct.user();
+  return String(S.settings.author || '').trim() || String((u && u.user_metadata && u.user_metadata.name) || '').trim() || (window.dwAcct ? window.dwAcct.id() : '') || '나';
+}
+function stWhy(why) {
+  return why === 'offline' ? '인터넷이 연결되지 않았어요.'
+    : why === 'noserver' ? '물품 장부가 서버에 아직 준비되지 않았어요. 수파베이스 SQL Editor에서 서버 준비 글(tools/supabase-part.sql)을 한 번 다시 실행해 주세요.'
+    : why === 'notleader' ? '파트장 계정만 볼 수 있어요.'
+    : why === 'login' ? '다시 로그인해 주세요.'
+    : '지금은 장부를 받지 못했어요. 잠시 뒤에 다시 해 주세요.';
+}
+
+/* ---- 서버와 맞추기: 못 올린 것 먼저 올리고 → 바뀐 것 받기 ---- */
+const stPayload = (r) => ({ id: r.id, kind: r.kind, loc: r.loc, item: r.item, qty: r.qty, day: r.day, party: r.party || '', memo: r.memo || '', deleted: !!r.deleted, updated_at: r.updatedAt || 0 });
+async function stSync() {
+  if (!window.dwAcct || !stUid() || isMember() || isChief()) return;
+  stCacheLoad();
+  if (ST.busy) { ST.again = true; return; }
+  ST.busy = true; stPaintSync();
+  try {
+    for (const r of [...ST.pend.values()]) {
+      const d = await window.dwAcct.rpc('dw_stock_save', { p: stPayload(r) });
+      const cur = ST.pend.get(r.id);
+      if (d && d.ok) {
+        if (cur && cur.updatedAt === r.updatedAt) { ST.pend.delete(r.id); if (r.deleted) ST.rows.delete(r.id); else ST.rows.set(r.id, Object.assign({}, r, { pend: false })); }
+      } else if (d && ['denied', 'bad', 'empty'].includes(d.why)) {
+        if (cur === r) ST.pend.delete(r.id);
+        toast(d.why === 'denied' ? `「${r.item}」 기록은 적은 분만 고칠 수 있어서 올리지 못했어요` : `「${r.item}」 기록이 잘못돼서 올리지 못했어요. 다시 적어 주세요`);
+      } else throw { why: (d && d.why) || 'net' };
+      stCacheSave();
+    }
+    const d = await window.dwAcct.rpc('dw_stock_list', { p_since: ST.cursor || null });
+    if (!d || !d.ok) throw { why: (d && d.why) || 'net' };
+    if (d.full) ST.rows = new Map();
+    let cur = ST.cursor;
+    (d.rows || []).forEach((x) => {
+      if (x.deleted) ST.rows.delete(String(x.id)); else ST.rows.set(String(x.id), stNorm(x));
+      if (x.server_at && (!cur || Date.parse(x.server_at) > Date.parse(cur))) cur = x.server_at;
+    });
+    ST.cursor = cur || ''; ST.loaded = true; ST.err = ''; ST.syncedAt = Date.now();
+    stCacheSave();
+  } catch (e) { ST.err = (e && e.why) || 'net'; }
+  ST.at = Date.now(); ST.busy = false;
+  stRefresh();
+  if (ST.again) { ST.again = false; setTimeout(stSync, 200); }
+}
+function stRefresh() {
+  if (S.tab === 'stock') stPaint();
+  if (!$('#stockItem').hidden) stItemPaint();
+  if (!$('#stockEditor').hidden && ST.ed) stEdLeft();
+}
+function stockOpen() {
+  if (!ST.month) ST.month = seoulYMD().slice(0, 7);
+  stPaint();
+  whenAcct(() => { stCacheLoad(); stPaint(); if (!ST.at || Date.now() - ST.at > 20000) stSync(); });
+}
+
+/* ---- 화면 ---- */
+function stPaintSync() {
+  const el = $('#stSync'); if (!el) return;
+  const n = ST.pend.size; let t, warn = false, btn = false;
+  if (!stUid()) t = '로그인한 뒤에 보여요.';
+  else if (ST.busy && !ST.loaded && !n) t = '장부를 받는 중…';
+  else if (ST.err) { warn = true; btn = ST.err !== 'notleader'; t = stWhy(ST.err) + (n ? ` 적은 것 ${n}건은 이 기기에 보관했다가 연결되면 올려요.` : ''); }
+  else if (n) t = `올리는 중 · ${n}건`;
+  else { const d = ST.syncedAt ? new Date(ST.syncedAt) : null; t = `파트장님들과 같이 보는 장부예요${d ? ` · ${pad(d.getHours())}:${pad(d.getMinutes())} 기준` : ''}`; }
+  el.className = 'st-sync' + (warn ? ' warn' : '');
+  el.innerHTML = `<span>${esc(t)}</span>` + (btn ? '<button class="btn quiet small" type="button" data-st="reload">다시 시도</button>' : '');
+}
+function stPaint() {
+  if (!$('#tab-stock')) return;
+  if (!ST.month) ST.month = seoulYMD().slice(0, 7);
+  const live = stLive(), locs = stLocs(live);
+  if (ST.loc !== 'all' && !locs.includes(ST.loc)) ST.loc = 'all';
+  $$('#stViewSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.stv === ST.view)));
+  $('#stLocs').innerHTML = ['all'].concat(locs).map((l) => `<button type="button" data-loc="${esc(l)}" aria-current="${l === ST.loc ? 'page' : 'false'}">${l === 'all' ? '전체' : esc(l)}</button>`).join('');
+  $('#stFindRow').hidden = ST.view !== 'now' || !live.length;
+  if ($('#stFind').value !== ST.q && document.activeElement !== $('#stFind')) $('#stFind').value = ST.q;
+  stPaintSync();
+  $('#stBody').innerHTML = ST.view === 'log' ? stLogHtml(live) : stNowHtml(live, locs);
+  $('#tab-stock .st-out-box').hidden = !live.length;   /* 적은 게 없으면 복사 · 현황표 버튼은 숨김 */
+  $('#stOutNote').textContent = `현황표에는 ${ST.loc === 'all' ? '부산 · 울산 · 창원' : ST.loc}의 남은 수량과 ${monthName(ST.month)} 기록이 들어가요. 기록 화면에서 달을 바꿀 수 있어요.`;
+}
+const stLeftTd = (n) => (n < 0 ? `<td class="left short">−${stNum(-n)}<small>모자람</small></td>` : `<td class="left${n === 0 ? ' zero' : ''}">${stNum(n)}</td>`);
+function stNowHtml(live, locs) {
+  if (!live.length) return `<p class="st-none">${ST.loaded ? '아직 적은 물품이 없어요. 위 「+ 입고 적기」로 들어온 물품부터 적어 보세요.' : ST.err ? '받아 둔 장부가 없어요.' : '장부를 받는 중…'}</p>`;
+  const by = stBalances(live), q = stKey(ST.q), shown = ST.loc === 'all' ? locs : [ST.loc];
+  let h = '';
+  shown.forEach((loc) => {
+    const all = stItems(by, loc), items = q ? all.filter((b) => b.key.includes(q)) : all;
+    if (q && !items.length && ST.loc === 'all') return;
+    const short = all.filter((b) => b.left < 0).length;
+    h += `<section class="card st-card" aria-label="${esc(loc)}"><div class="hm-h"><h2>${esc(loc)}</h2><span class="small-t muted">품목 ${all.length}개${short ? ` · 모자람 ${short}개` : ''}</span></div>`;
+    h += !items.length ? `<p class="st-none">${q ? '찾는 품목이 없어요.' : '아직 적은 물품이 없어요.'}</p>`
+      : `<div class="tm-wrap"><table class="tm-tbl st-tbl"><thead><tr><th scope="col">품목</th><th scope="col">입고</th><th scope="col">불출</th><th scope="col">남음</th></tr></thead><tbody>${
+        items.map((b) => `<tr><td><button type="button" class="tm-name" data-st-item="${esc(loc)}" data-st-key="${esc(b.key)}"><span>${esc(b.name)}</span>${SVG_R}</button></td><td>${stNum(b.inQ)}</td><td>${stNum(b.outQ)}</td>${stLeftTd(b.left)}</tr>`).join('')}</tbody></table></div>`;
+    h += '</section>';
+  });
+  return (h || '<p class="st-none">찾는 품목이 없어요.</p>') + '<p class="small-t muted">품목을 누르면 언제 몇 개 들어오고 나갔는지 볼 수 있어요.</p>';
+}
+function stRowHtml(r, o = {}) {
+  const out = r.kind === 'out', party = stTidy(r.party), memo = stTidy(r.memo);
+  const sub = [o.loc ? `<b>${esc(r.loc)}</b>` : '', party ? `${out ? '받는 곳' : '보낸 곳'} ${esc(party)}` : '', memo ? esc(memo.length > 60 ? memo.slice(0, 58) + '…' : memo) : '',
+    `적은 사람 ${esc(r.author || '-')}`, o.run != null ? `<span class="st-run">남음 ${stSigned(o.run)}</span>` : '', ST.pend.has(r.id) ? '<span class="st-pend">아직 안 올라감</span>' : ''].filter(Boolean).join(' · ');
+  return `<button type="button" class="st-row" data-st-edit="${esc(r.id)}"><span class="st-k${out ? ' out' : ''}">${out ? '불출' : '입고'}</span><span class="st-name">${esc(o.date ? fmtDay(r.day) : r.item)}</span><span class="st-q">${out ? '−' : '+'}${stNum(r.qty)}</span><span class="st-sub">${sub}</span></button>`;
+}
+function stLogHtml(live) {
+  const m = ST.month, rows = live.filter((r) => r.day.startsWith(m) && (ST.loc === 'all' || r.loc === ST.loc)).sort((a, b) => stSort(b, a));
+  const nin = rows.filter((r) => r.kind === 'in').length;
+  let h = `<div class="ms-nav"><button class="icon-btn" type="button" data-st-shift="-1" aria-label="이전 달">${SVG_L}</button><div><b>${esc(monthName(m))}</b><span>입고 ${nin}건 · 불출 ${rows.length - nin}건</span></div><button class="icon-btn" type="button" data-st-shift="1" aria-label="다음 달">${SVG_L.replace('M15 18l-6-6 6-6', 'M9 18l6-6-6-6')}</button></div>`;
+  if (!rows.length) return h + `<p class="st-none">${live.length || ST.loaded ? '이 달에 적은 기록이 없어요.' : '장부를 받는 중…'}</p>`;
+  const groups = [];
+  rows.forEach((r) => { const g = groups[groups.length - 1]; if (g && g.day === r.day) g.rows.push(r); else groups.push({ day: r.day, rows: [r] }); });
+  return h + groups.map((g) => `<div class="st-day"><div class="day-h"><span>${fmtDay(g.day)}</span><span>${g.rows.length}건</span></div>${g.rows.map((r) => stRowHtml(r, { loc: ST.loc === 'all' })).join('')}</div>`).join('');
+}
+
+/* ---- 한 품목 기록 (지역 · 품목) ---- */
+function stOpenItem(loc, key) { ST.item = { loc, key }; stItemPaint(); openScreen('stockItem'); }
+function stItemPaint() {
+  if (!ST.item) return;
+  const { loc, key } = ST.item, rows = stLive().filter((r) => r.loc === loc && stKey(r.item) === key).sort(stSort);
+  let left = 0, inQ = 0, outQ = 0; const runs = new Map();
+  rows.forEach((r) => { if (r.kind === 'in') { left += r.qty; inQ += r.qty; } else { left -= r.qty; outQ += r.qty; } runs.set(r.id, left); });
+  const name = rows.length ? rows[rows.length - 1].item : (ST.item.name || key);
+  ST.item.name = name;
+  $('#siTitle').textContent = `${loc} · ${name}`;
+  let h = `<div class="st-big"><p>${esc(loc)} · ${esc(name)} 남은 수량</p><div class="hm-dd${left < 0 ? ' short' : ''}"><b>${stSigned(left)}</b></div>${left < 0 ? '<p class="se-left warn">내보낸 것이 들어온 것보다 많아요. 입고를 빠뜨렸는지 확인해 주세요.</p>' : ''}</div>`;
+  h += `<dl class="st-sum"><div><dt>들어온 것 (입고)</dt><dd>${stNum(inQ)}</dd></div><div><dt>내보낸 것 (불출)</dt><dd>${stNum(outQ)}</dd></div></dl>`;
+  h += rows.length ? `<div class="st-day">${rows.slice().reverse().map((r) => stRowHtml(r, { date: true, run: runs.get(r.id) })).join('')}</div>` : '<p class="st-none">이 품목의 기록이 없어요.</p>';
+  $('#siBody').innerHTML = h;
+}
+
+/* ---- 입고 · 불출 적기 ---- */
+function stOpenEditor(id, preset) {
+  if (!stUid()) { toast('로그인한 뒤에 적을 수 있어요'); return; }
+  stCacheLoad();
+  const ex = id ? (ST.pend.get(id) || ST.rows.get(id)) : null;
+  if (id && (!ex || ex.deleted)) { toast('지워졌거나 찾을 수 없는 기록이에요'); return; }
+  const p = preset || {};
+  ST.ed = ex ? clone(ex) : { id: 'st' + uid(), kind: p.kind === 'out' ? 'out' : 'in', loc: p.loc || (ST.loc !== 'all' ? ST.loc : ST.lastLoc) || '', item: p.item || '', qty: 0, day: p.day || seoulYMD(),
+    party: p.party || '', memo: '', createdAt: 0, updatedAt: 0, mine: true, canEdit: true, author: stMyName(), editor: '' };
+  ST.edNew = !ex; ST.edDirty = false;
+  const e = ST.ed, ro = !ST.edNew && !e.canEdit;
+  $('#seLocs').innerHTML = stLocs(stLive()).map((l) => `<button type="button" data-v="${esc(l)}">${esc(l)}</button>`).join('');
+  $('#seItem').value = e.item; $('#seQty').value = e.qty || ''; $('#seDay').value = e.day; $('#seParty').value = e.party || ''; $('#seMemo').value = e.memo || '';
+  ['#seItem', '#seQty', '#seDay', '#seParty', '#seMemo'].forEach((s) => { $(s).disabled = ro; });
+  $$('#seFields .seg.choice').forEach((seg) => seg.setAttribute('aria-disabled', String(ro)));
+  $('#seActs').hidden = ro; $('#seMore').hidden = !ST.edNew; $('#seDel').hidden = ST.edNew || ro;
+  const who = $('#seWho');
+  who.hidden = ST.edNew; who.className = 'se-who' + (ro ? ' ro' : '');
+  who.textContent = ST.edNew ? '' : `적은 사람 ${e.author || '-'}${e.editor ? ` · 고친 사람 ${e.editor}` : ''}` + (ro ? ' — 고치거나 지우는 건 적은 분만 할 수 있어요.' : ST.pend.has(e.id) ? ' · 아직 서버에 안 올라갔어요' : '');
+  $('#seErr').hidden = true;
+  stEdChoices(); stEdQuick(); stFillLists();
+  openScreen('stockEditor');
+  autosize($('#seMemo'));
+}
+function stEdChoices() {
+  const e = ST.ed; if (!e) return; const out = e.kind === 'out', ro = !ST.edNew && !e.canEdit;
+  $$('#seFields .seg.choice').forEach((seg) => { const f = seg.dataset.sef; $$('button', seg).forEach((b) => b.setAttribute('aria-pressed', String(e[f] === b.dataset.v))); });
+  $('#seTitle').textContent = ST.edNew ? (out ? '불출 적기' : '입고 적기') : ro ? '기록 보기' : '기록 고치기';
+  $('#seLocLb').textContent = out ? '어느 곳에서 내보냈나요' : '어느 곳에 들어왔나요';
+  $('#seDayLb').textContent = out ? '내보낸 날' : '받은 날';
+  $('#sePartyLb').textContent = out ? '받는 곳 · 받은 사람' : '보낸 곳';
+  $('#sePartyOpt').hidden = out;   /* 불출은 어디로 보냈는지 꼭 */
+  $('#seParty').placeholder = out ? '예: 2파트 김철수, ○○장례식장' : '예: 본사, ○○상사';
+  stEdLeft();
+}
+function stEdLeft() {
+  const e = ST.ed, el = $('#seLeft'); if (!e || !el) return;
+  const item = stTidy($('#seItem').value), qs = String($('#seQty').value).trim(), qty = /^\d+$/.test(qs) ? parseInt(qs, 10) : 0;
+  if (!item || !e.loc) { el.hidden = true; return; }
+  const { left, seen } = stLeftAt(e.loc, item, e.id), after = left + (e.kind === 'in' ? qty : -qty);
+  el.hidden = false; el.className = 'se-left' + (after < 0 ? ' warn' : '');
+  if (!seen) el.textContent = e.kind === 'in' ? `${e.loc}에 처음 들어오는 품목이에요.${qty ? ` 저장하면 남음 ${stNum(qty)}` : ''}` : `${e.loc}에 들어온 기록이 없는 품목이에요.${qty ? ` 저장하면 남음 ${stSigned(after)} (모자람)` : ''}`;
+  else el.textContent = `${e.loc} ${item} 지금 남음 ${stSigned(left)}${qty ? ` → 저장하면 ${stSigned(after)}${after < 0 ? ' (모자람)' : ''}` : ''}`;
+}
+function stEdQuick() {
+  const e = ST.ed, box = $('#seQuick'); if (!e) return;
+  if (!ST.edNew) { box.innerHTML = ''; return; }
+  const m = new Map(), cur = stKey($('#seItem').value);
+  stLive().filter((r) => !e.loc || r.loc === e.loc).forEach((r) => { const k = stKey(r.item), t = Math.max(r.createdAt || 0, r.updatedAt || 0), o = m.get(k); if (!o || t >= o.t) m.set(k, { name: r.item, t }); });
+  box.innerHTML = [...m.entries()].sort((a, b) => b[1].t - a[1].t).slice(0, 8).map(([k, o]) => `<button type="button" data-qi="${esc(o.name)}" aria-pressed="${k === cur}">${esc(o.name)}</button>`).join('');
+}
+function stFillLists() {
+  const items = new Map(), parties = new Map();
+  stLive().forEach((r) => { items.set(stKey(r.item), r.item); const p = stTidy(r.party); if (p) parties.set(p, (parties.get(p) || 0) + 1); });
+  $('#dlStockItems').innerHTML = [...items.values()].sort(CASE_COLL.compare).map((v) => `<option value="${esc(v)}"></option>`).join('');
+  $('#dlStockParty').innerHTML = [...parties.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40).map(([v]) => `<option value="${esc(v)}"></option>`).join('');
+}
+function stSave(more) {
+  const e = ST.ed; if (!e || (!ST.edNew && !e.canEdit)) return;
+  const qs = String($('#seQty').value).trim();
+  e.item = stTidy($('#seItem').value).slice(0, 60); e.qty = /^\d+$/.test(qs) ? parseInt(qs, 10) : 0;
+  e.day = $('#seDay').value; e.party = stTidy($('#seParty').value).slice(0, 60); e.memo = $('#seMemo').value.trim().slice(0, 500);
+  const errs = [];
+  if (!e.loc) errs.push(e.kind === 'out' ? '내보낸 곳(부산 · 울산 · 창원)' : '들어온 곳(부산 · 울산 · 창원)');
+  if (!e.item) errs.push('품목');
+  if (!(e.qty >= 1 && e.qty <= 1000000)) errs.push('수량(1 이상 숫자)');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(e.day)) errs.push(e.kind === 'out' ? '내보낸 날' : '받은 날');
+  if (e.kind === 'out' && !e.party) errs.push('받는 곳 · 받은 사람');
+  if (errs.length) { const er = $('#seErr'); er.textContent = `${errs.join(', ')}을(를) 넣어 주세요.`; er.hidden = false; er.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+  $('#seErr').hidden = true;
+  const old = ST.pend.get(e.id) || ST.rows.get(e.id);
+  const row = { id: e.id, kind: e.kind, loc: e.loc, item: e.item, qty: e.qty, day: e.day, party: e.party, memo: e.memo, deleted: false,
+    createdAt: (old && old.createdAt) || Date.now(), updatedAt: Math.max(Date.now(), ((old && old.updatedAt) || 0) + 1),
+    mine: old ? !!old.mine : true, canEdit: true, author: (old && old.author) || stMyName(), editor: old && !old.mine ? stMyName() : (old && old.editor) || '', pend: true };
+  ST.pend.set(row.id, row);
+  if (!stCacheSave()) return;
+  ST.lastLoc = row.loc; stUiSave(); ST.edDirty = false;
+  const { left } = stLeftAt(row.loc, row.item);
+  toast(`저장했어요 · ${row.loc} ${row.item} 남음 ${stSigned(left)}${left < 0 ? ' (모자람)' : ''}`);
+  if (more) { stOpenEditor(null, { kind: row.kind, loc: row.loc, day: row.day, party: row.party }); setTimeout(() => $('#seItem').focus(), 60); }
+  else closeScreen('stockEditor');
+  stRefresh(); stSync();
+}
+function stDelete(btn) {
+  const e = ST.ed; if (!e || ST.edNew || !e.canEdit) return;
+  armConfirm(btn, '지우기', () => {
+    const base = ST.pend.get(e.id) || ST.rows.get(e.id); if (!base) return;
+    const del = Object.assign({}, base, { deleted: true, updatedAt: Math.max(Date.now(), (base.updatedAt || 0) + 1), pend: true });
+    ST.pend.set(e.id, del); stCacheSave(); ST.edDirty = false; closeScreen('stockEditor'); stRefresh(); stSync();
+    undoOr('기록을 지웠어요', () => {
+      const back = Object.assign({}, base, { deleted: false, updatedAt: Math.max(Date.now(), del.updatedAt + 1), pend: true });
+      ST.pend.set(e.id, back); stCacheSave(); stRefresh(); stSync(); toast('되돌렸어요');
+    });
+  }, { title: '이 기록을 지울까요?', body: `${e.loc} · ${e.item} ${e.kind === 'out' ? '불출' : '입고'} ${stNum(e.qty)}. 지우면 남은 수량도 다시 계산돼요.`, ok: '지우기' });
+}
+
+/* ---- 카톡 문구 · 현황표(이미지 · PDF) ---- */
+function stockText() {
+  const live = stLive(), by = stBalances(live), locs = ST.loc === 'all' ? stLocs(live) : [ST.loc], [, m, d] = seoulYMD().split('-').map(Number);
+  const out = [`[물품 수령 · 불출 현황] ${m}월 ${d}일 기준`];
+  locs.forEach((loc) => {
+    const items = stItems(by, loc);
+    out.push('', `■ ${loc}`);
+    if (!items.length) out.push('없음');
+    items.forEach((b) => out.push(`${b.name} : 입고 ${stNum(b.inQ)} · 불출 ${stNum(b.outQ)} · 남음 ${stSigned(b.left)}${b.left < 0 ? ' (모자람)' : ''}`));
+  });
+  return out.join('\n');
+}
+function stockJob() {
+  const s = S.settings, live = stLive(), by = stBalances(live), locs = ST.loc === 'all' ? stLocs(live) : [ST.loc];
+  const ymd = seoulYMD(), [y, m, d] = ymd.split('-').map(Number), mon = ST.month || ymd.slice(0, 7);
+  const recs = live.filter((r) => r.day.startsWith(mon) && locs.includes(r.loc)).sort(stSort), nin = recs.filter((r) => r.kind === 'in').length;
+  const title = '물품 수령 · 불출 현황';
+  const text = [s.company, s.author, stMyName(), ...approvalsOf(s), ...locs, ...live.flatMap((r) => [r.item, r.party, r.author, r.memo])].join(' ')
+    + ` ${title} 지역 전체 작성자 기준일 기록 남은 수량 품목 입고 불출 남음 모자람 날짜 구분 수량 보낸 곳 받는 곳 적은 사람 건 개 없습니다 적은 물품이 이 달에 0123456789−`;
+  return {
+    title, text, fileBase: safeName(`물품현황_${ST.loc === 'all' ? '전체' : ST.loc}_${ymd}`), footerLeft: footerText({ ...s, author: s.author || stMyName() }),
+    build: async () => {
+      const b = [
+        headerBlock({ title, sub: `${y}년 ${m}월 ${d}일 기준`, company: s.company, approvals: approvalsOf(s), signature: await sigImage(), signIndex: signIndexOf(approvalsOf(s)) }),
+        metaBlock([['지역', ST.loc === 'all' ? `전체 (${locs.join(' · ')})` : ST.loc], ['작성자', s.author || stMyName()], ['기준일', fmtYMD(fromKey(ymd))], [`${+mon.slice(5)}월 기록`, `입고 ${nin}건 · 불출 ${recs.length - nin}건`]]),
+      ];
+      const cols = tblCols([['품목', 0, 'l'], ['입고', 150, 'c'], ['불출', 150, 'c'], ['남음', 190, 'c']]);
+      locs.forEach((loc) => {
+        const items = stItems(by, loc);
+        b.push(sectionBlock(`${loc} · 남은 수량`, `품목 ${items.length}개`));
+        b.push(...tblBlocks(cols, items.map((x) => [x.name, stNum(x.inQ), stNum(x.outQ), x.left < 0 ? `${stSigned(x.left)} (모자람)` : stNum(x.left)]), { empty: '적은 물품이 없습니다.', strong: (v) => (String(v[3]).includes('모자람') ? 3 : -1) }));
+      });
+      const spec = [['날짜', 118, 'c']];
+      if (locs.length > 1) spec.push(['지역', 84, 'c']);
+      spec.push(['구분', 78, 'c'], ['품목', 0, 'l'], ['수량', 86, 'c'], ['보낸 곳 · 받는 곳', 0, 'l'], ['적은 사람', 118, 'c']);
+      const lc = tblCols(spec);
+      b.push(sectionBlock(`${monthName(mon)} 기록`, `${recs.length}건`));
+      b.push(...tblBlocks(lc, recs.map((r) => {
+        const v = [fmtDay(r.day)]; if (locs.length > 1) v.push(r.loc);
+        v.push(r.kind === 'out' ? '불출' : '입고', r.memo ? `${r.item}\n(${stTidy(r.memo)})` : r.item, stNum(r.qty), stTidy(r.party) || '-', r.author || '-');
+        return v;
+      }), { empty: '이 달에 적은 기록이 없습니다.' }));
+      return b;
+    },
+  };
+}
+
+function bindStock() {
+  stUiLoad();
+  const tab = $('#tab-stock');
+  tab.addEventListener('click', async (e) => {
+    const nw = e.target.closest('[data-st-new]'); if (nw) { stOpenEditor(null, { kind: nw.dataset.stNew }); return; }
+    const v = e.target.closest('[data-stv]'); if (v) { ST.view = v.dataset.stv; stUiSave(); stPaint(); return; }
+    const l = e.target.closest('[data-loc]'); if (l) { ST.loc = l.dataset.loc; stUiSave(); stPaint(); return; }
+    const it = e.target.closest('[data-st-item]'); if (it) { stOpenItem(it.dataset.stItem, it.dataset.stKey); return; }
+    const ed = e.target.closest('[data-st-edit]'); if (ed) { stOpenEditor(ed.dataset.stEdit); return; }
+    const sh = e.target.closest('[data-st-shift]'); if (sh) { ST.month = shiftMonth(ST.month || seoulYMD().slice(0, 7), Number(sh.dataset.stShift)); stPaint(); return; }
+    if (e.target.closest('[data-st="reload"]')) { ST.err = ''; stSync(); return; }
+    if (e.target.closest('#stCopy')) { const ok = await copyText(stockText()); toast(ok ? '카톡 문구를 복사했어요' : '복사하지 못했어요'); return; }
+    if (e.target.closest('#stReport')) { openPreview(stockJob()); }
+  });
+  $('#stFind').addEventListener('input', (e) => { ST.q = e.target.value; $('#stBody').innerHTML = stNowHtml(stLive(), stLocs(stLive())); });
+  /* 적기 화면 */
+  $('#seFields').addEventListener('click', (e) => {
+    const qi = e.target.closest('[data-qi]'); if (qi) { $('#seItem').value = qi.dataset.qi; ST.edDirty = true; stEdQuick(); stEdLeft(); $('#seQty').focus(); return; }
+    const b = e.target.closest('.seg.choice button'); if (!b || !ST.ed) return;
+    const seg = b.closest('.seg'); if (seg.getAttribute('aria-disabled') === 'true') return;
+    ST.ed[seg.dataset.sef] = b.dataset.v; ST.edDirty = true; stEdChoices(); if (seg.dataset.sef === 'loc') stEdQuick();
+  });
+  $('#seFields').addEventListener('input', (e) => {
+    if (!ST.ed) return; ST.edDirty = true;
+    if (e.target.id === 'seItem') { stEdLeft(); stEdQuick(); }
+    else if (e.target.id === 'seQty') stEdLeft();
+    else if (e.target.id === 'seMemo') autosize(e.target);
+  });
+  $('#seFields').addEventListener('change', (e) => { if (ST.ed && e.target.id === 'seDay') ST.edDirty = true; });
+  $('#seFields').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); const nx = { seItem: '#seQty', seQty: '#seParty' }[e.target.id]; if (nx) $(nx).focus(); else stSave(false); } });
+  $('#seBack').addEventListener('click', (e) => { if (ST.edDirty) { armConfirm(e.currentTarget, '나가기', () => { ST.edDirty = false; closeScreen('stockEditor'); }, { title: '적던 내용을 버리고 나갈까요?', ok: '나가기' }); return; } closeScreen('stockEditor'); });
+  $('#seSave').addEventListener('click', () => stSave(false));
+  $('#seMore').addEventListener('click', () => stSave(true));
+  $('#seDel').addEventListener('click', (e) => stDelete(e.currentTarget));
+  /* 한 품목 기록 화면 */
+  $('#siBack').addEventListener('click', () => { closeScreen('stockItem'); ST.item = null; });
+  $('#siBody').addEventListener('click', (e) => { const ed = e.target.closest('[data-st-edit]'); if (ed) stOpenEditor(ed.dataset.stEdit); });
+  $('#stockItem').addEventListener('click', (e) => { const b = e.target.closest('[data-si-new]'); if (b && ST.item) stOpenEditor(null, { kind: b.dataset.siNew, loc: ST.item.loc, item: ST.item.name || '' }); });
+  window.addEventListener('online', () => { if (ST.pend.size || S.tab === 'stock') stSync(); });
+  /* 못 올린 것이 남아 있으면 앱을 열 때 올림 (파트장 계정만) */
+  whenAcct(() => setTimeout(() => { stCacheLoad(); if (ST.pend.size) stSync(); }, 2500));
 }
 
 /* ================= 서버 자동 저장 · 서식 (2026.10.23-7) — 맞추는 일은 src/sync-kit.html (dw_records app='forms', 내 것만) =================
@@ -4241,6 +4757,7 @@ function bindGather() {
 async function init() {
   bind();
   bindGather();
+  bindStock();
   bindPwa();
   setupPwa();
   getDownloads();

@@ -1,5 +1,6 @@
 -- DW장례업무 · 파트 · 파트 게시판 · 권한 준비 (2026.10.23, -6: 한 사람은 한 파트에만 · 파트장은 다른 파트를 못 봄, -7: 앱에서 파트장 정하기,
---   2026.10.26: 총괄실장 — 관리자가 앱에서 정함, 서식 · 회사 서류만 쓰고 파트장들의 서식 기록을 볼 수만 있음)
+--   2026.10.26: 총괄실장 — 관리자가 앱에서 정함, 서식 · 회사 서류만 쓰고 파트장들의 서식 기록을 볼 수만 있음,
+--   2026.10.27: 물품 수령 · 불출 장부 — 파트장끼리 같이 쓰는 장부 (부산 · 울산 · 창원 입고 · 불출 · 남은 수량))
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -11,6 +12,7 @@
 --   · 파트장은 자기 파트원의 장례일정 · 봉투를 볼 수만 있음 (고치기 안 됨)
 --   · 관리자(처음 실행할 때의 파트장)는 앱 설정 「직원 권한」에서 직원을 파트장 · 총괄실장으로 정하거나 직원으로 바꿀 수 있음
 --   · 총괄실장은 파트장들이 올린 주간보고 · 회의록 · 후기 · 탁송을 볼 수만 있음 (고치기 안 됨, 장례 기록 · 게시판은 안 보임)
+--   · 물품 수령 · 불출 장부: 파트장 모두가 같은 장부를 봄. 넣은 사람(과 관리자)만 고치고 지움, 지운 기록도 서버에 남음
 -- 표는 앱에서 바로 건드릴 수 없고, 아래 함수(누가 무엇을 할 수 있는지 검사함)로만 읽고 씁니다.
 
 -- ---------- 표 ----------
@@ -499,6 +501,85 @@ language sql stable security definer set search_path = '' as $$
   order by r.user_id, r.kind, r.id
 $$;
 
+-- ---------- 물품 수령 · 불출 장부 (2026.10.27) ----------
+-- 파트장끼리 같이 쓰는 장부. 부산 · 울산 · 창원에 들어온(입고) · 내보낸(불출) 자잘한 물품을 적고, 남은 수량은 앱이 셈.
+-- 지우기는 「지움」 표시만 (내용은 남음, 되돌리기 됨). 앱에서 고친 시각(updated_at, ms)이 더 오래된 내용은 무시.
+create table if not exists public.dw_stock (
+  id         text primary key,                 -- 앱이 만든 번호 (인터넷이 끊겨도 먼저 적어 둘 수 있게)
+  kind       text not null check (kind in ('in', 'out')),   -- in = 입고(받음) · out = 불출(내보냄)
+  loc        text not null,                    -- 부산 · 울산 · 창원
+  item       text not null,                    -- 품목
+  qty        integer not null check (qty > 0),
+  day        date not null,                    -- 받은 날 · 내보낸 날
+  party      text not null default '',         -- 입고: 보낸 곳 · 불출: 받는 곳(사람)
+  memo       text not null default '',
+  author_id  uuid references public.dw_profiles(user_id) on delete set null,   -- 넣은 사람 (탈퇴해도 기록은 남음)
+  editor_id  uuid references public.dw_profiles(user_id) on delete set null,   -- 마지막으로 고친 사람
+  deleted    boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at bigint not null default 0,
+  server_at  timestamptz not null default clock_timestamp()
+);
+create index if not exists dw_stock_server_at on public.dw_stock (server_at);
+alter table public.dw_stock enable row level security;
+revoke all on public.dw_stock from anon, authenticated;
+
+-- 장부 받기 (파트장만). p_since 를 주면 그 뒤에 바뀐 것만 (지운 것 포함), 안 주면 지금 살아 있는 것 전부
+create or replace function public.dw_stock_list(p_since text default null) returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+declare me uuid := auth.uid(); adm boolean; since timestamptz;
+begin
+  if not public.dw_is_leader(me) then return jsonb_build_object('ok', false, 'why', 'notleader'); end if;
+  adm := public.dw_is_admin(me);
+  begin since := nullif(btrim(coalesce(p_since, '')), '')::timestamptz; exception when others then since := null; end;
+  return jsonb_build_object('ok', true, 'full', since is null, 'rows', coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'id', s.id, 'kind', s.kind, 'loc', s.loc, 'item', s.item, 'qty', s.qty, 'day', to_char(s.day, 'YYYY-MM-DD'),
+             'party', s.party, 'memo', s.memo, 'deleted', s.deleted, 'created_at', s.created_at, 'updated_at', s.updated_at, 'server_at', s.server_at,
+             'author', case when s.author_id is null then '나간 직원' else public.dw_name(s.author_id) end,
+             'editor', case when s.editor_id is null or s.editor_id = s.author_id then '' else public.dw_name(s.editor_id) end,
+             'mine', coalesce(s.author_id = me, false), 'can_edit', coalesce(s.author_id = me, false) or adm)
+           order by s.server_at)
+    from public.dw_stock s
+    where (since is null and not s.deleted) or s.server_at > since - interval '2 minutes'   -- 2분 겹쳐서 받음 (동시에 저장된 것을 놓치지 않게)
+  ), '[]'::jsonb));
+end $$;
+
+-- 장부 한 줄 넣기 · 고치기 · 지우기(deleted true) · 되돌리기(deleted false). 고치기 · 지우기는 넣은 사람 또는 관리자만
+create or replace function public.dw_stock_save(p jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); old public.dw_stock;
+  v_id text := btrim(coalesce(p ->> 'id', ''));
+  k text := coalesce(p ->> 'kind', '');
+  l text := left(btrim(coalesce(p ->> 'loc', '')), 20);
+  it text := left(btrim(regexp_replace(coalesce(p ->> 'item', ''), '\s+', ' ', 'g')), 60);
+  pa text := left(btrim(coalesce(p ->> 'party', '')), 60);
+  mm text := left(coalesce(p ->> 'memo', ''), 500);
+  q integer; d date; up bigint; del boolean;
+begin
+  if not public.dw_is_leader(me) then return jsonb_build_object('ok', false, 'why', 'notleader'); end if;
+  if v_id = '' or length(v_id) > 40 or v_id !~ '^[A-Za-z0-9_-]+$' then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+  if k not in ('in', 'out') or l = '' or it = '' then return jsonb_build_object('ok', false, 'why', 'empty'); end if;
+  begin
+    q := (p ->> 'qty')::integer; d := (p ->> 'day')::date;
+    up := coalesce((p ->> 'updated_at')::bigint, 0); del := coalesce((p ->> 'deleted')::boolean, false);
+  exception when others then return jsonb_build_object('ok', false, 'why', 'bad'); end;
+  if q is null or q < 1 or q > 1000000 or d is null then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+  perform public.dw_profile_ensure(me);
+  select * into old from public.dw_stock where id = v_id for update;
+  if old.id is null then
+    insert into public.dw_stock (id, kind, loc, item, qty, day, party, memo, author_id, editor_id, deleted, updated_at, server_at)
+    values (v_id, k, l, it, q, d, pa, mm, me, me, del, up, clock_timestamp());
+    return jsonb_build_object('ok', true, 'id', v_id);
+  end if;
+  if not (coalesce(old.author_id = me, false) or public.dw_is_admin(me)) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  if up < old.updated_at then return jsonb_build_object('ok', true, 'id', v_id, 'stale', true); end if;   -- 더 나중에 고친 것이 이미 있음
+  update public.dw_stock set kind = k, loc = l, item = it, qty = q, day = d, party = pa, memo = mm,
+         editor_id = me, deleted = del, updated_at = up, server_at = clock_timestamp()
+   where id = v_id;
+  return jsonb_build_object('ok', true, 'id', v_id);
+end $$;
+
 -- ---------- 누가 부를 수 있는지 ----------
 revoke all on function public.dw_login_of(text, uuid)          from public, anon, authenticated;
 revoke all on function public.dw_profile_ensure(uuid)          from public, anon, authenticated;
@@ -531,6 +612,8 @@ revoke all on function public.dw_member_records(uuid, uuid, text)            fro
 revoke all on function public.dw_set_role_to(uuid, text)                     from public, anon;
 revoke all on function public.dw_chief_leaders()                             from public, anon;
 revoke all on function public.dw_chief_records(text, text, text)             from public, anon;
+revoke all on function public.dw_stock_list(text)                         from public, anon;
+revoke all on function public.dw_stock_save(jsonb)                        from public, anon;
 
 grant execute on function public.dw_me()                                        to authenticated;
 grant execute on function public.dw_people()                                    to authenticated;
@@ -553,5 +636,7 @@ grant execute on function public.dw_member_records(uuid, uuid, text)            
 grant execute on function public.dw_set_role_to(uuid, text)                     to authenticated;
 grant execute on function public.dw_chief_leaders()                             to authenticated;
 grant execute on function public.dw_chief_records(text, text, text)             to authenticated;
+grant execute on function public.dw_stock_list(text)                         to authenticated;
+grant execute on function public.dw_stock_save(jsonb)                        to authenticated;
 
-select 'DW 파트 · 게시판 준비 끝' as result;
+select 'DW 파트 · 게시판 · 물품 장부 준비 끝' as result;

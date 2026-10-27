@@ -5,7 +5,7 @@ CNT=itertools.count()
 def now_iso(): return (datetime.datetime(2026,10,23,9)+datetime.timedelta(seconds=next(CNT))).isoformat()+'+00:00'
 class Srv:
     def __init__(s):
-        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.noserver=False; s.calls=[]
+        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.noserver=False; s.calls=[]
     def add_user(s,login,pw,leader=False,name='',chief=False,admin=False):
         email=login if '@' in login else login+'@dwfuneral.com'; lid=login.split('@')[0] if email.endswith('@dwfuneral.com') else email
         am={'dw_role':'leader'} if leader else {'dw_role':'chief'} if chief else {}
@@ -210,6 +210,36 @@ class Srv:
             if p_month and k!='state' and mon!=p_month and re.match(r'^\d{4}-(0[1-9]|1[0-2])$',mon): continue
             out.append(dict(owner=u,rkind=k,rid=i,rdata=d,rupdated=r['updated_at']))
         return out
+    # 물품 수령 · 불출 장부 (2026.10.27) — 파트장끼리 같이 씀, 고치기 · 지우기는 넣은 사람 또는 관리자
+    def stock_json(s,r,me):
+        return dict(id=r['id'],kind=r['kind'],loc=r['loc'],item=r['item'],qty=r['qty'],day=r['day'],party=r['party'],memo=r['memo'],deleted=r['deleted'],
+                    created_at=r['created_at'],updated_at=r['updated_at'],server_at=r['server_at'],
+                    author=s.name(r['author_id']) if r['author_id'] else '나간 직원',editor=s.name(r['editor_id']) if r['editor_id'] and r['editor_id']!=r['author_id'] else '',
+                    mine=r['author_id']==me,can_edit=r['author_id']==me or s.admin(me))
+    def f_dw_stock_list(s,me,p_since=None):
+        if not s.leader(me): return s.no('notleader')
+        since=None
+        try: since=datetime.datetime.fromisoformat(p_since)-datetime.timedelta(minutes=2) if p_since else None
+        except Exception: since=None
+        rows=[r for r in sorted(s.STOCK.values(),key=lambda r:r['server_at']) if (since is None and not r['deleted']) or (since is not None and datetime.datetime.fromisoformat(r['server_at'])>since)]
+        return s.ok(full=since is None,rows=[s.stock_json(r,me) for r in rows])
+    def f_dw_stock_save(s,me,p):
+        import re
+        if not s.leader(me): return s.no('notleader')
+        i=str(p.get('id') or '').strip()
+        if not i or len(i)>40 or not re.match(r'^[A-Za-z0-9_-]+$',i): return s.no('bad')
+        k=p.get('kind'); l=str(p.get('loc') or '').strip()[:20]; it=re.sub(r'\s+',' ',str(p.get('item') or '')).strip()[:60]
+        if k not in ('in','out') or not l or not it: return s.no('empty')
+        try:
+            q=int(p.get('qty')); d=str(p.get('day')); datetime.date.fromisoformat(d); up=int(p.get('updated_at') or 0); dl=bool(p.get('deleted') or False)
+        except Exception: return s.no('bad')
+        if q<1 or q>1000000: return s.no('bad')
+        old=s.STOCK.get(i); row=dict(kind=k,loc=l,item=it,qty=q,day=d,party=str(p.get('party') or '').strip()[:60],memo=str(p.get('memo') or '')[:500],deleted=dl,updated_at=up,server_at=now_iso(),editor_id=me)
+        if not old:
+            row.update(id=i,author_id=me,created_at=now_iso()); s.STOCK[i]=row; return s.ok(id=i)
+        if not (old['author_id']==me or s.admin(me)): return s.no('denied')
+        if up<old['updated_at']: return s.ok(id=i,stale=True)
+        old.update(row); return s.ok(id=i)
 def wire(ctx,srv,mockjs):
     ctx.route('**/vendor/supabase.js', lambda r: r.fulfill(status=200,content_type='application/javascript',body=mockjs))
     for n,f in [('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert)]: ctx.expose_binding(n,f)
