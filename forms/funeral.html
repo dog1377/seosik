@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.27-5">
+<meta name="app-version" content="2026.10.28-1">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1278,6 +1278,7 @@ body[data-tab="list"] .case-panel{display:none}
       <div class="sec-head"><h2>업체별 양식</h2></div>
       <div class="chips" id="coChips"></div>
       <label class="f">업체명<input class="input" id="coName"></label>
+      <label class="f" id="coDispF">배차 양식 회사명<input class="input" id="coDisp" placeholder="비우면 업체명 그대로" autocomplete="off"><span class="field-hint">배차 양식의 「회사」 줄에만 이 이름이 들어가요.</span></label>
       <div class="stack" style="gap:6px">
         <label class="check"><input type="checkbox" id="coReportsEnabled" aria-controls="coReportSection" aria-describedby="coReportsHelp">회사 보고양식 사용</label>
         <p class="note" id="coReportsHelp">선택한 업체에 적용됩니다. 체크를 해제해도 양식 내용은 보관됩니다. 변경 후 저장을 눌러주세요.</p>
@@ -1297,7 +1298,7 @@ body[data-tab="list"] .case-panel{display:none}
     </div>
     <div class="sec" data-av="common">
       <div class="sec-head"><h2>배차 양식</h2></div>
-      <p class="note">모든 업체 행사의 보고서 화면에 나오는 배차 문자 양식입니다. 쓸 수 있는 자리: {발인날짜} {장소} {업체명} {회사명} {발인} {배차} {화장하관} {화장장회차} {차량경로} {차량} {운행경로} {장지} {담당} {담당연락처} {고인명} {상주명}. 배차 칸을 비워 두면 발인 30분 전으로, 운행 경로를 비워 두면 「화장장-장지-장례식장」으로 들어갑니다.</p>
+      <p class="note">모든 업체 행사의 보고서 화면에 나오는 배차 문자 양식입니다. {업체명}에는 업체 양식의 「배차 양식 회사명」이 있으면 그 이름이 들어갑니다(대한선진(국향) → 대한항공노동조합). 쓸 수 있는 자리: {발인날짜} {장소} {업체명} {회사명} {발인} {배차} {화장하관} {화장장회차} {차량경로} {차량} {운행경로} {장지} {담당} {담당연락처} {고인명} {상주명}. 배차 칸을 비워 두면 발인 30분 전으로, 운행 경로를 비워 두면 「화장장-장지-장례식장」으로 들어갑니다.</p>
       <label class="f">배차 양식<textarea class="input tpl" id="dispTpl" rows="11"></textarea></label>
       <div class="row"><button class="btn sm primary" id="saveDispTpl" type="button">저장</button><button class="btn sm" id="resetDispTpl" type="button">기본값으로</button></div>
     </div>
@@ -1692,7 +1693,15 @@ const DAEHAN_REPORT=`장소 : {장소}
 총수금액: {총수금액}
 장례담당자 : {담당팀장}
 연락처 : {담당연락처}`;
-const DAEHAN_ID='daehan';   /* 기기마다 같은 번호 → 서버 저장으로 맞춰도 겹치지 않음 */
+const DAEHAN_ID='daehan';
+/* 배차 양식 「회사 :」 줄에 쓰는 이름 (2026.10.28): 업체 양식의 「배차 양식 회사명」(co.dispName), 한 번도 안 정했으면 아래 기본값, 없으면 업체명 */
+const DISP_CO_DEFAULT={'대한선진(국향)':'대한항공노동조합'};
+const coKey=v=>String(v||'').replace(/\s/g,'');
+function dispCoName(c){
+  const nm=caseCoName(c), co=coById(c&&c.companyId);
+  if(co.id!==ETC&&typeof co.dispName==='string') return co.dispName.trim()||nm;
+  return DISP_CO_DEFAULT[coKey(nm)]||nm;
+}   /* 기기마다 같은 번호 → 서버 저장으로 맞춰도 겹치지 않음 */
 /* 배차 양식 (2026.10.20): 모든 업체 행사의 보고서에 나옴. 설정 → 배차 양식에서 고칠 수 있음(db.dispatchTpl) */
 const DISPATCH_TPL=`{발인날짜}
 장소 : {장소}
@@ -1872,7 +1881,7 @@ if(!db.v5){
   db.v5=true;
 }
 if(!db.v6){ db.companies.forEach(x=>{ x.deduct=[]; }); db.v6=true; }
-const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],crems:['부산영락','마산화장','창원상복'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],urnTypes:[],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
+const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],crems:['부산영락','마산화장','창원상복','김해추모의공원'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],urnTypes:[],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
 if(!db.lists) db.lists=JSON.parse(JSON.stringify(DEFAULT_LISTS));
 Object.keys(DEFAULT_LISTS).forEach(k=>{ if(!db.lists[k]) db.lists[k]=DEFAULT_LISTS[k].slice(); });
 // 공통 기본 선택지만 한 번 제거한다. 기존 행사의 유골함 기록은 그대로 둔다.
@@ -1886,6 +1895,7 @@ migrateUrnChoices(db);
 const noPlus=v=>String(v??'').replace(/\s*\+\s*/g,' ').trim();
 if(!db.vVeh){ db.lists.vehTypes=[...new Set((db.lists.vehTypes||[]).map(noPlus))]; db.cases.forEach(c=>{ if(c.f&&/\+/.test(c.f.vehType||'')) c.f.vehType=noPlus(c.f.vehType); }); db.vVeh=true; }
 if(db.lists && db.lists.tributes && !db.v9){ if(!db.lists.tributes.includes('영호 5만원')){ const i=db.lists.tributes.indexOf('영호 3만원'); db.lists.tributes.splice(i<0?db.lists.tributes.length:i+1,0,'영호 5만원'); } db.v9=true; }
+if(!db.vCremGimhae){ const L=db.lists.crems; if(Array.isArray(L)&&!L.some(v=>coKey(v)==='김해추모의공원')) L.push('김해추모의공원'); db.vCremGimhae=true; }   /* 화장장 고르기에 김해추모의공원 (2026.10.28) */
 const LIST_LABEL={crems:'화장장 (화장장명 고르기)',causes:'사망 사유',helpers:'도우미',mournBrands:'상복 업체',vehCos:'장의차 업체',vehTypes:'차종',productShorts:'상품 약칭',flowers:'입관꽃장식 (업체 금액)',flowerPays:'입관꽃장식 결제',tributes:'헌화 (업체 금액)',tributePays:'헌화 결제',urnTypes:'유골함 종류',cardCos:'카드사 (카드결제 양식)'};
 function addVendorsV8(){
   const add=(name,report,extra={})=>{ if(db.companies.some(x=>x.name===name)) return; db.companies.push({id:uid(),name,band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:report}],items:GOI_ITEMS.slice(),deduct:[],...extra}); };
@@ -1954,7 +1964,7 @@ function period(a,b){ const p=parseDT(a), q=parseDT(b); if(!p||!q) return ''; co
 /* 배차 양식용 */
 function dispatchDT(f){ if(String(f.dispatchAt||'').trim()) return f.dispatchAt; const p=parseDT(f.depart); if(!p||p.h==null) return ''; const t=new Date(p.y,p.mo-1,p.d,p.h,p.mi||0); t.setMinutes(t.getMinutes()-30); return `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}`; }
 function departDay(f){ const p=parseDT(f.depart); if(!p) return ''; return `${p.mo}월 ${p.d}일 ${'일월화수목금토'[new Date(p.y,p.mo-1,p.d).getDay()]}요일`; }
-const CREM_FULL={'부산':'부산영락','마산':'마산화장','창원':'창원상복'};   /* 배차 양식에는 화장장을 「부산영락 · 마산화장 · 창원상복」처럼 */
+const CREM_FULL={'부산':'부산영락','마산':'마산화장','창원':'창원상복','김해':'김해추모의공원'};   /* 배차 양식에는 화장장을 「부산영락 · 마산화장 · 창원상복」처럼 */
 const cremDispName=f=>{ const n=String(cremReportLabel(f)||'').trim(); return CREM_FULL[n.replace(/\s/g,'')]||n; };
 function cremWithRound(f){ if(isBurial(f)) return ''; const n=cremDispName(f); return [n, f.cremRound?`(${pad(f.cremRound)}회차)`:''].filter(Boolean).join(' '); }
 function cremOrHagwan(f){ if(isBurial(f)){ const hs=hagwanStr(f); return hs?`하관 : ${hs}`:'하관 : '; } return `화장 : ${cremWithRound(f)}`; }
@@ -2091,8 +2101,8 @@ function fmtAs(v,fm){
   if(fm==='md') return `${M}월 ${D}일${t}`;   /* 08월 09일 11:00 */
   return dayTime(v);
 }
-function fillTpl(body,c){
-  const v=vals(c), burial=isBurial(c.f||{});
+function fillTpl(body,c,over){
+  const v={...vals(c),...(over||{})}, burial=isBurial(c.f||{});
   return String(body||'').split('\n').flatMap(line=>{
     if(burial) line=line.replace(/^(\s*)화\s*장(\s*:\s*)\{화장\}/,'$1하 관$2{하관}');   // 매장이면 화장 줄을 하관 줄로
     const only=line.trim().match(/^\{(제공항목|공제항목|관리사배치)\}$/); if(only) return v[only[1]]?v[only[1]].split('\n'):[];
@@ -2307,6 +2317,8 @@ function dtCtl(k,v,label){
   return `<div class="dt" data-dt="${k}" id="f_${k}"><input class="input" type="date" data-dtp="d" value="${esc(d)}" aria-label="${esc(label||'')} 날짜">${tpCtl({mode:'hm',h:t.slice(0,2),m:t.slice(3,5),hAttr:'data-dtp="h"',mAttr:'data-dtp="m"',label:`${label||''} 시간`.trim()})}</div>`;
 }
 const SAME_MAP={chief:'customer',chiefRel:'custRel',chiefTel:'custTel'};
+/* 업체마다 고객 칸 이름: 조합원(대한선진) · 직원(농협상조) · 회원(그 밖) */
+const custWord=c=>{ const l=String(((coById(c&&c.companyId)||{}).labels||{}).customer||'').replace(/\s*\([^)]*\)\s*$/,'').replace(/명$/,'').trim(); return l&&!/고객/.test(l)?l:'회원'; };
 function syncChief(c){
   if(!c.f.sameChief) return;
   Object.entries(SAME_MAP).forEach(([to,from])=>{ c.f[to]=c.f[from]||''; const el=$('#f_'+to); if(el) el.value=c.f[to]; });
@@ -2366,12 +2378,14 @@ document.addEventListener('input',e=>{ const t=e.target; if(t.closest&&t.closest
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-cnt]'); if(!b) return; const inp=document.getElementById('f_'+b.dataset.cnt); if(!inp) return;
   inp.value=inp.value.trim()===b.dataset.v?'':b.dataset.v; inp.dispatchEvent(new Event('input',{bubbles:true})); });
 // 업체별 입력 칸 예시 (칸이 비어 있을 때 흐리게 보임)
-const FIELD_EX={'현진시닝':{product:'예: 삼성전기 270 일반형',staffOrg:'예: 부산본부',mourn:'예: 부친상 / 모친상'},'고이장례연구소':{product:'예: 2026 가족장 289'},'대한선진(국향)':{product:'예: 170상품',place:'예: 김해교원예움 장례식장 6호'}};
+const FIELD_EX={'현진시닝':{product:'예: 삼성전기 270 일반형',staffOrg:'예: 부산본부',mourn:'예: 부친상 / 모친상'},'고이장례연구소':{product:'예: 2026 가족장 289'},'대한선진(국향)':{product:'예: 170상품',place:'예: 김해교원예움 장례식장 6호',staff:'예: 최준영'}};
 const exFor=k=>{ const c=curCase(); if(!c) return ''; return (FIELD_EX[caseCoName(c).replace(/\s/g,'')]||{})[k]||''; };
 const exAttr=k=>exFor(k)?` placeholder="${esc(exFor(k))}"`:'';
+/* 칸 이름 끝 괄호 「관계 (예: 자)」 → 흐린 예시 글자 「예: 자」 (칸 이름에서는 괄호를 빼고 보여서 예시가 안 보였음, 2026.10.28) */
+const labPh=fd=>{ const raw=(coById(curCase().companyId).labels||{})[fd.k]||fd.l, m=String(raw).match(/\(([^)]+)\)\s*$/); return m?` placeholder="${esc(m[1].trim())}"`:''; };
 function ctl(fd){
   const v=(curCase().f||{})[fd.k]??'';
-  if(curCase().f.sameChief && SAME_MAP[fd.k]) return `<input class="input" id="f_${fd.k}" type="${fd.t==='tel'?'tel':'text'}" value="${esc(v)}" disabled title="회원과 동일">`;
+  if(curCase().f.sameChief && SAME_MAP[fd.k]) return `<input class="input" id="f_${fd.k}" type="${fd.t==='tel'?'tel':'text'}" value="${esc(v)}" disabled title="${esc(custWord(curCase()))}과 같음">`;
   if(fd.t==='datetime-local') return dtCtl(fd.k,v,(coById(curCase().companyId).labels||{})[fd.k]||fd.l);
   const L=(coById(curCase().companyId).labels||{})[fd.k]||fd.l;
   if(fd.t==='prod'){ const co=coById(curCase().companyId); if(!(co.products||[]).length) return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" value="${esc(v)}"${exAttr(fd.k)} autocomplete="off">`; return chooser({key:fd.k,options:co.products,label:L}); }
@@ -2389,7 +2403,7 @@ function ctl(fd){
     <div class="cnt-quick">${CNT_WORDS.map(w=>`<button type="button" class="chip" data-cnt="${fd.k}" data-v="${w}" aria-pressed="${String(v).trim()===w}">${w}</button>`).join('')}</div>`;
   if(fd.t==='num') return `<div class="suffix"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="${fd.k==='eventNo'?'numeric':'decimal'}" value="${esc(v)}" ${fd.k==='eventNo'?'placeholder="예: 3" autocomplete="off"':''}><span>${fd.o}</span></div>`;
   if(fd.k==='altar'){ const n=altarNotes(curCase()).altar; return `<input class="input" id="f_altar" data-k="altar" type="text" value="${esc(v)}" placeholder="예: 20 → 20만원 공제" autocomplete="off"><span class="amt-r altar-net" data-altar-note="altar" ${n?'':'hidden'}>${esc(n)}</span>`; }
-  return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="${fd.t}" value="${esc(v)}"${exAttr(fd.k)} ${fd.t==='tel'?'inputmode="tel" autocomplete="off"':''}>`;
+  return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="${fd.t}" value="${esc(v)}"${exAttr(fd.k)||labPh(fd)} ${fd.t==='tel'?'inputmode="tel" autocomplete="off"':''}>`;
 }
 const lab=fd=>{
   const co=coById(curCase().companyId), raw=(co.labels||{})[fd.k]||fd.l;
@@ -2442,7 +2456,7 @@ function renderInput(){
     h+=`<div class="sec" data-section="${sectionKey}" data-group="${meta.group}" data-title="${esc(meta.title)}" ${meta.group===inputGroup?'':'hidden'}><div class="sec-head"><h2>${meta.title}</h2>${s.key==='sched'?'<button class="btn link" type="button" data-act="threeDay">3일장 자동 입력</button>':''}</div><div class="fields">`;
     h+=rows.map(fieldRow).join('');
     if(s.key==='sched') h+=`<div id="schedInfo" class="fields"></div>`;
-    if(s.key==='cust') h+=`<label class="check"><input type="checkbox" id="sameChief" ${c.f.sameChief?'checked':''}> 회원과 상주가 같은 사람</label>`;
+    if(s.key==='cust') h+=`<label class="check"><input type="checkbox" id="sameChief" ${c.f.sameChief?'checked':''}> ${esc(custWord(c))}과 상주가 같은 사람</label>`;
     if(s.key==='prov' && extra) h+=itemsHtml(c);
     if(s.key==='deduct') h+=deductHtml(c);
     if(s.key==='mgr' && extra) h+=mgrHtml(c);
@@ -2456,7 +2470,7 @@ function renderInput(){
     if(g==='basic'){cards.sort((a,b)=>['name','cust','chief'].indexOf(a.dataset.section)-['name','cust','chief'].indexOf(b.dataset.section));cards.forEach(el=>$('#inputGrid').appendChild(el));}
     cards.forEach((el,i)=>el.querySelector('h2').insertAdjacentHTML('afterbegin',`<span class="sec-num">${String(i+1).padStart(2,'0')}</span>`));
   });
-  const place=$('#f_place');if(place)place.placeholder='예: 동래봉생 2호';
+  const place=$('#f_place');if(place)place.placeholder=exFor('place')||'예: 동래봉생 2호';
   const hint=$('#f_productShort');if(hint)hint.closest('label').insertAdjacentHTML('beforeend','<span class="field-hint">비우면 상품명이 사용됩니다.</span>');
   const product=$('#f_product');if(product)product.closest('label').insertAdjacentHTML('afterend','<p class="note" style="grid-column:1/-1">금액은 숫자만 넣으면 만원입니다. 120 → 120만원 · 120.5 → 1,205,000원</p>');
   applyInputGroup();
@@ -2507,7 +2521,7 @@ function composeDT(box){
 $('#p-input').addEventListener('change',e=>{
   const t=e.target, c=curCase(); if(!c) return; const f=c.f;
   if(updateHagwanInput(t,c)||updateCremInput(t,c)) return;
-  if(t.id==='sameChief'){ c.f.sameChief=t.checked; syncChief(c); touched(); renderInput(); toast(t.checked?'상주 칸에 회원 정보를 넣었습니다':'상주 칸을 직접 입력할 수 있습니다'); return; }
+  if(t.id==='sameChief'){ c.f.sameChief=t.checked; syncChief(c); touched(); renderInput(); toast(t.checked?`상주 칸에 ${custWord(c)} 정보를 넣었습니다`:'상주 칸을 직접 입력할 수 있습니다'); return; }
   if(t.dataset.pk){
     const k=t.dataset.pk, txt=t.parentElement.querySelector('[data-pd]');
     if(t.value==='__direct'){ c.f['_d_'+k]=true; c.f[k]=txt.value; txt.hidden=false; txt.focus(); }
@@ -3180,7 +3194,7 @@ function renderOut(){
   $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
   $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   $('#outTabs').innerHTML=outViews(c).map(([k,l])=>`<button type="button" role="tab" data-ov-tab="${k}">${esc(l)}</button>`).join(''); applyOutView();
-  $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c);
+  $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c,{'업체명':dispCoName(c)});   /* 배차는 업체별 배차 회사명 (대한선진(국향) → 대한항공노동조합) */
   { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없어요':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워져요. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 넣으세요. 미리보기를 누르면 크게 보여요.';
   { const cv=$('#xlCanvas'); szPaint(cv,c); szWhenFonts(()=>{ if(db.tab==='out'||isSplit()) szPaint($('#xlCanvas'),curCase()); }); }
@@ -3188,7 +3202,8 @@ function renderOut(){
   const used=usedPH(co);
   const burialOn=used.has('화장')||used.has('하관');
   const miss=Object.entries(REQUIRED).filter(([k])=>(k==='cremDate'?(used.has('화장')&&!isBurial(c.f)):k==='hagwanDate'?(burialOn&&isBurial(c.f)):visible(k,used)) && !String(c.f[k]??'').trim());
-  $('#missing').innerHTML=miss.length?`<span>비어 있음</span>${miss.map(([k,l])=>`<button type="button" data-go="${k}">${l}</button>`).join('')}`:'';
+  const ml=(k,l)=>String((co.labels||{})[k]||'').replace(/\s*\([^)]*\)\s*$/,'').trim()||l;   /* 업체 칸 이름대로 (대한선진 → 조합원 · 장례담당자) */
+  $('#missing').innerHTML=miss.length?`<span>비어 있음</span>${miss.map(([k,l])=>`<button type="button" data-go="${k}">${esc(ml(k,l))}</button>`).join('')}`:'';
   fitOutText();
 }
 $('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return; setTab('input'); const el=$('#f_'+b.dataset.go); if(el){ const sec=el.closest('[data-group]'); if(sec){ inputGroup=sec.dataset.group; inputSection=sec.dataset.section||null; applyInputGroup(); } el.scrollIntoView({block:'center'}); (el.matches('input,select,textarea,button')?el:el.querySelector('input:not([type=hidden]),select,button'))?.focus(); } };
@@ -3204,6 +3219,7 @@ function renderCompanies(){
   $('#coChips').innerHTML=list.map(x=>`<button class="chip" type="button" data-co="${x.id}" aria-pressed="${x.id===coSel}">${esc(x.name)}</button>`).join('')+`<button class="chip add" type="button" data-co="__new">+ 업체 추가</button>`;
   const co=coById(coSel);
   $('#coName').value=co.name; $('#coName').disabled=co.id===ETC;
+  $('#coDispF').hidden=co.id===ETC; $('#coDisp').value=typeof co.dispName==='string'?co.dispName:(DISP_CO_DEFAULT[coKey(co.name)]||'');
   $('#coBand').value=co.band; $('#coReportsEnabled').checked=reportsEnabled(co);
   renderReportEditors(co); updateReportEditorVisibility(); lastTpl='coBand'; $('#coItems').value=co.items.map(t=>String(t).split('\n').map((l,i)=>i?'  '+l.trim():l).join('\n')).join('\n');
   $('#coDel').hidden=co.id===ETC;
@@ -3239,6 +3255,7 @@ $('#coSave').onclick=()=>{
     if(db.companies.some(x=>x.id!==co.id && x.name.trim()===nm)){ toast('같은 이름의 업체가 이미 있습니다'); return; }
     co.name=nm;
   }
+  if(co.id!==ETC){ const dn=$('#coDisp').value.trim(), was=typeof co.dispName==='string'?co.dispName:(DISP_CO_DEFAULT[coKey(co.name)]||''); if(dn!==was||typeof co.dispName==='string') co.dispName=dn; }
   co.band=$('#coBand').value; co.reportsEnabled=$('#coReportsEnabled').checked;
   co.reports=[...document.querySelectorAll('#coReports .rp')].map(el=>({id:el.dataset.rid,name:el.querySelector('.rp-name').value.trim()||'보고 양식',body:el.querySelector('.rp-body').value})); co.items=parseItems($('#coItems').value);
   save(); renderCompanies(); renderCaseSel(); dirty=true; toast(`${co.name} 양식을 저장했습니다`);
