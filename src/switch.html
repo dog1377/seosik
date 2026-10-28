@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>DW장례업무</title>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
+<!-- 계정 바꾸기 (2026.10.28-20, 사용자: 「회원가입하면 가입한 사람은 정보가 하나도 없어야 함」) → forms/switch.html
+     이 기기에 들어 있는 기록(장례업무 · 휴무 · 서식 · 회사 서류 · 자동 보관본 · 자동 백업 · 클라우드 연결)은 주인 계정(dw-owner)의 것.
+     다른 계정으로 로그인하거나 새로 가입하면 여기로 옴:
+       1) 지금 기록을 이 기기 보관함(IndexedDB dw-acct-stash, 열쇠 = 주인 계정 id, 주인이 없으면 _unclaimed)에 넣고 다시 읽어 확인
+       2) 기록을 비움 (맞춤 표시 먼저)  3) 새 계정이 예전에 이 기기에 남긴 기록이 있으면 되살림 (맞춤 표시는 맨 끝) → 보관함에서 뺌
+       4) dw-owner = 새 계정 → 원래 화면으로.
+     지우는 기록은 없음(보관함에 남음). 단계마다 dw-switching 에 적어 둬서, 중간에 앱이 꺼져도 다음에 열 때 그 단계부터 마저 함.
+     주인 없는 기록(예전 기기 · 탈퇴한 계정) + 로그인 → 그 계정 보관본이 없으면 예전처럼 그 계정 것이 됨. 가입은 언제나 빈 화면.
+     앱 화면 코드는 없음 → 바꾸는 동안 앱이 옛 기록을 다시 쓰는 일이 없음. 다른 창은 dw-switching 을 보고 멈췄다가 다시 열림. -->
+<script>try { var t = localStorage.getItem('dw-theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+<style>
+:root{--bg:#f3f3f1;--surface:#fff;--ink:#1c1d1f;--muted:#5a5e63;--line:#d6d7d4;--warn:#9a3b1e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121314;--surface:#1b1c1e;--ink:#ecebe8;--muted:#a9adb1;--line:#3a3d40;--warn:#e59a7c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121314;--surface:#1b1c1e;--ink:#ecebe8;--muted:#a9adb1;--line:#3a3d40;--warn:#e59a7c;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);font:16px/1.6 "Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;word-break:keep-all;-webkit-text-size-adjust:100%}
+.card{width:100%;max-width:340px;display:grid;gap:10px;text-align:center}
+.card img{width:64px;height:64px;border-radius:6px;margin:0 auto 6px}
+h1{margin:0;font-family:"Noto Serif KR",serif;font-size:22px;line-height:1.4;font-weight:700;text-wrap:balance}
+p{margin:0;color:var(--muted);font-size:15px;text-wrap:pretty}
+.line{width:96px;height:1px;margin:6px auto 2px;background:var(--line)}
+.err h1{color:var(--warn)}
+.why{font-size:12px;color:var(--muted)}
+.btns{display:grid;gap:8px;margin-top:8px}
+button{font:inherit;font-size:16px;font-weight:700;min-height:52px;border-radius:4px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--bg);-webkit-tap-highlight-color:transparent}
+button.q{background:transparent;color:var(--ink);border-color:var(--line)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="card" id="box" aria-live="polite">
+  <img src="icons/gukhwa-192.png" alt="">
+  <h1>잠시만요</h1>
+  <p>계정에 맞게 기록을 준비하고 있어요.</p>
+  <div class="line" aria-hidden="true"></div>
+</main>
+<script>
+(function () {
+  'use strict';
+  /* 계정마다 따로 두는 이 기기 저장값 (이름은 그대로 — 예전 이름 바꾸지 말 것) */
+  var LS_EXACT = ['funeral-band-v2', 'dw-sb-meta', 'dw-sb-dutybak', 'dw-sync-forms', 'dw-sync-company', 'dw-cloud', 'dw-cloud-meta', 'dw-autofile-meta', 'dw-part-sel'];
+  var LS_PRE = ['hyumu-'];
+  var META = ['dw-sb-meta', 'dw-sync-forms', 'dw-sync-company'];   /* 서버 맞춤 표시: 비울 때는 먼저, 되살릴 때는 맨 끝 (일부만 되살아난 채로 맞추면 「지움」이 올라갈 수 있어서) */
+  var DBS = ['manager-forms', 'company-admin', 'funeral-safe', 'dw-autofile'];
+  var OK = 'dw-owner', SWK = 'dw-switching', SDB = 'dw-acct-stash', UN = '_unclaimed';
+  var qs = new URLSearchParams(location.search), J = null;
+
+  function g(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function metaUid(k) { try { var m = JSON.parse(g(k) || 'null'); return m && typeof m.uid === 'string' ? m.uid : ''; } catch (e) { return ''; } }
+  function owner() { return g(OK) || metaUid('dw-sb-meta') || metaUid('dw-sync-forms') || metaUid('dw-sync-company') || ''; }
+  function sessUid() { try { var x = JSON.parse(g('dw-sb-auth') || 'null'); return x && x.user && x.user.id || ''; } catch (e) { return ''; } }
+  function mine(k) { return LS_EXACT.indexOf(k) >= 0 || LS_PRE.some(function (p) { return k.indexOf(p) === 0; }); }
+  function lsKeys() { var out = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && mine(k)) out.push(k); } return out; }
+  function note(j) { localStorage.setItem(SWK, JSON.stringify(j)); }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function back() {
+    var b = qs.get('back') || './';
+    if (!/^(\.\/|index\.html|funeral\.html|admin\.html)?(#[\w:-]*)?$/.test(b)) b = './';
+    location.replace(b || './');
+  }
+
+  /* ---------- IndexedDB ---------- */
+  function done(tx) { return new Promise(function (res, rej) { tx.oncomplete = function () { res(); }; tx.onerror = tx.onabort = function () { rej(tx.error || new Error('tx')); }; }); }
+  function names() {
+    try { if (indexedDB.databases) return indexedDB.databases().then(function (l) { return (l || []).map(function (d) { return d.name; }); }, function () { return null; }); } catch (e) {}
+    return Promise.resolve(null);
+  }
+  /* 있는 저장소만 엶 (없으면 null — 새로 만들지 않음: 빈 저장소가 생기면 앱이 망가짐) */
+  function openIf(name, known) {
+    if (known && known.indexOf(name) < 0) return Promise.resolve(null);
+    return new Promise(function (res, rej) {
+      var made = false, r;
+      try { r = indexedDB.open(name); } catch (e) { rej(e); return; }
+      r.onupgradeneeded = function () { made = true; try { r.transaction.abort(); } catch (e) {} };
+      r.onsuccess = function () { if (made) { try { r.result.close(); } catch (e) {} res(null); } else res(r.result); };
+      r.onerror = function (ev) { if (made) { try { ev.preventDefault(); } catch (e) {} res(null); } else rej(r.error || new Error('open ' + name)); };
+    });
+  }
+  function dump(db) {
+    var st = [].slice.call(db.objectStoreNames), out = { version: db.version, schema: [], data: {} }, n = 0;
+    if (!st.length) return Promise.resolve({ out: out, n: 0 });
+    var tx = db.transaction(st, 'readonly'), fin = done(tx);
+    st.forEach(function (nm) {
+      var os = tx.objectStore(nm), arr = out.data[nm] = [];
+      out.schema.push({ name: nm, keyPath: os.keyPath, autoIncrement: os.autoIncrement });
+      os.openCursor().onsuccess = function (e) { var c = e.target.result; if (c) { arr.push([c.primaryKey, c.value]); n++; c.continue(); } };
+    });
+    return fin.then(function () { return { out: out, n: n }; });
+  }
+  function clearDb(db) {
+    var st = [].slice.call(db.objectStoreNames); if (!st.length) return Promise.resolve();
+    var tx = db.transaction(st, 'readwrite'), fin = done(tx);
+    st.forEach(function (nm) { tx.objectStore(nm).clear(); });
+    return fin;
+  }
+  function makeDb(name, d) {
+    return new Promise(function (res, rej) {
+      var r = indexedDB.open(name, d.version || 1);
+      r.onupgradeneeded = function () {
+        var db = r.result;
+        (d.schema || []).forEach(function (sc) { if (!db.objectStoreNames.contains(sc.name)) db.createObjectStore(sc.name, sc.keyPath != null ? { keyPath: sc.keyPath, autoIncrement: !!sc.autoIncrement } : { autoIncrement: !!sc.autoIncrement }); });
+      };
+      r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error || new Error('make ' + name)); };
+    });
+  }
+  function fill(db, d) {
+    var st = Object.keys(d.data || {}).filter(function (nm) { return db.objectStoreNames.contains(nm) && d.data[nm].length; });
+    if (!st.length) return Promise.resolve();
+    var tx = db.transaction(st, 'readwrite'), fin = done(tx);
+    st.forEach(function (nm) { var os = tx.objectStore(nm), inl = os.keyPath != null; d.data[nm].forEach(function (kv) { if (inl) os.put(kv[1]); else os.put(kv[1], kv[0]); }); });
+    return fin;
+  }
+
+  /* ---------- 이 기기 보관함 (dw-acct-stash) ---------- */
+  function stash() {
+    return new Promise(function (res, rej) {
+      var r = indexedDB.open(SDB, 1);
+      r.onupgradeneeded = function () { if (!r.result.objectStoreNames.contains('acct')) r.result.createObjectStore('acct'); };
+      r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error || new Error('stash')); };
+    });
+  }
+  function sGet(db, key) { return new Promise(function (res, rej) { var q = db.transaction('acct', 'readonly').objectStore('acct').get(key); q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { rej(q.error); }; }); }
+  /* 같은 열쇠가 이미 있으면(끝나지 않은 바꾸기 등) 지우지 않고 「열쇠@시각」으로 옮겨 둠 */
+  function sPut(db, key, val) {
+    return new Promise(function (res, rej) {
+      var tx = db.transaction('acct', 'readwrite'), os = tx.objectStore('acct'), q = os.get(key);
+      q.onsuccess = function () { var old = q.result; if (old) os.put(old, key + '@' + (old.at || Date.now())); os.put(val, key); };
+      tx.oncomplete = function () { res(); }; tx.onerror = tx.onabort = function () { rej(tx.error || new Error('stash put')); };
+    });
+  }
+  function sDel(db, key) { var tx = db.transaction('acct', 'readwrite'); tx.objectStore('acct').delete(key); return done(tx); }
+  function count(v) { var n = Object.keys(v.ls || {}).length; Object.keys(v.idb || {}).forEach(function (nm) { var d = v.idb[nm].data || {}; Object.keys(d).forEach(function (s) { n += d[s].length; }); }); return n; }
+
+  /* 지금 이 기기 기록 모으기 */
+  async function collect(known) {
+    var ls = {}, idb = {}, n = 0;
+    lsKeys().forEach(function (k) { ls[k] = g(k); n++; });
+    for (var i = 0; i < DBS.length; i++) {
+      var db = await openIf(DBS[i], known); if (!db) continue;
+      try { var d = await dump(db); if (d.n) { idb[DBS[i]] = d.out; n += d.n; } } finally { db.close(); }
+    }
+    return { ls: ls, idb: idb, n: n };
+  }
+  async function wipe(known) {
+    META.forEach(function (k) { localStorage.removeItem(k); });
+    lsKeys().forEach(function (k) { localStorage.removeItem(k); });
+    for (var i = 0; i < DBS.length; i++) { var db = await openIf(DBS[i], known); if (!db) continue; try { await clearDb(db); } finally { db.close(); } }
+  }
+  async function restore(v, known) {
+    var nm = Object.keys(v.idb || {});
+    for (var i = 0; i < nm.length; i++) {
+      var d = v.idb[nm[i]], db = (await openIf(nm[i], known)) || (await makeDb(nm[i], d));
+      try { await fill(db, d); } finally { db.close(); }
+    }
+    var ks = Object.keys(v.ls || {});
+    ks.filter(function (k) { return META.indexOf(k) < 0; }).forEach(function (k) { localStorage.setItem(k, v.ls[k]); });
+    ks.filter(function (k) { return META.indexOf(k) >= 0; }).forEach(function (k) { localStorage.setItem(k, v.ls[k]); });
+  }
+
+  async function main() {
+    try { J = JSON.parse(g(SWK) || 'null'); } catch (e) { J = null; }
+    if (!J || !J.to || !J.step) {
+      J = null;
+      var su = sessUid(), to = qs.get('to') || '', mode = qs.get('m') === 'join' ? 'join' : 'login';
+      if (su !== to) { to = su; mode = 'login'; }   /* 로그인한 계정 기준 */
+      if (!to) { back(); return; }
+      var from = owner();
+      if (from === to) { localStorage.setItem(OK, to); back(); return; }
+      J = { to: to, from: from, m: mode, step: 'stash', at: Date.now() };
+      note(J);
+      await sleep(300);   /* 다른 창이 멈출 틈 */
+    }
+    var sdb = await stash();
+    try {
+      if (J.step === 'stash') {
+        var cur = await collect(await names()), own = !!(await sGet(sdb, J.to));
+        if (!cur.n) J.step = 'restore';                                   /* 비어 있음 → 넣어 둘 것 없음 */
+        else if (!J.from && J.m === 'login' && !own) J.step = 'own';      /* 주인 없는 기록 + 로그인(이 계정 보관본 없음) → 예전처럼 이 계정 것 */
+        else {
+          var key = J.from || UN, val = { uid: J.from || '', at: Date.now(), ls: cur.ls, idb: cur.idb, n: cur.n };
+          await sPut(sdb, key, val);
+          var chk = await sGet(sdb, key);
+          if (!chk || count(chk) !== cur.n) throw new Error('보관 확인 실패');
+          J.step = 'clear';
+        }
+        note(J);
+      }
+      if (J.step === 'clear') { await wipe(await names()); J.step = 'restore'; note(J); }
+      if (J.step === 'restore') {
+        var rk = J.to, v = await sGet(sdb, rk);
+        if (!v && J.m === 'login') { v = await sGet(sdb, UN); rk = UN; }   /* 이 계정 보관본이 없으면 주인 없는 기록(예전 기기)을 이어받음 */
+        if (v) { await restore(v, await names()); await sDel(sdb, rk); }
+        J.step = 'own'; note(J);
+      }
+      localStorage.setItem(OK, J.to);
+      localStorage.removeItem(SWK);
+    } finally { try { sdb.close(); } catch (e) {} }
+    back();
+  }
+
+  function fail(e) {
+    if (J && J.step === 'stash') { try { localStorage.removeItem(SWK); } catch (x) {} }   /* 아직 아무것도 안 바꿈 → 표시만 지움 */
+    var box = document.getElementById('box');
+    box.className = 'card err';
+    box.innerHTML = '<img src="icons/gukhwa-192.png" alt=""><h1>계정을 바꾸지 못했어요</h1>'
+      + '<p>이 기기의 기록은 지워지지 않았어요. 다시 해 보거나, 로그아웃한 뒤 원래 계정으로 들어가 주세요.</p>'
+      + '<div class="btns"><button type="button" id="again">다시 해 보기</button><button type="button" class="q" id="out">로그아웃</button></div>'
+      + '<p class="why"></p>';
+    box.querySelector('.why').textContent = '(' + String((e && (e.name && e.name !== 'Error' ? e.name : e.message)) || '알 수 없는 오류').slice(0, 60) + ')';
+    box.querySelector('#again').onclick = function () { location.reload(); };
+    box.querySelector('#out').onclick = function () {
+      try { ['dw-sb-auth', 'dw-leader', 'dw-chief', 'dw-last-act'].forEach(function (k) { localStorage.removeItem(k); }); } catch (x) {}
+      location.replace('./');
+    };
+  }
+
+  function start() {
+    if (!window.indexedDB || !window.localStorage) return Promise.reject(new Error('저장소를 쓸 수 없음'));
+    return navigator.locks && navigator.locks.request ? navigator.locks.request('dw-acct-switch', main) : main();
+  }
+  start().catch(fail);
+})();
+</script>
+</body>
+</html>

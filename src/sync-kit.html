@@ -21,6 +21,7 @@
   function setState(s) { state = s; try { if (A.onState) A.onState(s, M); } catch (e) {} }
   async function run() {
     if (running) { again = true; return; }
+    if (window.DW_HOLD || window.DW_FREEZE) { setState('off'); return; }   /* 계정 바꾸는 중 · 로그아웃 중 (leader-gate-head.html) */
     var acct = window.dwAcct, u = acct && acct.user();
     if (!u || (A.leaderOnly && !acct.leader() && !(acct.chief && acct.chief()))) { setState('off'); return; }   /* 서식 · 회사 서류: 파트장 · 총괄실장 */
     if (navigator.onLine === false) { setState('wait'); return; }

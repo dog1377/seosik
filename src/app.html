@@ -1328,15 +1328,18 @@ const Store = {
     try { return await this._run(store, 'readonly', (s) => s.get(key)); } catch (e) { return undefined; }
   },
   async put(store, val, key) {
+    if (window.DW_FREEZE) return true;   /* 다른 창에서 계정을 바꾸는 중 → 쓰지 않음 (곧 다시 열림) */
     if (!this.ok) { this.mem[store].set(key !== undefined ? key : val.id, val); return true; }
     try { await this._run(store, 'readwrite', (s) => (key !== undefined ? s.put(val, key) : s.put(val))); return true; }
     catch (e) { storageFailed(e); return false; }
   },
   async del(store, key) {
+    if (window.DW_FREEZE) return true;
     if (!this.ok) { this.mem[store].delete(key); return true; }
     try { await this._run(store, 'readwrite', (s) => s.delete(key)); return true; } catch (e) { return false; }
   },
   async clearAll() {
+    if (window.DW_FREEZE) return;
     for (const s of ['weekly', 'ship', 'img', 'kv']) {
       this.mem[s].clear();
       if (this.ok) { try { await this._run(s, 'readwrite', (st) => st.clear()); } catch (e) { /* ignore */ } }

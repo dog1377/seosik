@@ -3,7 +3,7 @@
     python3 tools/test/smoke.py            (tools/test/run.sh 가 웹서버를 띄우고 부름)
 
 가짜 로그인 서버(mock_server.py · mock_supabase.js)로 파트장 · 직원 · 총괄실장 모두 들어가 본다. 실제 서버 · 인터넷에 연결하지 않음.
-확인: 페이지 오류 0건 · 옆으로 밀리는 화면(가로 스크롤) 없음 · 위 막대 글씨 잘림 없음.
+확인: 페이지 오류 0건 · 옆으로 밀리는 화면(가로 스크롤) 없음 · 위 막대 글씨 잘림 없음 · 새로 가입한 계정은 빈 화면(계정마다 이 기기 기록 따로).
 화면 캡처는 tools/test/out/ 에 저장 (저장소에 올리지 않음) → 눈으로 확인.
 하나라도 문제가 있으면 실패(종료 코드 1).
 """
@@ -86,6 +86,25 @@ def main():
         ctx, p = page(390, 844, 'light')
         p.goto(BASE + 'forms/funeral.html'); login(p, 'kim', 'pw2222')
         p.evaluate(SEED); p.wait_for_timeout(2500)
+        ctx.close()
+
+        # 계정마다 이 기기 기록 따로 (2026.10.28-20): 파트장 기록 → 위 막대 로그아웃 → 새로 가입 → 빈 화면 · 서버에도 안 올라감 → 다시 파트장 → 기록 그대로
+        NCASES = "(JSON.parse(localStorage.getItem('funeral-band-v2')||'null')||{cases:[]}).cases.length"
+        READY = "typeof setTab==='function' && !document.documentElement.classList.contains('dw-gated')"
+        ctx, p = page(390, 844, 'light')
+        p.goto(BASE + 'forms/funeral.html'); login(p, 'seo', 'pw1111'); p.wait_for_function(READY, timeout=15000)
+        p.evaluate(SEED); p.wait_for_timeout(1500)
+        n0 = p.evaluate(NCASES)
+        p.click('#dwOut'); p.click('.dwc-ok'); p.wait_for_selector('#gtId', timeout=10000)
+        p.click('#gtSwap'); p.fill('#gtId', 'newbie'); p.fill('#gtPw', 'pw3333'); p.fill('#gtPw2', 'pw3333'); p.click('#gtGo')
+        p.wait_for_function(READY, timeout=15000); p.wait_for_timeout(1500)
+        if p.evaluate(NCASES) != 0:
+            problems.append('계정: 새로 가입한 계정에 이 기기의 다른 사람 기록이 보임')
+        if [k for k in srv.ROWS if k[0] == 'uid-newbie' and k[2] == 'case']:
+            problems.append('계정: 새로 가입한 계정으로 다른 사람 기록이 올라감')
+        p.click('#dwOut'); p.click('.dwc-ok'); login(p, 'seo', 'pw1111'); p.wait_for_function(READY, timeout=15000); p.wait_for_timeout(800)
+        if not n0 or p.evaluate(NCASES) != n0 or p.evaluate("localStorage.getItem('dw-owner')") != seo:
+            problems.append('계정: 원래 계정으로 다시 들어왔는데 이 기기 기록이 돌아오지 않음')
         ctx.close()
 
         for (w, h, sc) in SIZES:

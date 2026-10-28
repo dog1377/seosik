@@ -1417,7 +1417,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const WD=['일','월','화','수','목','금','토'];
 const KEY='funeral-band-v2';
 const store={ get(d){ try{ const v=localStorage.getItem(KEY); return v?JSON.parse(v):d; }catch(e){ return d; } },
-              set(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)); return true; }catch(e){ return false; } } };
+              set(v){ if(window.DW_FREEZE) return true; /* 다른 창에서 계정을 바꾸는 중 → 쓰지 않음 (곧 다시 열림) */ try{ localStorage.setItem(KEY, JSON.stringify(v)); return true; }catch(e){ return false; } } };
 
 /* ---------- 기본 양식 ---------- */
 const DEFAULT_ITEMS=['현진저마(남) 제공','생화꽃관장식 제공','장의차량 배차완료','장의차량 100km(실제운행거리)','영정사진 가족준비','헌화 30송이 제공'];
@@ -2769,7 +2769,7 @@ async function sbClient(){
 function sbSetState(s){ sbState=s; renderSB(); }
 /* 바뀐 기록만 올림 */
 async function sbPush(){
-  if(!sbc||!sbUser) return 0; if(sbBusy){ sbAgain=true; return 0; }
+  if(!sbc||!sbUser||window.DW_FREEZE) return 0; if(sbBusy){ sbAgain=true; return 0; }
   sbBusy=true; sbSetState('sync'); let n=0;
   try{
     const L=sbLocal(), rows=[], marks=[], now=Date.now(); let touchedLocal=false;
@@ -2864,14 +2864,16 @@ async function sbStart(user,first){
     try{ const du=sbDuty(); if(Object.keys(du).length) localStorage.setItem('dw-sb-dutybak',JSON.stringify({at:Date.now(),data:du})); }catch(e){} }
   sbSetState('sync');
   let got=0, sent=0;
-  try{ got=await sbPull(!SBM.pullAt); sent=await sbPush(); if(first) toast(`내 계정과 맞췄어요 · 받은 기록 ${got}건 · 올린 기록 ${sent}건`); }
+  try{ got=await sbPull(!SBM.pullAt);
+    try{ const nm=String((user.user_metadata||{}).name||'').trim(); if(nm&&!String(me().name||'').trim()){ me().name=nm; save(); } }catch(e){}   /* 내 이름이 비었으면 가입할 때 넣은 이름 */
+    sent=await sbPush(); if(first) toast(`내 계정과 맞췄어요 · 받은 기록 ${got}건 · 올린 기록 ${sent}건`); }
   catch(e){ SBM.err=String(e&&(e.message||e.code)||e); sbSaveMeta(); sbSetState('err'); if(first) toast('로그인은 됐지만 지금은 기록을 맞추지 못했어요. 인터넷이 되면 자동으로 맞춰요'); }
   sbSubscribe(); renderSB();
 }
 function sbStop(){ if(sbChan&&sbc){ try{ sbc.removeChannel(sbChan); }catch(e){} } sbChan=null; sbUser=null; sbRt=''; clearTimeout(sbTimer); sbSetState('off'); updateSaveState('saved'); }
 async function sbBoot(){
   let has=false; try{ has=!!localStorage.getItem(SB_AUTH); }catch(e){}
-  if(!has||sbBooting) return; sbBooting=true;
+  if(!has||sbBooting||window.DW_HOLD) return; sbBooting=true;   /* DW_HOLD: 계정 바꾸기 화면으로 가는 중 · 10분 지나 로그아웃 (leader-gate-head.html) */
   try{ await sbClient(); const {data}=await sbc.auth.getSession(); const u=data&&data.session&&data.session.user; if(u) await sbStart(u,false); else renderSB(); }
   catch(e){ sbState='err'; SBM.err='lib'; renderSB(); }
   finally{ sbBooting=false; }
@@ -2898,7 +2900,8 @@ async function sbLogin(){
     await sbClient();
     const {data,error}=await sbc.auth.signInWithPassword({email,password:pw});
     if(error){ toast(sbAuthMsg(error,false)); return; }
-    pwEl.value=''; await sbStart(data.user,true);
+    pwEl.value=''; if(window.dwOwner&&window.dwOwner.after(data.user.id,false)) return;   /* 이 기기 기록 주인과 다른 계정 → 계정 바꾸기 (2026.10.28-20) */
+    await sbStart(data.user,true);
   }catch(e){ toast('로그인하지 못했어요. 인터넷을 확인해 주세요'); }
   finally{ b.disabled=false; b.textContent='로그인'; }
 }
@@ -2909,8 +2912,8 @@ function sbSetMode(m){
   document.querySelectorAll('#sbLoginBox [data-sbmode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sbmode===sbMode)));
   $('#sbJoinOnly').hidden=sbMode!=='join'; $('#sbLoginBtn').textContent=sbMode==='join'?'가입하기':'로그인';
   $('#sbPw').autocomplete=sbMode==='join'?'new-password':'current-password';
-  $('#sbHelp').textContent=sbMode==='join'?'비밀번호는 6자 이상이에요. 가입하면 바로 로그인되고, 이 기기 기록이 내 계정에 올라가요.'
-    :'처음 로그인하면 이 기기에 있던 기록이 내 계정에 올라가요(그 전에 자동 보관본을 남겨 둬요).';
+  $('#sbHelp').textContent=sbMode==='join'?'비밀번호는 6자 이상이에요. 새로 가입한 계정은 빈 화면에서 시작해요.'
+    :'이 기기의 기록은 계정마다 따로 보관돼요.';
   ($('#sbId').value?$('#sbPw'):$('#sbId')).focus();
 }
 async function sbJoin(){
@@ -2924,8 +2927,8 @@ async function sbJoin(){
     const {data,error}=await sbc.auth.signUp({email:id.includes('@')?id:`${id}@${SB_DOMAIN}`,password:pw,options:{data:name?{name}:{}}});
     if(error){ toast(sbAuthMsg(error,true)); return; }
     if(!data||!data.session){ toast('가입은 됐는데 「이메일 확인」이 켜져 있어서 아직 로그인이 안 돼요. 관리자에게 말씀해 주세요'); sbSetMode('login'); return; }
-    if(name&&!String(me().name||'').trim()){ me().name=name; save(); }
     $('#sbPw').value=''; $('#sbPw2').value=''; sbSetMode('login');
+    if(window.dwOwner&&window.dwOwner.after(data.user.id,true)) return;   /* 새로 가입한 계정은 빈 화면에서 시작 (이 기기 기록은 원래 계정 보관함으로) */
     await sbStart(data.user,true); toast('가입했어요 · 로그인됐어요');
   }catch(e){ toast('가입하지 못했어요. 인터넷을 확인해 주세요'); }
   finally{ b.disabled=false; b.textContent=sbMode==='join'?'가입하기':'로그인'; }
@@ -2939,13 +2942,14 @@ async function sbDeleteMe(){
     const {error}=await sbc.rpc('dw_delete_me');
     if(error){ toast(/function|not found|PGRST202|schema cache/i.test(String(error.message||'')+String(error.code||''))?'지금은 탈퇴할 수 없어요. 잠시 뒤에 다시 해 주세요':'지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요'); return; }
     try{ await sbc.auth.signOut({scope:'local'}); }catch(e){}
-    try{ localStorage.removeItem(SB_META); localStorage.removeItem('dw-leader'); localStorage.removeItem(SB_AUTH); }catch(e){}
+    try{ [SB_META,'dw-sync-forms','dw-sync-company','dw-owner','dw-last-act','dw-leader','dw-chief',SB_AUTH].forEach(k=>localStorage.removeItem(k)); }catch(e){}   /* 이 기기 기록은 주인 없는 기록으로 남김 (다음에 로그인하는 계정이 이어받음) */
     SBM=sbLoadMeta(); sbStop(); $('#sbDelPw').value=''; $('#sbDelBox').hidden=true; $('#sbDelOpen').hidden=false;
     toast('탈퇴했어요. 이 기기의 기록은 그대로 있어요');
   }catch(e){ toast('지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요'); }
   finally{ b.disabled=false; b.textContent='탈퇴하기'; }
 }
 async function sbLogout(){
+  if(window.dwAcct&&window.dwAcct.logout){ window.dwAcct.logout(); return; }   /* 위 막대 로그아웃과 같게: 올린 뒤 로그아웃 → 로그인 화면 */
   if(!sbUser) return;
   try{ await sbPush(); }catch(e){}
   try{ await sbc.auth.signOut(); }catch(e){ try{ await sbc.auth.signOut({scope:'local'}); }catch(e2){} }
@@ -3023,7 +3027,7 @@ async function renderAF(){
 const SNAP_DB='funeral-safe', SNAP_MAX=12;
 function snapOpen(){ return new Promise((ok,no)=>{ try{ const q=indexedDB.open(SNAP_DB,1); q.onupgradeneeded=()=>q.result.createObjectStore('snaps',{keyPath:'id'}); q.onsuccess=()=>ok(q.result); q.onerror=()=>no(q.error); }catch(e){ no(e); } }); }
 async function snapAll(){ try{ const d=await snapOpen(); return await new Promise(ok=>{ const q=d.transaction('snaps').objectStore('snaps').getAll(); q.onsuccess=()=>ok((q.result||[]).sort((a,b)=>b.id-a.id)); q.onerror=()=>ok([]); }); }catch(e){ return []; } }
-async function snapPut(rec){ const d=await snapOpen(); await new Promise((ok,no)=>{ const t=d.transaction('snaps','readwrite'); t.objectStore('snaps').put(rec); t.oncomplete=ok; t.onerror=()=>no(t.error); });
+async function snapPut(rec){ if(window.DW_FREEZE) return; const d=await snapOpen(); await new Promise((ok,no)=>{ const t=d.transaction('snaps','readwrite'); t.objectStore('snaps').put(rec); t.oncomplete=ok; t.onerror=()=>no(t.error); });
   const all=await snapAll(); if(all.length>SNAP_MAX){ await new Promise(ok=>{ const t=d.transaction('snaps','readwrite'), st=t.objectStore('snaps'); all.slice(SNAP_MAX).forEach(x=>st.delete(x.id)); t.oncomplete=ok; t.onerror=ok; }); } }
 const APP_VER=(document.querySelector('meta[name="app-version"]')||{}).content||'';
 async function autoSnapshot(){
