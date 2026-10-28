@@ -356,9 +356,9 @@ p{text-wrap:pretty}
 <header class="appbar">
   <div class="appbar-in">
     <div class="brand">회사 서류</div>
-    <div class="local" title="입력한 내용은 이 기기 안에만 저장됩니다">
+    <div class="local" title="입력한 내용은 내 계정에 자동으로 저장됩니다">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-      <span>이 기기에만 저장</span>
+      <span>내 계정에 저장</span>
     </div>
   </div>
 </header>
@@ -469,8 +469,8 @@ p{text-wrap:pretty}
     </div>
     <div class="card">
       <h2>저장</h2>
-      <p class="small-t muted">직원 인적사항과 문서는 이 기기와 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주세요.</p>
-      <p class="small-t" id="srvSync">로그인하면 서버에 자동 저장돼요.</p>
+      <p class="small-t muted">직원 인적사항과 문서는 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주세요.</p>
+      <p class="small-t" id="srvSync">로그인하면 내 계정에 자동 저장돼요.</p>
       <p class="small-t" id="dataCount">-</p>
     </div>
     <p class="ver" id="appVersion"></p>
@@ -912,9 +912,9 @@ function renderInstall() {
   } else if (deferredInstall) {
     html = '<p>설치하면 홈 화면 아이콘으로 바로 열리고, 인터넷이 약한 곳에서도 열려요.</p><div><button class="btn primary small do-install" type="button">앱 설치</button></div>';
   } else if (isIOS()) {
-    html = '<ol><li>Safari 화면 아래(또는 위)의 <b>공유 버튼</b>을 누르세요.</li><li>목록에서 <b>홈 화면에 추가</b>를 누르세요.</li><li>오른쪽 위 <b>추가</b>를 누르면 끝이에요.</li></ol><p class="small-t muted">아이폰은 Safari와 설치한 앱의 기록이 따로 보관돼요. 설치한 뒤에는 홈 화면 아이콘으로만 여세요.</p>';
+    html = '<ol><li>Safari 화면 아래(또는 위)의 <b>공유 버튼</b>을 누르세요.</li><li>목록에서 <b>홈 화면에 추가</b>를 누르세요.</li><li>오른쪽 위 <b>추가</b>를 누르면 끝이에요.</li></ol><p class="small-t muted">설치한 뒤에는 홈 화면 아이콘으로 여세요. 기록은 내 계정에 저장돼서 같은 계정으로 로그인하면 그대로 보여요.</p>';
   } else if (isDesktop()) {
-    html = '<ol><li>Chrome·엣지 주소창 오른쪽 끝의 <b>설치</b> 아이콘을 누르세요.</li><li>안 보이면 오른쪽 위 메뉴(<b>⋮</b> 또는 <b>…</b>)에서 <b>앱 설치</b>를 찾으세요.</li></ol><p class="small-t muted">PC에 저장한 기록은 휴대폰과 따로 보관돼요. 옮길 때는 설정의 백업 파일을 쓰세요.</p>';
+    html = '<ol><li>Chrome·엣지 주소창 오른쪽 끝의 <b>설치</b> 아이콘을 누르세요.</li><li>안 보이면 오른쪽 위 메뉴(<b>⋮</b> 또는 <b>…</b>)에서 <b>앱 설치</b>를 찾으세요.</li></ol><p class="small-t muted">기록은 내 계정에 저장돼서 휴대폰 · PC 어디서든 같은 계정으로 로그인하면 그대로 보여요.</p>';
   } else {
     html = '<ol><li>Chrome 오른쪽 위 <b>⋮</b> 메뉴를 누르세요.</li><li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르세요.</li></ol>';
   }
@@ -950,6 +950,7 @@ const Store = {
         req.onerror = () => { clearTimeout(t); rej(req.error); };
       });
       this.ok = true;
+      if (window.dwDirty && !this.held()) window.dwDirty.init('dw-dirty-company');   /* 예전 기기: 다음 서버 저장이 끝나면 「다 올라감」 */
     } catch (e) { this.ok = false; this.db = null; }
     return this.ok;
   },
@@ -972,19 +973,25 @@ const Store = {
     if (!this.ok) return this.mem[store].get(key);
     try { return await this._run(store, 'readonly', (s) => s.get(key)); } catch (e) { return undefined; }
   },
+  /* 고친 시각 표시 (2026.10.28-22): 서버에서 받아 넣는 것(__dwSyncApplying)은 빼고. 계정 바꿀 때(switch.html) 「마지막으로 고친 뒤 서버에 다 올라갔나」를 이걸로 봄 */
+  held() { return !!window.DW_FREEZE || document.documentElement.classList.contains('dw-gated'); },
+  dirty() { if (window.dwDirty) window.dwDirty.mark('dw-dirty-company'); },
   async put(store, val, key) {
-    if (window.DW_FREEZE) return true;   /* 다른 창에서 계정을 바꾸는 중 → 쓰지 않음 (곧 다시 열림) */
+    if (this.held()) return true;   /* 다른 창에서 계정을 바꾸는 중 · 로그인 전(로그인 화면) → 쓰지 않음 (곧 다시 열림) */
+    this.dirty();
     if (!this.ok) { this.mem[store].set(key !== undefined ? key : val.id, val); return true; }
     try { await this._run(store, 'readwrite', (s) => (key !== undefined ? s.put(val, key) : s.put(val))); return true; }
     catch (e) { storageFailed(e); return false; }
   },
   async del(store, key) {
-    if (window.DW_FREEZE) return true;
+    if (this.held()) return true;
+    this.dirty();
     if (!this.ok) { this.mem[store].delete(key); return true; }
     try { await this._run(store, 'readwrite', (s) => s.delete(key)); return true; } catch (e) { return false; }
   },
   async clearAll() {
-    if (window.DW_FREEZE) return;
+    if (this.held()) return;
+    this.dirty();
     for (const s of STORES) {
       this.mem[s].clear();
       if (this.ok) { try { await this._run(s, 'readwrite', (st) => st.clear()); } catch (e) { /* ignore */ } }
@@ -2062,7 +2069,7 @@ function bindPwa() {
 let csReady = false;
 const csOpen = (id) => !$('#' + id).hidden;
 window.DW_SYNC = {
-  app: 'company', meta: 'dw-sync-company', leaderOnly: true,
+  app: 'company', meta: 'dw-sync-company', dirty: 'dw-dirty-company', leaderOnly: true,
   async collect() {
     if (!csReady) return null; if (!Store.ok) return false;
     const out = [];
@@ -2092,9 +2099,9 @@ window.DW_SYNC = {
   onState(st, m) {
     const el = $('#srvSync'); if (!el) return;
     const d = m && m.at ? new Date(m.at) : null, at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
-    el.textContent = st === 'ok' ? `서버 자동 저장 켜짐 · 마지막 저장 ${at}` : st === 'sync' ? '서버에 저장하는 중…'
-      : st === 'err' ? '지금은 서버에 올리지 못했어요. 이 기기에 먼저 저장해 두고 인터넷이 되면 다시 올려요.'
-      : st === 'wait' ? '인터넷이 연결되면 서버에 올려요.' : '로그인하면 서버에 자동 저장돼요.';
+    el.textContent = st === 'ok' ? `내 계정에 자동 저장 · 마지막 저장 ${at}` : st === 'sync' ? '내 계정에 저장하는 중…'
+      : st === 'err' ? '지금은 내 계정에 올리지 못했어요. 인터넷이 되면 바로 다시 올려요.'
+      : st === 'wait' ? '인터넷이 연결되면 바로 올려요.' : '로그인하면 내 계정에 자동 저장돼요.';
   }
 };
 

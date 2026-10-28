@@ -163,8 +163,8 @@
           if (r.error) return /invalid|credential/i.test(r.error.message || '') ? 'pw' : 'net';
           return c.rpc('dw_delete_me').then(function (d) {
             if (d.error) return /function|not found|PGRST202|schema cache/i.test(String(d.error.message || '') + String(d.error.code || '')) ? 'nofn' : 'net';
-            /* 탈퇴한 계정의 이 기기 기록은 주인 없는 기록으로 남김 (다음에 로그인하는 계정이 이어받음 — 예전과 같음, 새로 가입한 계정은 빈 화면) */
-            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { ['dw-sb-meta', 'dw-sync-forms', 'dw-sync-company', 'dw-owner', IK, LK, CK, SK].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} return 'ok'; });
+            /* 탈퇴한 계정의 이 휴대폰 기록은 남기지 않음 → 부른 쪽이 dwOwner.erase() 로 비움 (2026.10.28-22, 예전: 주인 없는 기록으로 남김) */
+            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { [IK, LK, CK, SK].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} return 'ok'; });
           });
         });
       }).catch(function () { return 'net'; });
@@ -183,10 +183,10 @@
     card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b></p>'
       + (window.dwTheme ? '<div class="dw-theme-row" style="margin:4px 0 12px"><span>화면</span>' + window.dwTheme.seg() + '</div>' : '')
       + '<div class="ac-name" id="acNameRow"><label class="field"><span>' + (root.classList.contains('dw-chief') ? '내 이름' : '게시판에 보이는 이름') + '</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
-      + '<p class="small-t muted">로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
+      + '<p class="small-t muted">기록은 내 계정에 저장돼 있어요. 로그아웃해도 다시 로그인하면 그대로 보여요.</p>'
       + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
       + '<button class="btn quiet small" type="button" id="acDelOpen">회원 탈퇴</button>'
-      + '<div id="acDelBox" class="ac-del" hidden><p class="small-t" style="color:var(--warn)">탈퇴하면 내 계정과 서버에 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 기기에 있는 기록은 그대로 남아요.</p>'
+      + '<div id="acDelBox" class="ac-del" hidden><p class="small-t" style="color:var(--warn)">탈퇴하면 내 계정과 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 휴대폰에서도 지워져요.</p>'
       + '<label class="field"><span>비밀번호 확인</span><input id="acDelPw" type="password" autocomplete="current-password"></label>'
       + '<div class="grid2"><button class="btn danger" type="button" id="acDelGo">탈퇴하기</button><button class="btn" type="button" id="acDelNo">취소</button></div><p class="small-t" id="acDelMsg" role="alert"></p></div>';
     card.querySelector('b').textContent = idOf(u);
@@ -210,7 +210,7 @@
       if (!pw) { msg.textContent = '비밀번호를 넣어 주세요.'; return; }
       b.disabled = true; b.textContent = '탈퇴하는 중…';
       acct.deleteMe(pw).then(function (r) {
-        if (r === 'ok') { location.reload(); return; }
+        if (r === 'ok') { if (window.dwOwner && window.dwOwner.erase) window.dwOwner.erase(); else location.reload(); return; }
         msg.textContent = r === 'pw' ? '비밀번호가 맞지 않아요.' : r === 'nofn' ? '지금은 탈퇴할 수 없어요. 잠시 뒤에 다시 해 주세요.' : '지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요.';
         b.disabled = false; b.textContent = '탈퇴하기';
       });
@@ -262,7 +262,7 @@
     b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 20H5.5A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4H9"/><path d="M15.5 16.5 20 12l-4.5-4.5"/><path d="M20 12H9"/></svg><span>로그아웃</span>';
     b.addEventListener('click', function () {
       var go = function (ok) { if (!ok) return; b.disabled = true; acct.logout(); };
-      if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃할까요?', body: '이 기기의 기록은 그대로 있어요. 다시 들어올 때 이메일과 비밀번호를 넣어야 해요 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
+      if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃할까요?', body: '기록은 내 계정에 저장돼 있어요. 다시 들어올 때 이메일과 비밀번호를 넣어야 해요 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
       else go(true);
     });
     bar.appendChild(b);

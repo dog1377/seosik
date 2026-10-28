@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-21"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.29-1"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <title>회사 서류 · DW장례업무</title>
@@ -561,8 +561,22 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     location.replace('switch.html?to=' + encodeURIComponent(to || '') + '&m=' + (mode === 'join' ? 'join' : 'login') + '&back=' + encodeURIComponent(here()));
   }
   var loaded = sessUid();
+  /* 고친 시각 표시 (2026.10.28-22): 서식 · 회사 서류 저장소가 고칠 때마다 창별로 시각을 적음 (dw-dirty-forms · dw-dirty-company = {창번호: 시각}).
+     서버 맞추기(sync-kit)는 다른 창이 이 창을 연 뒤에 고친 적이 없을 때만 「다 올라감」(clean)을 적음 → 계정 바꿀 때(switch.html) 안 올라간 걸 지우는 일이 없게 */
+  var TAB = Math.random().toString(36).slice(2, 10), OPENED = Date.now();
+  function dmap(k) { try { var m = JSON.parse(g(k) || '{}'); return m && typeof m === 'object' && !Array.isArray(m) ? m : {}; } catch (e) { return {}; } }
+  window.dwDirty = {
+    mark: function (k) {
+      if (window.__dwSyncApplying) return;   /* 서버에서 받아 넣는 건 「이 기기에서 고침」이 아님 */
+      try { var m = dmap(k), now = Date.now(); m[TAB] = now; Object.keys(m).forEach(function (t) { if (now - m[t] > 7 * 864e5) delete m[t]; }); localStorage.setItem(k, JSON.stringify(m)); } catch (e) {}
+    },
+    init: function (k) { if (g(k) == null) window.dwDirty.mark(k); },
+    canVouch: function (k) { var m = dmap(k); return Object.keys(m).every(function (t) { return t === TAB || m[t] <= OPENED; }); }
+  };
   window.dwOwner = {
     get: owner, session: sessUid, go: go,
+    /* 회원 탈퇴 뒤: 이 휴대폰에 남은 그 계정 기록을 남기지 않고 비움 (2026.10.28-22) */
+    erase: function () { window.DW_HOLD = window.DW_FREEZE = true; root.classList.add('dw-gated'); try { sessionStorage.setItem('dw-erase', '1'); } catch (e) {} location.replace('switch.html?m=erase&back=./'); },
     /* 로그인 · 가입한 바로 뒤: 이 기기 기록 주인과 다르면(가입은 언제나) 계정 바꾸기 화면으로 → true */
     after: function (uid, join) {
       if (!uid) return false;
@@ -609,9 +623,9 @@ html:not(.dw-chief) [data-chief]{display:none!important}
 <header class="appbar">
   <div class="appbar-in">
     <div class="brand">회사 서류</div>
-    <div class="local" title="입력한 내용은 이 기기 안에만 저장됩니다">
+    <div class="local" title="입력한 내용은 내 계정에 자동으로 저장됩니다">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-      <span>이 기기에만 저장</span>
+      <span>내 계정에 저장</span>
     </div>
   </div>
 </header>
@@ -722,8 +736,8 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     </div>
     <div class="card">
       <h2>저장</h2>
-      <p class="small-t muted">직원 인적사항과 문서는 이 기기와 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주세요.</p>
-      <p class="small-t" id="srvSync">로그인하면 서버에 자동 저장돼요.</p>
+      <p class="small-t muted">직원 인적사항과 문서는 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주세요.</p>
+      <p class="small-t" id="srvSync">로그인하면 내 계정에 자동 저장돼요.</p>
       <p class="small-t" id="dataCount">-</p>
     </div>
     <p class="ver" id="appVersion"></p>
@@ -1165,9 +1179,9 @@ function renderInstall() {
   } else if (deferredInstall) {
     html = '<p>설치하면 홈 화면 아이콘으로 바로 열리고, 인터넷이 약한 곳에서도 열려요.</p><div><button class="btn primary small do-install" type="button">앱 설치</button></div>';
   } else if (isIOS()) {
-    html = '<ol><li>Safari 화면 아래(또는 위)의 <b>공유 버튼</b>을 누르세요.</li><li>목록에서 <b>홈 화면에 추가</b>를 누르세요.</li><li>오른쪽 위 <b>추가</b>를 누르면 끝이에요.</li></ol><p class="small-t muted">아이폰은 Safari와 설치한 앱의 기록이 따로 보관돼요. 설치한 뒤에는 홈 화면 아이콘으로만 여세요.</p>';
+    html = '<ol><li>Safari 화면 아래(또는 위)의 <b>공유 버튼</b>을 누르세요.</li><li>목록에서 <b>홈 화면에 추가</b>를 누르세요.</li><li>오른쪽 위 <b>추가</b>를 누르면 끝이에요.</li></ol><p class="small-t muted">설치한 뒤에는 홈 화면 아이콘으로 여세요. 기록은 내 계정에 저장돼서 같은 계정으로 로그인하면 그대로 보여요.</p>';
   } else if (isDesktop()) {
-    html = '<ol><li>Chrome·엣지 주소창 오른쪽 끝의 <b>설치</b> 아이콘을 누르세요.</li><li>안 보이면 오른쪽 위 메뉴(<b>⋮</b> 또는 <b>…</b>)에서 <b>앱 설치</b>를 찾으세요.</li></ol><p class="small-t muted">PC에 저장한 기록은 휴대폰과 따로 보관돼요. 옮길 때는 설정의 백업 파일을 쓰세요.</p>';
+    html = '<ol><li>Chrome·엣지 주소창 오른쪽 끝의 <b>설치</b> 아이콘을 누르세요.</li><li>안 보이면 오른쪽 위 메뉴(<b>⋮</b> 또는 <b>…</b>)에서 <b>앱 설치</b>를 찾으세요.</li></ol><p class="small-t muted">기록은 내 계정에 저장돼서 휴대폰 · PC 어디서든 같은 계정으로 로그인하면 그대로 보여요.</p>';
   } else {
     html = '<ol><li>Chrome 오른쪽 위 <b>⋮</b> 메뉴를 누르세요.</li><li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르세요.</li></ol>';
   }
@@ -1203,6 +1217,7 @@ const Store = {
         req.onerror = () => { clearTimeout(t); rej(req.error); };
       });
       this.ok = true;
+      if (window.dwDirty && !this.held()) window.dwDirty.init('dw-dirty-company');   /* 예전 기기: 다음 서버 저장이 끝나면 「다 올라감」 */
     } catch (e) { this.ok = false; this.db = null; }
     return this.ok;
   },
@@ -1225,19 +1240,25 @@ const Store = {
     if (!this.ok) return this.mem[store].get(key);
     try { return await this._run(store, 'readonly', (s) => s.get(key)); } catch (e) { return undefined; }
   },
+  /* 고친 시각 표시 (2026.10.28-22): 서버에서 받아 넣는 것(__dwSyncApplying)은 빼고. 계정 바꿀 때(switch.html) 「마지막으로 고친 뒤 서버에 다 올라갔나」를 이걸로 봄 */
+  held() { return !!window.DW_FREEZE || document.documentElement.classList.contains('dw-gated'); },
+  dirty() { if (window.dwDirty) window.dwDirty.mark('dw-dirty-company'); },
   async put(store, val, key) {
-    if (window.DW_FREEZE) return true;   /* 다른 창에서 계정을 바꾸는 중 → 쓰지 않음 (곧 다시 열림) */
+    if (this.held()) return true;   /* 다른 창에서 계정을 바꾸는 중 · 로그인 전(로그인 화면) → 쓰지 않음 (곧 다시 열림) */
+    this.dirty();
     if (!this.ok) { this.mem[store].set(key !== undefined ? key : val.id, val); return true; }
     try { await this._run(store, 'readwrite', (s) => (key !== undefined ? s.put(val, key) : s.put(val))); return true; }
     catch (e) { storageFailed(e); return false; }
   },
   async del(store, key) {
-    if (window.DW_FREEZE) return true;
+    if (this.held()) return true;
+    this.dirty();
     if (!this.ok) { this.mem[store].delete(key); return true; }
     try { await this._run(store, 'readwrite', (s) => s.delete(key)); return true; } catch (e) { return false; }
   },
   async clearAll() {
-    if (window.DW_FREEZE) return;
+    if (this.held()) return;
+    this.dirty();
     for (const s of STORES) {
       this.mem[s].clear();
       if (this.ok) { try { await this._run(s, 'readwrite', (st) => st.clear()); } catch (e) { /* ignore */ } }
@@ -2315,7 +2336,7 @@ function bindPwa() {
 let csReady = false;
 const csOpen = (id) => !$('#' + id).hidden;
 window.DW_SYNC = {
-  app: 'company', meta: 'dw-sync-company', leaderOnly: true,
+  app: 'company', meta: 'dw-sync-company', dirty: 'dw-dirty-company', leaderOnly: true,
   async collect() {
     if (!csReady) return null; if (!Store.ok) return false;
     const out = [];
@@ -2345,9 +2366,9 @@ window.DW_SYNC = {
   onState(st, m) {
     const el = $('#srvSync'); if (!el) return;
     const d = m && m.at ? new Date(m.at) : null, at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
-    el.textContent = st === 'ok' ? `서버 자동 저장 켜짐 · 마지막 저장 ${at}` : st === 'sync' ? '서버에 저장하는 중…'
-      : st === 'err' ? '지금은 서버에 올리지 못했어요. 이 기기에 먼저 저장해 두고 인터넷이 되면 다시 올려요.'
-      : st === 'wait' ? '인터넷이 연결되면 서버에 올려요.' : '로그인하면 서버에 자동 저장돼요.';
+    el.textContent = st === 'ok' ? `내 계정에 자동 저장 · 마지막 저장 ${at}` : st === 'sync' ? '내 계정에 저장하는 중…'
+      : st === 'err' ? '지금은 내 계정에 올리지 못했어요. 인터넷이 되면 바로 다시 올려요.'
+      : st === 'wait' ? '인터넷이 연결되면 바로 올려요.' : '로그인하면 내 계정에 자동 저장돼요.';
   }
 };
 
@@ -2618,8 +2639,8 @@ init();
           if (r.error) return /invalid|credential/i.test(r.error.message || '') ? 'pw' : 'net';
           return c.rpc('dw_delete_me').then(function (d) {
             if (d.error) return /function|not found|PGRST202|schema cache/i.test(String(d.error.message || '') + String(d.error.code || '')) ? 'nofn' : 'net';
-            /* 탈퇴한 계정의 이 기기 기록은 주인 없는 기록으로 남김 (다음에 로그인하는 계정이 이어받음 — 예전과 같음, 새로 가입한 계정은 빈 화면) */
-            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { ['dw-sb-meta', 'dw-sync-forms', 'dw-sync-company', 'dw-owner', IK, LK, CK, SK].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} return 'ok'; });
+            /* 탈퇴한 계정의 이 휴대폰 기록은 남기지 않음 → 부른 쪽이 dwOwner.erase() 로 비움 (2026.10.28-22, 예전: 주인 없는 기록으로 남김) */
+            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { [IK, LK, CK, SK].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} return 'ok'; });
           });
         });
       }).catch(function () { return 'net'; });
@@ -2638,10 +2659,10 @@ init();
     card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b></p>'
       + (window.dwTheme ? '<div class="dw-theme-row" style="margin:4px 0 12px"><span>화면</span>' + window.dwTheme.seg() + '</div>' : '')
       + '<div class="ac-name" id="acNameRow"><label class="field"><span>' + (root.classList.contains('dw-chief') ? '내 이름' : '게시판에 보이는 이름') + '</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
-      + '<p class="small-t muted">로그아웃해도 이 기기의 기록은 그대로 있어요.</p>'
+      + '<p class="small-t muted">기록은 내 계정에 저장돼 있어요. 로그아웃해도 다시 로그인하면 그대로 보여요.</p>'
       + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
       + '<button class="btn quiet small" type="button" id="acDelOpen">회원 탈퇴</button>'
-      + '<div id="acDelBox" class="ac-del" hidden><p class="small-t" style="color:var(--warn)">탈퇴하면 내 계정과 서버에 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 기기에 있는 기록은 그대로 남아요.</p>'
+      + '<div id="acDelBox" class="ac-del" hidden><p class="small-t" style="color:var(--warn)">탈퇴하면 내 계정과 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 휴대폰에서도 지워져요.</p>'
       + '<label class="field"><span>비밀번호 확인</span><input id="acDelPw" type="password" autocomplete="current-password"></label>'
       + '<div class="grid2"><button class="btn danger" type="button" id="acDelGo">탈퇴하기</button><button class="btn" type="button" id="acDelNo">취소</button></div><p class="small-t" id="acDelMsg" role="alert"></p></div>';
     card.querySelector('b').textContent = idOf(u);
@@ -2665,7 +2686,7 @@ init();
       if (!pw) { msg.textContent = '비밀번호를 넣어 주세요.'; return; }
       b.disabled = true; b.textContent = '탈퇴하는 중…';
       acct.deleteMe(pw).then(function (r) {
-        if (r === 'ok') { location.reload(); return; }
+        if (r === 'ok') { if (window.dwOwner && window.dwOwner.erase) window.dwOwner.erase(); else location.reload(); return; }
         msg.textContent = r === 'pw' ? '비밀번호가 맞지 않아요.' : r === 'nofn' ? '지금은 탈퇴할 수 없어요. 잠시 뒤에 다시 해 주세요.' : '지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요.';
         b.disabled = false; b.textContent = '탈퇴하기';
       });
@@ -2717,7 +2738,7 @@ init();
     b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 20H5.5A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4H9"/><path d="M15.5 16.5 20 12l-4.5-4.5"/><path d="M20 12H9"/></svg><span>로그아웃</span>';
     b.addEventListener('click', function () {
       var go = function (ok) { if (!ok) return; b.disabled = true; acct.logout(); };
-      if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃할까요?', body: '이 기기의 기록은 그대로 있어요. 다시 들어올 때 이메일과 비밀번호를 넣어야 해요 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
+      if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃할까요?', body: '기록은 내 계정에 저장돼 있어요. 다시 들어올 때 이메일과 비밀번호를 넣어야 해요 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
       else go(true);
     });
     bar.appendChild(b);
@@ -2746,7 +2767,8 @@ init();
      순서: 받기(지난번 이후 바뀐 것) → 올리기(바뀐 것만). 같은 기록은 더 나중에 고친 쪽(updated)이 이김.
      updated 가 없는 것(설정 · 후기 · 서명 · 회사 정보)은 이 기기에서 지난번 맞춘 뒤 안 고쳤으면 서버 것, 고쳤으면 이 기기 것.
      지운 기록은 서버에 「지움」 표시만(내용은 서버에 남음). 한 번에 많이 지워진 것처럼 보이면(불러오기 실패 등) 지움을 올리지 않음.
-     15초마다 · 화면을 벗어날 때 · 인터넷 다시 연결될 때. 이 기기 저장값: dw-sync-forms · dw-sync-company (이름 바꾸지 말 것). -->
+     15초마다 · 화면을 벗어날 때 · 인터넷 다시 연결될 때. 이 기기 저장값: dw-sync-forms · dw-sync-company (이름 바꾸지 말 것).
+     2026.10.28-22: 이번에 다 올라갔으면 M.clean = 시작 시각 (다른 창이 이 창을 연 뒤에 고친 게 없을 때만 — dwDirty.canVouch). 화면은 고칠 때마다 dw-dirty-forms · dw-dirty-company 에 창별 시각을 적음 → clean ≥ 가장 늦게 고친 시각이면 계정 바꿀 때 휴대폰에 남기지 않음. -->
 <script>
 (function () {
   'use strict';
@@ -2768,6 +2790,7 @@ init();
     if (window.dwOwner && window.dwOwner.get() !== u.id) { window.DW_HOLD = true; setState('off'); window.dwOwner.go(u.id, 'login'); return; }   /* 2중 안전장치: 이 기기 기록 주인이 다른 계정이면 올리지 않음 (2026.10.28-21) */
     var local = await A.collect(); if (local === false) { setState('off'); return; } if (!local) { schedule(1500); return; }   /* false = 이 기기 저장소를 못 씀 → 맞추지 않음 */
     running = true; setState('sync');
+    var t0 = Date.now(), tombHeld = false;   /* t0: 이번에 맞추기 시작한 때 → 다 올라가면 M.clean (계정 바꿀 때 「다 올라감」 확인용, switch.html) */
     try {
       var c = await acct.client();
       if (M.uid !== u.id) { M = { uid: u.id, h: {}, up: {}, known: {}, pullAt: '' }; save(); }
@@ -2804,7 +2827,8 @@ init();
           take.push({ kind: x.kind, id: x.id, data: x.data, key: key }); M.known[key] = 1; M.up[key] = up; M.h[key] = rh;
         });
         if (take.length) {
-          var skipped = (await A.apply(take)) || [];
+          var skipped; window.__dwSyncApplying = true;   /* 서버에서 받아 넣는 건 「이 기기에서 고침」 표시를 안 함 */
+          try { skipped = (await A.apply(take)) || []; } finally { window.__dwSyncApplying = false; }
           skipped.forEach(function (key) { var p = prev[key]; if (!p) return; if (p[0]) M.h[key] = p[0]; else delete M.h[key]; if (p[1]) M.up[key] = p[1]; else delete M.up[key]; if (p[2]) M.known[key] = 1; held = true; });
           local = await A.collect(); if (!local) { save(); running = false; schedule(1500); return; }
         }
@@ -2821,6 +2845,7 @@ init();
       });
       var gone = Object.keys(M.known).filter(function (key) { return !have[key] && key.indexOf('state:') !== 0 && (!A.noTomb || A.noTomb.indexOf(key.split(':')[0]) < 0); });
       var total = Object.keys(M.known).length;
+      if (gone.length && gone.length > 10 && gone.length > total / 2) tombHeld = true;
       if (gone.length && !(gone.length > 10 && gone.length > total / 2)) {
         gone.forEach(function (key) { var i = key.indexOf(':'), up = Math.max(now, (Number(M.up[key]) || 0) + 1); rows.push({ user_id: u.id, app: A.app, kind: key.slice(0, i), id: key.slice(i + 1), data: null, deleted: true, updated_at: up, device: DEV }); marks.push([key, '', up, true]); });
       }
@@ -2829,7 +2854,7 @@ init();
         marks.slice(i, i + 40).forEach(function (m) { M.up[m[0]] = m[2]; if (m[3]) { delete M.known[m[0]]; delete M.h[m[0]]; } else { M.h[m[0]] = m[1]; M.known[m[0]] = 1; } });
         save();
       }
-      M.at = Date.now(); M.err = ''; save(); setState('ok');
+      M.at = Date.now(); M.err = ''; if (!held && !tombHeld && !again && A.dirty && window.dwDirty && window.dwDirty.canVouch(A.dirty)) M.clean = t0; save(); setState('ok');
     } catch (e) { M.err = String((e && (e.message || e.code)) || e); save(); setState('err'); }
     finally { running = false; if (again) { again = false; schedule(1500); } }
   }

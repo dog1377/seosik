@@ -6,7 +6,8 @@
      순서: 받기(지난번 이후 바뀐 것) → 올리기(바뀐 것만). 같은 기록은 더 나중에 고친 쪽(updated)이 이김.
      updated 가 없는 것(설정 · 후기 · 서명 · 회사 정보)은 이 기기에서 지난번 맞춘 뒤 안 고쳤으면 서버 것, 고쳤으면 이 기기 것.
      지운 기록은 서버에 「지움」 표시만(내용은 서버에 남음). 한 번에 많이 지워진 것처럼 보이면(불러오기 실패 등) 지움을 올리지 않음.
-     15초마다 · 화면을 벗어날 때 · 인터넷 다시 연결될 때. 이 기기 저장값: dw-sync-forms · dw-sync-company (이름 바꾸지 말 것). -->
+     15초마다 · 화면을 벗어날 때 · 인터넷 다시 연결될 때. 이 기기 저장값: dw-sync-forms · dw-sync-company (이름 바꾸지 말 것).
+     2026.10.28-22: 이번에 다 올라갔으면 M.clean = 시작 시각 (다른 창이 이 창을 연 뒤에 고친 게 없을 때만 — dwDirty.canVouch). 화면은 고칠 때마다 dw-dirty-forms · dw-dirty-company 에 창별 시각을 적음 → clean ≥ 가장 늦게 고친 시각이면 계정 바꿀 때 휴대폰에 남기지 않음. -->
 <script>
 (function () {
   'use strict';
@@ -28,6 +29,7 @@
     if (window.dwOwner && window.dwOwner.get() !== u.id) { window.DW_HOLD = true; setState('off'); window.dwOwner.go(u.id, 'login'); return; }   /* 2중 안전장치: 이 기기 기록 주인이 다른 계정이면 올리지 않음 (2026.10.28-21) */
     var local = await A.collect(); if (local === false) { setState('off'); return; } if (!local) { schedule(1500); return; }   /* false = 이 기기 저장소를 못 씀 → 맞추지 않음 */
     running = true; setState('sync');
+    var t0 = Date.now(), tombHeld = false;   /* t0: 이번에 맞추기 시작한 때 → 다 올라가면 M.clean (계정 바꿀 때 「다 올라감」 확인용, switch.html) */
     try {
       var c = await acct.client();
       if (M.uid !== u.id) { M = { uid: u.id, h: {}, up: {}, known: {}, pullAt: '' }; save(); }
@@ -64,7 +66,8 @@
           take.push({ kind: x.kind, id: x.id, data: x.data, key: key }); M.known[key] = 1; M.up[key] = up; M.h[key] = rh;
         });
         if (take.length) {
-          var skipped = (await A.apply(take)) || [];
+          var skipped; window.__dwSyncApplying = true;   /* 서버에서 받아 넣는 건 「이 기기에서 고침」 표시를 안 함 */
+          try { skipped = (await A.apply(take)) || []; } finally { window.__dwSyncApplying = false; }
           skipped.forEach(function (key) { var p = prev[key]; if (!p) return; if (p[0]) M.h[key] = p[0]; else delete M.h[key]; if (p[1]) M.up[key] = p[1]; else delete M.up[key]; if (p[2]) M.known[key] = 1; held = true; });
           local = await A.collect(); if (!local) { save(); running = false; schedule(1500); return; }
         }
@@ -81,6 +84,7 @@
       });
       var gone = Object.keys(M.known).filter(function (key) { return !have[key] && key.indexOf('state:') !== 0 && (!A.noTomb || A.noTomb.indexOf(key.split(':')[0]) < 0); });
       var total = Object.keys(M.known).length;
+      if (gone.length && gone.length > 10 && gone.length > total / 2) tombHeld = true;
       if (gone.length && !(gone.length > 10 && gone.length > total / 2)) {
         gone.forEach(function (key) { var i = key.indexOf(':'), up = Math.max(now, (Number(M.up[key]) || 0) + 1); rows.push({ user_id: u.id, app: A.app, kind: key.slice(0, i), id: key.slice(i + 1), data: null, deleted: true, updated_at: up, device: DEV }); marks.push([key, '', up, true]); });
       }
@@ -89,7 +93,7 @@
         marks.slice(i, i + 40).forEach(function (m) { M.up[m[0]] = m[2]; if (m[3]) { delete M.known[m[0]]; delete M.h[m[0]]; } else { M.h[m[0]] = m[1]; M.known[m[0]] = 1; } });
         save();
       }
-      M.at = Date.now(); M.err = ''; save(); setState('ok');
+      M.at = Date.now(); M.err = ''; if (!held && !tombHeld && !again && A.dirty && window.dwDirty && window.dwDirty.canVouch(A.dirty)) M.clean = t0; save(); setState('ok');
     } catch (e) { M.err = String((e && (e.message || e.code)) || e); save(); setState('err'); }
     finally { running = false; if (again) { again = false; schedule(1500); } }
   }

@@ -97,8 +97,22 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     location.replace('switch.html?to=' + encodeURIComponent(to || '') + '&m=' + (mode === 'join' ? 'join' : 'login') + '&back=' + encodeURIComponent(here()));
   }
   var loaded = sessUid();
+  /* 고친 시각 표시 (2026.10.28-22): 서식 · 회사 서류 저장소가 고칠 때마다 창별로 시각을 적음 (dw-dirty-forms · dw-dirty-company = {창번호: 시각}).
+     서버 맞추기(sync-kit)는 다른 창이 이 창을 연 뒤에 고친 적이 없을 때만 「다 올라감」(clean)을 적음 → 계정 바꿀 때(switch.html) 안 올라간 걸 지우는 일이 없게 */
+  var TAB = Math.random().toString(36).slice(2, 10), OPENED = Date.now();
+  function dmap(k) { try { var m = JSON.parse(g(k) || '{}'); return m && typeof m === 'object' && !Array.isArray(m) ? m : {}; } catch (e) { return {}; } }
+  window.dwDirty = {
+    mark: function (k) {
+      if (window.__dwSyncApplying) return;   /* 서버에서 받아 넣는 건 「이 기기에서 고침」이 아님 */
+      try { var m = dmap(k), now = Date.now(); m[TAB] = now; Object.keys(m).forEach(function (t) { if (now - m[t] > 7 * 864e5) delete m[t]; }); localStorage.setItem(k, JSON.stringify(m)); } catch (e) {}
+    },
+    init: function (k) { if (g(k) == null) window.dwDirty.mark(k); },
+    canVouch: function (k) { var m = dmap(k); return Object.keys(m).every(function (t) { return t === TAB || m[t] <= OPENED; }); }
+  };
   window.dwOwner = {
     get: owner, session: sessUid, go: go,
+    /* 회원 탈퇴 뒤: 이 휴대폰에 남은 그 계정 기록을 남기지 않고 비움 (2026.10.28-22) */
+    erase: function () { window.DW_HOLD = window.DW_FREEZE = true; root.classList.add('dw-gated'); try { sessionStorage.setItem('dw-erase', '1'); } catch (e) {} location.replace('switch.html?m=erase&back=./'); },
     /* 로그인 · 가입한 바로 뒤: 이 기기 기록 주인과 다르면(가입은 언제나) 계정 바꾸기 화면으로 → true */
     after: function (uid, join) {
       if (!uid) return false;
