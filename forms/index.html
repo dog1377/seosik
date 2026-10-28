@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-1";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-2";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -533,6 +533,24 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
 @media (min-width:1000px){#tab-stock{width:100%;max-width:760px;margin-inline:auto}}
 @media (max-width:420px){#formTabs button{padding:0 5px;font-size:14px}}
 @media (max-width:370px){#formTabs button{padding:0 3px;font-size:13.5px}}   /* 서식 6칸(주간보고 … 물품 · 회사 서류)이 작은 휴대폰에서도 한 줄에 */
+/* 위쪽 메뉴 (2026.10.28 사용자 「메뉴 선택을 위쪽으로 다 올려서」): 태블릿 · PC 는 메뉴 줄이 위 막대 바로 아래 */
+.tabbar button[hidden]{display:none}
+@media (min-width:700px){
+  :root{--tabbar-h:0px}
+  .appbar .tabbar{position:static;border-top:1px solid var(--line);border-bottom:0;padding-bottom:0;background:var(--surface)}
+  .appbar .tabbar-in,.appbar .tabbar-in.six{display:flex;gap:2px;max-width:640px;margin:0 auto;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+  .appbar .tabbar button{flex:none;height:46px;display:inline-flex;align-items:center;gap:7px;padding:0 12px;font-size:14.5px;font-weight:600;position:relative}
+  .appbar .tabbar button:first-child{margin-left:-12px}
+  .appbar .tabbar button svg{width:18px;height:18px}
+  .appbar .tabbar button[aria-current="page"]{color:var(--ink)}
+  .appbar .tabbar button[aria-current="page"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;background:var(--ink)}
+  .appbar .tabbar button[hidden]{display:none}
+}
+@media (min-width:1000px){
+  .appbar .tabbar-in,.appbar .tabbar-in.six{max-width:1220px}
+  .rv-side,#rptLive{top:calc(112px + env(safe-area-inset-top,0px))}
+  #rptLive{max-height:calc(100dvh - 140px)}
+}
 </style>
 <!-- 앱 잠금: 회사가 정한 비밀번호(해시만 앱에 들어 있음)를 넣어야 앱이 열립니다. 해시가 비어 있으면 잠그지 않습니다. -->
 <style id="lock-ui">
@@ -965,12 +983,13 @@ html:not(.dw-chief) [data-chief]{display:none!important}
   <section class="tab" id="tab-settings" hidden>
     <div class="tab-head">
       <h1>설정</h1>
-      <p>보고서 머리글에 들어갈 정보와 데이터 백업을 관리해요.</p>
+      <p>서식(주간보고 · 회의록 · 후기 · 탁송 · 물품) 보고서에 들어갈 정보와 데이터 백업을 관리해요. 장례업무 설정은 장례업무 → 설정에 있어요.</p>
     </div>
     <div class="card ac-card" id="dwAcctCard" hidden></div>
     <div class="card" id="roleCard" hidden><h2>직원 권한</h2><p class="small-t muted">파트장으로 정하면 서식 · 설정 · 회사 서류가 보이고, 파트를 만들어 파트원을 넣을 수 있어요. 총괄실장으로 정하면 회의록 · 주간보고 · 후기 · 탁송 · 회사 서류와, 파트장님들이 올린 보고를 모아 보는 「취합」만 보여요.</p><div id="roleList"></div></div>
     <div class="card">
       <h2>기본 정보</h2>
+      <p class="small-t muted">쓰이는 곳: 주간보고 · 회의록 · 탁송 · 물품 보고서 맨 위 (작성자 · 파트 · 회사명)</p>
       <label class="field"><span id="setAuthorLb">작성자 (파트장 이름)</span><input id="setAuthor" type="text" placeholder="예: 홍길동" autocomplete="name"></label>
       <label class="field"><span>파트명</span><input id="setPart" type="text" placeholder="예: 장례지원 1파트"></label>
       <label class="field"><span>회사명 <span class="opt">(보고서 맨 위에 작게 표시)</span></span><input id="setCompany" type="text" placeholder="회사명"></label>
@@ -983,6 +1002,7 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     </div>
     <div class="card">
       <h2>결재란</h2>
+      <p class="small-t muted">쓰이는 곳: 서식 보고서 오른쪽 위 결재 칸</p>
       <label class="switch" for="setShowAppr"><span>보고서에 결재란 표시</span><input type="checkbox" id="setShowAppr"></label>
       <label class="field"><span>결재란 칸 이름 <span class="opt">(쉼표로 구분, 최대 4칸)</span></span><input id="setAppr" type="text" placeholder="파트장, 총괄실장, 본부장"></label>
     </div>
@@ -1065,6 +1085,7 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     </button>
   </div>
 </nav>
+<script>/* 위쪽 메뉴 (2026.10.28): 메뉴 줄을 위 막대 안으로 옮김 → 태블릿 · PC 는 위에, 휴대폰은 예전처럼 아래(고정) */(function(){ var ab=document.querySelector('header.appbar'), tb=document.querySelector('nav.tabbar'); if(ab&&tb) ab.appendChild(tb); })();</script>
 
 <!-- ===== 게시판 글 보기 ===== -->
 <div class="screen" id="postScreen" hidden>

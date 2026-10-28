@@ -92,6 +92,8 @@ FM = ROOT / 'forms'
 (FM / 'icons').mkdir(parents=True, exist_ok=True)
 shutil.copyfile(ROOT / 'vendor' / 'jspdf.umd.min.js', FM / 'vendor' / 'jspdf.umd.min.js')
 shutil.copyfile(ROOT / 'vendor' / 'supabase.js', FM / 'vendor' / 'supabase.js')   # 실시간 저장 (장례업무)
+(FM / 'assets').mkdir(parents=True, exist_ok=True)
+shutil.copyfile(ROOT / 'assets' / 'poster.pptx', FM / 'assets' / 'poster.pptx')   # 주요 장례일정 양식 (2026.10.28, tools/poster_pptx.py)
 for ic in (ROOT / 'icons').glob('*.png'):
     shutil.copyfile(ic, FM / 'icons' / ic.name)
 (FM / 'index.html').write_text(html, encoding='utf-8')
@@ -169,7 +171,7 @@ def make_sw(prefix, core):
     make_funeral('DW장례업무', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), CONFIRM_KIT, GATE_BODY], share_title='DW장례업무', page_title='DW장례업무', manifest_href='../manifest.webmanifest', head_extra='<script>window.DW_STAFF_ONLY = true;</script>\n' + GATE_HEAD),   # 장례업무: 총괄실장은 안 씀 → 취합으로
     encoding='utf-8')
 (FM / 'sw.js').write_text(make_sw('forms-app-', [
-    './', './index.html', './funeral.html', './admin.html', './vendor/jspdf.umd.min.js',
+    './', './index.html', './funeral.html', './admin.html', './vendor/jspdf.umd.min.js', './assets/poster.pptx',
     './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
 ]), encoding='utf-8')
 (FM / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')

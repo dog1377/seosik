@@ -1,5 +1,5 @@
 /* Service worker for 관리자 서식함. Generated into sw.js by build.py; edit this template. */
-const VERSION = '2026.10.28-1';
+const VERSION = '2026.10.28-2';
 const PREFIX = 'forms-app-';
 const CACHE = PREFIX + VERSION;
 const FONT_CACHE = 'seosik-fonts-v1';
@@ -9,6 +9,7 @@ const CORE = [
   "./funeral.html",
   "./admin.html",
   "./vendor/jspdf.umd.min.js",
+  "./assets/poster.pptx",
   "./icons/gukhwa-192.png",
   "./icons/gukhwa-512.png",
   "./icons/gukhwa-apple-180.png"

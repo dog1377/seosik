@@ -244,3 +244,94 @@ h1,h2,h3,.wz-q{text-wrap:balance}
 }
 @media (max-width:360px){ body #newCase .ui-icon{display:none} }
 </style>
+
+<style id="top-nav">
+/* 위쪽 메뉴 (2026.10.28 사용자 「메뉴를 왼쪽 말고 위쪽으로 다 올려서 편하게 · 각 설정이 어떤 기능의 설정인지 한눈에」)
+   왼쪽 메뉴(≡) · 밀어서 여는 메뉴를 없애고 위 막대 아래 메뉴 줄. 태블릿 · PC 는 모든 메뉴, 휴대폰은 아래 메뉴 그대로 + 위에는 세부 메뉴만 */
+body .sidenav,body .sn-bg,body #menuBtn,body .work-tabs{display:none!important}
+body{padding-left:0!important}
+body .toast{left:50%!important}
+body .appbar .ab-in{padding-left:16px}
+html{scroll-padding-top:calc(var(--ab-h) + var(--tn-h,0px) + 16px)}
+.topnav{background:var(--surface)}
+.tn-row{border-top:1px solid var(--line)}
+.tn-in{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;max-width:1480px;margin:0 auto;padding:0 24px}
+.tn-in::-webkit-scrollbar{display:none}
+.tn-in.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+.tn-in.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+.tn-in.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+.tn-main-row .tn-in>button:first-child{margin-left:-12px}
+.tn-main-row .tn-in button{flex:none;display:inline-flex;align-items:center;gap:7px;min-height:46px;padding:0 12px;border:0;border-radius:0;background:none;color:var(--muted);font:inherit;font-size:14.5px;font-weight:600;white-space:nowrap;cursor:pointer;position:relative}
+.tn-main-row .tn-in button .ui-icon{width:17px;height:17px;flex:none}
+.tn-main-row .tn-in button[aria-current="page"]{color:var(--ink)}
+.tn-main-row .tn-in button[aria-current="page"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;background:var(--ink)}
+@media (hover:hover){.tn-main-row .tn-in button:hover{color:var(--ink)}}
+.tn-sub-row{background:var(--bg)}
+.tn-sub-row .tn-in{gap:6px;padding-top:8px;padding-bottom:8px}
+.tn-sub-row button{flex:none;min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink-2);font:inherit;font-size:13.5px;font-weight:600;white-space:nowrap;cursor:pointer}
+.tn-sub-row button[aria-current="page"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+@media (hover:hover){.tn-sub-row button:not([aria-current]):hover{border-color:var(--ink)}}
+.topnav button:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+@media (min-width:700px){
+  :root{--nav-h:0px}
+  body .mobile-nav{display:none!important}
+  .tn-sub-row.tn-phone-only{display:none}
+}
+@media (min-width:700px){ body .appbar .ab-in{max-width:1480px;padding-left:24px;padding-right:24px} }
+@media (min-width:700px) and (max-width:1023px){ .tn-main-row .tn-in button .ui-icon{display:none} .tn-main-row .tn-in button{padding:0 10px} .tn-main-row .tn-in>button:first-child{margin-left:-10px} }
+@media (max-width:699px){ body[data-tab="admin"] #p-admin{padding-top:12px} }
+@media (min-width:1200px){ .tn-in{padding:0 36px} body .appbar .ab-in{padding-left:36px;padding-right:36px} }
+@media (max-width:699px){
+  .tn-main-row{display:none}
+  .tn-in{padding:0 12px}
+  .tn-sub-row button{min-height:44px;font-size:14px}
+}
+/* 설정 고르기 카드: 이름 · 무엇을 정하는지 · 쓰이는 곳 */
+#adminTabs{display:none!important}
+.set-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.set-cards button{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:3px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:44px;min-width:0}
+.set-cards b{font-family:var(--serif);font-size:15px;font-weight:700}
+.set-cards span{font-size:12.5px;color:var(--ink-2);line-height:1.45}
+.set-cards small{font-size:12px;color:var(--muted);line-height:1.4}
+.set-cards small::before{content:"쓰이는 곳 · "}
+.set-cards button[aria-current="true"]{border:2px solid var(--ink);padding:11px 13px;background:var(--accent-soft)}
+@media (hover:hover){.set-cards button:not([aria-current]):hover{border-color:var(--ink)}}
+@media (max-width:1199px){ .set-cards{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:699px){
+  .set-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .set-cards small{display:none}
+  .set-cards button{padding:10px 12px}
+  .set-cards button[aria-current="true"]{padding:9px 11px}
+}
+.list-use{display:block;margin:2px 0 4px}
+@media print{ .topnav{display:none!important} }
+</style>
+
+<style id="print-out">
+/* 주요 장례일정 · 장례 상담서 (2026.10.28): 미리보기 · 저장 버튼 · 인쇄 */
+.px-pv,.cs-pv{display:grid;gap:12px;justify-items:center;padding:12px;background:var(--field);border:1px solid var(--line);border-radius:6px;cursor:zoom-in}
+.px-pv canvas{display:block;width:100%;max-width:420px;height:auto;background:#fff;border:1px solid var(--line)}
+.cs-pv canvas{display:block;width:100%;max-width:560px;height:auto;background:#fff;border:1px solid var(--line)}
+.px-pv.zoom canvas,.cs-pv.zoom canvas{max-width:none}
+.px-pv.zoom,.cs-pv.zoom{cursor:zoom-out}
+.px-pv.err{position:relative}
+.px-pv.err::after{content:"양식을 불러오지 못했어요 · 인터넷이 될 때 다시 열어 주세요";position:absolute;inset:auto 12px 12px;padding:10px;background:var(--surface);border:1px solid var(--warn);color:var(--warn);font-size:13px;border-radius:4px;text-align:center}
+.cs-pv:empty{min-height:200px}
+.cs-pv:empty::before{content:"상담서를 만드는 중…";align-self:center;color:var(--muted);font-size:13px}
+.pr-acts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pr-acts.pr-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:560px){ .pr-acts{grid-template-columns:repeat(2,minmax(0,1fr))} .pr-acts.pr-3>.btn:first-child{grid-column:1/-1} }
+.px-edit{border-top:1px solid var(--line);padding-top:4px}
+.px-edit>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:14px;font-weight:600;color:var(--ink)}
+.px-edit>.fields{padding-top:6px}
+.cs-blank{align-self:flex-start}
+#prBox{display:none}
+@media print{
+  body.pr-on>*:not(#prBox){display:none!important}
+  body.pr-on{padding:0!important;margin:0!important;background:#fff!important}
+  body.pr-on #prBox{display:block!important}
+  #prBox img{display:block;width:100%;height:auto;break-after:page;page-break-after:always}
+  #prBox img:last-child{break-after:auto;page-break-after:auto}
+}
+@page{margin:8mm}
+</style>
