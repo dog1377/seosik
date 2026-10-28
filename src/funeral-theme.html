@@ -286,6 +286,19 @@ html{scroll-padding-top:calc(var(--ab-h) + var(--tn-h,0px) + 16px)}
   .tn-in{padding:0 12px}
   .tn-sub-row button{min-height:44px;font-size:14px}
 }
+/* 메뉴 묶음 (2026.10.28-5 사용자 「모바일로 봤을 때도 섹션을 나눠 줘야 함 · 너무 밑에 몰려 있는 느낌」)
+   넓은 화면: 위 메뉴 줄 묶음 사이 가는 세로선 / 휴대폰: 아래 메뉴 묶음 4개 + 위에는 그 묶음 화면을 밑줄 탭으로 (진한 칸 버튼 대신 조용하게) */
+.tn-sep{flex:none;align-self:center;width:1px;height:18px;background:var(--line);margin:0 8px}
+body .mobile-nav.mn-sec{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (min-width:700px) and (max-width:1023px){ .tn-main-row .tn-in button{padding:0 8px} .tn-main-row .tn-in>button:first-child{margin-left:-8px} .tn-sep{margin:0 6px} }
+body .mobile-nav.mn-sec button{font-size:12.5px;gap:4px}
+@media (max-width:699px){
+  .tn-sub-row{background:var(--surface)}
+  .tn-sub-row .tn-in{gap:0;padding:0 4px}
+  .tn-sub-row button{position:relative;min-height:44px;padding:0 12px;border:0;border-radius:0;background:none;color:var(--muted);font-size:14.5px;font-weight:600}
+  .tn-sub-row button[aria-current="page"]{background:none;color:var(--ink);font-weight:700}
+  .tn-sub-row button[aria-current="page"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;background:var(--ink)}
+}
 /* 설정 고르기 카드: 이름 · 무엇을 정하는지 · 쓰이는 곳 */
 #adminTabs{display:none!important}
 .set-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
@@ -320,6 +333,14 @@ html{scroll-padding-top:calc(var(--ab-h) + var(--tn-h,0px) + 16px)}
 .pr-acts.pr-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:560px){ .pr-acts{grid-template-columns:repeat(2,minmax(0,1fr))} .pr-acts.pr-3>.btn:first-child{grid-column:1/-1} }
 .px-edit{border-top:1px solid var(--line);padding-top:4px}
+/* 장례일정표 화면 (2026.10.28-5, 행사와 따로 입력) */
+body[data-tab="poster"] .case-panel{display:none}
+.px-page{display:grid;gap:16px;min-width:0}
+.px-page>*{min-width:0}
+@media (min-width:1000px){ .px-page{grid-template-columns:minmax(0,1fr) minmax(340px,440px);gap:24px;align-items:start} .px-side{position:sticky;top:calc(var(--ab-h) + var(--tn-h,0px) + 16px + env(safe-area-inset-top,0px))}
+  .px-side .px-pv canvas{width:auto;height:auto;max-width:100%;max-height:calc(100dvh - var(--ab-h) - var(--tn-h,0px) - 300px - env(safe-area-inset-top,0px));min-height:300px} }
+.px-from{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--field);font-size:14px;color:var(--ink-2)}
+.px-fixed{padding:12px 14px;border:1px dashed var(--edge);border-radius:4px;background:var(--field);font-weight:600;color:var(--ink);word-break:keep-all;overflow-wrap:break-word}
 .px-edit>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:14px;font-weight:600;color:var(--ink)}
 .px-edit>.fields{padding-top:6px}
 #prBox{display:none}

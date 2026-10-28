@@ -1183,6 +1183,7 @@ body[data-tab="list"] .case-panel{display:none}
 
   <section id="p-sched" class="stack" hidden></section>
   <section id="p-envelopes" class="stack" hidden></section>
+  <section id="p-poster" class="stack" hidden></section>
 
   <section id="p-duty" hidden><iframe id="dutyFrame" title="휴무 · 당직표"></iframe></section>
 
@@ -1268,6 +1269,13 @@ body[data-tab="list"] .case-panel{display:none}
           </div>
         </div>
       </div>
+    </div>
+    <div class="sec" data-av="keep" id="meSec">
+      <div class="sec-head"><h2>내 정보</h2></div>
+      <p class="note">장례일정표 맨 아래 「(문 의: 의전팀장 이름, 전화번호)」와 수당 정산에 들어가요. 한 번 넣으면 계속 남고, 로그인하면 내 계정에도 같이 저장돼요.</p>
+      <div class="fields"><label class="f">이름<input class="input" data-mei="name" autocomplete="name" placeholder="예: 홍길동"></label>
+      <label class="f">전화번호<input class="input" data-mei="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000"></label>
+      <label class="f">직급 · 수당 정산용<input class="input" data-mei="rank" placeholder="예: 주임"></label></div>
     </div>
     <div class="sec" data-av="keep">
       <div class="sec-head"><h2>화면 밝기</h2></div>
@@ -2112,7 +2120,7 @@ function updateSaveState(state){
 }
 function updateWorkspace(t){
   document.body.dataset.tab=t;
-  const titles={list:['행사 목록','모든 행사를 한눈에 보고, 찾고, 정산 상태를 관리하세요.'],input:['장례 일정 작성','행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.'],out:['보고서 · 복사','완성된 내용을 확인하고 필요한 양식을 복사하세요.'],sched:['보고서 입력','장례행사 일정표를 한 단계씩 채우고 이미지 · 엑셀로 저장하세요.'],settle:['정산 · 수당','수금 내역과 회사 정산금, 개인 수당을 확인하세요.'],envelopes:['월별 봉투정리','행사별 봉투를 모아 월 합계와 출금할 지폐 장수를 확인하세요.'],admin:['업무 설정','업체 양식과 선택 목록을 내 업무에 맞게 관리하세요.']};
+  const titles={list:['행사 목록','모든 행사를 한눈에 보고, 찾고, 정산 상태를 관리하세요.'],input:['장례 일정 작성','행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.'],out:['보고서 · 복사','완성된 내용을 확인하고 필요한 양식을 복사하세요.'],sched:['보고서 입력','장례행사 일정표를 한 단계씩 채우고 이미지 · 엑셀로 저장하세요.'],poster:['장례일정표','빈소에 붙이는 주요 장례일정을 행사 입력과 따로 적고 인쇄 · 저장하세요.'],settle:['정산 · 수당','수금 내역과 회사 정산금, 개인 수당을 확인하세요.'],envelopes:['월별 봉투정리','행사별 봉투를 모아 월 합계와 출금할 지폐 장수를 확인하세요.'],admin:['업무 설정','업체 양식과 선택 목록을 내 업무에 맞게 관리하세요.']};
   const info=titles[t]||['휴무 · 당직',''];
   $('#pageTitle').textContent=info[0];$('#pageDesc').textContent=info[1];
   $('#newCase').innerHTML=uiIcon('plus')+(t==='envelopes'?'봉투 1건 추가':t==='settle'?'새 정산':'새 행사');
@@ -3111,7 +3119,7 @@ function tbScroll(b){ const el=b&&b.parentElement; if(!el) return; const L=b.off
 document.addEventListener('scroll',e=>{ const t=e.target; if(t&&t.classList&&t.classList.contains('out-tabs')) tabsFade(t); },true);
 window.addEventListener('resize',()=>document.querySelectorAll('.out-tabs').forEach(tabsFade));
 /* 보고서 화면: 위쪽 줄에서 양식 하나를 골라 그것만 보여 줌 (2026.10.22 정리) */
-function outViews(c){ return [['band','밴드'],...activeReports(coById(c.companyId)).map((r,i)=>['rep'+i,r.name]),['disp','배차'],['off','퇴근'],['xl','일정표'],['poster','주요 장례일정']]; }
+function outViews(c){ return [['band','밴드'],...activeReports(coById(c.companyId)).map((r,i)=>['rep'+i,r.name]),['disp','배차'],['off','퇴근'],['xl','행사 일정표']]; }
 function applyOutView(){
   const btns=[...document.querySelectorAll('#outTabs [data-ov-tab]')]; let v=db.outView;
   if(!btns.some(b=>b.dataset.ovTab===v)) v='band';
@@ -3121,7 +3129,7 @@ function applyOutView(){
   return v;
 }
 $('#outTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-ov-tab]'); if(!b) return;
-  db.outView=b.dataset.ovTab; save(); const v=applyOutView(); fitOutText(); if(v==='xl') szPaint($('#xlCanvas'),curCase()); if(v==='poster') prPaintView(curCase(),true);
+  db.outView=b.dataset.ovTab; save(); const v=applyOutView(); fitOutText(); if(v==='xl') szPaint($('#xlCanvas'),curCase());
   tbScroll(b); });
 $('#outTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; const bs=[...e.currentTarget.querySelectorAll('[data-ov-tab]')], i=bs.indexOf(document.activeElement); if(i<0) return;
   const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
@@ -3130,14 +3138,13 @@ function renderOut(){
   if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; $('#outTabs').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
   $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
-  $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+pxCardHtml(c)+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   $('#outTabs').innerHTML=outViews(c).map(([k,l])=>`<button type="button" role="tab" data-ov-tab="${k}">${esc(l)}</button>`).join(''); applyOutView();
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c,{'업체명':dispCoName(c)});   /* 배차는 업체별 배차 회사명 (대한선진(국향) → 대한항공노동조합) */
   { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없어요':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워져요. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 넣으세요. 미리보기를 누르면 크게 보여요.';
   { const cv=$('#xlCanvas'); szPaint(cv,c); szWhenFonts(()=>{ if(db.tab==='out'||isSplit()) szPaint($('#xlCanvas'),curCase()); }); }
   reports.forEach((r,i)=>{ $('#rep_'+i).value=fillTpl(r.body,c); });
-  prPaintView(c);
   const used=usedPH(co);
   const burialOn=used.has('화장')||used.has('하관');
   const miss=Object.entries(REQUIRED).filter(([k])=>(k==='cremDate'?(used.has('화장')&&!isBurial(c.f)):k==='hagwanDate'?(burialOn&&isBurial(c.f)):visible(k,used)) && !String(c.f[k]??'').trim());
@@ -3613,6 +3620,11 @@ const COMM_ITEMS=['사진','검안','각인','바다장','납골','수목장','�
 // 수당 정산(내 몫) = 실장 몫: 제단 · 유골함 · 꽃관 · 초도 · 키트 · 도시락은 정산에서 넣은 값으로 자동 (장지는 봉투에만)
 const man=w=>{ const x=w/10000; return Number.isInteger(x)?String(x):String(Math.round(x*10)/10); };
 function me(){ if(!db.me) db.me={name:'',rank:''}; return db.me; }
+/* 설정 → 내 정보 (2026.10.28-5: 전화번호 칸 phone 추가 — db.me 안이라 내 계정 설정과 같이 저장) */
+function renderMe(){ document.querySelectorAll('#meSec [data-mei]').forEach(i=>{ if(document.activeElement!==i) i.value=String(me()[i.dataset.mei]||''); }); }
+document.addEventListener('input',e=>{ const t=e.target; if(!t.dataset||!t.dataset.mei||!t.closest('#meSec')) return;
+  if(t.dataset.mei==='phone'&&/^01\d/.test(t.value.replace(/\D/g,''))){ const nv=fmtTel(t.value); if(nv!==t.value) t.value=nv; }
+  me()[t.dataset.mei]=t.value; markUnsaved(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),400); });
 function commData(c){
   const s=S(c), R=rules();
   const altarWon=toWon(s.altarAmt), altarKeep=altarWon?altarWon-Math.min(altarWon,R.altarFixed*10000):0;
@@ -3923,8 +3935,9 @@ function zipRead(buf){
 }
 function prImg(bytes,type){ return new Promise((res,rej)=>{ const url=URL.createObjectURL(new Blob([bytes],{type})), im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('img')); im.src=url; }); }
 
-/* ---------- 주요 장례일정 (빈소 게시용, 2026.10.28): 사용자가 보낸 PPT 양식 그대로 행사 값으로 채움 ----------
-   그림 · PDF · 인쇄 · PPT 저장. 장지 · 아래 두 줄은 행사마다 고칠 수 있음(case.poster = {burial, org, contact}, 비우면 자동) */
+/* ---------- 주요 장례일정 = 장례일정표 (빈소 게시용, 2026.10.28): 사용자가 보낸 PPT 양식 그대로 채움 ----------
+   그림 · PDF · 인쇄 · PPT 저장. (2026.10.28-5 부터 행사와 따로 입력하는 「장례일정표」 화면, 아래 pxDoc · renderPoster.
+   예전에 행사마다 넣은 case.poster 는 「그 행사 일정으로 채우기」 때 장지 · 첫째 줄로만 씀) */
 let PX=null;
 async function posterAssets(){ if(PX) return PX; const r=await fetch('assets/poster.pptx'); if(!r.ok) throw new Error('poster'); const files=zipRead(await r.arrayBuffer());
   const [bg,head,line]=await Promise.all([prImg(files['ppt/media/image1.jpeg'],'image/jpeg'),prImg(files['ppt/media/image2.jpeg'],'image/jpeg'),prImg(files['ppt/media/image3.png'],'image/png')]);
@@ -3939,18 +3952,36 @@ function posterAuto(c){
     org:coKey(nm)==='디더블유'&&!String(f.company||'').trim()?'디더블유 장례의전':co?`${co} 장례지원단`:'장례지원단',
     contact:`(문 의: 의전팀장 ${staff}${tel?', '+tel:''})` };
 }
-function posterData(c){
-  const f=c.f||{}, P=c.poster&&typeof c.poster==='object'?c.poster:{}, A=posterAuto(c), pick=k=>typeof P[k]==='string'&&P[k].trim()?P[k].trim():A[k];
-  const rel=String(f.religion||'').trim(), rows=[['입관',pxDT(f.casket)]];
+/* ---------- 장례일정표 따로 입력 (2026.10.28-5) ----------
+   사용자: 「장례일정표는 행사 등록과 상관없이 따로 기재해서 입력 · (문의 : 의전팀장)은 무조건 고정 · 직책은 전부 팀장으로 통일 ·
+   각자 아이디로 들어갔을 때 이름이랑 전화번호는 자동 · 전화번호는 설정에서 본인 번호 넣고 저장」.
+   새 화면 'poster'(#p-poster, 행사 묶음 맨 끝 「장례일정표」). 입력값은 행사 기록과 따로 db.posterDoc
+   = {name, casket, religion, depart, method('화장'|'매장'), rite(화장 · 하관 일시), burial, org} (이 기기, 마지막으로 쓴 것 하나).
+   아래 둘째 줄은 늘 「(문 의: 의전팀장 이름, 전화번호)」 — 이름 · 전화번호는 설정 → 내 계정 · 백업 → 내 정보(db.me.name · db.me.phone,
+   db.me 는 내 계정 설정과 같이 저장돼서 같은 아이디로 들어가면 그대로 나옴). 「지금 행사에서 가져오기」로 행사 값을 한 번에 채울 수 있음. */
+function pxDoc(){ if(!db.posterDoc||typeof db.posterDoc!=='object') db.posterDoc={}; return db.posterDoc; }
+function myName(){ const n=String(me().name||'').trim(); if(n) return n;
+  try{ const u=typeof sbUser!=='undefined'&&sbUser, m=u&&u.user_metadata&&String(u.user_metadata.name||'').trim(); if(m) return m; }catch(e){ /* 로그인 전 */ }
+  return ''; }
+const myPhone=()=>String(me().phone||'').trim();
+const pxBare=n=>String(n||'').trim().replace(/\s*(팀장|실장|과장|대리|부장|차장|주임|파트장|님)$/,'').trim();
+function pxContact(){ const n=pxBare(myName()), t=myPhone(); return `(문 의: 의전팀장 ${n}${t?', '+t:''})`; }
+const PX_ORG_DEF='디더블유 장례의전';
+function pxDocData(d){
+  d=d||pxDoc(); const rel=String(d.religion||'').trim(), rows=[['입관',pxDT(d.casket)]];
   if(rel&&rel!=='무교') rows.push(['종교의식',/^[가-힣]{2}$/.test(rel)?rel.split('').join(' '):rel]);
-  rows.push(['발인',pxDT(f.depart)]);
-  if(isBurial(f)) rows.push(['하관',f.hagwanDate?pxDT(f.hagwanDate+(f.hagwanFrom?`T${pad(f.hagwanFrom)}:00`:'')):'']);
-  else rows.push(['화장',f.cremDate?pxDT(f.cremDate+(f.cremTime?'T'+f.cremTime:'')):'']);
-  rows.push(['장지',gimhaeShort(pick('burial'))]);
-  return {name:String(f.name||'').trim(), rows, org:pick('org'), contact:pick('contact')};
+  rows.push(['발인',pxDT(d.depart)]);
+  rows.push([d.method==='매장'?'하관':'화장',pxDT(d.rite)]);
+  rows.push(['장지',gimhaeShort(String(d.burial||'').trim())]);
+  return {name:String(d.name||'').trim(), rows, org:String(d.org||'').trim()||PX_ORG_DEF, contact:pxContact()};
 }
-async function posterDraw(cv,c){
-  const A=await posterAssets(), D=posterData(c), W=1500, H=2000, e=v=>v*W/6858000, pt=n=>n*W/540;
+/* 지금 행사 값 → 장례일정표 칸 (예전 보고서 탭 주요 장례일정과 같은 자동 값) */
+function pxFromCase(c){ const f=c.f||{}, A=posterAuto(c), bur=isBurial(f), P=c.poster&&typeof c.poster==='object'?c.poster:{};
+  return { name:String(f.name||'').trim(), casket:f.casket||'', religion:String(f.religion||'').trim(), depart:f.depart||'', method:bur?'매장':'화장',
+    rite:bur?(f.hagwanDate?f.hagwanDate+(f.hagwanFrom?`T${pad(f.hagwanFrom)}:00`:''):''):(f.cremDate?f.cremDate+(f.cremTime?'T'+f.cremTime:''):''),
+    burial:String(P.burial||'').trim()||A.burial, org:String(P.org||'').trim()||(A.org==='장례지원단'?'':A.org) }; }
+async function posterDraw(cv,D){
+  const A=await posterAssets(), W=1500, H=2000, e=v=>v*W/6858000, pt=n=>n*W/540;
   await prFonts(['주요장례일정종교의식입관발인화장하관장지',pxName(D.name),...D.rows.map(r=>r[1]),D.org,D.contact].join(''));
   cv.width=W; cv.height=H; const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,W,H);
   const bw=A.bg.naturalWidth, bh=A.bg.naturalHeight, sx=bw*.0979, sy=bh*.0085;
@@ -3975,46 +4006,81 @@ async function posterDraw(cv,c){
 }
 const pxX=v=>String(v??'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const PX_RPR=sz=>`<a:rPr lang="ko-KR" altLang="en-US" sz="${sz}" dirty="0"><a:latin typeface="HY견고딕"/><a:ea typeface="HY견고딕"/><a:cs typeface="Times New Roman"/></a:rPr>`;
-async function posterPptxBlob(c){
-  const A=await posterAssets(), D=posterData(c), dec=new TextDecoder();
+async function posterPptxBlob(D){
+  const A=await posterAssets(), dec=new TextDecoder();
   const body=D.rows.map(([k,v])=>`<a:p><a:pPr lvl="0" latinLnBrk="0" hangingPunct="0"><a:lnSpc><a:spcPct val="200000"/></a:lnSpc><a:spcBef><a:spcPct val="44000"/></a:spcBef><a:spcAft><a:spcPct val="0"/></a:spcAft></a:pPr><a:r>${PX_RPR(2400)}<a:t>${pxX(`• ${PX_LAB[k]||k} : ${v}`)}</a:t></a:r></a:p>`).join('');
   const foot=[' '+D.org,D.contact].map(t=>`<a:p><a:pPr lvl="0" indent="304800" latinLnBrk="0" hangingPunct="0"><a:spcBef><a:spcPct val="16000"/></a:spcBef><a:spcAft><a:spcPct val="0"/></a:spcAft></a:pPr><a:r>${PX_RPR(2200)}<a:t>${pxX(t)}</a:t></a:r></a:p>`).join('');
   const files=Object.entries(A.files).map(([n,b])=>n==='ppt/slides/slide1.xml'?[n,dec.decode(b).replace('{{NAME}}',pxX(pxName(D.name))).replace('{{BODY}}',body).replace('{{FOOT}}',foot)]:[n,b]);
   return zipStore(files,'application/vnd.openxmlformats-officedocument.presentationml.presentation');
 }
-const posterFile=(c,ext)=>`주요장례일정_${prSafe('故'+(String((c.f||{}).name||'').trim()||'고인'))}.${ext}`;
-async function posterPaint(c){ const cv=$('#pxCanvas'); if(!cv||!c) return; try{ await posterDraw(cv,c); cv.closest('.px-pv')?.classList.remove('err'); }catch(e){ console.warn(e); cv.closest('.px-pv')?.classList.add('err'); } }
-async function posterSave(c,kind){
-  if(!c) return;
+const posterFile=(D,ext)=>`장례일정표_${prSafe('故'+(D.name||'고인'))}.${ext}`;
+let pxT=null;
+async function posterPaint(){ const cv=$('#pxCanvas'); if(!cv) return; try{ await posterDraw(cv,pxDocData()); cv.closest('.px-pv')?.classList.remove('err'); }catch(e){ console.warn(e); cv.closest('.px-pv')?.classList.add('err'); } }
+function pxPaintSoon(now){ clearTimeout(pxT); pxT=setTimeout(()=>{ if(db.tab==='poster') posterPaint(); },now?0:220); }
+async function posterSave(kind){
+  const D=pxDocData();
   try{
-    if(kind==='pptx'){ await szDeliver(posterFile(c,'pptx'),await posterPptxBlob(c),'PPT 파일을 저장했습니다'); return; }
-    const cv=await posterDraw(document.createElement('canvas'),c);
+    if(kind==='pptx'){ await szDeliver(posterFile(D,'pptx'),await posterPptxBlob(D),'PPT 파일을 저장했습니다'); return; }
+    const cv=await posterDraw(document.createElement('canvas'),D);
     if(kind==='print'){ await prPrint([cv]); return; }
-    if(kind==='pdf'){ await szDeliver(posterFile(c,'pdf'),await prPdf([cv]),'PDF를 저장했습니다'); return; }
-    await szDeliver(posterFile(c,'png'),await prBlob(cv),'이미지를 저장했습니다');
+    if(kind==='pdf'){ await szDeliver(posterFile(D,'pdf'),await prPdf([cv]),'PDF를 저장했습니다'); return; }
+    await szDeliver(posterFile(D,'png'),await prBlob(cv),'이미지를 저장했습니다');
   }catch(e){ console.warn(e); toast(e&&e.message==='poster'?'양식 파일을 못 받았어요 · 인터넷 연결을 확인해 주세요':'만들지 못했어요 · 다시 눌러 주세요'); }
 }
-
-/* (장례 상담서는 2026.10.28-3 사용자 요청으로 DW장례업무 → 서식 → 상담서(파트장만)로 옮김 · src/app.html CK) */
-function pxCardHtml(c){ const P=c.poster&&typeof c.poster==='object'?c.poster:{}, A=posterAuto(c);
-  return `<div class="out" id="pxOut" data-ov="poster"><div class="out-head"><h2>주요 장례일정<small>빈소 게시용 · 모든 업체 공통</small></h2></div>
-    <div class="px-pv" data-pr-zoom><canvas id="pxCanvas" width="1500" height="2000" aria-label="주요 장례일정 미리보기"></canvas></div>
-    <div class="pr-acts"><button class="btn primary" type="button" data-px="print">인쇄</button><button class="btn" type="button" data-px="pdf">PDF 저장</button><button class="btn" type="button" data-px="png">이미지 저장</button><button class="btn" type="button" data-px="pptx">PPT 저장</button></div>
-    <details class="px-edit"><summary>장지 · 아래 문구 고치기</summary><div class="fields">
-      <label class="f">장지<input class="input" data-pxk="burial" value="${esc(P.burial||'')}" placeholder="${esc(A.burial||'예: 부산영락공원-부산추모공원')}" autocomplete="off"></label>
-      <label class="f">아래 첫째 줄<input class="input" data-pxk="org" value="${esc(P.org||'')}" placeholder="${esc(A.org)}" autocomplete="off"></label>
-      <label class="f">아래 둘째 줄<input class="input" data-pxk="contact" value="${esc(P.contact||'')}" placeholder="${esc(A.contact)}" autocomplete="off"></label>
-      <p class="note">비우면 흐린 글자(행사 입력 값)로 들어가요. 고인 이름 · 입관 · 발인 · 화장 · 종교는 행사 입력에서 고치세요. 종교가 무교이거나 비어 있으면 종교의식 줄은 빠져요.</p></div></details></div>`; }
-let prT=null;
-function prPaintView(c,now){ if(!c) return; const v=db.outView; if(v!=='poster') return; if(!(db.tab==='out'||(isSplit()&&db.tab==='input'))) return;
-  clearTimeout(prT); prT=setTimeout(()=>{ const cc=curCase(); if(!cc) return; if(db.outView==='poster') posterPaint(cc); },now?0:180); }
-document.addEventListener('click',e=>{
-  const px=e.target.closest('[data-px]'); if(px&&px.closest('#reportCards')){ posterSave(curCase(),px.dataset.px); return; }
-  const z=e.target.closest('[data-pr-zoom]'); if(z){ z.classList.toggle('zoom'); }
+const PX_REL=['무교','기독교','천주교','불교'];
+function pxContactHtml(){ const n=pxBare(myName()), t=myPhone();
+  return `<div class="px-fixed"><span>${esc(pxContact())}</span></div>`+(n&&t?'':`<p class="note warn">${!n&&!t?'이름 · 전화번호':!n?'이름':'전화번호'}가 비어 있어요. 「내 정보 고치기」에서 한 번만 넣으면 계속 들어가요.</p>`); }
+function renderPoster(){
+  const d=pxDoc(), c=curCase(), cn=c&&c.f?String(c.f.name||'').trim():'', bur=d.method==='매장', rel=String(d.religion||'').trim();
+  $('#p-poster').innerHTML=`<div class="px-page">
+  <div class="px-form stack">
+    <div class="sec"><div class="sec-head"><h2>고인</h2></div><div class="fields">
+      <label class="f">고인 성함<input class="input" data-pxd="name" value="${esc(d.name||'')}" placeholder="예: 홍길동" autocomplete="off"></label>
+      ${cn?`<div class="px-from"><span>지금 행사 · 故 ${esc(cn)}</span><button class="btn sm" type="button" data-pxfrom>그 행사 일정으로 채우기</button></div>`:''}
+    </div></div>
+    <div class="sec"><div class="sec-head"><h2>일정</h2></div><div class="fields">
+      <div class="f-wrap"><label class="f">입관</label>${dtCtl('pxCasket',d.casket||'','입관')}</div>
+      <label class="f">종교<input class="input" data-pxd="religion" value="${esc(rel)}" placeholder="비우거나 무교면 종교의식 줄이 빠져요" autocomplete="off"><span class="crem-picks">${PX_REL.map(r=>`<button type="button" class="chip" data-pxrel="${r}" aria-pressed="${rel===r}">${r}</button>`).join('')}</span></label>
+      <div class="f-wrap"><label class="f">발인</label>${dtCtl('pxDepart',d.depart||'','발인')}</div>
+      <div class="f-wrap"><span class="field-label">장법</span><div class="seg" role="group" aria-label="장법">${['화장','매장'].map(m=>`<button type="button" data-pxm="${m}" aria-pressed="${(bur?'매장':'화장')===m}">${m}</button>`).join('')}</div></div>
+      <div class="f-wrap"><label class="f">${bur?'하관':'화장'}</label>${dtCtl('pxRite',d.rite||'',bur?'하관':'화장')}</div>
+      <label class="f">장지<input class="input" data-pxd="burial" value="${esc(d.burial||'')}" placeholder="예: 부산영락공원-부산추모공원" autocomplete="off"></label>
+    </div></div>
+    <div class="sec"><div class="sec-head"><h2>아래 문구</h2></div><div class="fields">
+      <label class="f">첫째 줄<input class="input" data-pxd="org" value="${esc(d.org||'')}" placeholder="${PX_ORG_DEF}" autocomplete="off"></label>
+      <p class="note">고객사 행사면 「매일유업 장례지원단」처럼 적어 주세요. 비우면 「${PX_ORG_DEF}」이 들어가요.</p>
+      <div class="f-wrap"><span class="field-label">둘째 줄 · 고정</span><div id="pxContactBox">${pxContactHtml()}</div></div>
+      <div class="row"><button class="btn sm" type="button" data-pxme>내 정보 고치기</button></div>
+    </div></div>
+  </div>
+  <div class="px-side stack">
+    <div class="out"><div class="out-head"><h2>미리보기<small>빈소 게시용 · A4 세로</small></h2><button class="btn sm" type="button" data-pxclear>새로 쓰기</button></div>
+      <div class="px-pv" data-pr-zoom><canvas id="pxCanvas" width="1500" height="2000" aria-label="장례일정표 미리보기"></canvas></div>
+      <div class="pr-acts"><button class="btn primary" type="button" data-px="print">인쇄</button><button class="btn" type="button" data-px="pdf">PDF 저장</button><button class="btn" type="button" data-px="png">이미지 저장</button><button class="btn" type="button" data-px="pptx">PPT 저장</button></div>
+      <p class="note">미리보기를 누르면 크게 보여요. PPT 로 저장하면 파워포인트에서 글자를 바로 고칠 수 있어요.</p>
+    </div>
+  </div></div>`;
+  pxPaintSoon(true);
+}
+function pxTouched(){ markUnsaved(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),400); pxPaintSoon(); }
+$('#p-poster').addEventListener('input',e=>{ const t=e.target; if(!t.dataset||!t.dataset.pxd) return; pxDoc()[t.dataset.pxd]=t.value;
+  if(t.dataset.pxd==='religion') document.querySelectorAll('#p-poster [data-pxrel]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pxrel===t.value.trim())));
+  pxTouched(); });
+$('#p-poster').addEventListener('change',e=>{ const dt=e.target.closest('[data-dt]'); if(!dt) return; const map={pxCasket:'casket',pxDepart:'depart',pxRite:'rite'}, k=map[dt.dataset.dt]; if(!k) return; pxDoc()[k]=composeDT(dt); pxTouched(); });
+$('#p-poster').addEventListener('click',async e=>{
+  const px=e.target.closest('[data-px]'); if(px){ posterSave(px.dataset.px); return; }
+  const r=e.target.closest('[data-pxrel]'); if(r){ const inp=$('#p-poster [data-pxd="religion"]'); inp.value=r.dataset.pxrel; inp.dispatchEvent(new Event('input',{bubbles:true})); return; }
+  const m=e.target.closest('[data-pxm]'); if(m){ if((pxDoc().method||'화장')!==m.dataset.pxm){ pxDoc().method=m.dataset.pxm; pxTouched(); renderPoster(); } return; }
+  if(e.target.closest('[data-pxme]')){ setTab('admin','keep'); setTimeout(()=>{ const el=$('#meSec'); if(el){ el.scrollIntoView({block:'start'}); const i=el.querySelector(myName()?'[data-mei="phone"]':'[data-mei="name"]'); if(i) i.focus({preventScroll:true}); } },60); return; }
+  const fb=e.target.closest('[data-pxfrom]'); if(fb){ const c=curCase(); if(!c) return; const d=pxDoc(), has=['name','casket','depart','rite','burial','org','religion'].some(k=>String(d[k]||'').trim());
+    if(has&&window.dwConfirm&&!(await window.dwConfirm({title:'지금 행사 일정으로 채울까요?',body:'지금 적힌 장례일정표 내용이 행사 입력 값으로 바뀌어요.',ok:'채우기',danger:false}))) return;
+    const prev={...d}; db.posterDoc=pxFromCase(c); pxTouched(); renderPoster(); toast('행사 입력 값으로 채웠습니다');
+    if(has&&window.dwUndo) window.dwUndo('행사 값으로 바꿨어요',()=>{ db.posterDoc=prev; pxTouched(); renderPoster(); }); return; }
+  if(e.target.closest('[data-pxclear]')){ const d=pxDoc(); if(!Object.values(d).some(v=>String(v||'').trim())) return;
+    if(window.dwConfirm&&!(await window.dwConfirm({title:'장례일정표를 새로 쓸까요?',body:'적어 둔 고인 · 일정 · 장지 · 첫째 줄이 비워져요.',ok:'비우기',danger:true}))) return;
+    const prev={...d}; db.posterDoc={}; pxTouched(); renderPoster(); if(window.dwUndo) window.dwUndo('장례일정표를 비웠어요',()=>{ db.posterDoc=prev; pxTouched(); renderPoster(); }); return; }
 });
-document.addEventListener('input',e=>{ const t=e.target; if(!t.dataset||!t.dataset.pxk||!t.closest('#reportCards')) return; const c=curCase(); if(!c) return;
-  if(!c.poster||typeof c.poster!=='object') c.poster={}; const v=t.value; if(v.trim()) c.poster[t.dataset.pxk]=v; else delete c.poster[t.dataset.pxk];
-  markUnsaved(); c.updated=Date.now(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),300); prPaintView(c); });   /* 고치는 칸이 다시 그려지지 않게 liveOut 은 안 부름 */
+document.addEventListener('click',e=>{ const z=e.target.closest('[data-pr-zoom]'); if(z){ z.classList.toggle('zoom'); } });
 /* 한 단계씩 묻기 */
 const SZ_G={info:'기본 정보',pay:'수금 결제',goods:'장례용품',items:'품목',mourn:'상복',veh:'장의차량',help:'도우미',memo:'특이사항',done:'확인'};
 const SZ_BASE=[
@@ -5209,7 +5275,7 @@ $('#adminTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-av
 $('#adminTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; const bs=[...e.currentTarget.querySelectorAll('[data-av-tab]')], i=bs.indexOf(document.activeElement); if(i<0) return;
   const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정',data:'데이터 관리'};
-const TAB_TITLES={list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],sched:['장례 행사','보고서 입력'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
+const TAB_TITLES={list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],sched:['장례 행사','보고서 입력'],poster:['장례 행사','장례일정표'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
 /* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
 const isSplit=()=>document.body.classList.contains('split');
 function applySplit(){
@@ -5234,7 +5300,8 @@ function setTab(t,sub){
   const [s1,s2]=t==='duty'?['휴무 · 당직',DUTY_TITLES[db.dutyView]]:t==='admin'?['업무 설정',ADMIN_TITLES[db.adminView]]:(TAB_TITLES[t]||['','']);
   $('#abSub').textContent=s1; $('#abTitle').textContent=s2;
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on', b.dataset.go===(t==='duty'?'duty:'+db.dutyView:t==='admin'?'admin:'+db.adminView:t)));
-  ['list','input','out','sched','settle','envelopes','duty','admin'].forEach(k=>$('#p-'+k).hidden=t!==k);
+  ALL_TABS.forEach(k=>{ const el=$('#p-'+k); if(el) el.hidden=t!==k; });
+  { const sc=secOf(t); if(!db.navLast||typeof db.navLast!=='object') db.navLast={}; db.navLast[sc.k]=t; }
   if(t==='list') renderList();
   document.body.classList.toggle('duty-mode',t==='duty');
   if(t==='duty') openDuty(db.dutyView);
@@ -5243,26 +5310,48 @@ function setTab(t,sub){
   if(t==='input') renderInput();
   if(t==='out') renderOut();
   if(t==='sched') renderSched();
-  if(t==='admin'){ applyAdminView(); renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; renderSnaps(); }
+  if(t==='poster') renderPoster();
+  if(t==='admin'){ applyAdminView(); renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; renderSnaps(); renderMe(); }
   checkSplit(); applySplit();
   updateWorkspace(t);
   paintTopNav(t);
   window.scrollTo(0,0);
 }
 /* ---------- 위쪽 메뉴 (2026.10.28 사용자 「메뉴를 왼쪽 말고 위쪽으로 다 올려서」) ----------
-   왼쪽 메뉴(≡)를 없애고 위 막대 아래에 메뉴 줄. 태블릿 · PC: 모든 메뉴 + 휴무 세부 메뉴, 휴대폰: 아래 메뉴는 그대로 두고 위에는 세부 메뉴(휴무 · 보고서)만 */
-const TN_MAIN=[['list','행사 목록'],['input','행사 입력'],['out','보고서'],['sched','보고서 입력'],['settle','정산 · 수당'],['envelopes','봉투정리'],['duty','휴무 · 당직'],['admin','설정']];
-(()=>{ const m=$('#tnMain'); if(!m) return; const ic=k=>{ const sv=document.querySelector(`#mobileNav [data-ui-go="${k}"] svg`)||document.querySelector(`.work-tabs [data-ui-go="${k}"] svg`); return sv?sv.outerHTML:''; };
-  m.innerHTML=TN_MAIN.map(([k,l])=>`<button type="button" data-tn="${k}">${ic(k)}<span>${l}</span></button>`).join(''); })();
+   왼쪽 메뉴(≡)를 없애고 위 막대 아래에 메뉴 줄.
+   (2026.10.28-5 사용자 「모바일로 봤을 때도 섹션을 나눠 줘야 함 · 너무 밑에 몰려 있는 느낌 · 헷갈리거나 번잡하지 않게」)
+   메뉴를 묶음 4개로: 행사(목록 · 입력 · 보고서 · 보고서 입력 · 장례일정표) · 정산(정산 · 수당 · 봉투정리) · 휴무 · 당직 · 설정.
+   휴대폰: 아래 메뉴 = 묶음 4개(예전 7개), 그 묶음 안 화면은 위 막대 바로 아래 밑줄 탭(#tnSub). 묶음을 누르면 그 묶음에서 마지막에 본 화면(db.navLast).
+   태블릿 · PC: 위 메뉴 줄에 모든 화면 + 묶음 사이 가는 세로선, 휴무만 아래 줄에 세부 메뉴. */
+const NAV_SEC=[
+  {k:'event',l:'행사',ic:'list',tabs:[['list','행사 목록','목록'],['input','행사 입력','입력'],['out','보고서','보고서'],['sched','보고서 입력','보고서 입력'],['poster','장례일정표','장례일정표']]},
+  {k:'money',l:'정산',ic:'settle',tabs:[['settle','정산 · 수당','정산 · 수당'],['envelopes','봉투정리','봉투정리']]},
+  {k:'duty',l:'휴무',ic:'duty',tabs:[['duty','휴무 · 당직','휴무 · 당직']]},
+  {k:'admin',l:'설정',ic:'admin',tabs:[['admin','설정','설정']]},
+];
+const TN_MAIN=NAV_SEC.flatMap(sc=>sc.tabs.map(x=>[x[0],x[1]]));
+const ALL_TABS=TN_MAIN.map(x=>x[0]);
+const secOf=t=>NAV_SEC.find(sc=>sc.tabs.some(x=>x[0]===t))||NAV_SEC[0];
+const NAV_IC={};
+document.querySelectorAll('#mobileNav [data-ui-go], .work-tabs [data-ui-go]').forEach(b=>{ const sv=b.querySelector('svg'); if(sv&&!NAV_IC[b.dataset.uiGo]) NAV_IC[b.dataset.uiGo]=sv.outerHTML; });
+NAV_IC.poster='<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7.5h6M8.5 11.5h7M8.5 15h7M8.5 18h4"/></svg>';
+(()=>{ const m=$('#tnMain'); if(m) m.innerHTML=NAV_SEC.map(sc=>sc.tabs.map(([k,l])=>`<button type="button" data-tn="${k}">${NAV_IC[k]||''}<span>${l}</span></button>`).join('')).join('<span class="tn-sep" aria-hidden="true"></span>');
+  const mn=$('#mobileNav'); if(mn){ mn.innerHTML=NAV_SEC.map(sc=>`<button type="button" data-sec="${sc.k}">${NAV_IC[sc.ic]||''}<span>${sc.l}</span></button>`).join(''); mn.classList.add('mn-sec');
+    mn.addEventListener('click',e=>{ const b=e.target.closest('[data-sec]'); if(!b) return; const sc=NAV_SEC.find(x=>x.k===b.dataset.sec); if(!sc) return;
+      const last=(db.navLast||{})[sc.k], t=sc.tabs.some(x=>x[0]===last)?last:sc.tabs[0][0];
+      if(t===db.tab&&t==='duty'){ setTab('duty'); return; } if(t!==db.tab) setTab(t); else window.scrollTo({top:0,behavior:'smooth'}); }); } })();
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }
 function paintTopNav(t){
   const m=$('#tnMain'); if(!m) return;
   m.querySelectorAll('[data-tn]').forEach(b=>{ if(b.dataset.tn===t) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   let items=[], phoneOnly=false;
+  const sc=secOf(t);
+  document.querySelectorAll('#mobileNav [data-sec]').forEach(b=>{ if(b.dataset.sec===sc.k) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if(t==='duty') items=Object.entries(DUTY_TITLES).map(([k,l])=>['duty:'+k,l,k===db.dutyView]);
-  else if(t==='out'||t==='sched'){ items=[['out','보고서 · 복사',t==='out'],['sched','보고서 입력',t==='sched']]; phoneOnly=true; }
+  else if(sc.tabs.length>1){ items=sc.tabs.map(([k,,sl])=>[k,sl,k===t]); phoneOnly=true; }   /* 행사 · 정산 묶음 안 화면 = 휴대폰에서만 (넓은 화면은 위 메뉴 줄에 다 있음) */
   const row=$('#tnSubRow'); row.hidden=!items.length; row.classList.toggle('tn-phone-only',phoneOnly);
   $('#tnSub').innerHTML=items.map(([k,l,on])=>`<button type="button" data-tn-sub="${k}"${on?' aria-current="page"':''}>${esc(l)}</button>`).join('');
+  $('#tnSubRow').setAttribute('aria-label',t==='duty'?'휴무 · 당직 메뉴':`${sc.l} 메뉴`);
   tnMeasure();
   const cur=m.querySelector('[aria-current]'); if(cur) tbScroll(cur); tabsFade(m);
   const cs=$('#tnSub [aria-current]'); if(cs) tbScroll(cs); tabsFade($('#tnSub'));
@@ -5293,7 +5382,7 @@ $('#sideNav').addEventListener('click',e=>{
 function restoreAcc(){ const a=db.acc||{}; document.querySelectorAll('.acc').forEach(el=>{ const k=el.dataset.acc; if(k in a) el.querySelector('.acc-h').setAttribute('aria-expanded',String(!!a[k])); }); }
 let toastT=null;
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400); }
-function renderAll(){ renderCaseSel(); restoreAcc(); setTab(['list','input','out','sched','settle','envelopes','duty','admin'].includes(db.tab)?db.tab:(db.tab==='card'?'out':'input'), db.dutyView); }
+function renderAll(){ renderCaseSel(); restoreAcc(); setTab(ALL_TABS.includes(db.tab)?db.tab:(db.tab==='card'?'out':'input'), db.dutyView); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#picker').hidden) closePicker(); });
 
 window.addEventListener('pagehide',()=>save());
@@ -5303,7 +5392,7 @@ if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].inc
 save();
 renderAll();
 /* DW장례업무 홈에서 「봉투정리 보기」 등을 누르면 funeral.html#envelopes 로 옴 → 그 화면을 엶 */
-(()=>{ const h=(location.hash||'').slice(1); if(['list','input','out','sched','settle','envelopes','duty'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
+(()=>{ const h=(location.hash||'').slice(1); if(['list','input','out','sched','poster','settle','envelopes','duty'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
 $('#sbLoginBox').addEventListener('submit',e=>{ e.preventDefault(); if(sbMode==='join') sbJoin(); else sbLogin(); });
 $('#sbLoginBox').addEventListener('click',e=>{ const b=e.target.closest('[data-sbmode]'); if(b) sbSetMode(b.dataset.sbmode); });
 $('#sbOutBtn').onclick=sbLogout; $('#sbSyncBtn').onclick=sbSyncNow;

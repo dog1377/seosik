@@ -98,7 +98,7 @@ def main():
             # 장례업무 (같은 기기 · 로그인 유지)
             p.goto(BASE + 'forms/funeral.html'); p.wait_for_function("typeof setTab==='function'", timeout=15000)
             p.evaluate(SEED)
-            for t in ['list', 'input', 'out', 'settle', 'envelopes', 'duty', 'admin']:
+            for t in ['list', 'input', 'out', 'poster', 'settle', 'envelopes', 'duty', 'admin']:
                 p.evaluate(f"setTab('{t}')"); look(p, f'funeral_{t}_{tag}')
             # 회사 서류
             p.goto(BASE + 'forms/admin.html'); p.wait_for_function("typeof showTab==='function'", timeout=15000)
