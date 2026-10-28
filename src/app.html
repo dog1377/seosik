@@ -4078,7 +4078,7 @@ const CK_SANS = '"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystem
 const CK_SERIF = '"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif';
 async function ckFonts() {
   if (!document.fonts || !document.fonts.load) return;
-  const t = '구분성명접객유가족전량제단지원금공제카드결제빈소송이일차유가족인적회사명도로비만원이상경우청구합니다직접수령후기사님께전달금전요구시담당자연락즉시조치불편한점운행외다른없실물예배미사성당경유꽃손자조카①②③④※운구력친지중정해주세요전량생화헌화장의량입관지도사담당자장례상담서인수인계유가족확인사항고인인적성함주민등록번호주소본관종교직분병명사망원인장소회원상주업체명소속회사관계연락처배우자아들딸며느리사위손주일정임종빈소입관발인화장하관장법매장수목장봉안해양장회차장지차상품금액지원기납입잔액제공내역번호항목내용수량비고특이담당지도사설명동의합니다년월일시분인대표진단서검사지휘화장예약하늘정보시스템날짜제물제사여부준비유골함종류각인용품관수의배차버스리무진출발시간경유지자택종교시설도우미인원근무상복남여벌반납안내영정사진원본받음제작꽃장식참관생화교회성당사찰연락부고문자게시표시일시인계자인수자넉넉히받아두세요보험은행상속정리에쓰입니다신고안날부터개월안에구읍면사무소나주민센터에서합니다때안심원스톱서비스재산한번에조회를같이신청할수있습니다식장사용료안치식대와따로정산될추가비용시간차량거리등을미리안내받았습니다날준비물위패서류계약서귀중품유품을했습니다기타전달위내용';
+  const t = '시간구분성명접객유가족전량제단지원금공제카드결제빈소송이일차유가족인적회사명도로비만원이상경우청구합니다직접수령후기사님께전달금전요구시담당자연락즉시조치불편한점운행외다른없실물예배미사성당경유꽃손자조카①②③④※운구력친지중정해주세요전량생화헌화장의량입관지도사담당자장례상담서인수인계유가족확인사항고인인적성함주민등록번호주소본관종교직분병명사망원인장소회원상주업체명소속회사관계연락처배우자아들딸며느리사위손주일정임종빈소입관발인화장하관장법매장수목장봉안해양장회차장지차상품금액지원기납입잔액제공내역번호항목내용수량비고특이담당지도사설명동의합니다년월일시분인대표진단서검사지휘화장예약하늘정보시스템날짜제물제사여부준비유골함종류각인용품관수의배차버스리무진출발시간경유지자택종교시설도우미인원근무상복남여벌반납안내영정사진원본받음제작꽃장식참관생화교회성당사찰연락부고문자게시표시일시인계자인수자넉넉히받아두세요보험은행상속정리에쓰입니다신고안날부터개월안에구읍면사무소나주민센터에서합니다때안심원스톱서비스재산한번에조회를같이신청할수있습니다식장사용료안치식대와따로정산될추가비용시간차량거리등을미리안내받았습니다날준비물위패서류계약서귀중품유품을했습니다기타전달위내용';
   const jobs = [400, 500, 600, 700].map((w) => document.fonts.load(`${w} 40px "Pretendard Variable"`, t + '0123456789()·-~,.:「」').catch(() => {}));
   jobs.push(document.fonts.load('700 40px "Noto Serif KR"', '장례상담서인수인계유가족확인사항·').catch(() => {}));
   await Promise.race([Promise.all(jobs), new Promise((r) => setTimeout(r, 3000))]);
@@ -4160,36 +4160,44 @@ function ckPage1() {
   r([{ w: L, lab: '회사지원 ·\n기납입금' }, { w: 250 }, { w: 130, lab: '제단지원금' }, { w: 140 }, { w: 230, checks: ['금액공제', '카드결제'] }, { w: 100, lab: '잔액' }, { w: CW - L - 850 }]);
   y += 4; y = ckSec(g, y, '제공 내역');
   { /* (2026.10.28-7) 체크 칸 없앰 · 글씨는 모두 가운데(도우미 날짜별 시간 칸만 왼쪽) · 도우미 비고 = 1일차 2줄 + 2일차 2줄 */
-    /* (2026.10.28-10 사용자 「제공내역도 보기 좋게 정리」) 고정 항목 칸은 다른 칸 이름처럼 회색(빈 줄은 흰색 = 적는 곳),
-       수량 칸은 두 칸으로 나눠 단위를 오른쪽에 맞춤(남 __벌 | 여 __벌 · __명 | __시간), 접객도우미 비고는 1일차 · 2일차 표 */
-    const C = [260, 250, CW - 510], hh = 36, lh = 28; let cx = X;
-    ['제공 항목', '내용 · 수량', '비고'].forEach((t, i) => { ckBox(g, cx, y, C[i], hh, CK.lab); ckT(g, t, cx + C[i] / 2, y + hh / 2, { px: 18, w: 700, align: 'center' }); cx += C[i]; }); y += hh;
-    g.fillStyle = CK.ink; g.fillRect(X, y - 1, CW, 2);   /* 머리줄 아래 진한 선 */
-    const rows = [['장례지도사 · 입관지도사', 'fix'], ['장의차량 (버스 / 리무진)'], ['접객도우미', 'help'], ['관'], ['입관용품', 'all'], ['유가족 상복', 'mw'], ['입관생화장식'], ['헌화', 'flower'], [''], ['']];
+    /* (2026.10.28-11 사용자 「비고도 너무 길어 · 조금 더 깔끔하게」) 표를 좌우 두 쪽으로 나눠 비고를 짧게:
+       왼쪽 장례지도사 · 입관지도사 / 장의차량 / 접객도우미 / 관 / 입관용품, 오른쪽 유가족 상복 / 입관생화장식 / 헌화 / 빈 2줄.
+       접객도우미 날짜별 시간은 표 아래 한 줄(「1일차」 · 「2일차」 두 줄 합친 칸 + 옆 두 칸). 정해진 항목 이름은 회색, 빈 줄은 흰색 */
+    const HW = CW / 2, C = [222, 204, HW - 426], hh = 36, rh = 44; let cx = X;
+    for (let side = 0; side < 2; side++) ['제공 항목', '내용 · 수량', '비고'].forEach((t, i) => { ckBox(g, cx, y, C[i], hh, CK.lab); ckT(g, t, cx + C[i] / 2, y + hh / 2, { px: 18, w: 700, align: 'center' }); cx += C[i]; });
+    y += hh; g.fillStyle = CK.ink; g.fillRect(X, y - 1, CW, 2);   /* 머리줄 아래 진한 선 */
     const B = { px: 19, w: 700 };
     const halves = (x, w, top, h, parts) => { const hw = w / parts.length, my = top + h / 2;
       parts.forEach(([a, b], i) => { const hx = x + hw * i;
         if (i) { g.strokeStyle = '#b9bab6'; g.lineWidth = 1; g.beginPath(); g.moveTo(hx + 0.5, top + 7); g.lineTo(hx + 0.5, top + h - 7); g.stroke(); }
-        if (a) ckT(g, a, hx + 16, my, B); ckT(g, b, hx + hw - 16, my, { ...B, align: 'right' }); }); };
-    rows.forEach(([k, how]) => {
-      const h = how === 'help' ? lh * 4 : hh, my = y + h / 2;
-      cx = X; ckBox(g, cx, y, C[0], h, k ? CK.lab : null); if (k) ckT(g, k, cx + C[0] / 2, my, { px: 19, w: 600, align: 'center', maxW: C[0] - 24 }); cx += C[0];
-      ckBox(g, cx, y, C[1], h); const c = cx + C[1] / 2;
-      if (how === 'fix') ckT(g, '제공', c, my, { ...B, align: 'center' });
-      if (how === 'all') ckT(g, '전량 제공', c, my, { ...B, align: 'center' });
-      if (how === 'mw') halves(cx, C[1], y, h, [['남', '벌'], ['여', '벌']]);
-      if (how === 'help') halves(cx, C[1], y, h, [['', '명'], ['', '시간']]);
-      if (how === 'flower') halves(cx, C[1], y, h, [['(', '송이)']]);
-      cx += C[1]; ckBox(g, cx, y, C[2], h);
-      if (how === 'help') {   /* 「1일차」 · 「2일차」 = 두 줄 합친 칸(회색), 옆은 두 칸 */
-        const dw = 96;
-        ['1일차', '2일차'].forEach((t, i) => { const dy = y + lh * 2 * i;
-          ckBox(g, cx, dy, dw, lh * 2, CK.lab); ckT(g, t, cx + dw / 2, dy + lh, { px: 18, w: 700, align: 'center' });
-          ckBox(g, cx + dw, dy, C[2] - dw, lh); ckBox(g, cx + dw, dy + lh, C[2] - dw, lh); }); }
-      y += h;
-    }); }
+        if (a) ckT(g, a, hx + 14, my, B); ckT(g, b, hx + hw - 14, my, { ...B, align: 'right' }); }); };
+    const sides = [
+      [['장례지도사 · 입관지도사', 'fix'], ['장의차량 (버스 / 리무진)'], ['접객도우미', 'help'], ['관'], ['입관용품', 'all']],
+      [['유가족 상복', 'mw'], ['입관생화장식'], ['헌화', 'flower'], [''], ['']],
+    ];
+    const y0 = y;
+    sides.forEach((list, side) => { let yy = y0;
+      list.forEach(([k, how]) => { let x = X + HW * side; const my = yy + rh / 2;
+        ckBox(g, x, yy, C[0], rh, k ? CK.lab : null); if (k) ckT(g, k, x + C[0] / 2, my, { px: 19, w: 600, align: 'center', maxW: C[0] - 20 }); x += C[0];
+        ckBox(g, x, yy, C[1], rh); const c = x + C[1] / 2;
+        if (how === 'fix') ckT(g, '제공', c, my, { ...B, align: 'center' });
+        if (how === 'all') ckT(g, '전량 제공', c, my, { ...B, align: 'center' });
+        if (how === 'mw') halves(x, C[1], yy, rh, [['남', '벌'], ['여', '벌']]);
+        if (how === 'help') halves(x, C[1], yy, rh, [['', '명'], ['', '시간']]);
+        if (how === 'flower') halves(x, C[1], yy, rh, [['(', '송이)']]);
+        x += C[1]; ckBox(g, x, yy, C[2], rh); yy += rh; }); });
+    y = y0 + rh * 5;
+    g.fillStyle = CK.ink; g.fillRect(X + HW - 1, y0 - hh, 2, hh + rh * 5);   /* 좌우 사이 진한 선 */
+    { const th = 34, LW = C[0], DW = (CW - LW) / 2, dl = 90;   /* 접객도우미 시간: 1일차 · 2일차 각각 두 줄 */
+      ckBox(g, X, y, LW, th * 2, CK.lab); ckT(g, '접객도우미 시간', X + LW / 2, y + th, { px: 19, w: 600, align: 'center', maxW: LW - 20 });
+      ['1일차', '2일차'].forEach((t, i) => { const bx = X + LW + DW * i;
+        ckBox(g, bx, y, dl, th * 2, CK.lab); ckT(g, t, bx + dl / 2, y + th, { px: 18, w: 700, align: 'center' });
+        ckBox(g, bx + dl, y, DW - dl, th); ckBox(g, bx + dl, y + th, DW - dl, th); });
+      y += th * 2; } }
   y += 4; y = ckSec(g, y, '특이사항');
-  { const h = Math.max(80, CK.H - y - 184); ckBox(g, X, y, CW, h); y += h; }
+  { const h = Math.max(80, CK.H - y - 184); ckBox(g, X, y, CW, h);
+    g.strokeStyle = '#d6d7d4'; g.lineWidth = 1; for (let ly = y + 44; ly < y + h - 10; ly += 44) { g.beginPath(); g.moveTo(X + 12, ly + 0.5); g.lineTo(X + CW - 12, ly + 0.5); g.stroke(); }   /* (2026.10.28-11) 쓰기 쉽게 가는 줄 */
+    y += h; }
   y += 28; ckT(g, '담당 장례지도사에게 금액과 제공 내역 등 충분한 설명을 듣고 장례 진행에 동의합니다.', CK.W / 2, y, { px: 21, w: 700, align: 'center', maxW: CW });
   y += 40; ckT(g, '20      년      월      일', CK.W - M, y, { px: 20, w: 500, align: 'right' });
   y += 44;
