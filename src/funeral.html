@@ -3965,27 +3965,26 @@ function myName(){ const n=String(me().name||'').trim(); if(n) return n;
   return ''; }
 const myPhone=()=>String(me().phone||'').trim();
 const pxBare=n=>String(n||'').trim().replace(/\s*(팀장|실장|과장|대리|부장|차장|주임|파트장|님)$/,'').trim();
-function pxContact(){ const n=pxBare(myName()), t=myPhone(); return `(문 의: 의전팀장 ${n}${t?', '+t:''})`; }
-const PX_ORG_DEF='디더블유 장례의전';
+function pxContact(){ const n=pxBare(myName()), t=myPhone(); return `(문 의: 의전팀장 ${n||'　　　'}${t?', '+t:''})`; }
+const PX_ORG_EX='디더블유 장례의전';
+/* (2026.10.28-6 사용자 「칸 비우면 그냥 빈칸으로」) 다섯 줄은 늘 나오고, 비운 칸은 빈칸 · 첫째 줄도 비우면 빈칸 */
 function pxDocData(d){
-  d=d||pxDoc(); const rel=String(d.religion||'').trim(), rows=[['입관',pxDT(d.casket)]];
-  if(rel&&rel!=='무교') rows.push(['종교의식',/^[가-힣]{2}$/.test(rel)?rel.split('').join(' '):rel]);
-  rows.push(['발인',pxDT(d.depart)]);
-  rows.push([d.method==='매장'?'하관':'화장',pxDT(d.rite)]);
-  rows.push(['장지',gimhaeShort(String(d.burial||'').trim())]);
-  return {name:String(d.name||'').trim(), rows, org:String(d.org||'').trim()||PX_ORG_DEF, contact:pxContact()};
+  d=d||pxDoc(); const rel=String(d.religion||'').trim();
+  const rows=[['입관',pxDT(d.casket)],['종교의식',/^[가-힣]{2}$/.test(rel)?rel.split('').join(' '):rel],['발인',pxDT(d.depart)],[d.method==='매장'?'하관':'화장',pxDT(d.rite)],['장지',gimhaeShort(String(d.burial||'').trim())]];
+  return {name:String(d.name||'').trim(), rows, org:String(d.org||'').trim(), contact:pxContact()};
 }
 /* 지금 행사 값 → 장례일정표 칸 (예전 보고서 탭 주요 장례일정과 같은 자동 값) */
 function pxFromCase(c){ const f=c.f||{}, A=posterAuto(c), bur=isBurial(f), P=c.poster&&typeof c.poster==='object'?c.poster:{};
   return { name:String(f.name||'').trim(), casket:f.casket||'', religion:String(f.religion||'').trim(), depart:f.depart||'', method:bur?'매장':'화장',
     rite:bur?(f.hagwanDate?f.hagwanDate+(f.hagwanFrom?`T${pad(f.hagwanFrom)}:00`:''):''):(f.cremDate?f.cremDate+(f.cremTime?'T'+f.cremTime:''):''),
     burial:String(P.burial||'').trim()||A.burial, org:String(P.org||'').trim()||(A.org==='장례지원단'?'':A.org) }; }
+const PX_H=Math.round(1500*297/210);   /* A4 세로 비율 (2121) */
 async function posterDraw(cv,D){
-  const A=await posterAssets(), W=1500, H=2000, e=v=>v*W/6858000, pt=n=>n*W/540;
+  const A=await posterAssets(), W=1500, H=PX_H, e=v=>v*W/6858000, pt=n=>n*W/540, dy=H-2000;   /* dy: A4 로 늘어난 만큼 아래 상자를 내림 */
   await prFonts(['주요장례일정종교의식입관발인화장하관장지',pxName(D.name),...D.rows.map(r=>r[1]),D.org,D.contact].join(''));
   cv.width=W; cv.height=H; const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,W,H);
   const bw=A.bg.naturalWidth, bh=A.bg.naturalHeight, sx=bw*.0979, sy=bh*.0085;
-  g.drawImage(A.bg,sx,sy,bw-sx,bh-sy,e(-16396),0,e(6890791),e(9182972));
+  g.drawImage(A.bg,sx,sy,bw-sx,bh-sy,e(-16396),0,e(6890791),e(9182972)*H/2000);
   g.drawImage(A.head,e(122898),e(124520),e(6646202),e(918740));
   g.fillStyle='#000'; g.textBaseline='middle'; g.textAlign='center';
   const nm=pxName(D.name); prFit(g,nm,e(4300000),pt(32),700,PR_SERIF); g.fillText(nm,e(1426395+3982492/2),e(179512+584775/2)+3);
@@ -3993,24 +3992,29 @@ async function posterDraw(cv,D){
   g.drawImage(A.line,e(1556792),e(2195736),e(3744416),e(171450));
   g.textAlign='left'; const fs=pt(24); g.font=`600 ${fs}px ${PR_SANS}`;
   const lw=g.measureText('종교의식').width, x0=72, xl=x0+fs*.85, xc=xl+lw+fs*.4, xv=xc+fs*.7, maxV=W-xv-64;
-  const n=D.rows.length, pitch=n>=5?185:212, y0=n>=5?717:742;
+  const n=D.rows.length, pitch=n>=5?204:230, y0=n>=5?748:772;
   D.rows.forEach(([k,v],i)=>{ const y=y0+i*pitch; g.font=`600 ${fs}px ${PR_SANS}`; g.fillText('•',x0,y);
     if(k.length===2){ g.fillText(k[0],xl,y); g.fillText(k[1],xl+lw-g.measureText(k[1]).width,y); } else g.fillText(k,xl,y);
     g.fillText(':',xc,y); if(v){ prFit(g,v,maxV,fs,600,PR_SANS); g.fillText(v,xv,y); } });
-  const bx=e(122898), by=e(7719258), bW=e(6646202), bH=e(1175748);
+  const bx=e(122898), by=e(7719258)+dy, bW=e(6646202), bH=e(1175748);
   g.fillStyle='rgba(191,191,191,.54)'; g.fillRect(bx,by,bW,bH); g.strokeStyle='#7f7f7f'; g.lineWidth=3; g.strokeRect(bx,by,bW,bH);
   g.fillStyle='#000'; const ff=pt(22);
-  prFit(g,D.org,bW-100,ff,600,PR_SANS); g.fillText(D.org,92,1790);
-  prFit(g,D.contact,bW-70,ff,600,PR_SANS); g.fillText(D.contact,67,1862);
+  prFit(g,D.org,bW-100,ff,600,PR_SANS); g.fillText(D.org,92,1790+dy);
+  prFit(g,D.contact,bW-70,ff,600,PR_SANS); g.fillText(D.contact,67,1862+dy);
   return cv;
 }
 const pxX=v=>String(v??'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const PX_RPR=sz=>`<a:rPr lang="ko-KR" altLang="en-US" sz="${sz}" dirty="0"><a:latin typeface="HY견고딕"/><a:ea typeface="HY견고딕"/><a:cs typeface="Times New Roman"/></a:rPr>`;
 async function posterPptxBlob(D){
   const A=await posterAssets(), dec=new TextDecoder();
-  const body=D.rows.map(([k,v])=>`<a:p><a:pPr lvl="0" latinLnBrk="0" hangingPunct="0"><a:lnSpc><a:spcPct val="200000"/></a:lnSpc><a:spcBef><a:spcPct val="44000"/></a:spcBef><a:spcAft><a:spcPct val="0"/></a:spcAft></a:pPr><a:r>${PX_RPR(2400)}<a:t>${pxX(`• ${PX_LAB[k]||k} : ${v}`)}</a:t></a:r></a:p>`).join('');
+  const body=D.rows.map(([k,v])=>`<a:p><a:pPr lvl="0" latinLnBrk="0" hangingPunct="0"><a:lnSpc><a:spcPct val="200000"/></a:lnSpc><a:spcBef><a:spcPct val="56000"/></a:spcBef><a:spcAft><a:spcPct val="0"/></a:spcAft></a:pPr><a:r>${PX_RPR(2400)}<a:t>${pxX(`• ${PX_LAB[k]||k} : ${v}`)}</a:t></a:r></a:p>`).join('');
   const foot=[' '+D.org,D.contact].map(t=>`<a:p><a:pPr lvl="0" indent="304800" latinLnBrk="0" hangingPunct="0"><a:spcBef><a:spcPct val="16000"/></a:spcBef><a:spcAft><a:spcPct val="0"/></a:spcAft></a:pPr><a:r>${PX_RPR(2200)}<a:t>${pxX(t)}</a:t></a:r></a:p>`).join('');
-  const files=Object.entries(A.files).map(([n,b])=>n==='ppt/slides/slide1.xml'?[n,dec.decode(b).replace('{{NAME}}',pxX(pxName(D.name))).replace('{{BODY}}',body).replace('{{FOOT}}',foot)]:[n,b]);
+  const A4=Math.round(6858000*297/210), DY=A4-9144000, sh=v=>String(Math.round(v));   /* 슬라이드를 A4 세로로: 높이 9144000 → 9699171 */
+  const slide=t=>t.replace('{{NAME}}',pxX(pxName(D.name))).replace('{{BODY}}',body).replace('{{FOOT}}',foot)
+    .replace('<a:ext cx="6890791" cy="9182972"/>',`<a:ext cx="6890791" cy="${sh(9182972*A4/9144000)}"/>`)
+    .replace('<a:off x="1" y="2627784"/><a:ext cx="6881588" cy="4435573"/>',`<a:off x="1" y="2627784"/><a:ext cx="6881588" cy="${sh(4435573+DY)}"/>`)
+    .replace('y="7719258"',`y="${sh(7719258+DY)}"`).replace('y="7893365"',`y="${sh(7893365+DY)}"`);
+  const files=Object.entries(A.files).map(([n,b])=>n==='ppt/slides/slide1.xml'?[n,slide(dec.decode(b))]:n==='ppt/presentation.xml'?[n,dec.decode(b).replace(/<p:sldSz cx="6858000" cy="9144000"[^/]*\/>/,`<p:sldSz cx="6858000" cy="${A4}"/>`)]:[n,b]);
   return zipStore(files,'application/vnd.openxmlformats-officedocument.presentationml.presentation');
 }
 const posterFile=(D,ext)=>`장례일정표_${prSafe('故'+(D.name||'고인'))}.${ext}`;
@@ -4027,7 +4031,7 @@ async function posterSave(kind){
     await szDeliver(posterFile(D,'png'),await prBlob(cv),'이미지를 저장했습니다');
   }catch(e){ console.warn(e); toast(e&&e.message==='poster'?'양식 파일을 못 받았어요 · 인터넷 연결을 확인해 주세요':'만들지 못했어요 · 다시 눌러 주세요'); }
 }
-const PX_REL=['무교','기독교','천주교','불교'];
+const PX_REL=['유교','기독교','천주교','불교'];
 function pxContactHtml(){ const n=pxBare(myName()), t=myPhone();
   return `<div class="px-fixed"><span>${esc(pxContact())}</span></div>`+(n&&t?'':`<p class="note warn">${!n&&!t?'이름 · 전화번호':!n?'이름':'전화번호'}가 비어 있어요. 「내 정보 고치기」에서 한 번만 넣으면 계속 들어가요.</p>`); }
 function renderPoster(){
@@ -4040,22 +4044,22 @@ function renderPoster(){
     </div></div>
     <div class="sec"><div class="sec-head"><h2>일정</h2></div><div class="fields">
       <div class="f-wrap"><label class="f">입관</label>${dtCtl('pxCasket',d.casket||'','입관')}</div>
-      <label class="f">종교<input class="input" data-pxd="religion" value="${esc(rel)}" placeholder="비우거나 무교면 종교의식 줄이 빠져요" autocomplete="off"><span class="crem-picks">${PX_REL.map(r=>`<button type="button" class="chip" data-pxrel="${r}" aria-pressed="${rel===r}">${r}</button>`).join('')}</span></label>
+      <label class="f">종교<input class="input" data-pxd="religion" value="${esc(rel)}" placeholder="비우면 빈칸으로 나가요" autocomplete="off"><span class="crem-picks">${PX_REL.map(r=>`<button type="button" class="chip" data-pxrel="${r}" aria-pressed="${rel===r}">${r}</button>`).join('')}</span></label>
       <div class="f-wrap"><label class="f">발인</label>${dtCtl('pxDepart',d.depart||'','발인')}</div>
       <div class="f-wrap"><span class="field-label">장법</span><div class="seg" role="group" aria-label="장법">${['화장','매장'].map(m=>`<button type="button" data-pxm="${m}" aria-pressed="${(bur?'매장':'화장')===m}">${m}</button>`).join('')}</div></div>
       <div class="f-wrap"><label class="f">${bur?'하관':'화장'}</label>${dtCtl('pxRite',d.rite||'',bur?'하관':'화장')}</div>
       <label class="f">장지<input class="input" data-pxd="burial" value="${esc(d.burial||'')}" placeholder="예: 부산영락공원-부산추모공원" autocomplete="off"></label>
     </div></div>
     <div class="sec"><div class="sec-head"><h2>아래 문구</h2></div><div class="fields">
-      <label class="f">첫째 줄<input class="input" data-pxd="org" value="${esc(d.org||'')}" placeholder="${PX_ORG_DEF}" autocomplete="off"></label>
-      <p class="note">고객사 행사면 「매일유업 장례지원단」처럼 적어 주세요. 비우면 「${PX_ORG_DEF}」이 들어가요.</p>
+      <label class="f">첫째 줄<input class="input" data-pxd="org" value="${esc(d.org||'')}" placeholder="예: ${PX_ORG_EX}" autocomplete="off"><span class="crem-picks"><button type="button" class="chip" data-pxorg="${PX_ORG_EX}" aria-pressed="${String(d.org||'').trim()===PX_ORG_EX}">${PX_ORG_EX}</button></span></label>
+      <p class="note">고객사 행사면 「매일유업 장례지원단」처럼 적어 주세요. 비운 칸은 빈칸 그대로 나가요.</p>
       <div class="f-wrap"><span class="field-label">둘째 줄 · 고정</span><div id="pxContactBox">${pxContactHtml()}</div></div>
       <div class="row"><button class="btn sm" type="button" data-pxme>내 정보 고치기</button></div>
     </div></div>
   </div>
   <div class="px-side stack">
-    <div class="out"><div class="out-head"><h2>미리보기<small>빈소 게시용 · A4 세로</small></h2><button class="btn sm" type="button" data-pxclear>새로 쓰기</button></div>
-      <div class="px-pv" data-pr-zoom><canvas id="pxCanvas" width="1500" height="2000" aria-label="장례일정표 미리보기"></canvas></div>
+    <div class="out"><div class="out-head"><h2>미리보기<small>빈소 게시용 · A4 세로 꽉 차게</small></h2><button class="btn sm" type="button" data-pxclear>새로 쓰기</button></div>
+      <div class="px-pv" data-pr-zoom><canvas id="pxCanvas" width="1500" height="2121" aria-label="장례일정표 미리보기"></canvas></div>
       <div class="pr-acts"><button class="btn primary" type="button" data-px="print">인쇄</button><button class="btn" type="button" data-px="pdf">PDF 저장</button><button class="btn" type="button" data-px="png">이미지 저장</button><button class="btn" type="button" data-px="pptx">PPT 저장</button></div>
       <p class="note">미리보기를 누르면 크게 보여요. PPT 로 저장하면 파워포인트에서 글자를 바로 고칠 수 있어요.</p>
     </div>
@@ -4065,10 +4069,12 @@ function renderPoster(){
 function pxTouched(){ markUnsaved(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),400); pxPaintSoon(); }
 $('#p-poster').addEventListener('input',e=>{ const t=e.target; if(!t.dataset||!t.dataset.pxd) return; pxDoc()[t.dataset.pxd]=t.value;
   if(t.dataset.pxd==='religion') document.querySelectorAll('#p-poster [data-pxrel]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pxrel===t.value.trim())));
+  if(t.dataset.pxd==='org') document.querySelectorAll('#p-poster [data-pxorg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pxorg===t.value.trim())));
   pxTouched(); });
 $('#p-poster').addEventListener('change',e=>{ const dt=e.target.closest('[data-dt]'); if(!dt) return; const map={pxCasket:'casket',pxDepart:'depart',pxRite:'rite'}, k=map[dt.dataset.dt]; if(!k) return; pxDoc()[k]=composeDT(dt); pxTouched(); });
 $('#p-poster').addEventListener('click',async e=>{
   const px=e.target.closest('[data-px]'); if(px){ posterSave(px.dataset.px); return; }
+  const og=e.target.closest('[data-pxorg]'); if(og){ const inp=$('#p-poster [data-pxd="org"]'); inp.value=og.dataset.pxorg; inp.dispatchEvent(new Event('input',{bubbles:true})); return; }
   const r=e.target.closest('[data-pxrel]'); if(r){ const inp=$('#p-poster [data-pxd="religion"]'); inp.value=r.dataset.pxrel; inp.dispatchEvent(new Event('input',{bubbles:true})); return; }
   const m=e.target.closest('[data-pxm]'); if(m){ if((pxDoc().method||'화장')!==m.dataset.pxm){ pxDoc().method=m.dataset.pxm; pxTouched(); renderPoster(); } return; }
   if(e.target.closest('[data-pxme]')){ setTab('admin','keep'); setTimeout(()=>{ const el=$('#meSec'); if(el){ el.scrollIntoView({block:'start'}); const i=el.querySelector(myName()?'[data-mei="phone"]':'[data-mei="name"]'); if(i) i.focus({preventScroll:true}); } },60); return; }
