@@ -4200,14 +4200,20 @@ function ckPage1() {
         yy += rh; }); });
     y = y0 + rh * 5;
     g.fillStyle = CK.ink; g.fillRect(X + HW - 1, y0 - hh, 2, hh + rh * 5);   /* 좌우 사이 진한 선 */
-    { const th = 34, tw = 40, h = th + tw * 2, HC = 196, DW = (CW - C[0] - HC) / 3;   /* HC: 명 · 시간 칸 (날짜 칸을 넓게) */   /* 접객도우미: 인원 · 시간 + 바로 옆 날짜별 「__시 ~ __시」 (2026.10.28-13 날마다 2줄) */
+    /* 접객도우미: 인원 · 시간 + 바로 옆 날짜별 시간 (2026.10.28-13 날마다 2줄)
+       (2026.10.28-18 사용자 「도우미 시간대마다 N명 적을 수 있게 · 1~3일차 3줄씩」) 날마다 3줄, 줄마다 「__시 ~ __시 | __명」.
+       날짜 칸을 넓히려고 명 · 시간 칸은 150 으로 줄이고 위아래로(위 __명, 아래 __시간) */
+    { const th = 34, tw = 36, n = 3, h = th + tw * n, HC = 150, DW = (CW - C[0] - HC) / 3, TP = Math.round(DW * 0.71), S = { px: 18, w: 700 };
+      const thin = (x1, y1, x2, y2) => { g.strokeStyle = '#b9bab6'; g.lineWidth = 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); };
       g.fillStyle = CK.ink; g.fillRect(X, y - 1, CW, 2);
       ckBox(g, X, y, C[0], h, CK.lab); ckT(g, '접객도우미', X + C[0] / 2, y + h / 2, { px: 19, w: 600, align: 'center' });
-      ckBox(g, X + C[0], y, HC, h); halves(X + C[0], HC, y, h, [['', '명'], ['', '시간']]);
-      ['1일차', '2일차', '3일차'].forEach((t, i) => { const bx = X + C[0] + HC + DW * i, c = bx + DW / 2;
-        ckBox(g, bx, y, DW, th, CK.lab); ckT(g, t, c, y + th / 2, { px: 18, w: 700, align: 'center' });
-        for (let k = 0; k < 2; k++) { const ty = y + th + tw * k, ly = ty + tw / 2; ckBox(g, bx, ty, DW, tw);
-          ckT(g, '시', c - 18, ly, { ...B, align: 'right' }); ckT(g, '~', c, ly, { ...B, align: 'center' }); ckT(g, '시', bx + DW - 16, ly, { ...B, align: 'right' }); } });
+      { const x = X + C[0]; ckBox(g, x, y, HC, h); thin(x + 10, y + h / 2 + 0.5, x + HC - 10, y + h / 2 + 0.5);
+        ckT(g, '명', x + HC - 16, y + h / 4, { ...B, align: 'right' }); ckT(g, '시간', x + HC - 16, y + h * 3 / 4, { ...B, align: 'right' }); }
+      ['1일차', '2일차', '3일차'].forEach((t, i) => { const bx = X + C[0] + HC + DW * i, c = bx + TP / 2;
+        ckBox(g, bx, y, DW, th, CK.lab); ckT(g, t, bx + DW / 2, y + th / 2, { px: 18, w: 700, align: 'center' });
+        for (let k = 0; k < n; k++) { const ty = y + th + tw * k, ly = ty + tw / 2; ckBox(g, bx, ty, DW, tw);
+          ckT(g, '시', c - 14, ly, { ...S, align: 'right' }); ckT(g, '~', c, ly, { ...S, align: 'center' }); ckT(g, '시', bx + TP - 10, ly, { ...S, align: 'right' });
+          thin(bx + TP + 0.5, ty + 7, bx + TP + 0.5, ty + tw - 7); ckT(g, '명', bx + DW - 12, ly, { ...S, align: 'right' }); } });
       y += h; } }
   y += 4; y = ckSec(g, y, '특이사항');
   { const h = Math.max(80, CK.H - y - 184); ckBox(g, X, y, CW, h);
