@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-14";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-15";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -4351,7 +4351,8 @@ function ckPage1() {
     r([{ w: L, lab: '화장 · 하관' }, { w: DV, dt: true }, { w: RL, lab: '2차 장지' }, { w: RV }]); }
   y += 4; y = ckSec(g, y, '상품 · 금액');
   tri('회사명', '상품명', '상품 금액');
-  r([{ w: L, lab: '회사지원 ·\n기납입금' }, { w: 250 }, { w: 130, lab: '제단지원금' }, { w: 140 }, { w: 230, checks: ['금액공제', '카드결제'] }, { w: 100, lab: '잔액' }, { w: CW - L - 850 }]);
+  /* (2026.10.28-15 사용자 「잔액 칸이 너무 작잖아」) 잔액은 윗줄 상품 금액과 같은 자리 · 같은 너비(250) */
+  r([{ w: L, lab: '회사지원 ·\n기납입금' }, { w: 160 }, { w: 110, lab: '제단지원금' }, { w: 130 }, { w: 230, checks: ['금액공제', '카드결제'] }, { w: 100, lab: '잔액' }, { w: CW - L - 730 }]);
   y += 4; y = ckSec(g, y, '제공 내역');
   { /* (2026.10.28-7) 체크 칸 없앰 · 글씨는 모두 가운데(도우미 날짜별 시간 칸만 왼쪽) · 도우미 비고 = 1일차 2줄 + 2일차 2줄 */
     /* (2026.10.28-11 사용자 「비고도 너무 길어 · 조금 더 깔끔하게」) 표를 좌우 두 쪽으로 나눠 비고를 짧게:
