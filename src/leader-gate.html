@@ -49,7 +49,7 @@
       box = document.createElement('div'); box.id = 'dwGate'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'gtTitle');
       document.body.appendChild(box);
     }
-    box.hidden = false;
+    box.hidden = false; box.dataset.mode = mode;
     var join = mode === 'join', out = outNote();
     if (out && out.email && !(u && u.email)) u = { email: out.email };
     box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
@@ -174,55 +174,266 @@
     var u = acct.user(), card = document.getElementById('dwAcctCard'), pill = document.querySelector('.appbar .local span');
     if (pill && u) {
       pill.textContent = idOf(u); var pl = pill.parentNode;
-      /* 「· 내 계정」은 넓은 화면에서만 (휴대폰은 위 막대에 로그아웃 버튼이 같이 있어서 아이디만) */
-      var sfx = pl.querySelector('.ac-sfx'); if (!sfx) { sfx = document.createElement('span'); sfx.className = 'ac-sfx'; sfx.textContent = '· 내 계정'; pl.appendChild(sfx); } pl.title = '내 계정 · 로그아웃'; pl.style.cursor = 'pointer'; pl.onclick = function () { if (typeof window.showTab === 'function') window.showTab('settings'); setTimeout(function () { var c = document.getElementById('dwAcctCard'); if (c) c.scrollIntoView({ block: 'start' }); }, 50); }; }
+      /* 「· 내 정보」는 넓은 화면에서만 (휴대폰은 위 막대에 로그아웃 버튼이 같이 있어서 아이디만). 누르면 내 정보 (2026.10.29) */
+      var sfx = pl.querySelector('.ac-sfx'); if (!sfx) { sfx = document.createElement('span'); sfx.className = 'ac-sfx'; pl.appendChild(sfx); } sfx.textContent = '· 내 정보';
+      pl.title = '내 정보 · 비밀번호 · 로그아웃'; pl.setAttribute('role', 'button'); pl.tabIndex = 0; pl.setAttribute('aria-label', '내 정보 (' + idOf(u) + ')');
+      pl.onclick = function () { meOpen(pl); };
+      pl.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); meOpen(pl); } };
+    }
     if (!card) return;
     if (!u) { card.hidden = true; return; }
     card.hidden = false;
-    var nm0 = String((u.user_metadata && u.user_metadata.name) || '');
-    card.innerHTML = '<h2>내 계정</h2><p class="small-t">로그인: <b></b></p>'
-      + (window.dwTheme ? '<div class="dw-theme-row" style="margin:4px 0 12px"><span>화면</span>' + window.dwTheme.seg() + '</div>' : '')
-      + '<div class="ac-name" id="acNameRow"><label class="field"><span>' + (root.classList.contains('dw-chief') ? '내 이름' : '게시판에 보이는 이름') + '</span><input id="acName" type="text" maxlength="20" autocomplete="name" placeholder="예: 서영우"></label><button class="btn small" type="button" id="acNameSave">이름 저장</button></div>'
-      + '<p class="small-t muted">기록은 내 계정에 저장돼 있어요. 로그아웃해도 다시 로그인하면 그대로 보여요.</p>'
-      + '<button class="btn primary block" type="button" id="acOut">로그아웃</button>'
-      + '<button class="btn quiet small" type="button" id="acDelOpen">회원 탈퇴</button>'
-      + '<div id="acDelBox" class="ac-del" hidden><p class="small-t" style="color:var(--warn)">탈퇴하면 내 계정과 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 휴대폰에서도 지워져요.</p>'
-      + '<label class="field"><span>비밀번호 확인</span><input id="acDelPw" type="password" autocomplete="current-password"></label>'
-      + '<div class="grid2"><button class="btn danger" type="button" id="acDelGo">탈퇴하기</button><button class="btn" type="button" id="acDelNo">취소</button></div><p class="small-t" id="acDelMsg" role="alert"></p></div>';
-    card.querySelector('b').textContent = idOf(u);
-    var nameEl = card.querySelector('#acName'), nameBtn = card.querySelector('#acNameSave');
-    nameEl.value = nm0;
-    rpc('dw_me').then(function (d) { if (d && d.ok && nameEl.isConnected && document.activeElement !== nameEl) nameEl.value = d.name || ''; })
-      .catch(function (e) { if (e && e.why === 'noserver') { var row = card.querySelector('#acNameRow'); if (row) row.hidden = true; } });
-    nameBtn.onclick = function () {
-      nameBtn.disabled = true;
-      rpc('dw_set_name', { p_name: nameEl.value }).then(function (d) {
-        nameEl.value = (d && d.name) || ''; if (typeof window.toast === 'function') window.toast('이름을 저장했어요');
-        try { window.dispatchEvent(new CustomEvent('dw-name')); } catch (e) {}
-      }).catch(function (e) { if (typeof window.toast === 'function') window.toast(e && e.why === 'offline' ? '인터넷에 연결한 뒤 저장해 주세요' : '이름을 저장하지 못했어요'); })
-        .then(function () { nameBtn.disabled = false; });
-    };
-    card.querySelector('#acOut').onclick = function () { this.disabled = true; acct.logout(); };
-    card.querySelector('#acDelOpen').onclick = function () { card.querySelector('#acDelBox').hidden = false; this.hidden = true; card.querySelector('#acDelPw').focus(); };
-    card.querySelector('#acDelNo').onclick = function () { card.querySelector('#acDelBox').hidden = true; card.querySelector('#acDelOpen').hidden = false; };
-    card.querySelector('#acDelGo').onclick = function () {
-      var b = this, pw = card.querySelector('#acDelPw').value, msg = card.querySelector('#acDelMsg');
-      if (!pw) { msg.textContent = '비밀번호를 넣어 주세요.'; return; }
+    card.innerHTML = '<h2>내 계정</h2><button type="button" class="ac-me" id="acMe"><span><b></b><small></small></span><i>내 정보 ›</i></button>';
+    var v = meVals();
+    card.querySelector('b').textContent = v.name || idOf(u);
+    card.querySelector('small').textContent = [u.email, v.rank, v.phone].filter(Boolean).join(' · ');
+    card.querySelector('#acMe').onclick = function () { meOpen(this); };
+    if (!ME.p && !ME.asked) { ME.asked = true; meLoad(); }
+  }
+
+  /* ---------- 내 정보 (2026.10.29, 사용자: 「설정 찾고 수정하기가 번잡함 · 내 계정은 이메일 누르면 내 정보 설정할 수 있게」) ----------
+     위 막대 아이디 · 설정 「내 계정」 줄 · 장례업무 설정 · 장례일정표 「내 정보 고치기」에서 열림 (세 화면 공통, window.dwMe.open).
+     이름 · 전화번호 · 직급 = 내 계정(서버 dw_profiles, dw_set_me — 더 나중에 고친 것이 이김) → 게시판 이름 · 장례일정표 문의 줄 · 수당 정산이 같이 씀.
+     장례업무 화면이면 그 화면의 내 정보(me())에도 바로 넣음(window.dwMeLocal · dwMeApply) → 인터넷이 끊겨도 저장되고, 연결되면 장례업무가 올림(sbSyncMe).
+     비밀번호 바꾸기 · 화면 밝기 · 로그아웃 · 회원 탈퇴도 여기 (예전에는 설정 곳곳에 흩어져 있었음). */
+  var ME = { p: null, el: null, from: null, edited: false, asked: false };
+  var X_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>', CH_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
+  function telFmt(v) {
+    var t = String(v || '').trim(), d = t.replace(/\D/g, '').slice(0, 11);
+    if (!/^01\d/.test(d)) return t;
+    return d.length > 10 ? d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7) : d.length > 6 ? d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6) : d.length > 3 ? d.slice(0, 3) + '-' + d.slice(3) : d;
+  }
+  function meLocal() { try { return typeof window.dwMeLocal === 'function' ? window.dwMeLocal() : null; } catch (e) { return null; } }
+  /* 지금 알고 있는 내 정보: 장례업무 화면 것과 서버 것 중 더 나중에 고친 것 (처음이라 둘 다 시각이 없으면 빈 칸만 다른 쪽으로) */
+  function meVals() {
+    var u = acct.user() || {}, L = meLocal(), P = ME.p, nm0 = String((u.user_metadata && u.user_metadata.name) || '');
+    var la = L ? Number(L.at) || 0 : -1, pa = P ? Number(P.info_at) || 0 : -1, A = la >= pa ? L : P, B = la >= pa ? P : L;
+    function f(k) { return String((A && A[k]) || (la === pa && B && B[k]) || '').trim(); }
+    return { name: f('name') || nm0.trim(), phone: f('phone'), rank: f('rank') };
+  }
+  function meLoad() {
+    if (!acct.user()) return Promise.resolve();
+    return rpc('dw_me').then(function (d) {
+      if (!d || !d.ok) return;
+      ME.p = { name: d.name || '', phone: d.phone || '', rank: d.rank || '', info_at: Number(d.info_at) || 0, old: d.info_at === undefined };
+      if (ME.el && !ME.el.hidden && !ME.edited) meFill();
+      var card = document.getElementById('dwAcctCard'); if (card && !card.hidden && card.querySelector('#acMe')) { var v = meVals(); card.querySelector('b').textContent = v.name || idOf(acct.user()); card.querySelector('small').textContent = [acct.user().email, v.rank, v.phone].filter(Boolean).join(' · '); }
+    }).catch(function () {});
+  }
+  function meEl(id) { return ME.el.querySelector('#' + id); }
+  function meMsg(id, t, bad) { var m = meEl(id); m.textContent = t || ''; m.classList.toggle('bad', !!bad); }
+  function meFill() { var v = meVals(); meEl('dwMeName').value = v.name; meEl('dwMePhone').value = v.phone; meEl('dwMeRank').value = v.rank; }
+  function meBuild() {
+    var el = ME.el = document.createElement('div');
+    el.className = 'dwme'; el.id = 'dwMe'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'dwMeT');
+    el.innerHTML = '<div class="dwme-back" data-me-close></div><div class="dwme-panel">'
+      + '<div class="dwme-head"><h2 id="dwMeT">내 정보</h2><button type="button" class="dwme-x" data-me-close aria-label="닫기">' + X_SVG + '</button></div>'
+      + '<p class="dwme-mail" id="dwMeMail"></p>'
+      + '<form class="dwme-sec" id="dwMeForm" novalidate>'
+      + '<label>이름<input id="dwMeName" maxlength="20" autocomplete="name" placeholder="예: 홍길동"></label>'
+      + '<label>전화번호<input id="dwMePhone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel" placeholder="010-0000-0000"></label>'
+      + '<label>직급<input id="dwMeRank" maxlength="20" placeholder="예: 팀장"></label>'
+      + '<p class="dwme-note">게시판 이름 · 장례일정표 문의 줄 · 수당 정산에 들어가요. 어느 휴대폰에서 고쳐도 같아요.</p>'
+      + '<button type="submit" class="dwme-main" id="dwMeSave">저장</button><p class="dwme-msg" id="dwMeMsg" role="status"></p></form>'
+      + '<div class="dwme-sec"><button type="button" class="dwme-row" id="dwMePwOpen" aria-expanded="false" aria-controls="dwMePwBox">비밀번호 바꾸기' + CH_SVG + '</button>'
+      + '<form class="dwme-box" id="dwMePwBox" hidden novalidate><input type="email" autocomplete="username" id="dwMeUser" hidden>'
+      + '<label>지금 비밀번호<input id="dwMePw0" type="password" autocomplete="current-password"></label>'
+      + '<label>새 비밀번호 (6자 이상)<input id="dwMePw1" type="password" autocomplete="new-password"></label>'
+      + '<label>새 비밀번호 확인<input id="dwMePw2" type="password" autocomplete="new-password"></label>'
+      + '<button type="submit" class="dwme-sub" id="dwMePwGo">비밀번호 바꾸기</button><p class="dwme-msg" id="dwMePwMsg" role="status"></p></form></div>'
+      + '<div class="dwme-sec"><div class="dw-theme-row" id="dwMeTheme"><span>화면</span></div></div>'
+      + '<div class="dwme-sec"><button type="button" class="dwme-sub" id="dwMeOut">로그아웃</button>'
+      + '<button type="button" class="dwme-link" id="dwMeDelOpen">회원 탈퇴</button>'
+      + '<form class="dwme-box" id="dwMeDelBox" hidden novalidate><p class="dwme-warn">탈퇴하면 내 계정과 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 휴대폰에서도 지워져요.</p>'
+      + '<label>비밀번호 확인<input id="dwMeDelPw" type="password" autocomplete="current-password"></label>'
+      + '<div class="dwme-del"><button type="submit" class="dwme-main dwme-danger" id="dwMeDelGo">탈퇴하기</button><button type="button" class="dwme-sub" id="dwMeDelNo">취소</button></div><p class="dwme-msg" id="dwMeDelMsg" role="alert"></p></form></div>'
+      + '</div>';
+    document.body.appendChild(el);
+    if (window.dwTheme) meEl('dwMeTheme').insertAdjacentHTML('beforeend', window.dwTheme.seg());
+    el.addEventListener('click', function (e) { if (e.target.closest('[data-me-close]')) meClose(); });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !document.querySelector('.dwc-bg')) { e.preventDefault(); meClose(); } });
+    ['dwMeName', 'dwMePhone', 'dwMeRank'].forEach(function (id) { meEl(id).addEventListener('input', function () { ME.edited = true; meEl('dwMeSave').textContent = '저장'; meMsg('dwMeMsg', ''); }); });
+    meEl('dwMePhone').addEventListener('blur', function () { this.value = telFmt(this.value); });
+    meEl('dwMeForm').addEventListener('submit', function (e) { e.preventDefault(); meSave(); });
+    meEl('dwMePwOpen').onclick = function () { var b = meEl('dwMePwBox'), o = b.hidden; b.hidden = !o; this.setAttribute('aria-expanded', String(o)); if (o) meEl('dwMePw0').focus(); };
+    meEl('dwMePwBox').addEventListener('submit', function (e) { e.preventDefault(); mePw(); });
+    meEl('dwMeOut').onclick = function () { meClose(); askLogout(this); };
+    meEl('dwMeDelOpen').onclick = function () { meEl('dwMeDelBox').hidden = false; this.hidden = true; meEl('dwMeDelPw').focus(); };
+    meEl('dwMeDelNo').onclick = function () { meEl('dwMeDelBox').hidden = true; meEl('dwMeDelOpen').hidden = false; meEl('dwMeDelPw').value = ''; meMsg('dwMeDelMsg', ''); };
+    meEl('dwMeDelBox').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var b = meEl('dwMeDelGo'), pw = meEl('dwMeDelPw').value;
+      if (!pw) { meMsg('dwMeDelMsg', '비밀번호를 넣어 주세요.', true); return; }
       b.disabled = true; b.textContent = '탈퇴하는 중…';
       acct.deleteMe(pw).then(function (r) {
         if (r === 'ok') { if (window.dwOwner && window.dwOwner.erase) window.dwOwner.erase(); else location.reload(); return; }
-        msg.textContent = r === 'pw' ? '비밀번호가 맞지 않아요.' : r === 'nofn' ? '지금은 탈퇴할 수 없어요. 잠시 뒤에 다시 해 주세요.' : '지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요.';
+        meMsg('dwMeDelMsg', r === 'pw' ? '비밀번호가 맞지 않아요.' : r === 'nofn' ? '지금은 탈퇴할 수 없어요. 잠시 뒤에 다시 해 주세요.' : '지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요.', true);
         b.disabled = false; b.textContent = '탈퇴하기';
       });
-    };
+    });
   }
+  function meOpen(from, focus) {
+    var u = acct.user(); if (!u) return;
+    if (!ME.el) meBuild();
+    ME.from = from || document.activeElement; ME.edited = false;
+    meEl('dwMeMail').textContent = u.email || ''; meEl('dwMeUser').value = u.email || '';
+    meFill(); meEl('dwMeSave').textContent = '저장'; meMsg('dwMeMsg', ''); meMsg('dwMePwMsg', ''); meMsg('dwMeDelMsg', '');
+    ['dwMePw0', 'dwMePw1', 'dwMePw2', 'dwMeDelPw'].forEach(function (id) { meEl(id).value = ''; });
+    meEl('dwMePwBox').hidden = true; meEl('dwMePwOpen').setAttribute('aria-expanded', 'false'); meEl('dwMeDelBox').hidden = true; meEl('dwMeDelOpen').hidden = false;
+    ME.el.hidden = false; root.classList.add('dwme-on');
+    var f = focus && { name: 'dwMeName', phone: 'dwMePhone', rank: 'dwMeRank' }[focus];
+    setTimeout(function () { (f ? meEl(f) : ME.el.querySelector('.dwme-x')).focus(); }, 30);
+    meLoad();
+  }
+  function meClose() {
+    if (!ME.el || ME.el.hidden) return;
+    ME.el.hidden = true; root.classList.remove('dwme-on');
+    try { if (ME.from && ME.from.isConnected && ME.from.focus) ME.from.focus(); } catch (e) {}
+  }
+  function meDone(v, text) {
+    meMsg('dwMeMsg', text); ME.edited = false; meEl('dwMeSave').textContent = '저장됨';
+    renderAcct();
+    try { window.dispatchEvent(new CustomEvent('dw-name')); window.dispatchEvent(new CustomEvent('dw-me', { detail: v })); } catch (e) {}
+  }
+  function meSave() {
+    var b = meEl('dwMeSave'), local = typeof window.dwMeApply === 'function';
+    var v = { name: meEl('dwMeName').value.trim().slice(0, 20), phone: telFmt(meEl('dwMePhone').value).slice(0, 20), rank: meEl('dwMeRank').value.trim().slice(0, 20), at: Date.now() };
+    meEl('dwMePhone').value = v.phone;
+    b.disabled = true; meMsg('dwMeMsg', '');
+    if (local) { try { window.dwMeApply(v); } catch (e) {} }
+    rpc('dw_set_me', { p: v }).then(function (d) {
+      if (!d || !d.ok) return Promise.reject({ why: (d && d.why) || 'net' });
+      ME.p = { name: d.name || '', phone: d.phone || '', rank: d.rank || '', info_at: Number(d.info_at) || 0 };
+      if (d.stale) {   /* 다른 휴대폰에서 더 나중에 고친 게 있음 → 그것으로 */
+        if (local) { try { window.dwMeApply({ name: ME.p.name, phone: ME.p.phone, rank: ME.p.rank, at: ME.p.info_at }); } catch (e) {} }
+        meFill(); meDone(ME.p, '다른 휴대폰에서 더 나중에 고친 내 정보가 있어서 그것으로 바꿨어요.'); return;
+      }
+      meDone(v, '저장했어요');
+    }).catch(function (e) {
+      var why = e && e.why;
+      if (why === 'noserver') {   /* 서버 준비 글을 다시 실행하기 전: 이름만 서버(게시판)에 */
+        return rpc('dw_set_name', { p_name: v.name }).then(function () { meDone(v, local ? '저장했어요' : '이름을 저장했어요. 전화번호 · 직급은 장례업무 화면에서 저장돼요.'); }, function () { meDone(v, local ? '이 휴대폰에 저장했어요.' : ''); });
+      }
+      if (local) { meDone(v, '이 휴대폰에 저장했어요. 인터넷이 되면 내 계정에도 올려요.'); return; }
+      meMsg('dwMeMsg', why === 'offline' ? '인터넷에 연결한 뒤 저장해 주세요.' : why === 'login' ? '로그인이 풀렸어요. 다시 로그인해 주세요.' : '지금은 저장하지 못했어요. 잠시 뒤에 다시 해 주세요.', true);
+    }).then(function () { b.disabled = false; });
+  }
+  function pwMsg(e) {
+    var c = String((e && e.code) || ''), m = String((e && e.message) || '');
+    if (c === 'same_password' || /different from the old/i.test(m)) return '지금 비밀번호와 다른 비밀번호로 해 주세요.';
+    if (c === 'weak_password' || /at least|weak/i.test(m)) return '비밀번호를 더 어렵게 해 주세요. (6자 이상, 영문과 숫자를 섞어서)';
+    if (c === 'reauthentication_needed') return '보안 설정 때문에 지금은 바꾸지 못했어요. 관리자에게 말씀해 주세요. (reauthentication_needed)';
+    return authMsg(e, false).replace('로그인하지', '바꾸지');
+  }
+  function mePw() {
+    var u = acct.user(), p0 = meEl('dwMePw0').value, p1 = meEl('dwMePw1').value, p2 = meEl('dwMePw2').value, b = meEl('dwMePwGo');
+    if (!p0) { meMsg('dwMePwMsg', '지금 비밀번호를 넣어 주세요.', true); meEl('dwMePw0').focus(); return; }
+    if (p1.length < 6) { meMsg('dwMePwMsg', '새 비밀번호는 6자 이상으로 넣어 주세요.', true); meEl('dwMePw1').focus(); return; }
+    if (p1 !== p2) { meMsg('dwMePwMsg', '새 비밀번호 확인이 달라요.', true); meEl('dwMePw2').focus(); return; }
+    if (p1 === p0) { meMsg('dwMePwMsg', '지금 비밀번호와 다른 비밀번호로 해 주세요.', true); return; }
+    if (navigator.onLine === false) { meMsg('dwMePwMsg', '인터넷에 연결한 뒤 바꿔 주세요.', true); return; }
+    b.disabled = true; meMsg('dwMePwMsg', '바꾸는 중…');
+    getClient().then(function (c) {
+      return c.auth.signInWithPassword({ email: u.email, password: p0 }).then(function (r) {
+        if (r.error) return Promise.reject({ cur: true, e: r.error });
+        return c.auth.updateUser({ password: p1 });
+      }).then(function (r) { if (r.error) return Promise.reject({ e: r.error }); });
+    }).then(function () {
+      ['dwMePw0', 'dwMePw1', 'dwMePw2'].forEach(function (id) { meEl(id).value = ''; });
+      meMsg('dwMePwMsg', '비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.');
+    }, function (x) {
+      var e = x && x.e;
+      meMsg('dwMePwMsg', x && x.cur ? (/invalid|credential/i.test(String((e && (e.code || e.message)) || '')) ? '지금 비밀번호가 맞지 않아요.' : authMsg(e, false)) : e ? pwMsg(e) : '바꾸지 못했어요. 인터넷을 확인해 주세요.', true);
+    }).then(function () { b.disabled = false; });
+  }
+  /* 로그아웃 확인 (위 막대 버튼 · 내 정보 공통) */
+  function askLogout(btn) {
+    var go = function (ok) { if (!ok) return; if (btn) btn.disabled = true; acct.logout(); };
+    if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃할까요?', body: '기록은 내 계정에 저장돼 있어요. 다시 들어올 때 이메일과 비밀번호를 넣어야 해요 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
+    else go(true);
+  }
+  window.dwMe = { open: meOpen, close: meClose, vals: meVals, load: meLoad };
+
+  /* ---------- 비밀번호 초기화 (2026.10.29): 관리자는 모든 직원, 파트장은 자기 파트원. 비밀번호 = 12345678a, 그 직원은 다음 로그인 때 새 비밀번호를 정함 ---------- */
+  var PW0 = '12345678a';
+  acct.resetPw = function (uid, name) {
+    var nm = String(name || '').trim() || '이 직원';
+    var ask = typeof window.dwConfirm === 'function'
+      ? window.dwConfirm({ title: nm + ' 님 비밀번호를 초기화할까요?', body: '비밀번호가 ' + PW0 + ' 로 바뀌어요. 그 직원이 다음에 로그인하면 바로 새 비밀번호를 정하게 돼요.', ok: '초기화', danger: true })
+      : Promise.resolve(true);
+    return ask.then(function (ok) {
+      if (!ok) return null;
+      return rpc('dw_reset_pw', { p_user: uid }).then(function (d) { if (!d || !d.ok) return Promise.reject({ why: (d && d.why) || 'net' }); d.pw = d.pw || PW0; return d; });
+    });
+  };
+  acct.resetWhy = function (e) {
+    var w = (e && e.why) || 'net';
+    return w === 'noserver' ? '비밀번호 초기화가 서버에 아직 없어요. 수파베이스 SQL Editor에서 새 SQL을 한 번 실행해 주세요'
+      : w === 'deny' ? '내 파트원만 초기화할 수 있어요 (파트장 · 총괄실장 계정은 관리자만)'
+      : w === 'self' ? '내 비밀번호는 위쪽 내 아이디를 눌러 「내 정보」에서 바꿔요'
+      : w === 'nouser' ? '그 직원 계정을 찾지 못했어요'
+      : w === 'offline' ? '인터넷에 연결한 뒤 다시 해 주세요'
+      : w === 'login' ? '로그인한 뒤에 할 수 있어요' : '지금은 초기화하지 못했어요. 잠시 뒤에 다시 해 주세요';
+  };
+
+  /* ---------- 비밀번호가 초기화된 계정: 새 비밀번호를 정해야 앱을 씀 ---------- */
+  function gateNewPw(u) {
+    window.DW_HOLD = true; root.classList.add('dw-gated');
+    if (!box) {
+      box = document.createElement('div'); box.id = 'dwGate'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'gtTitle');
+      document.body.appendChild(box);
+    }
+    if (!box.hidden && box.dataset.mode === 'newpw') return;   /* 이미 보고 있음 → 넣던 글 그대로 */
+    box.hidden = false; box.dataset.mode = 'newpw';
+    box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">새 비밀번호 정하기</h1>'
+      + '<p class="gt-note">비밀번호가 초기화됐어요. 앞으로 쓸 새 비밀번호를 정해 주세요.</p>'
+      + '<p class="gt-note" id="gtWho"></p><input type="email" autocomplete="username" id="gtUser" hidden>'
+      + '<input id="gtNp1" type="password" autocomplete="new-password" placeholder="새 비밀번호 (6자 이상)" aria-label="새 비밀번호">'
+      + '<input id="gtNp2" type="password" autocomplete="new-password" placeholder="새 비밀번호 확인" aria-label="새 비밀번호 확인">'
+      + '<button type="submit" id="gtGo">저장하고 시작하기</button><p class="gt-err" id="gtErr" role="alert"></p>'
+      + '<button type="button" class="gt-link" id="gtOut">로그아웃</button></form>';
+    var em = (u && u.email) || ((sess() || {}).user || {}).email || '';
+    box.querySelector('#gtWho').textContent = em; box.querySelector('#gtUser').value = em;
+    var f = box.querySelector('form'), n1 = box.querySelector('#gtNp1'), n2 = box.querySelector('#gtNp2'), go = box.querySelector('#gtGo'), err = box.querySelector('#gtErr');
+    setTimeout(function () { var a = document.activeElement; if (!(a && a.tagName === 'INPUT' && box.contains(a))) n1.focus(); }, 50);
+    box.querySelector('#gtOut').onclick = function () { this.disabled = true; acct.logout(); };
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var a = n1.value, b = n2.value;
+      if (a.length < 6) { err.textContent = '새 비밀번호는 6자 이상으로 넣어 주세요.'; n1.focus(); return; }
+      if (a !== b) { err.textContent = '비밀번호 확인이 달라요.'; n2.focus(); return; }
+      if (a === PW0) { err.textContent = '초기 비밀번호(' + PW0 + ')와 다른 비밀번호로 해 주세요.'; n1.focus(); return; }
+      if (navigator.onLine === false) { err.textContent = '인터넷에 연결한 뒤 해 주세요.'; return; }
+      go.disabled = true; go.textContent = '저장하는 중…'; err.textContent = '';
+      var cl = null, uid = (u && u.id) || ((sess() || {}).user || {}).id || '';
+      getClient().then(function (c) { cl = c; return c.auth.updateUser({ password: a }); })
+        .then(function (r) {
+          if (r.error) return Promise.reject(r.error);
+          return cl.rpc('dw_pw_reset_done').then(function (d) { if (d && d.data && d.data.ok === false && d.data.why === 'same') return Promise.reject({ code: 'same_password' }); });
+        })
+        .then(function () { return Promise.resolve(cl.auth.refreshSession()).catch(function () {}); })
+        .then(function () { try { sessionStorage.setItem('dw-pw-clear', uid); localStorage.setItem(IK, String(Date.now())); } catch (x) {} location.reload(); })
+        .catch(function (e) {
+          err.textContent = e && (e.code || e.message) ? pwMsg(e) : '저장하지 못했어요. 인터넷을 확인해 주세요.';
+          go.disabled = false; go.textContent = '저장하고 시작하기';
+        });
+    });
+  }
+
   function open(u) { root.classList.remove('dw-gated'); if (box) box.hidden = true; applyRole(u); renderAcct(); }
   /* 인터넷이 되면 서버에서 다시 확인 (파트장 지정 · 해제 반영, 로그인이 풀렸으면 다시 로그인) · 인터넷이 안 되면 이 기기 확인 결과대로 */
   function verify() {
     var s = sess();
     if (!s || !s.user) { setLeader(null); if (!box || box.hidden) gate('login'); return; }   /* 이미 로그인 화면이면 다시 그리지 않음 (넣던 글 · 안내 유지) */
-    getClient().then(function (c) { return c.auth.getUser(); }).then(function (r) {
+    var cl = null;
+    getClient().then(function (c) { cl = c; return c.auth.getUser(); }).then(function (r) {
       var u = r && r.data && r.data.user;
+      if (u && u.app_metadata && u.app_metadata.dw_pw_reset) { setLeader(u); gateNewPw(u); return; }   /* 비밀번호가 초기화됨 → 새 비밀번호부터 */
+      if (u && window.DW_PWRESET) {   /* 이미 새 비밀번호를 정함(다른 휴대폰 등) → 로그인 정보를 새로 받고 다시 열기 */
+        try { sessionStorage.setItem('dw-pw-clear', u.id); } catch (e) {}
+        Promise.resolve(cl.auth.refreshSession()).catch(function () {}).then(function () { location.reload(); });
+        return;
+      }
       if (u) { setLeader(u); open(u); return; }
       var st = r && r.error && r.error.status;
       if (st === 401 || st === 403) { setLeader(null); gate('login', s.user); }   /* 로그인이 풀림(비밀번호 바뀜 등) → 다시 로그인 */
@@ -260,11 +471,7 @@
     var b = document.createElement('button');
     b.type = 'button'; b.id = 'dwOut'; b.className = 'dw-out'; b.title = '로그아웃'; b.setAttribute('aria-label', '로그아웃');
     b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 20H5.5A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4H9"/><path d="M15.5 16.5 20 12l-4.5-4.5"/><path d="M20 12H9"/></svg><span>로그아웃</span>';
-    b.addEventListener('click', function () {
-      var go = function (ok) { if (!ok) return; b.disabled = true; acct.logout(); };
-      if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃할까요?', body: '기록은 내 계정에 저장돼 있어요. 다시 들어올 때 이메일과 비밀번호를 넣어야 해요 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
-      else go(true);
-    });
+    b.addEventListener('click', function () { askLogout(b); });
     bar.appendChild(b);
   }
 
@@ -273,6 +480,11 @@
     try { localStorage.removeItem(SK); localStorage.removeItem(LK); localStorage.removeItem(CK); localStorage.removeItem(IK); } catch (e) {}
     try { sessionStorage.setItem(OUTK, JSON.stringify({ why: 'idle', email: u0 && u0.email || '' })); } catch (e) {}
     gate('login');
+    return;
+  }
+  if (window.DW_PWRESET) {   /* 비밀번호가 초기화된 계정 (leader-gate-head.html) → 새 비밀번호부터 */
+    gateNewPw((sess() || {}).user);
+    verify(); window.addEventListener('online', verify);
     return;
   }
   if (window.DW_HOLD) return;   /* 계정 바꾸기 화면으로 넘어가는 중 */

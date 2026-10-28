@@ -2,7 +2,8 @@
 --   2026.10.26: 총괄실장 — 관리자가 앱에서 정함, 서식 · 회사 서류만 쓰고 파트장들의 서식 기록을 볼 수만 있음,
 --   2026.10.27: 물품 수령 · 불출 장부 — 파트장끼리 같이 쓰는 장부 (부산 · 울산 · 창원 입고 · 불출 · 남은 수량),
 --   2026.10.28: 자료실 — 회사 기본 서류 파일을 올려 두고 직원 모두가 열어 보고 내려받음 (모두 합쳐 800MB까지),
---   2026.10.28-21: 섞인 기록 정리 — 예전에 다른 계정으로 같이 올라간 기록을 관리자가 원래 주인 계정에만 남김)
+--   2026.10.28-21: 섞인 기록 정리 — 예전에 다른 계정으로 같이 올라간 기록을 관리자가 원래 주인 계정에만 남김,
+--   2026.10.29: 내 정보(이름 · 전화번호 · 직급)를 계정에 · 관리자 · 파트장이 직원 비밀번호 초기화(12345678a, 다음 로그인 때 새 비밀번호를 정함))
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -17,6 +18,7 @@
 --   · 물품 수령 · 불출 장부: 파트장 모두가 같은 장부를 봄. 넣은 사람(과 관리자)만 고치고 지움, 지운 기록도 서버에 남음
 --   · 자료실: 파트에 들어간 직원 · 파트장 · 총괄실장이 서류 파일을 열어 보고 내려받음. 올리기는 파트장 · 총괄실장,
 --     고치기 · 지우기는 올린 사람(과 관리자). 파일은 파일 보관함 「dw-docs」(공개 안 됨, 파일 하나 50MB까지, 모두 합쳐 800MB까지)
+--   · 비밀번호 초기화: 관리자는 모든 직원, 파트장은 자기 파트원만. 비밀번호가 12345678a 로 바뀌고, 그 직원은 다음에 로그인하면 새 비밀번호를 정해야 앱을 씀
 -- 표는 앱에서 바로 건드릴 수 없고, 아래 함수(누가 무엇을 할 수 있는지 검사함)로만 읽고 씁니다.
 
 -- ---------- 표 ----------
@@ -41,6 +43,14 @@ create table if not exists public.dw_part_members (
   primary key (part_id, user_id)
 );
 create index if not exists dw_part_members_user on public.dw_part_members (user_id);
+
+-- 내 정보 (2026.10.29): 전화번호 · 직급도 계정에 둠 → 어느 화면 · 어느 휴대폰에서 고쳐도 같게. info_at = 마지막으로 고친 때(ms, 더 나중 것이 이김)
+alter table public.dw_profiles add column if not exists phone   text   not null default '';
+alter table public.dw_profiles add column if not exists rank    text   not null default '';
+alter table public.dw_profiles add column if not exists info_at bigint not null default 0;
+
+-- 비밀번호 초기화에 씀 (수파베이스에는 이미 있음)
+create extension if not exists pgcrypto with schema extensions;
 
 create table if not exists public.dw_posts (
   id         uuid primary key default gen_random_uuid(),
@@ -164,6 +174,8 @@ begin
   select * into p from public.dw_profiles where user_id = me;
   return jsonb_build_object(
     'ok', true, 'user_id', me, 'login_id', p.login_id, 'name', p.name, 'leader', public.dw_is_leader(me), 'admin', public.dw_is_admin(me), 'chief', public.dw_is_chief(me),
+    'phone', p.phone, 'rank', p.rank, 'info_at', p.info_at,
+    'pw_reset', coalesce((select (u.raw_app_meta_data ->> 'dw_pw_reset') = 'true' from auth.users u where u.id = me), false),
     'parts', coalesce((
       select jsonb_agg(jsonb_build_object(
                'id', t.id, 'name', t.name, 'leader_id', t.leader_id, 'leader_name', public.dw_name(t.leader_id),
@@ -182,8 +194,31 @@ declare me uuid := auth.uid(); n text := left(btrim(coalesce(p_name, '')), 20);
 begin
   if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
   perform public.dw_profile_ensure(me);
-  update public.dw_profiles set name = n where user_id = me;
+  update public.dw_profiles set name = n, info_at = (extract(epoch from clock_timestamp()) * 1000)::bigint where user_id = me;
   return jsonb_build_object('ok', true, 'name', n);
+end $$;
+
+-- 내 정보 저장 (2026.10.29): p = {name, phone, rank, at(고친 때 ms)} — 서버에 있는 것보다 나중에 고친 것만 넣음 (늦게 올라온 옛 값은 무시)
+create or replace function public.dw_set_me(p jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); r public.dw_profiles; now_ms bigint := (extract(epoch from clock_timestamp()) * 1000)::bigint; t bigint := 0;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if p is null or jsonb_typeof(p) <> 'object' then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+  perform public.dw_profile_ensure(me);
+  if coalesce(p ->> 'at', '') ~ '^[0-9]{1,15}$' then t := (p ->> 'at')::bigint; end if;
+  if t <= 0 or t > now_ms + 86400000 then t := now_ms; end if;   -- 휴대폰 시계가 크게 틀리면 지금
+  select * into r from public.dw_profiles where user_id = me;
+  if t >= r.info_at then
+    update public.dw_profiles set
+      name  = case when p ? 'name'  then left(btrim(coalesce(p ->> 'name', '')), 20)  else name  end,
+      phone = case when p ? 'phone' then left(btrim(coalesce(p ->> 'phone', '')), 20) else phone end,
+      rank  = case when p ? 'rank'  then left(btrim(coalesce(p ->> 'rank', '')), 20)  else rank  end,
+      info_at = t
+    where user_id = me returning * into r;
+    return jsonb_build_object('ok', true, 'name', r.name, 'phone', r.phone, 'rank', r.rank, 'info_at', r.info_at);
+  end if;
+  return jsonb_build_object('ok', true, 'stale', true, 'name', r.name, 'phone', r.phone, 'rank', r.rank, 'info_at', r.info_at);
 end $$;
 
 -- 파트 만들기 · 이름 바꾸기 · 없애기 (파트장만)
@@ -466,6 +501,42 @@ begin
     update auth.users set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"dw_role": "leader"}'::jsonb where id = p_user;
     delete from public.dw_part_members where user_id = p_user;   -- 파트장은 다른 파트의 파트원이 될 수 없음
   end if;
+  return jsonb_build_object('ok', true);
+end $$;
+
+-- 비밀번호 초기화 (2026.10.29): 관리자는 모든 직원(자기 자신 빼고), 파트장은 자기가 만든 파트의 파트원만(파트장 · 총괄실장 · 관리자 계정은 안 됨).
+--   비밀번호 = 12345678a, 「dw_pw_reset」 표시 → 그 직원은 다음 로그인 때 새 비밀번호를 정해야 앱을 씀(dw_pw_reset_done 으로 표시를 지움)
+create or replace function public.dw_reset_pw(p_user uuid) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); ok boolean := false;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if p_user is null or p_user = me then return jsonb_build_object('ok', false, 'why', 'self'); end if;
+  if not exists (select 1 from auth.users u where u.id = p_user) then return jsonb_build_object('ok', false, 'why', 'nouser'); end if;
+  if public.dw_is_admin(me) then
+    ok := true;
+  elsif public.dw_is_leader(me) then
+    ok := exists (select 1 from public.dw_part_members m join public.dw_parts t on t.id = m.part_id where t.leader_id = me and m.user_id = p_user)
+          and not public.dw_is_leader(p_user) and not public.dw_is_chief(p_user) and not public.dw_is_admin(p_user);
+  end if;
+  if not ok then return jsonb_build_object('ok', false, 'why', 'deny'); end if;
+  update auth.users set
+    encrypted_password = extensions.crypt('12345678a', extensions.gen_salt('bf')),
+    raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"dw_pw_reset": true}'::jsonb,
+    updated_at = now()
+  where id = p_user;
+  return jsonb_build_object('ok', true, 'name', public.dw_name(p_user), 'pw', '12345678a');
+end $$;
+
+-- 새 비밀번호를 정한 뒤: 초기화 표시 지우기 (아직 12345678a 그대로면 안 지움)
+create or replace function public.dw_pw_reset_done() returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); h text;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  select u.encrypted_password into h from auth.users u where u.id = me;
+  if coalesce(h, '') <> '' and h = extensions.crypt('12345678a', h) then return jsonb_build_object('ok', false, 'why', 'same'); end if;
+  update auth.users set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) - 'dw_pw_reset' where id = me;
   return jsonb_build_object('ok', true);
 end $$;
 
@@ -936,6 +1007,9 @@ revoke all on function public.dw_me()                                        fro
 revoke all on function public.dw_people()                                    from public, anon;
 revoke all on function public.dw_set_role(uuid, boolean)                     from public, anon;
 revoke all on function public.dw_set_name(text)                              from public, anon;
+revoke all on function public.dw_set_me(jsonb)                               from public, anon;
+revoke all on function public.dw_reset_pw(uuid)                              from public, anon;
+revoke all on function public.dw_pw_reset_done()                             from public, anon;
 revoke all on function public.dw_part_create(text)                           from public, anon;
 revoke all on function public.dw_part_rename(uuid, text)                     from public, anon;
 revoke all on function public.dw_part_delete(uuid)                           from public, anon;
@@ -966,6 +1040,9 @@ grant execute on function public.dw_me()                                        
 grant execute on function public.dw_people()                                    to authenticated;
 grant execute on function public.dw_set_role(uuid, boolean)                     to authenticated;
 grant execute on function public.dw_set_name(text)                              to authenticated;
+grant execute on function public.dw_set_me(jsonb)                               to authenticated;
+grant execute on function public.dw_reset_pw(uuid)                              to authenticated;
+grant execute on function public.dw_pw_reset_done()                             to authenticated;
 grant execute on function public.dw_part_create(text)                           to authenticated;
 grant execute on function public.dw_part_rename(uuid, text)                     to authenticated;
 grant execute on function public.dw_part_delete(uuid)                           to authenticated;

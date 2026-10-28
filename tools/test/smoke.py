@@ -114,6 +114,11 @@ def main():
             p.goto(BASE + 'forms/'); login(p, 'seo', 'pw1111')
             for t in ['home', 'board', 'docs', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings']:
                 p.evaluate(f"showTab('{t}')"); p.wait_for_timeout(500); look(p, f'forms_{t}_{tag}')
+            # 내 정보 (위 막대 아이디를 누르면, 2026.10.29)
+            p.click('.appbar .local'); p.wait_for_selector('#dwMe:not([hidden])', timeout=5000); look(p, f'forms_me_{tag}')
+            if p.input_value('#dwMeName') != '서영우':
+                problems.append(f'{tag}: 내 정보 이름이 안 채워짐')
+            p.keyboard.press('Escape'); p.wait_for_timeout(200)
             # 장례업무 (같은 기기 · 로그인 유지)
             p.goto(BASE + 'forms/funeral.html'); p.wait_for_function("typeof setTab==='function'", timeout=15000)
             p.evaluate(SEED)

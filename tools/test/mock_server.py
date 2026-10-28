@@ -105,8 +105,40 @@ class Srv:
         p=s.PROF[me]; parts=[]
         for pid,t in sorted(s.PARTS.items(),key=lambda x:x[1]['created']):
             if s.inpart(pid,me): parts.append({'id':pid,'name':t['name'],'leader_id':t['leader_id'],'leader_name':s.name(t['leader_id']),'mine':t['leader_id']==me,'members':sum(1 for a,b,_ in s.MEM if a==pid)})
-        return s.ok(user_id=me,login_id=p['login_id'],name=p['name'],leader=s.leader(me),admin=s.admin(me),chief=s.chief(me),parts=parts)
-    def f_dw_set_name(s,me,p_name): s.PROF[me]['name']=p_name.strip()[:20]; return s.ok(name=s.PROF[me]['name'])
+        u=s.user_of(me)
+        return s.ok(user_id=me,login_id=p['login_id'],name=p['name'],leader=s.leader(me),admin=s.admin(me),chief=s.chief(me),parts=parts,
+                    phone=p.get('phone',''),rank=p.get('rank',''),info_at=p.get('info_at',0),pw_reset=bool(u and u[2].get('dw_pw_reset')))
+    def f_dw_set_name(s,me,p_name): s.PROF[me]['name']=p_name.strip()[:20]; s.PROF[me]['info_at']=s.now_ms(); return s.ok(name=s.PROF[me]['name'])
+    # 내 정보 · 비밀번호 초기화 (2026.10.29)
+    def now_ms(s): import time; return int(time.time()*1000)
+    def user_of(s,uid): return next((u for u in s.USERS.values() if u[1]==uid),None)
+    def f_dw_set_me(s,me,p):
+        if not isinstance(p,dict): return s.no('bad')
+        r=s.PROF[me]; t=int(p['at']) if str(p.get('at','')).isdigit() and len(str(p['at']))<=15 else 0; now=s.now_ms()
+        if t<=0 or t>now+86400000: t=now
+        if t>=r.get('info_at',0):
+            for k in ('name','phone','rank'):
+                if k in p: r[k]=str(p.get(k) or '').strip()[:20]
+            r['info_at']=t; return s.ok(name=r['name'],phone=r.get('phone',''),rank=r.get('rank',''),info_at=t)
+        return s.ok(stale=True,name=r['name'],phone=r.get('phone',''),rank=r.get('rank',''),info_at=r.get('info_at',0))
+    def f_dw_reset_pw(s,me,p_user):
+        if not p_user or p_user==me: return s.no('self')
+        u=s.user_of(p_user)
+        if not u: return s.no('nouser')
+        ok=s.admin(me) or (s.leader(me) and any(b==p_user and s.PARTS.get(a,{}).get('leader_id')==me for a,b,_ in s.MEM) and not s.leader(p_user) and not s.chief(p_user) and not s.admin(p_user))
+        if not ok: return s.no('deny')
+        u[0]='12345678a'; u[2]['dw_pw_reset']=True
+        return s.ok(name=s.name(p_user),pw='12345678a')
+    def f_dw_pw_reset_done(s,me):
+        u=s.user_of(me)
+        if u[0]=='12345678a': return s.no('same')
+        u[2].pop('dw_pw_reset',None); return s.ok()
+    def updatepw(s,src,uid,pw):
+        u=s.user_of(uid)
+        if not u: return {'error':{'message':'User not found','status':403}}
+        if len(pw)<6: return {'error':{'message':'Password should be at least 6 characters.','code':'weak_password','status':422}}
+        if pw==u[0]: return {'error':{'message':'New password should be different from the old password.','code':'same_password','status':422}}
+        u[0]=pw; return s.getuser(src,uid)
     def f_dw_part_create(s,me,p_name):
         if not s.leader(me): return s.no('notleader')
         n=p_name.strip()[:30]
@@ -406,4 +438,4 @@ class Srv:
         return s.ok(n=n,states=ns)
 def wire(ctx,srv,mockjs):
     ctx.route('**/vendor/supabase.js', lambda r: r.fulfill(status=200,content_type='application/javascript',body=mockjs))
-    for n,f in [('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert),('mockStorage',srv.storage)]: ctx.expose_binding(n,f)
+    for n,f in [('mockUpdatePw',srv.updatepw),('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert),('mockStorage',srv.storage)]: ctx.expose_binding(n,f)
