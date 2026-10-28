@@ -380,6 +380,19 @@ p{text-wrap:pretty}
 /* 자료실 (2026.10.28) */
 .dc-top{display:grid;gap:8px}
 .dc-use{margin:0;font-size:13px;color:var(--muted)}
+.dc-full{margin:0;font-size:13px;line-height:1.55;color:var(--warn);word-break:keep-all}
+.dc-full b{font-weight:700}
+/* 섞인 기록 정리 (2026.10.28-21) */
+.mx-list{display:grid;gap:0;margin:8px 0 12px;border-top:1px solid var(--line)}
+.mx-row{display:flex;gap:10px;align-items:flex-start;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer;word-break:keep-all;line-height:1.5}
+.mx-row input{flex:none;width:20px;height:20px;margin:2px 0 0;accent-color:var(--ink)}
+.mx-row span{min-width:0;font-size:14.5px}
+.mx-row small{display:block;margin-top:2px;font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.mx-ok{margin:6px 0 10px;font-size:14px;color:var(--ink)}
+.mx-done{margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+.mx-done h3{margin:0 0 6px;font-size:14px}
+.mx-b{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;font-size:13.5px;color:var(--muted)}
+.mx-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .dc-q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
 .dc-list{display:grid;border-top:1px solid var(--ink)}
 .dc-item{display:grid;gap:6px;padding:14px 4px;border-bottom:1px solid var(--line);min-width:0}
@@ -605,14 +618,9 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
     <b>이 화면에서는 기기 저장이 막혀 있어요</b>
     입력은 할 수 있지만 창을 닫으면 사라집니다. 일반 브라우저 창(비공개 모드 아님)에서 다시 열어 주세요.
   </div>
-  <div class="banner bk-banner" id="bkBanner" hidden>
-    <b>백업할 때가 됐어요</b>
-    <span id="bkText"></span>
-    <div class="bk-row"><button class="btn small primary" type="button" id="bkNow">지금 백업</button><button class="btn small" type="button" id="bkLater">일주일 뒤에 알림</button></div>
-  </div>
   <div class="banner" id="failBanner" hidden>
     <b>저장에 실패했어요</b>
-    기기 저장공간이 부족할 수 있어요. 설정에서 백업 파일을 먼저 받아 두세요.
+    기기 저장공간이 부족할 수 있어요. 인터넷이 되면 내 계정에는 그대로 저장돼요.
   </div>
 
   <!-- ===== 서식 고르기 (주간보고 · 회의록 · 후기보고 · 탁송 · 물품 · 상담서) — 파트장만 (물품 · 상담서는 총괄실장에게 안 보임) ===== -->
@@ -858,10 +866,11 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
   <section class="tab" id="tab-settings" hidden>
     <div class="tab-head">
       <h1>설정</h1>
-      <p>서식(주간보고 · 회의록 · 후기 · 탁송 · 물품) 보고서에 들어갈 정보와 데이터 백업을 관리해요. 장례업무 설정은 장례업무 → 설정에 있어요.</p>
+      <p>서식(주간보고 · 회의록 · 후기 · 탁송 · 물품) 보고서에 들어갈 정보를 정해요. 기록은 내 계정에 자동으로 저장돼요. 장례업무 설정은 장례업무 → 설정에 있어요.</p>
     </div>
     <div class="card ac-card" id="dwAcctCard" hidden></div>
     <div class="card" id="roleCard" hidden><h2>직원 권한</h2><p class="small-t muted">파트장으로 정하면 서식 · 설정 · 회사 서류가 보이고, 파트를 만들어 파트원을 넣을 수 있어요. 총괄실장으로 정하면 회의록 · 주간보고 · 후기 · 탁송 · 회사 서류와, 파트장님들이 올린 보고를 모아 보는 「취합」만 보여요.</p><div id="roleList"></div></div>
+    <div class="card" id="mixCard" hidden><h2>섞인 기록 정리</h2><p class="small-t muted">예전에는 한 휴대폰에서 다른 계정으로 로그인 · 가입하면 그 휴대폰에 있던 기록이 새 계정에도 같이 올라갔어요(지금은 막혀 있어요). 여기서 찾아서 원래 주인 계정에만 남겨요. 지운 것도 서버에 남아서 되돌릴 수 있어요.</p><div id="mixBody"></div></div>
     <div class="card">
       <h2>기본 정보</h2>
       <p class="small-t muted">쓰이는 곳: 주간보고 · 회의록 · 탁송 · 물품 보고서 맨 위 (작성자 · 파트 · 회사명)</p>
@@ -901,32 +910,10 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
       <div class="install-body" id="installBody2"></div>
     </div>
     <div class="card">
-      <h2>데이터</h2>
+      <h2>저장</h2>
       <p class="small-t muted">서식 기록(주간보고 · 회의록 · 후기 · 탁송 · 설정 · 서명)은 이 기기와 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요.</p>
       <p class="small-t" id="srvSync">로그인하면 서버에 자동 저장돼요.</p>
       <p class="small-t" id="dataCount">-</p>
-      <div class="grid2">
-        <button class="btn" type="button" id="backupBtn">백업 파일 저장</button>
-        <label class="btn" for="restoreFile">백업 불러오기</label>
-      </div>
-      <p class="small-t muted" id="bkLast"></p>
-      <input type="file" id="restoreFile" accept=".json,application/json" class="vh">
-      <div class="af-box" id="clBox">
-        <h3 class="af-h">클라우드 자동 저장</h3>
-        <p class="small-t muted">구글 드라이브에 기록(주간보고 · 회의록 · 후기 · 탁송 · 설정)이 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 「클라우드 코드」만 넣으면 그대로 돌아와요.<span data-nochief> 장례업무 기록은 장례업무 화면에서 같은 곳에 저장돼요.</span></p>
-        <p class="small-t" id="clStatus"></p>
-        <div id="clSetup"><label class="field"><span>클라우드 주소 또는 클라우드 코드</span><input type="text" id="clCode" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"></label><button class="btn primary block" type="button" id="clGo">연결</button></div>
-        <div class="grid2" id="clOn" hidden><button class="btn" type="button" id="clNow">지금 저장</button><button class="btn" type="button" id="clCopy">클라우드 코드 복사</button><button class="btn" type="button" id="clPull">클라우드에서 불러오기</button><button class="btn" type="button" id="clOff">끄기</button></div>
-      </div>
-      <div class="af-box" id="afBox">
-        <h3 class="af-h">휴대폰 파일 자동 백업</h3>
-        <p class="small-t muted">처음 한 번 저장할 곳을 고르면, 그다음부터 자동으로 그 파일에 최신 기록(주간보고 · 회의록 · 후기 · 탁송<span data-nochief> · 장례업무 · 휴무</span>)이 들어가요. 앱을 지우거나 기록이 사라져도 파일은 휴대폰에 남아서 「백업 불러오기」로 되살릴 수 있어요.</p>
-        <p class="small-t" id="afStatus"></p>
-        <div class="grid2" id="afBtns"><button class="btn primary" type="button" id="afOn">자동 백업 켜기</button><button class="btn" type="button" id="afOpen">예전 파일 연결</button></div>
-        <div class="grid2" id="afBtns2" hidden><button class="btn primary" type="button" id="afFix">다시 연결</button><button class="btn" type="button" id="afNow">지금 백업</button><button class="btn" type="button" id="afRestore">이 파일에서 되살리기</button><button class="btn" type="button" id="afOff">끄기</button></div>
-      </div>
-      <div class="wipe-zone"><p class="small-t muted">이 기기의 서식 기록(주간보고 · 회의록 · 후기 · 탁송 · 설정)을 모두 지웁니다. 지우기 전에 위에서 백업 파일을 먼저 받아 두세요.</p>
-      <button class="btn danger block" type="button" id="wipeBtn">모든 기록 삭제</button></div>
     </div>
     <p class="ver" id="appVersion"></p>
   </section>
@@ -1009,6 +996,7 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
       <div class="field"><span>파일</span>
         <ul class="de-files dc-files" id="deFiles"></ul>
         <button class="btn block" type="button" id="dePick">+ 파일 고르기</button>
+        <p id="deSpace" hidden role="status"></p>
         <input id="deInput" type="file" multiple hidden>
         <p class="de-note">PDF · 사진 · 한글 · 엑셀 · 워드 등 무엇이든 돼요. 파일 하나 50MB까지, 한 번에 10개까지. 큰 사진은 올릴 때 알맞게 줄여요.</p>
       </div>
@@ -1490,7 +1478,7 @@ function showTab(t) {
   if (t === 'home') renderHome();
   if (t === 'board') boardOpen();
   if (t === 'docs') docsOpen();
-  if (t === 'settings') { renderSettings(); roleLoad(); }
+  if (t === 'settings') { renderSettings(); roleLoad(); mixLoad(); }
   if (t === 'review') renderReview();
   if (t === 'gather') gatherOpen(false);
   if (t === 'stock') stockOpen();
@@ -1554,7 +1542,7 @@ async function saveMinutesNow() {
     $('#mSaveState').textContent = ok ? '저장됨' : '저장 안 됨';
     $('#mDelete').hidden = false;
   }
-  if (ok) { requestPersist(); checkBackup(); }
+  if (ok) requestPersist();
   renderMinutesList(); return ok;
 }
 async function flushMinutes() {
@@ -2723,8 +2711,7 @@ function renderSettings() {
   renderRoster(); renderSaveBar(); fillRanks(); renderSigCard();
   const imgs = [...S.ship.values()].filter((e) => e.qr).length;
   const rvDays = Object.keys(S.reviews).filter((k) => (S.reviews[k] || '').trim()).length;
-  const hasFuneral = window.__PWA__ && Object.keys(funeralStorage()).length > 0;
-  $('#dataCount').textContent = `이 기기에 저장된 기록: 주간보고 ${S.weekly.size}건 · 회의록 ${S.minutes.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)${isChief() ? '.' : `${hasFuneral ? ' · 장례업무 기록 있음' : ''}. 백업 파일에는 장례업무 기록도 함께 들어가요.`}`;
+  $('#dataCount').textContent = `저장된 기록: 주간보고 ${S.weekly.size}건 · 회의록 ${S.minutes.size}건 · 후기 ${rvDays}일 · 탁송·출고 ${S.ship.size}건 (QR 이미지 ${imgs}장)`;
 }
 function renderRoster() {
   const list = (S.sd || S.settings).roster || [];
@@ -2762,104 +2749,10 @@ async function commitSettings() {
   if (!ok) { S.sd = clone(S.settings); renderSaveBar(); }
 }
 function cancelSettings() { S.sd = null; renderSettings(); toast('저장 전 상태로 되돌렸어요'); }
-/* ----- 백업 알림: 기록은 이 기기에만 있으니 한 달에 한 번 백업 ----- */
-const BK_KEY = 'mf.lastBackup', BK_FIRST = 'mf.firstUse', BK_SNOOZE = 'mf.bkSnooze', DAY = 86400000;
-function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
-function markBackup() { lsSet(BK_KEY, String(Date.now())); lsSet(BK_SNOOZE, ''); checkBackup(); }
-function checkBackup() {
-  const has = !!(S.weekly.size || S.minutes.size || S.ship.size || Object.values(S.reviews || {}).some((v) => String(v || '').trim())), now = Date.now();
-  const last = Number(lsGet(BK_KEY)) || 0;
-  if (has && !lsGet(BK_FIRST)) lsSet(BK_FIRST, String(now));
-  const first = Number(lsGet(BK_FIRST)) || now;
-  const lastEl = $('#bkLast'); if (lastEl) lastEl.textContent = last ? `마지막 백업: ${fmtYMD(new Date(last))} (${Math.floor((now - last) / DAY)}일 전)` : '아직 백업한 적이 없어요.';
-  const due = has && (last ? now - last > 30 * DAY : now - first > 7 * DAY);
-  const snoozed = (Number(lsGet(BK_SNOOZE)) || 0) > now;
-  $('#bkBanner').hidden = !due || snoozed;
-  if (due) $('#bkText').textContent = (last ? `마지막 백업이 ${Math.floor((now - last) / DAY)}일 전이에요. ` : '아직 백업한 적이 없어요. ') + '기록이 이 기기에만 있어서 휴대폰을 잃어버리거나 바꾸면 사라져요. 백업 파일을 카톡 「나와의 채팅」이나 드라이브에 보내 두세요.';
-}
-async function exportBackup() {
-  const btn = $('#backupBtn'); setBusy(btn, true, '준비 중…');
-  try {
-    if (!await flushMinutes()) { toast('회의록 저장 후 다시 백업해 주세요.'); return; }
-    const img = await Store.getAll('img');
-    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, gatherNotes: S.gnotes, funeral: funeralStorage() };
-    const now = new Date();
-    const name = `관리자서식_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
-    await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요', onDone: markBackup,
-      hint: '백업 파일은 카톡 「나와의 채팅」이나 구글 드라이브로 보내 두면 휴대폰·PC를 바꿔도 되살릴 수 있어요.' });
-  } finally { setBusy(btn, false); }
-}
-async function importBackup(file) {
-  let data;
-  try { data = JSON.parse(await file.text()); } catch (e) { toast('백업 파일을 읽지 못했어요.'); return; }
-  if (!data || data.app !== 'manager-forms') { toast('이 앱의 백업 파일이 아니에요.'); return; }
-  let w = 0, sh = 0, mt = 0;
-  for (const im of (data.img || [])) { if (im && im.id && im.data) await Store.put('img', im); }
-  for (const r of (data.weekly || [])) {
-    if (!r || !r.id || !r.weekStart) continue;
-    const cur = S.weekly.get(r.id);
-    if (!cur || (r.updatedAt || 0) > (cur.updatedAt || 0)) { S.weekly.set(r.id, r); await Store.put('weekly', r); w++; }
-  }
-  for (const e of (data.ship || [])) {
-    if (!e || !e.id || !e.date) continue;
-    const cur = S.ship.get(e.id);
-    if (!cur || (e.updatedAt || 0) > (cur.updatedAt || 0)) { S.ship.set(e.id, e); await Store.put('ship', e); sh++; }
-  }
-  const previousMinutes = new Map(S.minutes);
-  for (const value of (Array.isArray(data.minutes) ? data.minutes : [])) {
-    const r = readMinutes(value); if (!r) continue;
-    const cur = S.minutes.get(r.id);
-    if (!cur || r.updatedAt > cur.updatedAt) { S.minutes.set(r.id, r); mt++; }
-  }
-  if (mt && !await persistMinutes()) { S.minutes = previousMinutes; toast('회의록을 저장하지 못했어요. 다시 불러와 주세요.'); return; }
-  if (!S.sig && data.signature && data.signature.data) { S.sig = data.signature; sigImgCache = null; await saveSig(); }
-  if (data.gatherNotes && typeof data.gatherNotes === 'object') {   /* 총괄실장 취합 글: 더 나중에 고친 것 */
-    let gn = 0;
-    Object.values(data.gatherNotes).forEach((n) => { if (n && /^[wm]:/.test(String(n.id || '')) && (n.updatedAt || 0) > ((S.gnotes[n.id] || {}).updatedAt || 0)) { S.gnotes[n.id] = n; gn++; } });
-    if (gn) await Store.put('kv', clone(S.gnotes), 'gatherNotes');
-  }
-  let fn = 0, fkept = 0;
-  if (data.funeral && typeof data.funeral === 'object') {
-    Object.keys(data.funeral).forEach((k) => {
-      if (!FUNERAL_KEYS.test(k) || typeof data.funeral[k] !== 'string') return;
-      try { if (localStorage.getItem(k)) { fkept++; return; } localStorage.setItem(k, data.funeral[k]); fn++; } catch (e) { /* ignore */ }
-    });
-  }
-  let rvn = 0;
-  if (data.reviews && typeof data.reviews === 'object') {
-    Object.keys(data.reviews).forEach((k) => { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && !(S.reviews[k] || '').trim() && (data.reviews[k] || '').trim()) { S.reviews[k] = data.reviews[k]; rvn++; } });
-    if (!S.rvTitle && data.reviewTitle) S.rvTitle = data.reviewTitle;
-    await Store.put('kv', clone(S.reviews), 'reviews'); await Store.put('kv', S.rvTitle || '', 'reviewTitle');
-  }
-  if (data.settings) {
-    for (const k of Object.keys(S.settings)) {
-      const cur = S.settings[k];
-      const empty = cur === '' || cur == null || (Array.isArray(cur) && !cur.length);
-      if (empty && data.settings[k] != null) S.settings[k] = data.settings[k];
-    }
-    S.sd = null; await saveSettings();
-  }
-  renderAll();
-  toast(`주간보고 ${w}건, 회의록 ${mt}건, 후기 ${rvn}일, 탁송·출고 ${sh}건${fn ? ', 장례업무 기록' : ''}을 불러왔어요${fkept ? ' (이미 있던 장례업무 기록은 그대로 두었어요)' : ''}`);
-  afSetMeta({ guard: false }); afLast = ''; afWrite(false);
-  if (typeof clPush === 'function') { clLast = ''; clPush(false); }
-}
-async function wipeAll() {
-  await Store.clearAll();
-  S.weekly.clear(); S.minutes.clear(); S.em = null; S.emDirty = false; clearTimeout(mTimer); S.ship.clear(); S.imgCache.clear(); S.reviews = {}; S.rvTitle = ''; S.rvDirty = false; clearTimeout(rvTimer); S.sig = null; sigImgCache = null; S.gnotes = {};
-  S.settings = clone(DEFAULT_SETTINGS); S.sd = null;
-  samplesDone = { w: false, s: false };
-  renderAll(); renderSamples();
-  toast(window.__PWA__ ? (isChief() ? '서식 기록을 모두 삭제했어요.' : '서식 기록을 모두 삭제했어요. 장례업무 기록은 그대로예요.') : '모든 기록을 삭제했어요');
-}
 function renderAll() { renderWeeklyList(); renderMinutesList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
 
 /* ================= events ================= */
 function bind() {
-  $('#bkNow').addEventListener('click', () => exportBackup());
-  $('#bkLater').addEventListener('click', () => { lsSet(BK_SNOOZE, String(Date.now() + 7 * DAY)); $('#bkBanner').hidden = true; });
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBackup(); });
   $$('.tabbar button').forEach((b) => b.addEventListener('click', () => (b.dataset.tab === 'funeral' ? goFuneral() : showTab(b.dataset.tab))));
   bindHomeBoard();
   bindDocs();
@@ -3032,172 +2925,6 @@ function bind() {
   $('#rvCopy').addEventListener('click', rvCopy);
   $('#rvShare').addEventListener('click', rvShare);
   $('#rvRecent').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.rvEnd = b.dataset.date === toKey(new Date()) ? null : b.dataset.date; renderReview(); window.scrollTo(0, 0); });
-  $('#backupBtn').addEventListener('click', exportBackup);
-  $('#restoreFile').addEventListener('change', async (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) await importBackup(f); });
-  $('#wipeBtn').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 전부 삭제', wipeAll, { title: '이 기기의 서식 기록을 모두 지울까요?', body: '주간보고 · 회의록 · 후기 · 탁송 · 설정이 이 기기에서 지워져요. 되돌릴 수 없어요.', ok: '전부 지우기' }));
-  bindAF();
-  bindCL();
-}
-
-/* ================= 휴대폰 자동 백업 파일 (2026.10.17) =================
-   처음 한 번 저장할 곳을 고르면(파일 손잡이를 IndexedDB 'dw-autofile'에 보관 — 장례일정 · 장례업무와 같은 손잡이 · 같은 파일),
-   기록이 바뀔 때마다 그 파일에 백업 파일과 같은 내용을 덮어씀. 앱을 지워 이 사이트 기록이 지워져도 파일은 휴대폰에 남음. */
-const AF_DB = 'dw-autofile', AF_META = 'dw-autofile-meta';
-const afSupported = () => typeof window.showSaveFilePicker === 'function';
-function afIdb() { return new Promise((res, rej) => { const r = indexedDB.open(AF_DB, 1); r.onupgradeneeded = () => r.result.createObjectStore('h'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
-async function afGet() { try { const d = await afIdb(); return await new Promise((res) => { const q = d.transaction('h').objectStore('h').get('main'); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch (e) { return null; } }
-async function afPut(hd) { const d = await afIdb(); await new Promise((res, rej) => { const t = d.transaction('h', 'readwrite'), st = t.objectStore('h'); if (hd) st.put(hd, 'main'); else st.delete('main'); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
-function afMeta() { try { return JSON.parse(localStorage.getItem(AF_META) || '{}') || {}; } catch (e) { return {}; } }
-function afSetMeta(m) { try { localStorage.setItem(AF_META, JSON.stringify(Object.assign(afMeta(), m))); } catch (e) { /* ignore */ } }
-async function afPerm(hd, ask) { try { let p = await hd.queryPermission({ mode: 'readwrite' }); if (p !== 'granted' && ask) p = await hd.requestPermission({ mode: 'readwrite' }); return p; } catch (e) { return 'denied'; } }
-async function afReadFile(hd) { try { const t = await (await hd.getFile()).text(); const d = t.trim() ? JSON.parse(t) : null; return d && d.app === 'manager-forms' ? d : null; } catch (e) { return null; } }
-const afCases = (o) => { try { return (JSON.parse((o || {})['funeral-band-v2'] || '{}').cases || []).length; } catch (e) { return 0; } };
-const afHasData = (d) => !!d && ((d.weekly || []).length + (d.minutes || []).length + (d.ship || []).length + Object.values(d.reviews || {}).filter((v) => String(v || '').trim()).length + afCases(d.funeral)) > 0;
-function afSig() {
-  const f = funeralStorage();
-  return JSON.stringify({ w: [...S.weekly.values()].map((r) => [r.id, r.updatedAt]), m: [...S.minutes.values()].map((r) => [r.id, r.updatedAt]), s: [...S.ship.values()].map((r) => [r.id, r.updatedAt]),
-    r: S.reviews, t: S.rvTitle || '', set: S.settings, gn: Object.values(S.gnotes).map((n) => [n.id, n.updatedAt]), sg: S.sig && S.sig.data ? S.sig.data.length : 0, f: Object.keys(f).sort().map((k) => k + ':' + f[k].length + ':' + f[k].slice(-80)) });
-}
-let afLast = '', afBusy = false;
-async function afWrite(ask) {
-  if (afBusy) return 'busy';
-  const hd = await afGet(); if (!hd) return 'off';
-  if (await afPerm(hd, ask) !== 'granted') { afSetMeta({ need: true }); renderAF(); return 'perm'; }
-  afBusy = true;
-  try {
-    const sig = afSig();
-    if (sig === afLast && !ask) { afSetMeta({ need: false }); return 'same'; }
-    const img = await Store.getAll('img');
-    const data = { app: 'manager-forms', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, gatherNotes: S.gnotes, funeral: funeralStorage(), autoFile: true };
-    const base = await afReadFile(hd);
-    // 안전장치: 이 기기 기록이 비어 있는데 파일에는 기록이 있으면 덮어쓰지 않음 (앱을 다시 깐 직후 등)
-    if (!afHasData(data) && afHasData(base)) { afSetMeta({ guard: true, need: false }); renderAF(); return 'guard'; }
-    // 이 기기에서 비어 있는 부분은 파일에 있던 것을 그대로 둠 (예: 장례일정에서 먼저 되살린 뒤 관리자 서식을 열어도 주간보고가 안 지워지게)
-    if (base) {
-      if (!data.weekly.length && (base.weekly || []).length) data.weekly = base.weekly;
-      if (!data.minutes.length && (base.minutes || []).length) data.minutes = base.minutes;
-      if (!data.ship.length && (base.ship || []).length) { data.ship = base.ship; data.img = base.img || []; }
-      if (!Object.values(data.reviews || {}).some((v) => String(v || '').trim()) && base.reviews) { data.reviews = base.reviews; data.reviewTitle = data.reviewTitle || base.reviewTitle || ''; }
-      if (!data.signature && base.signature) data.signature = base.signature;
-      if (!S.settings.author && !(S.settings.roster || []).length && base.settings) data.settings = base.settings;
-      if (!afCases(data.funeral) && afCases(base.funeral)) data.funeral = base.funeral;
-    }
-    const w = await hd.createWritable(); await w.write(JSON.stringify(data)); await w.close();
-    afLast = sig; afSetMeta({ at: Date.now(), need: false, guard: false, name: hd.name || '', err: '' }); renderAF(); return 'ok';
-  } catch (e) { afSetMeta({ err: String((e && e.message) || e) }); renderAF(); return 'err'; } finally { afBusy = false; }
-}
-async function afConnect(hd) {
-  await afPut(hd); afLast = '';
-  if (await afPerm(hd, true) !== 'granted') { afSetMeta({ need: true, name: hd.name || '' }); renderAF(); toast('파일 수정을 허용해야 자동 백업이 돼요'); return; }
-  const base = await afReadFile(hd);
-  const local = { weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], reviews: S.reviews, funeral: funeralStorage() };
-  if (afHasData(base) && !afHasData(local)) { await importBackup(await hd.getFile()); return; }   // 빈 기기 → 이 파일에서 되살리고 이어서 자동 백업
-  const r = await afWrite(true);
-  toast(r === 'ok' ? '자동 백업을 켰어요. 기록이 바뀔 때마다 이 파일에 최신 기록이 들어가요' : r === 'guard' ? '이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요' : '자동 백업 파일을 쓰지 못했어요');
-  renderAF();
-}
-async function renderAF() {
-  const st = $('#afStatus'); if (!st) return;
-  const hd = await afGet(), m = afMeta();
-  $('#afBtns').hidden = !!hd; $('#afBtns2').hidden = !hd;
-  if (!afSupported() && !hd) { st.textContent = '이 휴대폰(브라우저)에서는 자동 백업을 쓸 수 없어요. 「백업 파일 저장」을 써 주세요.'; $('#afBtns').hidden = true; return; }
-  if (!hd) { st.textContent = '꺼져 있어요.'; return; }
-  const perm = await afPerm(hd, false), d = m.at ? new Date(m.at) : null;
-  const at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '아직 없음';
-  st.textContent = m.guard ? `켜짐 · 파일 「${hd.name}」에 기록이 있어 덮어쓰지 않았어요. 「이 파일에서 되살리기」를 누르세요.`
-    : perm !== 'granted' ? `켜짐 · 다시 연결이 필요해요 (마지막 자동 백업 ${at}). 「다시 연결」을 누르면 이어져요.`
-      : `켜짐 · 파일 「${hd.name}」 · 마지막 자동 백업 ${at}`;
-  $('#afFix').hidden = perm === 'granted';
-}
-function bindAF() {
-  $('#afOn').addEventListener('click', async () => { if (!afSupported()) { toast('이 휴대폰에서는 자동 백업을 쓸 수 없어요'); return; } let hd; try { hd = await window.showSaveFilePicker({ suggestedName: 'DW_자동백업.json', types: [{ description: 'DW 백업 파일', accept: { 'application/json': ['.json'] } }] }); } catch (e) { return; } await afConnect(hd); });
-  $('#afOpen').addEventListener('click', async () => { if (typeof window.showOpenFilePicker !== 'function') { toast('이 휴대폰에서는 쓸 수 없어요'); return; } let hs; try { hs = await window.showOpenFilePicker({ types: [{ description: 'DW 백업 파일', accept: { 'application/json': ['.json'] } }] }); } catch (e) { return; } if (hs && hs[0]) await afConnect(hs[0]); });
-  $('#afFix').addEventListener('click', async () => { const r = await afWrite(true); toast(r === 'ok' || r === 'same' ? '자동 백업을 다시 이었어요' : r === 'guard' ? '이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요' : '파일 수정을 허용해야 자동 백업이 돼요'); renderAF(); });
-  $('#afNow').addEventListener('click', async () => { afLast = ''; const r = await afWrite(true); toast(r === 'ok' ? '자동 백업 파일에 지금 기록을 넣었어요' : r === 'guard' ? '이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요' : '자동 백업 파일을 쓰지 못했어요'); });
-  $('#afRestore').addEventListener('click', async () => { const hd = await afGet(); if (!hd) return; if (await afPerm(hd, true) !== 'granted') { toast('파일 읽기를 허용해 주세요'); return; } await importBackup(await hd.getFile()); });
-  $('#afOff').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 끄기', async () => { await afPut(null); afSetMeta({ at: 0, need: false, guard: false }); renderAF(); toast('자동 백업을 껐어요. 휴대폰의 파일은 그대로 남아 있어요'); }));
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') afWrite(false); else renderAF(); });
-  setInterval(() => { if (document.visibilityState === 'visible') afWrite(false); }, 60000);
-}
-
-/* ================= 클라우드 자동 저장 (2026.10.18) =================
-   사용자 구글 드라이브(구글 앱스 스크립트 웹 앱, tools/cloud-script.gs). 연결 정보 localStorage 'dw-cloud' {url,key} — 장례업무 화면과 같이 씀.
-   관리자 서식은 slot 'forms'(주간보고 · 회의록 · 후기 · 탁송 · 설정 · 서명), 장례 쪽은 장례업무 화면이 slot 'funeral'. */
-const CL_CONF = 'dw-cloud', CL_META = 'dw-cloud-meta';
-const CL_URL_RE = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
-function clConf() { try { const c = JSON.parse(localStorage.getItem(CL_CONF) || 'null'); return c && c.url && c.key ? c : null; } catch (e) { return null; } }
-function clSetConf(c) { try { if (c) localStorage.setItem(CL_CONF, JSON.stringify(c)); else localStorage.removeItem(CL_CONF); } catch (e) { /* ignore */ } }
-function clMeta() { try { return JSON.parse(localStorage.getItem(CL_META) || '{}') || {}; } catch (e) { return {}; } }
-function clSetMeta(m) { try { localStorage.setItem(CL_META, JSON.stringify(Object.assign(clMeta(), m))); } catch (e) { /* ignore */ } }
-function clParse(code) { const t = String(code || '').trim().replace(/\s+/g, ''); const i = t.indexOf('#'); const u = i < 0 ? t : t.slice(0, i), k = i < 0 ? '' : t.slice(i + 1); if (!CL_URL_RE.test(u)) return null; return { url: u, key: /^[A-Za-z0-9]{24,64}$/.test(k) ? k : '' }; }
-function clNewKey() { const A = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', a = new Uint8Array(32); crypto.getRandomValues(a); return [...a].map((b) => A[b % A.length]).join(''); }
-const clCode = (c) => `${c.url}#${c.key}`;
-async function clGet(c, slot) { const r = await fetch(`${c.url}?key=${encodeURIComponent(c.key)}&slot=${slot}&t=${Date.now()}`, { cache: 'no-store', redirect: 'follow' }); const j = await r.json(); if (!j || !j.ok) throw new Error((j && j.err) || 'fail'); return j; }
-async function clPost(c, slot, obj) {
-  const text = JSON.stringify(obj), body = JSON.stringify({ key: c.key, slot, data: text });
-  try { const r = await fetch(c.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body, redirect: 'follow' }); const j = await r.json(); if (!j || !j.ok) throw new Error((j && j.err) || 'fail'); return j; }
-  catch (e) {
-    if (e && /key|big|busy/.test(e.message)) throw e;
-    await fetch(c.url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
-    const back = await clGet(c, slot); if (!back.data || back.data.length !== text.length) throw new Error('fail'); return back;
-  }
-}
-const clFormsHas = (d) => !!d && ((d.weekly || []).length + (d.minutes || []).length + (d.ship || []).length + Object.values(d.reviews || {}).filter((v) => String(v || '').trim()).length) > 0;
-let clLast = '', clBusy = false;
-async function clPush(force) {
-  const c = clConf(); if (!c) return 'off'; if (clBusy) return 'busy';
-  const sig = afSig().replace(/"f":\[.*\]\}$/, '}');
-  if (sig === clLast && !force) return 'same';
-  clBusy = true;
-  try {
-    const img = await Store.getAll('img');
-    const data = { app: 'dw-cloud', slot: 'forms', v: 1, at: new Date().toISOString(), settings: S.settings, weekly: [...S.weekly.values()], minutes: [...S.minutes.values()], ship: [...S.ship.values()], img, reviews: S.reviews, reviewTitle: S.rvTitle || '', signature: S.sig, gatherNotes: S.gnotes };
-    if (clFormsHas(data)) clSetMeta({ guard: false });
-    if (!clFormsHas(data)) { const cur = await clGet(c, 'forms'); let d = null; try { d = cur.data ? JSON.parse(cur.data) : null; } catch (e) { /* ignore */ } if (clFormsHas(d)) { clSetMeta({ guard: true }); renderCL(); return 'guard'; } }
-    await clPost(c, 'forms', data);
-    clLast = sig; clSetMeta({ mat: Date.now(), err: '', guard: false }); renderCL(); return 'ok';
-  } catch (e) { clSetMeta({ err: String((e && e.message) || e) }); renderCL(); return 'err'; } finally { clBusy = false; }
-}
-// 클라우드의 관리자 서식 · 장례 기록을 백업 파일 모양으로 묶어서 「백업 불러오기」와 똑같이 합침
-async function clRestore(c) {
-  const [fm, fu] = await Promise.all([clGet(c, 'forms'), clGet(c, 'funeral')]);
-  let a = null, b = null; try { a = fm.data ? JSON.parse(fm.data) : null; } catch (e) { /* ignore */ } try { b = fu.data ? JSON.parse(fu.data) : null; } catch (e) { /* ignore */ }
-  if (!a && !b) return false;
-  const pack = Object.assign({ app: 'manager-forms', version: 1, exportedAt: new Date().toISOString() }, a || {}, { app: 'manager-forms', funeral: (b && b.funeral) || {} });
-  delete pack.slot;
-  clSetMeta({ guard: false });
-  await importBackup(new File([JSON.stringify(pack)], 'cloud.json', { type: 'application/json' }));
-  return true;
-}
-function renderCL() {
-  const st = $('#clStatus'); if (!st) return;
-  const c = clConf(), m = clMeta();
-  $('#clSetup').hidden = !!c; $('#clOn').hidden = !c;
-  if (!c) { st.textContent = '꺼져 있어요. 구글에서 받은 클라우드 주소를 붙여 넣고 「연결」을 누르세요. 앱을 다시 깔았으면 보관해 둔 클라우드 코드를 붙여 넣으세요.'; return; }
-  const d = m.mat ? new Date(m.mat) : null, at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '아직 없음';
-  st.textContent = m.guard ? '켜짐 · 클라우드에 기록이 있어서 덮어쓰지 않았어요. 「클라우드에서 불러오기」를 누르세요.'
-    : m.err ? `켜짐 · 마지막 저장 ${at} · 지금은 올리지 못했어요(인터넷 확인). 1분 안에 다시 올려요.`
-      : `켜짐 · 마지막 클라우드 저장 ${at} · 「클라우드 코드 복사」로 코드를 카톡 「나와의 채팅」에 보관해 두세요.`;
-}
-function bindCL() {
-  $('#clGo').addEventListener('click', async () => {
-    const p = clParse($('#clCode').value);
-    if (!p) { toast('주소가 맞지 않아요. 구글에서 받은 「…/exec」 주소나 클라우드 코드를 그대로 붙여 넣으세요'); return; }
-    const c = { url: p.url, key: p.key || clNewKey() }, b = $('#clGo'); setBusy(b, true, '연결 중…');
-    try {
-      const cur = await clGet(c, 'forms'); clSetConf(c); $('#clCode').value = '';
-      if (p.key) { const fu = await clGet(c, 'funeral'); if (cur.data || fu.data) await clRestore(c); }
-      clLast = ''; await clPush(true); renderCL();
-      if (!p.key) toast('클라우드 자동 저장을 켰어요. 「클라우드 코드 복사」로 코드를 보관해 두세요');
-    } catch (e) { toast('연결하지 못했어요. 주소와 인터넷을 확인해 주세요'); } finally { setBusy(b, false); }
-  });
-  $('#clNow').addEventListener('click', async () => { const r = await clPush(true); toast(r === 'ok' ? '클라우드에 지금 기록을 올렸어요' : r === 'guard' ? '클라우드에 기록이 있어요. 「클라우드에서 불러오기」를 먼저 눌러 주세요' : '올리지 못했어요. 인터넷을 확인해 주세요'); });
-  $('#clCopy').addEventListener('click', async () => { const c = clConf(); if (!c) return; const t = clCode(c); try { await navigator.clipboard.writeText(t); toast('클라우드 코드를 복사했어요. 카톡 「나와의 채팅」에 붙여 넣어 보관하세요'); } catch (e) { prompt('클라우드 코드 (길게 눌러 복사)', t); } });
-  $('#clPull').addEventListener('click', async () => { const c = clConf(); if (!c) return; try { if (!await clRestore(c)) toast('클라우드에 기록이 없어요'); clLast = ''; clPush(false); renderCL(); } catch (e) { toast('불러오지 못했어요. 인터넷을 확인해 주세요'); } });
-  $('#clOff').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 끄기', () => { clSetConf(null); clSetMeta({ mat: 0, err: '', guard: false }); renderCL(); toast('클라우드 자동 저장을 껐어요. 구글 드라이브의 기록은 그대로 있어요'); }));
-  window.addEventListener('online', () => { if (clMeta().err) clPush(false); });
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') clPush(false); });
-  setInterval(() => { if (document.visibilityState === 'visible') clPush(false); }, 60000);
 }
 
 /* ================= 장례업무 (funeral.html, same installed app) ================= */
@@ -3213,11 +2940,6 @@ async function goCompany() {   /* 회사 서류 (예전 DW관리, 파트장 · �
   if (S.sd) { showTab('settings'); toast('설정을 저장하거나 되돌린 뒤에 이동해 주세요.'); return; }
   await flushWeekly(); await saveReviewNow(); await gNoteSave(); if (!await flushMinutes()) return;
   location.replace('admin.html');
-}
-function funeralStorage() {
-  const out = {};
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (FUNERAL_KEYS.test(k)) out[k] = localStorage.getItem(k); } } catch (e) { /* ignore */ }
-  return out;
 }
 
 /* ================= installed-app support (only when served as the installable app) ================= */
@@ -3699,11 +3421,13 @@ async function postSave() {
    서버: tools/supabase-part.sql 의 dw_docs_list · dw_doc_save · dw_doc_delete + 파일 보관함 「dw-docs」(공개 안 됨, 파일 하나 50MB).
    파일 자리 = <내 id>/<서류 번호>/<영문 · 숫자 이름> (보관함은 한글 이름을 못 씀 → 원래 이름은 서류 기록에 따로) */
 const DC = { list: null, used: 0, canUp: false, err: '', busy: false, at: 0, q: '' };
-const DC_MAX = 50 * 1024 * 1024, DC_TOTAL = 1024 * 1024 * 1024, DC_FILES = 10, DC_BUCKET = 'dw-docs';
+const DC_MAX = 50 * 1024 * 1024, DC_FILES = 10, DC_BUCKET = 'dw-docs';
+/* 저장 공간 (2026.10.28-21 사용자 결정): 모두 합쳐 700MB 부터 경고, 800MB 넘게는 못 올림 (서버 dw_doc_save 도 800MB 에서 막음 · 무료 요금제 1GB) */
+const DC_WARN = 700 * 1048576, DC_LIMIT = 800 * 1048576;
 const DC_VIEW = /^(pdf|png|jpe?g|gif|webp|txt)$/i;   /* 「열기」로 바로 볼 수 있는 파일 (나머지는 저장해서 엶) */
 function fmtBytes(n) { n = Number(n) || 0; return n >= 1073741824 ? (n / 1073741824).toFixed(2) + 'GB' : n >= 1048576 ? (n / 1048576).toFixed(n >= 10485760 ? 0 : 1) + 'MB' : n >= 1024 ? Math.max(1, Math.round(n / 1024)) + 'KB' : n + 'B'; }
 const dcExt = (name) => { const m = /\.([A-Za-z0-9]{1,8})$/.exec(String(name || '')); return m ? m[1].toLowerCase() : ''; };
-const DC_WHY = { notstaff: '파트에 들어간 직원만 볼 수 있어요', notup: '파트장 · 총괄실장만 올릴 수 있어요', title: '제목을 넣어 주세요', nofiles: '파일을 하나 이상 골라 주세요', many: '파일은 한 번에 10개까지예요', denied: '올린 사람이나 관리자만 할 수 있어요', gone: '지워진 서류예요', bad: '파일을 올리지 못했어요. 다시 해 주세요' };
+const DC_WHY = { full: '자료실 저장 공간(800MB)이 다 찼어요. 안 쓰는 서류를 지운 뒤 올려 주세요', notstaff: '파트에 들어간 직원만 볼 수 있어요', notup: '파트장 · 총괄실장만 올릴 수 있어요', title: '제목을 넣어 주세요', nofiles: '파일을 하나 이상 골라 주세요', many: '파일은 한 번에 10개까지예요', denied: '올린 사람이나 관리자만 할 수 있어요', gone: '지워진 서류예요', bad: '파일을 올리지 못했어요. 다시 해 주세요' };
 function dcWhyText(why) { return DC_WHY[why] || (why === 'noserver' ? (isMember() ? '자료실이 아직 준비되지 않았어요. 파트장님께 말씀해 주세요.' : '자료실이 서버에 아직 준비되지 않았어요. 수파베이스 SQL Editor에서 「파트 · 게시판 준비」 글(tools/supabase-part.sql)을 한 번 더 실행해 주세요.') : pbWhyText(why, !isMember())); }
 async function docsLoad(force) {
   if (DC.busy) return; DC.busy = true; if (!DC.list) paintDocs();
@@ -3724,7 +3448,7 @@ function paintDocs() {
   }
   let h = '';
   if (DC.err) h += `<p class="bd-warn" role="status">${esc(dcWhyText(DC.err))}<button class="btn quiet small" type="button" data-dc="reload">다시 시도</button></p>`;
-  if (DC.canUp) h += `<div class="dc-top"><button class="btn primary block" type="button" data-dc="new">서류 올리기</button>${DC.used ? `<p class="dc-use">올린 서류 ${esc(fmtBytes(DC.used))} · 무료 저장 공간 1GB 중 ${DC.used / DC_TOTAL < 0.01 ? '1% 미만' : Math.min(100, Math.round(DC.used / DC_TOTAL * 100)) + '%'} 사용</p>` : ''}</div>`;
+  if (DC.canUp) h += `<div class="dc-top"><button class="btn primary block" type="button" data-dc="new">서류 올리기</button>${dcUseLine()}</div>`;
   if (DC.list.length > 3) h += `<div class="dc-q"><input id="dcQ" type="search" value="${esc(DC.q)}" placeholder="서류 찾기 (제목 · 파일 이름)" aria-label="서류 찾기" autocomplete="off">${DC.q ? '<button class="btn small quiet" type="button" data-dc="clearq">지우기</button>' : ''}</div>`;
   const list = dcShown();
   if (!DC.list.length) h += `<p class="bd-empty">아직 올라온 서류가 없어요.${DC.canUp ? ' 「서류 올리기」로 첫 서류를 올려 보세요.' : ''}</p>`;
@@ -3734,6 +3458,16 @@ function paintDocs() {
       <span class="dc-m">${esc([d.author, fmtWhen(d.created_at), d.updated_at && new Date(d.updated_at) - new Date(d.created_at) > 60000 ? '고침' : ''].filter(Boolean).join(' · '))}</span></article>`).join('') + '</div>';
   el.innerHTML = h;
 }
+/* 저장 공간 표시: 800MB 중 얼마나 썼는지, 700MB 부터 경고 · 800MB 면 다 참 */
+function dcUseLine() {
+  const u = DC.used, left = Math.max(0, DC_LIMIT - u);
+  if (u >= DC_LIMIT) return `<p class="dc-use dc-full" role="status"><b>저장 공간이 다 찼어요</b> · 올린 서류 ${esc(fmtBytes(u))} / 800MB. 안 쓰는 서류를 지워야 새로 올릴 수 있어요.</p>`;
+  if (u >= DC_WARN) return `<p class="dc-use dc-full" role="status"><b>저장 공간이 거의 찼어요</b> · 올린 서류 ${esc(fmtBytes(u))} / 800MB (남은 공간 ${esc(fmtBytes(left))}). 안 쓰는 서류를 지워 주세요.</p>`;
+  return u ? `<p class="dc-use">올린 서류 ${esc(fmtBytes(u))} · 800MB까지 올릴 수 있어요 (남은 공간 ${esc(fmtBytes(left))})</p>` : '';
+}
+/* 이 서류를 저장하면 자료실 전체가 몇 바이트가 되는지 (고치는 중이면 원래 파일 크기는 빼고 셈) */
+function deTotalAfter(extra) { return Math.max(0, DC.used - DE.orig) + DE.keep.reduce((a, f) => a + (Number(f.size) || 0), 0) + DE.add.reduce((a, x) => a + x.file.size, 0) + (extra || 0); }
+function deTooBig(extra) { const t = deTotalAfter(extra); return t > DC_LIMIT && t > DC.used; }
 function dcStoreErr(err) {
   const m = String((err && (err.message || err.error)) || '') + ' ' + String((err && (err.statusCode || err.status)) || '');
   if (navigator.onLine === false) return '인터넷에 연결한 뒤 다시 해 주세요';
@@ -3763,10 +3497,11 @@ async function dcFile(id, i, mode, btn) {
   finally { if (btn && btn.isConnected) btn.disabled = false; }
 }
 /* 올리기 · 고치기 */
-const DE = { id: null, newId: '', keep: [], add: [], dirty: false, busy: false };
+const DE = { id: null, newId: '', keep: [], add: [], orig: 0, dirty: false, busy: false };
 const dcUUID = () => (crypto && crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => { const r = Math.random() * 16 | 0; return (ch === 'x' ? r : (r & 3 | 8)).toString(16); }));
 function openDocEditor(doc) {
   DE.id = doc ? doc.id : null; DE.newId = doc ? '' : dcUUID(); DE.keep = doc ? (doc.files || []).map((f) => Object.assign({}, f)) : []; DE.add = []; DE.dirty = false; DE.busy = false;
+  DE.orig = DE.keep.reduce((a, f) => a + (Number(f.size) || 0), 0);
   $('#deBar').textContent = doc ? '서류 고치기' : '서류 올리기'; $('#deSave').textContent = doc ? '고친 서류 올리기' : '올리기';
   $('#deTitle').value = doc ? doc.title || '' : ''; $('#deBody').value = doc ? doc.body || '' : '';
   $('#deDelZone').hidden = !doc; $('#deProg').hidden = true; $('#deSave').disabled = false;
@@ -3776,6 +3511,12 @@ function deFilesPaint() {
   const row = (f, k, i) => `<li><span class="dc-fn"><i class="dc-ext" aria-hidden="true">${esc((dcExt(f.name) || '파일').toUpperCase().slice(0, 5))}</i><span><b>${esc(f.name)}</b><small>${esc(fmtBytes(f.size))}${k === 'add' ? ' · 새 파일' : ''}</small></span></span><button class="btn small quiet" type="button" data-de-rm="${k}" data-i="${i}" aria-label="${esc(f.name)} 빼기">빼기</button></li>`;
   $('#deFiles').innerHTML = DE.keep.map((f, i) => row(f, 'keep', i)).join('') + DE.add.map((x, i) => row({ name: x.file.name, size: x.file.size }, 'add', i)).join('');
   $('#dePick').hidden = DE.keep.length + DE.add.length >= DC_FILES;
+  const sp = $('#deSpace'); if (sp) {
+    const t = deTotalAfter(), left = DC_LIMIT - t;
+    sp.hidden = t < DC_WARN && !deTooBig();
+    sp.className = 'small-t dc-full';
+    sp.textContent = deTooBig() ? `저장 공간(800MB)이 모자라요 · ${fmtBytes(t - DC_LIMIT)} 넘어요. 파일을 빼거나 안 쓰는 서류를 지워 주세요.` : `저장 공간이 거의 찼어요 · 올린 뒤 남는 공간 ${fmtBytes(Math.max(0, left))} (800MB까지)`;
+  }
 }
 /* 큰 사진은 줄여서 올림 (긴 쪽 2400px · JPEG). 줄인 게 더 크면 원래 파일 */
 async function dcShrink(file) {
@@ -3795,6 +3536,7 @@ async function dePicked(files) {
     if (DE.keep.length + DE.add.length >= DC_FILES) { toast('파일은 한 번에 10개까지예요'); break; }
     const f = await dcShrink(f0);
     if (f.size > DC_MAX) { skipped++; toast(`「${f0.name}」은(는) 50MB가 넘어서 올릴 수 없어요`); continue; }
+    if (deTooBig(f.size)) { skipped++; toast(`자료실 저장 공간(800MB)이 모자라서 「${f0.name}」은(는) 올릴 수 없어요`); continue; }
     if (!f.size) { skipped++; continue; }
     DE.add.push({ file: f }); DE.dirty = true;
   }
@@ -3807,6 +3549,7 @@ async function deSave() {
   const title = String($('#deTitle').value || '').trim(), body = String($('#deBody').value || '');
   if (!title) { toast('제목을 넣어 주세요'); $('#deTitle').focus(); return; }
   if (!DE.keep.length && !DE.add.length) { toast('파일을 하나 이상 골라 주세요'); return; }
+  if (deTooBig()) { toast(DC_WHY.full); return; }
   const u = window.dwAcct && window.dwAcct.user(); if (!u) { toast(pbWhyText('login')); return; }
   if (navigator.onLine === false) { toast('인터넷에 연결한 뒤 올려 주세요'); return; }
   DE.busy = true; const btn = $('#deSave'), prog = $('#deProg'); btn.disabled = true; prog.hidden = false;
@@ -3932,6 +3675,7 @@ function bindHomeBoard() {
   });
   $('#bdBody').addEventListener('click', boardClick);
   $('#roleCard').addEventListener('click', roleClick);
+  $('#mixCard').addEventListener('click', mixClick); $('#mixCard').addEventListener('change', mixClick);
   $('#bdBody').addEventListener('change', (e) => { if (e.target.id === 'bdPart') { PB.part = e.target.value; try { localStorage.setItem('dw-part-sel', PB.part); } catch (err) { /* ignore */ } PB.view = 'posts'; PB.people = null; PB.posts = null; boardLoad(false); } });
   $('#bdBody').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const map = { bdAddId: 'add', bdNewName: 'create', bdRename: 'rename' }, act = map[e.target.id]; if (act) { e.preventDefault(); const b = e.target.parentNode.querySelector(`[data-bd="${act}"]`); if (b) b.click(); } });
   $('#psBack').addEventListener('click', closePost);
@@ -4642,6 +4386,77 @@ function renderSrv(st, m) {
     : st === 'wait' ? '인터넷이 연결되면 서버에 올려요.' : '로그인하면 서버에 자동 저장돼요.';
 }
 
+/* ================= 섞인 기록 정리 (2026.10.28-21) — 관리자만 =================
+   예전(-20 전)에는 한 휴대폰에서 다른 계정으로 로그인 · 가입하면 그 휴대폰 기록이 새 계정 서버로도 올라갔음.
+   서버 함수 dw_admin_mixed(무엇이 섞였는지) · dw_admin_unmix(고른 것 정리: 다른 계정에 들어간 복사본은 「지움」 표시, 다른 사람 이름 · 전화번호 · 서명이 들어간 설정은 그 계정 것으로)
+   · dw_admin_unmix_undo(되돌리기). 원래 주인 짐작은 서버(tools/supabase-part.sql dw_unmix_plan)가 함. */
+const MX = { d: null, busy: false, sel: {}, err: '' };
+const MX_WHAT = { me: '내 정보(이름 · 전화번호)', author: '서식 작성자 이름', sig: '서명' };
+async function mixLoad() {
+  const card = $('#mixCard'); if (!card) return;
+  if (isMember()) { card.hidden = true; return; }
+  let me = null; try { me = await pbLoadMe(false); } catch (e) { card.hidden = true; return; }
+  if (!me || !me.admin) { card.hidden = true; return; }
+  card.hidden = false; paintMix();
+}
+async function mixFind() {
+  if (MX.busy) return; MX.busy = true; MX.err = ''; paintMix();
+  try {
+    const d = await window.dwAcct.rpc('dw_admin_mixed'); if (!d || !d.ok) throw { why: (d && d.why) || 'net' };
+    MX.d = d; MX.sel = {};
+    (d.pairs || []).forEach((x) => { MX.sel['p:' + x.copy + ':' + x.owner] = true; });
+    (d.states || []).forEach((x) => { MX.sel['s:' + x.user + ':' + x.what] = true; });
+  } catch (e) { MX.err = (e && e.why) || 'net'; }
+  MX.busy = false; paintMix();
+}
+function paintMix() {
+  const el = $('#mixBody'); if (!el) return;
+  const findBtn = (t, q) => `<button class="btn${q ? ' quiet small' : ' block'}" type="button" data-mx="find" ${MX.busy ? 'disabled' : ''}>${MX.busy ? '찾는 중…' : t}</button>`;
+  if (MX.err) { el.innerHTML = `<p class="bd-warn">${esc(MX.err === 'noserver' ? '이 기능이 서버에 아직 없어요. 수파베이스 SQL Editor에서 보내 드린 SQL 파일을 한 번 더 실행해 주세요.' : MX.err === 'denied' ? '관리자만 쓸 수 있어요.' : pbWhyText(MX.err, true))}</p>${findBtn('다시 찾기')}`; return; }
+  if (!MX.d) { el.innerHTML = findBtn('섞인 기록 찾기'); return; }
+  const d = MX.d, pairs = d.pairs || [], states = d.states || [];
+  let h = '';
+  if (!pairs.length && !states.length) h += '<p class="mx-ok">섞인 기록이 없어요. 계정마다 자기 기록만 있어요.</p>';
+  else {
+    h += '<p class="small-t">아래 계정에 다른 사람 기록이 같이 들어가 있어요. 체크한 것을 정리하면 원래 주인 계정에만 남아요.</p><div class="mx-list">';
+    pairs.forEach((x) => {
+      const k = 'p:' + x.copy + ':' + x.owner, parts = [x.funeral ? `장례업무 ${x.funeral}건` : '', x.forms ? `서식 ${x.forms}건` : '', x.company ? `회사 서류 ${x.company}건` : ''].filter(Boolean).join(' · ');
+      h += `<label class="mx-row"><input type="checkbox" data-mxk="${esc(k)}" ${MX.sel[k] ? 'checked' : ''}><span><b>${esc(x.copy_name || '이름 없음')}</b> 계정에 들어간 <b>${esc(x.owner_name || '이름 없음')}</b>님 기록 ${x.n}건<small>${esc(parts)}${x.samples && x.samples.length ? ' · 예: ' + esc(x.samples.slice(0, 3).join(', ')) : ''}</small></span></label>`;
+    });
+    states.forEach((x) => {
+      const k = 's:' + x.user + ':' + x.what;
+      h += `<label class="mx-row"><input type="checkbox" data-mxk="${esc(k)}" ${MX.sel[k] ? 'checked' : ''}><span><b>${esc(x.user_name || '이름 없음')}</b> 계정의 ${esc(MX_WHAT[x.what] || x.what)}에 <b>${esc(x.owner_name || '이름 없음')}</b>님 것이 들어가 있어요<small>${x.what === 'sig' ? '서명을 지워요' : x.what === 'me' ? '이름을 그 계정 이름으로 바꾸고, 같은 전화번호 · 직급은 지워요' : '작성자 이름을 그 계정 이름으로 바꿔요'}</small></span></label>`;
+    });
+    h += '</div><button class="btn primary block" type="button" data-mx="go">정리하기</button>';
+  }
+  if ((d.batches || []).length) h += '<div class="mx-done"><h3>최근 정리</h3>' + d.batches.map((b) => `<div class="mx-b"><span>${esc(fmtWhen(b.at))} · ${b.n}건</span><button class="btn small quiet" type="button" data-mx-undo="${esc(b.batch)}">되돌리기</button></div>`).join('') + '</div>';
+  h += `<div class="mx-act">${findBtn('다시 찾기', true)}</div>`;
+  el.innerHTML = h;
+}
+async function mixClick(e) {
+  const cb = e.target.closest && e.target.closest('[data-mxk]');
+  if (cb) { if (e.type === 'change') MX.sel[cb.dataset.mxk] = cb.checked; return; }
+  if (e.type !== 'click') return;
+  const b = e.target.closest && e.target.closest('[data-mx],[data-mx-undo]'); if (!b) return;
+  if (b.dataset.mx === 'find') { mixFind(); return; }
+  if (b.dataset.mx === 'go') {
+    const pairs = [], states = [];
+    Object.keys(MX.sel).forEach((k) => { if (!MX.sel[k]) return; const [t, a, c] = k.split(':'); (t === 'p' ? pairs : states).push([a, c]); });
+    if (!pairs.length && !states.length) { toast('정리할 것을 골라 주세요'); return; }
+    const n = (MX.d.pairs || []).filter((x) => MX.sel['p:' + x.copy + ':' + x.owner]).reduce((a, x) => a + x.n, 0);
+    const go = typeof window.dwConfirm === 'function' ? await window.dwConfirm({ title: '섞인 기록을 정리할까요?', body: `고른 계정에서 다른 사람 기록 ${n}건을 지우고${states.length ? `, 설정 ${states.length}개를 그 계정 것으로 바꿔요` : ''}. 원래 주인 계정의 기록은 그대로예요. 지운 것도 서버에 남아서 「되돌리기」로 되살릴 수 있어요.`, ok: '정리하기' }) : true;
+    if (!go) return;
+    const d = await pbCall('dw_admin_unmix', { p: { pairs, states } }, b); if (!d) return;
+    toast(d.n || d.states ? `정리했어요 · 기록 ${d.n}건${d.states ? ` · 설정 ${d.states}개` : ''}. 그 계정으로 앱을 열면 바로 바뀌어요` : '이미 정리돼 있어요');
+    MX.d = null; mixFind(); return;
+  }
+  if (b.dataset.mxUndo) {
+    const go = typeof window.dwConfirm === 'function' ? await window.dwConfirm({ title: '정리한 것을 되돌릴까요?', body: '그때 지운 기록과 바꾼 설정이 원래대로 돌아와요.', ok: '되돌리기', danger: false }) : true;
+    if (!go) return;
+    const d = await pbCall('dw_admin_unmix_undo', { p_batch: b.dataset.mxUndo }, b); if (!d) return;
+    toast(`되돌렸어요 · 기록 ${d.n}건${d.states ? ` · 설정 ${d.states}개` : ''}`); MX.d = null; mixFind();
+  }
+}
 /* ================= 직원 권한 (2026.10.23-7) — 관리자(app_metadata dw_admin)만: 파트장으로 정하기 · 직원으로 바꾸기 ================= */
 let roleList = null;
 async function roleLoad() {
@@ -5283,10 +5098,7 @@ async function init() {
     }
   }
   renderAll();
-  checkBackup();
   setTimeout(renderSamples, 200);
-  renderAF(); setTimeout(() => afWrite(false), 1500);
-  renderCL(); if (clConf()) setTimeout(() => clPush(false), 2500);
   fsReady = true; if (window.dwSync) window.dwSync.schedule(800);   /* 서버 자동 저장 시작 (불러오기 끝난 뒤) */
 }
 init();

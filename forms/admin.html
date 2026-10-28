@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-20"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-21"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <title>회사 서류 · DW장례업무</title>
@@ -634,14 +634,9 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     <b>이 화면에서는 기기 저장이 막혀 있어요</b>
     입력은 할 수 있지만 창을 닫으면 사라집니다. 일반 브라우저 창(비공개 모드 아님)에서 다시 열어 주세요.
   </div>
-  <div class="banner bk-banner" id="bkBanner" hidden>
-    <b>백업할 때가 됐어요</b>
-    <span id="bkText"></span>
-    <div class="bk-row"><button class="btn small primary" type="button" id="bkNow">지금 백업</button><button class="btn small" type="button" id="bkLater">일주일 뒤에 알림</button></div>
-  </div>
   <div class="banner" id="failBanner" hidden>
     <b>저장에 실패했어요</b>
-    기기 저장공간이 부족할 수 있어요. 설정에서 백업 파일을 먼저 받아 두세요.
+    기기 저장공간이 부족할 수 있어요. 인터넷이 되면 내 계정에는 그대로 저장돼요.
   </div>
 
   <!-- ===== 서식 ===== -->
@@ -676,7 +671,7 @@ html:not(.dw-chief) [data-chief]{display:none!important}
   <section class="tab" id="tab-settings" hidden>
     <div class="tab-head">
       <h1>설정</h1>
-      <p>서식에 들어갈 회사 정보와 직인, 데이터 백업을 관리해요.</p>
+      <p>서식에 들어갈 회사 정보와 직인을 정해요. 기록은 내 계정에 자동으로 저장돼요.</p>
     </div>
     <div class="card">
       <h2>회사 정보</h2>
@@ -726,17 +721,10 @@ html:not(.dw-chief) [data-chief]{display:none!important}
       <div class="install-body" id="installBody2"></div>
     </div>
     <div class="card">
-      <h2>데이터</h2>
+      <h2>저장</h2>
       <p class="small-t muted">직원 인적사항과 문서는 이 기기와 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주세요.</p>
       <p class="small-t" id="srvSync">로그인하면 서버에 자동 저장돼요.</p>
       <p class="small-t" id="dataCount">-</p>
-      <div class="grid2">
-        <button class="btn" type="button" id="backupBtn">백업 파일 저장</button>
-        <label class="btn" for="restoreFile">백업 불러오기</label>
-      </div>
-      <p class="small-t muted" id="bkLast"></p>
-      <input type="file" id="restoreFile" accept=".json,application/json" class="vh">
-      <button class="btn danger block" type="button" id="wipeBtn">모든 기록 삭제</button>
     </div>
     <p class="ver" id="appVersion"></p>
   </section>
@@ -2112,7 +2100,7 @@ function renderSettings() {
   $('#coShowAppr').checked = !!c.showApproval; $('#coAppr').value = c.approvals || ''; $('#coAppr').disabled = !c.showApproval;
   renderCoBar(); renderSeal();
   const imgs = [...S.staff.values()].filter((s) => s.photo).length;
-  $('#dataCount').textContent = `이 기기에 저장된 기록: 직원 ${S.staff.size}명 (사진 ${imgs}장) · 문서 ${S.docs.size}건`;
+  $('#dataCount').textContent = `저장된 기록: 직원 ${S.staff.size}명 (사진 ${imgs}장) · 문서 ${S.docs.size}건`;
 }
 function renderCoBar() {
   const dirty = !!S.cd;
@@ -2142,50 +2130,6 @@ async function coCommit() {
   toast(ok ? '설정을 저장했어요' : '저장하지 못했어요. 다시 눌러 주세요.');
 }
 
-/* ================= 백업 ================= */
-/* ----- 백업 알림: 기록은 이 기기에만 있으니 한 달에 한 번 백업 ----- */
-const BK_KEY = 'ca.lastBackup', BK_FIRST = 'ca.firstUse', BK_SNOOZE = 'ca.bkSnooze', DAY = 86400000;
-function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
-function markBackup() { lsSet(BK_KEY, String(Date.now())); lsSet(BK_SNOOZE, ''); checkBackup(); }
-function checkBackup() {
-  const has = !!(S.staff.size || S.docs.size), now = Date.now();
-  const last = Number(lsGet(BK_KEY)) || 0;
-  if (has && !lsGet(BK_FIRST)) lsSet(BK_FIRST, String(now));
-  const first = Number(lsGet(BK_FIRST)) || now;
-  const lastEl = $('#bkLast'); if (lastEl) lastEl.textContent = last ? `마지막 백업: ${fmtYMD(new Date(last))} (${Math.floor((now - last) / DAY)}일 전)` : '아직 백업한 적이 없어요.';
-  const due = has && (last ? now - last > 30 * DAY : now - first > 7 * DAY);
-  const snoozed = (Number(lsGet(BK_SNOOZE)) || 0) > now;
-  $('#bkBanner').hidden = !due || snoozed;
-  if (due) $('#bkText').textContent = (last ? `마지막 백업이 ${Math.floor((now - last) / DAY)}일 전이에요. ` : '아직 백업한 적이 없어요. ') + '기록이 이 기기에만 있어서 휴대폰을 잃어버리거나 바꾸면 사라져요. 백업 파일을 카톡 「나와의 채팅」이나 드라이브에 보내 두세요.';
-}
-async function exportBackup() {
-  const btn = $('#backupBtn'); setBusy(btn, true, '준비 중…');
-  try {
-    const img = await Store.getAll('img');
-    const data = { app: 'company-admin', version: 1, exportedAt: new Date().toISOString(), company: S.co, staff: [...S.staff.values()], docs: [...S.docs.values()], img };
-    const now = new Date();
-    const name = `회사서류_백업_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.json`;
-    await deliver([{ name, blob: new Blob([JSON.stringify(data)], { type: 'application/json' }) }], { title: '백업 파일', okMsg: '백업 파일을 저장했어요', onDone: markBackup,
-      hint: '백업 파일에는 직원 개인정보가 들어 있어요. 「나와의 채팅」이나 본인 드라이브에만 보관하세요.' });
-  } finally { setBusy(btn, false); }
-}
-async function importBackup(file) {
-  let data;
-  try { data = JSON.parse(await file.text()); } catch (e) { toast('백업 파일을 읽지 못했어요.'); return; }
-  if (!data || data.app !== 'company-admin') { toast('이 앱의 백업 파일이 아니에요.'); return; }
-  let st = 0, dc = 0;
-  for (const im of (data.img || [])) { if (im && im.id && im.data) await Store.put('img', im); }
-  for (const s of (data.staff || [])) { if (!s || !s.id) continue; const cur = S.staff.get(s.id); if (!cur || (s.updatedAt || 0) > (cur.updatedAt || 0)) { S.staff.set(s.id, s); await Store.put('staff', s); st++; } }
-  for (const d of (data.docs || [])) { if (!d || !d.id || !TYPES[d.type]) continue; const cur = S.docs.get(d.id); if (!cur || (d.updatedAt || 0) > (cur.updatedAt || 0)) { S.docs.set(d.id, d); await Store.put('docs', d); dc++; } }
-  if (data.company) { Object.keys(S.co).forEach((k) => { const v = S.co[k]; if ((v === '' || v == null) && data.company[k] != null) S.co[k] = data.company[k]; }); S.cd = null; await saveCo(); }
-  renderAll(); toast(`직원 ${st}명, 문서 ${dc}건을 불러왔어요`);
-}
-async function wipeAll() {
-  await Store.clearAll();
-  S.docs.clear(); S.staff.clear(); S.imgCache.clear(); S.co = clone(DEFAULT_CO); S.cd = null;
-  renderAll(); toast('모든 기록을 삭제했어요');
-}
 function renderAll() { renderTypeGrid(); renderDocList(); renderStaffList(); renderSettings(); fillDatalists(); }
 
 /* ================= 이벤트 ================= */
@@ -2206,9 +2150,6 @@ function bind() {
     toast('코드를 만들었어요. 복사해서 보내 주세요');
   });
   $('#pwCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#pwCode').value); toast('코드를 복사했어요'); } catch (e) { $('#pwCode').select(); toast('선택된 코드를 길게 눌러 복사해 주세요'); } });
-  $('#bkNow').addEventListener('click', () => exportBackup());
-  $('#bkLater').addEventListener('click', () => { lsSet(BK_SNOOZE, String(Date.now() + 7 * DAY)); $('#bkBanner').hidden = true; });
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBackup(); });
   $$('.tabbar button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
   // 서식 목록
   $('#typeGrid').addEventListener('click', (e) => {
@@ -2309,9 +2250,6 @@ function bind() {
   });
   $('#sealOn').addEventListener('change', async (e) => { S.co.sealOn = e.target.checked; if (S.cd) S.cd.sealOn = e.target.checked; await saveCo(); toast(e.target.checked ? '서식에 직인을 찍어요' : '서식에서 직인을 뺐어요'); });
   $('#sealDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => { if (S.co.seal) Store.del('img', S.co.seal); S.co.seal = null; if (S.cd) S.cd.seal = null; await saveCo(); renderSeal(); toast('직인을 지웠어요'); }));
-  $('#backupBtn').addEventListener('click', exportBackup);
-  $('#restoreFile').addEventListener('change', async (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) await importBackup(f); });
-  $('#wipeBtn').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 전부 삭제', wipeAll));
 }
 
 /* ================= 설치 앱 ================= */
@@ -2428,7 +2366,6 @@ async function init() {
     if (co) Object.assign(S.co, co);
   }
   renderAll(); showTab(S.tab);
-  checkBackup();
   csReady = true; if (window.dwSync) window.dwSync.schedule(800);   /* 서버 자동 저장 시작 (불러오기 끝난 뒤) */
 }
 init();
@@ -2828,6 +2765,7 @@ init();
     var acct = window.dwAcct, u = acct && acct.user();
     if (!u || (A.leaderOnly && !acct.leader() && !(acct.chief && acct.chief()))) { setState('off'); return; }   /* 서식 · 회사 서류: 파트장 · 총괄실장 */
     if (navigator.onLine === false) { setState('wait'); return; }
+    if (window.dwOwner && window.dwOwner.get() !== u.id) { window.DW_HOLD = true; setState('off'); window.dwOwner.go(u.id, 'login'); return; }   /* 2중 안전장치: 이 기기 기록 주인이 다른 계정이면 올리지 않음 (2026.10.28-21) */
     var local = await A.collect(); if (local === false) { setState('off'); return; } if (!local) { schedule(1500); return; }   /* false = 이 기기 저장소를 못 씀 → 맞추지 않음 */
     running = true; setState('sync');
     try {

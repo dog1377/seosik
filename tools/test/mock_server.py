@@ -5,13 +5,13 @@ CNT=itertools.count()
 def now_iso(): return (datetime.datetime(2026,10,23,9)+datetime.timedelta(seconds=next(CNT))).isoformat()+'+00:00'
 class Srv:
     def __init__(s):
-        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.OBJ={}; s.DOCS={}; s.noserver=False; s.calls=[]
+        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.OBJ={}; s.DOCS={}; s.MADE={}; s.UNMIX=[]; s.noserver=False; s.calls=[]
     def add_user(s,login,pw,leader=False,name='',chief=False,admin=False):
         email=login if '@' in login else login+'@dwfuneral.com'; lid=login.split('@')[0] if email.endswith('@dwfuneral.com') else email
         am={'dw_role':'leader'} if leader else {'dw_role':'chief'} if chief else {}
         if admin: am['dw_admin']=True
         uid='uid-'+login.split('@')[0]; s.USERS[email]=[pw,uid,am,{'name':name} if name else {}]
-        s.PROF[uid]={'login_id':lid,'name':name}; return uid
+        s.PROF[uid]={'login_id':lid,'name':name}; s.MADE[uid]=1792710000000+len(s.MADE)*86400000; return uid
     # auth
     def auth(s,src,email,pw):
         u=s.USERS.get(email)
@@ -19,7 +19,7 @@ class Srv:
         return {'user':{'id':u[1],'email':email,'app_metadata':dict(u[2]),'user_metadata':dict(u[3])}}
     def signup(s,src,email,pw,meta):
         if email in s.USERS: return {'error':'User already registered'}
-        uid='uid-'+email.split('@')[0]; s.USERS[email]=[pw,uid,{},meta]; s.PROF[uid]={'login_id':email.split('@')[0] if email.endswith('@dwfuneral.com') else email,'name':meta.get('name','')}
+        uid='uid-'+email.split('@')[0]; s.USERS[email]=[pw,uid,{},meta]; s.MADE[uid]=1792710000000+len(s.MADE)*86400000; s.PROF[uid]={'login_id':email.split('@')[0] if email.endswith('@dwfuneral.com') else email,'name':meta.get('name','')}
         return {'user':{'id':uid,'email':email,'app_metadata':{},'user_metadata':meta}}
     def getuser(s,src,uid):
         for e,u in s.USERS.items():
@@ -290,6 +290,9 @@ class Srv:
             if any(x['path']==pth for x in fs): return s.no('bad')
             fs.append(dict(path=pth,name=(str(f.get('name') or '').strip() or '파일')[:150],size=sz,type=str(f.get('type') or '')[:100]))
         if not fs: return s.no('nofiles')
+        others=sum(int(f['size'] or 0) for d in s.DOCS.values() if not d['deleted'] and d['id']!=did for f in d['files'])
+        newsz=sum(int(f['size'] or 0) for f in fs); oldsz=sum(int(f['size'] or 0) for f in (old['files'] if old else []))
+        if others+newsz>838860800 and newsz>oldsz: return s.no('full')   # 자료실 800MB (supabase-part.sql 과 같음)
         ts=now_iso()
         if isnew: s.DOCS[did]=dict(id=did,title=t,body=b,files=fs,author_id=me,deleted=False,created_at=ts,updated_at=ts); return s.ok(id=did,removed=[])
         removed=[x for x in oldp if not any(y['path']==x for y in fs)]
@@ -299,6 +302,108 @@ class Srv:
         if not d or d['deleted']: return s.ok(paths=[])
         if not ((d['author_id']==me and s.doc_up(me)) or s.admin(me)): return s.no('denied')
         d['deleted']=True; return s.ok(paths=[f['path'] for f in d['files']])
+    # ---- 섞인 기록 정리 (supabase-part.sql dw_unmix_plan · dw_unmix_states · dw_admin_* 와 같은 규칙) ----
+    def unmix_plan(s):
+        import hashlib, json as _j
+        live=[]
+        for (u,ap,k,i),r in s.ROWS.items():
+            d=r.get('data')
+            if r.get('deleted') or k=='state' or d is None: continue
+            if k=='review' and not str((d or {}).get('text') or '').strip(): continue
+            dk=hashlib.md5(_j.dumps(d,sort_keys=True).encode()).hexdigest() if k in ('review','gnote') else ''
+            live.append(dict(u=u,app=ap,kind=k,id=i,dk=dk,dev=r.get('device'),data=d))
+        from collections import defaultdict
+        g=defaultdict(list)
+        for x in live: g[(x['app'],x['kind'],x['id'],x['dk'])].append(x)
+        dup={k for k,v in g.items() if len({x['u'] for x in v})>1}
+        uniq=defaultdict(set)
+        for x in live:
+            if x['dev'] and (x['app'],x['kind'],x['id'],x['dk']) not in dup: uniq[x['u']].add(x['dev'])
+        devs=defaultdict(set)
+        for x in live:
+            if x['dev']: (devs[x['u']].update(uniq[x['u']]) if uniq[x['u']] else devs[x['u']].add(x['dev']))
+        out=[]
+        for k in dup:
+            rows=[]
+            for x in g[k]:
+                d=x['data'] or {}; born=None
+                for f in ('created','createdAt'):
+                    v=str(d.get(f,'')) if isinstance(d,dict) else ''
+                    if v.isdigit() and 12<=len(v)<=14 and born is None: born=int(v)
+                made=s.MADE.get(x['u'],0); could=True if born is None else made<=born+3600000
+                rows.append((not could, not (x['dev'] in devs[x['u']]), made, x['u'], x))
+            rows.sort(key=lambda t:t[:4]); owner=rows[0][4]['u']
+            for t in rows[1:]: out.append(dict(copy=t[4]['u'],owner=owner,app=t[4]['app'],kind=t[4]['kind'],id=t[4]['id']))
+        return out
+    def unmix_states(s):
+        import hashlib
+        st=[]
+        for (u,ap,k,i),r in s.ROWS.items():
+            d=r.get('data')
+            if r.get('deleted') or k!='state' or not isinstance(d,dict): continue
+            if ap=='funeral' and i=='settings': w,key='me',str((d.get('me') or {}).get('name') or '').strip()
+            elif ap=='forms' and i=='settings': w,key='author',str(d.get('author') or '').strip()
+            elif ap=='forms' and i=='signature':
+                if not d.get('data'): continue
+                w,key='sig',hashlib.md5(str(d.get('data')).encode()).hexdigest()
+            else: continue
+            if not key: continue
+            st.append(dict(u=u,app=ap,kind=k,id=i,what=w,k=key,data=d,pn=str((s.PROF.get(u) or {}).get('name') or '').strip(),made=s.MADE.get(u,0)))
+        from collections import defaultdict
+        g=defaultdict(list)
+        for x in st: g[(x['what'],x['k'])].append(x)
+        out=[]
+        for key,v in g.items():
+            if len({x['u'] for x in v})<2: continue
+            v=sorted(v,key=lambda x:(not (x['what']!='sig' and x['pn'] and x['pn']==x['k']), x['made'], x['u'])); o=v[0]
+            for x in v[1:]:
+                if x['what']!='sig' and x['pn'] and x['pn']==x['k']: continue
+                if x['what']=='me':
+                    m=dict(x['data'].get('me') or {}); om=o['data'].get('me') or {}
+                    m['name']=x['pn']; m['phone']='' if str(m.get('phone') or '')==str(om.get('phone') or '') else m.get('phone',''); m['rank']='' if str(m.get('rank') or '')==str(om.get('rank') or '') else m.get('rank','')
+                    fix=dict(x['data']); fix['me']=m
+                elif x['what']=='author': fix=dict(x['data']); fix['author']=x['pn']
+                else: fix={'none':True}
+                out.append(dict(user=x['u'],what=x['what'],owner=o['u'],app=x['app'],kind=x['kind'],id=x['id'],fix=fix))
+        return out
+    def f_dw_admin_mixed(s,me):
+        if not s.admin(me): return s.no('denied')
+        from collections import defaultdict
+        pr=defaultdict(list)
+        for x in s.unmix_plan(): pr[(x['copy'],x['owner'])].append(x)
+        pairs=[dict(copy=c,owner=o,n=len(v),funeral=sum(1 for x in v if x['app']=='funeral'),forms=sum(1 for x in v if x['app']=='forms'),company=sum(1 for x in v if x['app']=='company'),
+                    copy_name=s.name(c),owner_name=s.name(o),samples=[x['kind']+' '+x['id'] for x in v][:4]) for (c,o),v in pr.items()]
+        pairs.sort(key=lambda x:-x['n'])
+        states=[dict(user=x['user'],what=x['what'],owner=x['owner'],user_name=s.name(x['user']),owner_name=s.name(x['owner'])) for x in s.unmix_states()]
+        bs=[dict(batch=b['batch'],at=b['at'],n=len(b['rows'])) for b in reversed(s.UNMIX)][:5]
+        return s.ok(pairs=pairs,states=states,batches=bs)
+    def f_dw_admin_unmix(s,me,p):
+        if not s.admin(me): return s.no('denied')
+        import uuid as _u, time
+        t=int(time.time()*1000); prs={tuple(x) for x in (p.get('pairs') or [])}; sts={tuple(x) for x in (p.get('states') or [])}
+        rows=[]; n=ns=0
+        for x in s.unmix_plan():
+            if (x['copy'],x['owner']) in prs:
+                r=s.ROWS[(x['copy'],x['app'],x['kind'],x['id'])]; rows.append(dict(key=(x['copy'],x['app'],x['kind'],x['id']),what='copy',prev=None))
+                r.update(deleted=True,updated_at=max(r['updated_at']+1,t),device='unmix',server_at=now_iso()); n+=1
+        for x in s.unmix_states():
+            if (x['user'],x['what']) in sts:
+                r=s.ROWS[(x['user'],x['app'],x['kind'],x['id'])]; rows.append(dict(key=(x['user'],x['app'],x['kind'],x['id']),what=x['what'],prev=copy.deepcopy(r['data'])))
+                r.update(data=x['fix'],updated_at=max(r['updated_at']+1,t),device='unmix',server_at=now_iso()); ns+=1
+        if not rows: return s.ok(n=0,states=0)
+        b=str(_u.uuid4()); s.UNMIX.append(dict(batch=b,at=now_iso(),rows=rows)); return s.ok(batch=b,n=n,states=ns)
+    def f_dw_admin_unmix_undo(s,me,p_batch):
+        if not s.admin(me): return s.no('denied')
+        import time
+        t=int(time.time()*1000); n=ns=0
+        for b in [b for b in s.UNMIX if b['batch']==p_batch]:
+            for x in b['rows']:
+                r=s.ROWS.get(x['key'])
+                if not r: continue
+                if x['what']=='copy': r.update(deleted=False,updated_at=max(r['updated_at']+1,t),device='unmix',server_at=now_iso()); n+=1
+                elif x['prev'] is not None: r.update(data=x['prev'],updated_at=max(r['updated_at']+1,t),device='unmix',server_at=now_iso()); ns+=1
+        s.UNMIX=[b for b in s.UNMIX if b['batch']!=p_batch]
+        return s.ok(n=n,states=ns)
 def wire(ctx,srv,mockjs):
     ctx.route('**/vendor/supabase.js', lambda r: r.fulfill(status=200,content_type='application/javascript',body=mockjs))
     for n,f in [('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert),('mockStorage',srv.storage)]: ctx.expose_binding(n,f)

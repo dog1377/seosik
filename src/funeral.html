@@ -1023,7 +1023,7 @@ body.split #p-settle .wz{max-width:none}
 .out-tabs.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
 .out-tabs button[hidden]{display:none}
 #p-out #reportCards{grid-template-columns:minmax(0,1fr)}
-body:not([data-tab="input"]):not([data-tab="admin"]) #bkBanner{display:none!important}
+
 .bk-banner{border-radius:6px}
 /* 보고서 입력 · 장례행사 일정표 미리보기 (2026.10.22) */
 .sz-pv{overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:zoom-in;overscroll-behavior:contain}
@@ -1137,7 +1137,6 @@ body[data-tab="list"] .case-panel{display:none}
   <button class="btn sm primary" id="newCase" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새 행사</button>
 </div><nav class="topnav" id="topNav" aria-label="장례업무 메뉴"><div class="tn-row tn-main-row"><div class="tn-in" id="tnMain"></div></div><div class="tn-row tn-sub-row" id="tnSubRow" hidden><div class="tn-in" id="tnSub"></div></div></nav></header>
 <main class="wrap" id="mainContent">
-  <div class="bk-banner" id="bkBanner" hidden><b>백업할 때가 됐어요</b><span id="bkText"></span><div class="bk-row"><button class="btn sm primary" type="button" id="bkNow">지금 백업</button><button class="btn sm" type="button" id="bkLater">일주일 뒤에 알림</button></div></div>
   <header class="top">
     <div class="page-intro"><div><h1 id="pageTitle">장례 일정 작성</h1><p id="pageDesc">행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.</p></div><span class="intro-mark" aria-hidden="true">FUNERAL WORKSPACE</span></div>
     <div class="case-panel">
@@ -1189,7 +1188,7 @@ body[data-tab="list"] .case-panel{display:none}
 
   <section id="p-admin" class="stack" hidden>
     <div class="set-cards" id="setCards" aria-label="설정 고르기"></div>
-    <div class="out-tabs" id="adminTabs" role="tablist" aria-label="설정 항목"><button type="button" role="tab" data-av-tab="forms">업체 양식</button><button type="button" role="tab" data-av-tab="common">공통 양식</button><button type="button" role="tab" data-av-tab="rules">정산 기준</button><button type="button" role="tab" data-av-tab="lists">선택 목록</button><button type="button" role="tab" data-av-tab="keep">내 계정 · 백업</button></div>
+    <div class="out-tabs" id="adminTabs" role="tablist" aria-label="설정 항목"><button type="button" role="tab" data-av-tab="forms">업체 양식</button><button type="button" role="tab" data-av-tab="common">공통 양식</button><button type="button" role="tab" data-av-tab="rules">정산 기준</button><button type="button" role="tab" data-av-tab="lists">선택 목록</button><button type="button" role="tab" data-av-tab="keep">내 계정</button></div>
     <div class="sec" data-av="forms">
       <div class="sec-head"><h2>업체별 양식</h2></div>
       <div class="chips" id="coChips"></div>
@@ -1244,8 +1243,8 @@ body[data-tab="list"] .case-panel{display:none}
       <div class="row"><button class="btn sm primary" id="saveLists" type="button">저장</button></div>
     </div>
     <div class="sec" data-av="keep" id="sbSec">
-      <div class="sec-head"><h2>실시간 저장 · 내 계정</h2></div>
-      <p class="note">받은 아이디로 로그인하면 내 기록(행사 · 정산 · 봉투 · 설정 · 휴무)이 내 계정에 바로바로 저장되고, 내 다른 기기에도 실시간으로 바뀌어요. 다른 직원은 내 기록을 볼 수 없어요.</p>
+      <div class="sec-head"><h2>저장 · 내 계정</h2></div>
+      <p class="note">쓰는 대로 이 기기와 내 계정(서버)에 자동으로 저장돼요. 따로 백업할 필요 없어요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 그대로 돌아와요. 다른 직원은 내 기록을 볼 수 없어요.</p>
       <p class="keep-stats" id="sbStatus"></p>
       <form id="sbLoginBox" class="fields sb-form" autocomplete="on" novalidate>
         <div class="seg sb-mode" role="tablist" aria-label="로그인 또는 회원가입"><button type="button" role="tab" data-sbmode="login" aria-pressed="true">로그인</button><button type="button" role="tab" data-sbmode="join" aria-pressed="false">회원가입</button></div>
@@ -1256,7 +1255,7 @@ body[data-tab="list"] .case-panel{display:none}
           <label class="f">이름<input class="input" id="sbName" autocomplete="name" placeholder="이름 입력"></label>
         </div>
         <div class="row"><button class="btn primary" id="sbLoginBtn" type="submit">로그인</button></div>
-        <p class="note" id="sbHelp">처음 로그인하면 이 기기에 있던 기록이 내 계정에 올라가요(그 전에 자동 보관본을 남겨 둬요).</p>
+        <p class="note" id="sbHelp">이 기기의 기록은 계정마다 따로 보관돼요.</p>
       </form>
       <div id="sbOnBox" hidden>
         <div class="row"><button class="btn" id="sbSyncBtn" type="button">지금 맞추기</button><button class="btn primary" id="sbOutBtn" type="button">로그아웃</button></div>
@@ -1283,40 +1282,21 @@ body[data-tab="list"] .case-panel{display:none}
       <div class="dw-theme-row" id="setTheme"></div>
     </div>
     <div class="sec" data-av="keep">
-      <div class="sec-head"><h2>행사 기록 보관</h2></div>
-      <p class="note">행사 기록은 지우지 않는 한 이 기기에 계속 남고, 발인 날짜 기준으로 월별로 정리됩니다. 기기를 바꾸거나 브라우저 데이터를 지우면 사라지니 한 달에 한 번은 백업 파일을 받아 두세요.</p>
+      <div class="sec-head"><h2>행사 기록 정리</h2></div>
       <p class="keep-stats" id="keepStats"></p>
-      <p class="keep-stats" id="keepLast"></p>
-      <div class="row"><button class="btn primary" id="keepBackup" type="button">전체 기록 백업 파일 저장</button><label class="btn" for="keepRestoreFile">백업 불러오기</label></div>
-      <input type="file" id="keepRestoreFile" accept=".json,application/json" hidden>
-      <div class="af-box" id="clBox">
-        <h3 class="snap-h">클라우드 자동 저장</h3>
-        <p class="note">구글 드라이브에 기록이 자동으로 저장됩니다. 앱을 지우거나 휴대폰을 바꿔도 「클라우드 코드」만 넣으면 그대로 돌아와요. 관리자 서식과 같은 곳에 저장됩니다.</p>
-        <p class="keep-stats" id="clStatus"></p>
-        <div id="clSetup" class="af-box"><label class="f"><span class="field-label">클라우드 주소 또는 클라우드 코드</span><input class="input" id="clCode" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"></label><div class="row"><button class="btn primary" id="clGo" type="button">연결</button></div></div>
-        <div class="row" id="clOn" hidden><button class="btn" id="clNow" type="button">지금 저장</button><button class="btn" id="clCopy" type="button">클라우드 코드 복사</button><button class="btn" id="clPull" type="button">클라우드에서 불러오기</button><button class="btn" id="clOff" type="button">끄기</button></div>
-      </div>
-      <div class="af-box" id="afBox">
-        <h3 class="snap-h">휴대폰 파일 자동 백업</h3>
-        <p class="note">처음 한 번 저장할 곳을 고르면, 그다음부터 저장할 때마다 그 파일에 최신 기록이 자동으로 들어갑니다. 앱을 지우거나 기록이 사라져도 파일은 휴대폰에 남아서 「백업 불러오기」로 되살릴 수 있어요. 관리자 서식과 같은 파일을 같이 씁니다.</p>
-        <p class="keep-stats" id="afStatus"></p>
-        <div class="row" id="afBtns"><button class="btn primary" id="afOn" type="button">자동 백업 켜기</button><button class="btn" id="afOpen" type="button">예전 자동 백업 파일 연결</button></div>
-        <div class="row" id="afBtns2" hidden><button class="btn primary" id="afFix" type="button">다시 연결</button><button class="btn" id="afNow" type="button">지금 백업</button><button class="btn" id="afRestore" type="button">이 파일에서 되살리기</button><button class="btn" id="afOff" type="button">끄기</button></div>
-      </div>
       <label class="f"><span class="field-label">정리할 달</span><select class="input" id="keepMonth"></select></label>
       <div class="row"><button class="btn danger" id="keepDelMonth" type="button">이 달 행사 지우기</button></div>
-      <p class="note">오래된 달을 지워도 봉투정리 기록은 남습니다. 지우기 전에 백업 파일을 먼저 받아 두세요.</p>
-      <h3 class="snap-h">자동 보관본</h3>
-      <p class="note">앱이 업데이트될 때(고치기 전 그대로)와 하루 한 번, 이 기기 안에 자동으로 따로 보관합니다. 기록이 사라지거나 이상하면 「되살리기」를 누르세요. 지금 기록은 지우지 않고 빠진 것만 합칩니다.</p>
+      <p class="note">지우면 내 계정에서도 지워져요. 봉투정리 기록은 남습니다.</p>
+      <h3 class="snap-h">자동 보관본 (안전장치)</h3>
+      <p class="note">앱이 업데이트되기 직전과 하루 한 번, 이 기기 안에 저절로 남겨 둡니다. 기록이 이상할 때만 「되살리기」를 누르세요. 지금 기록은 지우지 않고 빠진 것만 합칩니다.</p>
       <div id="snapList" class="snap-list"></div>
     </div>
     <div class="sec" data-av="keep">
-      <div class="sec-head"><h2>공유 · 설정 백업</h2></div>
-      <p class="note">앱은 이 기기에만 깔려 있고, 입력한 내용은 밖으로 나가지 않습니다. 필요할 때만 아래로 공유하세요.</p>
+      <div class="sec-head"><h2>앱 · 양식 공유</h2></div>
       <div class="row"><button class="btn" id="shareApp" type="button">앱 주소 공유</button></div>
       <p class="note" id="shareNote"></p>
-      <div class="row"><button class="btn" id="exportCfg" type="button">설정 내보내기 (복사)</button><button class="btn" id="importOpen" type="button">설정 가져오기</button></div>
-      <p class="note">업체 양식과 선택 목록 설정을 한 번에 옮깁니다. 작성 중인 건(개인정보)은 포함되지 않습니다.</p>
+      <div class="row"><button class="btn" id="exportCfg" type="button">양식 내보내기 (복사)</button><button class="btn" id="importOpen" type="button">양식 가져오기</button></div>
+      <p class="note">업체 양식과 선택 목록을 다른 직원에게 옮길 때 씁니다. 행사 기록(개인정보)은 들어가지 않습니다.</p>
       <div id="importBox" class="fields" hidden>
         <textarea class="input" id="importText" rows="5" placeholder="내보낸 설정 글을 여기에 붙여넣기"></textarea>
         <div class="row"><button class="btn primary" id="importApply" type="button">가져와서 바꾸기</button></div>
@@ -1357,7 +1337,7 @@ body[data-tab="list"] .case-panel{display:none}
         <button type="button" data-go="admin:common">공통 양식 (배차 · 퇴근)</button>
         <button type="button" data-go="admin:rules">정산 기준</button>
         <button type="button" data-go="admin:lists">선택 목록</button>
-        <button type="button" data-go="admin:keep">내 계정 · 백업</button>
+        <button type="button" data-go="admin:keep">내 계정</button>
       </div></div>
     </div>
   </div>
@@ -1397,21 +1377,9 @@ function askPersist(){
     (st.persisted?st.persisted():Promise.resolve(false)).then(p=>p||st.persist()).then(p=>{ persisted=!!p; if(typeof renderKeep==='function') renderKeep(); }).catch(()=>{});
   }catch(e){}
 }
-/* 백업 알림: 기록은 이 기기에만 있으니 한 달에 한 번 */
-const BK_KEY='funeral-lastBackup', BK_FIRST='funeral-firstUse', BK_SNOOZE='funeral-bkSnooze', DAY=86400000;
+const DAY=86400000;
 const lsGet=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
 const lsSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
-function lastBackupAt(){ return Math.max(Number(lsGet(BK_KEY))||0, Number(lsGet('mf.lastBackup'))||0); }
-function markBackup(){ lsSet(BK_KEY,String(Date.now())); lsSet(BK_SNOOZE,''); checkBackup(); }
-function checkBackup(){
-  const has=!!(db.cases.length||db.envelopes.length), now=Date.now(), last=lastBackupAt();
-  if(has&&!lsGet(BK_FIRST)) lsSet(BK_FIRST,String(now));
-  const first=Number(lsGet(BK_FIRST))||now, days=Math.floor((now-last)/DAY);
-  const kl=$('#keepLast'); if(kl){ const d=new Date(last); kl.textContent=last?`마지막 백업: ${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} (${days}일 전)`:'아직 백업한 적이 없어요.'; }
-  const due=has&&(last?now-last>30*DAY:now-first>7*DAY), snoozed=(Number(lsGet(BK_SNOOZE))||0)>now, bn=$('#bkBanner');
-  if(!bn) return; bn.hidden=!due||snoozed;
-  if(due) $('#bkText').textContent=(last?`마지막 백업이 ${days}일 전이에요. `:'아직 백업한 적이 없어요. ')+'행사 기록이 이 기기에만 있어서 휴대폰을 잃어버리거나 바꾸면 사라져요. 백업 파일을 카톡 「나와의 채팅」이나 드라이브에 보내 두세요.';
-}
 const uid=()=>Math.random().toString(36).slice(2,10);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const WD=['일','월','화','수','목','금','토'];
@@ -1858,7 +1826,7 @@ if(!db.vDaehan){   /* 대한선진(국향) 업체 추가 (2026.10.27) */
   db.vDaehan=true;
 }
 if(!db.vGoiEnd){ const goi=db.companies.find(x=>isGoi(x)); if(goi){ if(!goi.reports) goi.reports=[]; if(!goi.reports.some(r=>r.name==='장례 종료 보고')) goi.reports.push({id:uid(),name:'장례 종료 보고',body:GOI_END_REPORT}); } db.vGoiEnd=true; }
-function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof afSchedule==='function') afSchedule(); if(ok&&typeof clSchedule==='function') clSchedule(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
+function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
 // 기타 업체로 작성한 건은 직접 넣은 업체명을 씀
 const caseCoName=c=>{ const co=coById(c&&c.companyId); return co.id===ETC&&String((c.f||{}).coName||'').trim()?String(c.f.coName).trim():co.name; };
@@ -2563,7 +2531,7 @@ $('#pickX').onclick=closePicker;
 function renderTtl(){
   const full=storeChars()>STORE_WARN, el=$('#ttlNote');
   el.classList.toggle('warn',full);
-  el.textContent=(navigator.onLine===false?'오프라인 사용 중 · ':'')+`이 기기에 계속 보관 · 전체 ${db.cases.length}건`+(full?' · 저장 공간이 많이 찼어요. 설정에서 백업 후 오래된 달을 정리해 주세요':' · 지우기 전까지 사라지지 않아요');
+  el.textContent=(navigator.onLine===false?'오프라인 사용 중 · ':'')+(typeof sbUser!=='undefined'&&sbUser?'내 계정에 자동 저장':'이 기기에 보관')+` · 전체 ${db.cases.length}건`+(full?' · 이 기기 저장 공간이 많이 찼어요. 설정 → 내 계정 → 행사 기록 정리에서 오래된 달을 정리해 주세요':'');
 }
 window.addEventListener('online',()=>renderTtl()); window.addEventListener('offline',()=>renderTtl());
 // 행사 기록 이름: 행사번호 장례식장 업체명 고인명 (예: 15번 부산전문 현진시닝 故 홍길동)
@@ -2603,42 +2571,17 @@ function goMonth(dir){
 $('#cmPrev').onclick=()=>goMonth(-1);
 $('#cmNext').onclick=()=>goMonth(1);
 
-/* ---------- 행사 기록 보관: 백업 · 복원 · 월별 정리 ---------- */
+/* ---------- 행사 기록 정리 (2026.10.28-21: 백업 파일 · 휴대폰 자동 백업 · 구글 드라이브 클라우드는 없앰 → 저장은 내 계정 자동 저장 하나) ---------- */
 function renderKeep(){
   const st=$('#keepStats'); if(!st) return;
   const months=caseMonths(), kb=Math.round(storeChars()/1024);
   st.textContent=`행사 ${db.cases.length}건 · ${months.length}개월 · 봉투 ${db.envelopes.length}건 · 사용량 약 ${kb.toLocaleString('ko-KR')}KB${persisted?' · 자동 삭제 보호됨':''}`;
-  checkBackup();
   const sel=$('#keepMonth'), prev=sel.value;
   sel.innerHTML=months.length?[...months].reverse().map(([k,n])=>`<option value="${k}">${monthLabel(k)} (${n}건)</option>`).join(''):'<option value="">보관된 행사 없음</option>';
   if(months.some(([k])=>k===prev)) sel.value=prev;
   sel.disabled=$('#keepDelMonth').disabled=!months.length;
 }
-async function keepDeliver(name,text){
-  const blob=new Blob([text],{type:'application/json'});
-  try{ const file=new File([blob],name,{type:'application/json'}); if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:name}); return true; } }
-  catch(e){ if(e&&e.name==='AbortError') return false; }
-  const url=URL.createObjectURL(blob),a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),20000);
-  return true;
-}
-$('#keepBackup').onclick=async()=>{
-  save();
-  const duty={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^hyumu-/.test(k)) duty[k]=localStorage.getItem(k); } }catch(e){}
-  const data={app:'funeral-maker-backup',v:1,exportedAt:new Date().toISOString(),db,duty};
-  if(await keepDeliver(`장례일정_전체백업_${seoulToday().replace(/-/g,'')}.json`,JSON.stringify(data))){ markBackup(); toast('백업 파일을 만들었습니다. 개인정보가 들어 있으니 본인만 보관하세요'); }
-};
-$('#bkNow').onclick=()=>$('#keepBackup').click();
-$('#bkLater').onclick=()=>{ lsSet(BK_SNOOZE,String(Date.now()+7*DAY)); $('#bkBanner').hidden=true; };
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkBackup(); });
-$('#keepRestoreFile').onchange=async e=>{
-  const file=e.target.files&&e.target.files[0]; e.target.value=''; if(!file) return;
-  let data; try{ data=JSON.parse(await file.text()); }catch(err){ toast('백업 파일을 읽지 못했습니다'); return; }
-  data=afToFuneralBackup(data);
-  if(!data||data.app!=='funeral-maker-backup'||!data.db||!Array.isArray(data.db.cases)){ toast('이 앱의 전체 백업 파일이 아닙니다'); return; }
-  const {nc,ne}=mergeBackup(data);
-  save(); dirty=true; renderAll(); toast(`행사 ${nc}건, 봉투 ${ne}건을 불러왔습니다`);
-};
-// 백업(파일 · 자동 보관본)을 지금 기록에 합침: 없는 건 넣고, 더 최근에 고친 건 바꿈. 지금 기록은 지우지 않음
+// 자동 보관본을 지금 기록에 합침: 없는 건 넣고, 더 최근에 고친 건 바꿈. 지금 기록은 지우지 않음
 function mergeBackup(data){
   const b=data.db; migrateUrnChoices(b); let nc=0, ne=0;
   const ids=new Set(b.cases.map(c=>c.id));
@@ -2653,85 +2596,6 @@ function mergeBackup(data){
   if(!db.cases.find(c=>c.id===db.cur)) db.cur=db.cases.length?[...db.cases].sort((a,c)=>c.updated-a.updated)[0].id:null;
   return {nc,ne};
 }
-/* ---------- 휴대폰 자동 백업 파일 (2026.10.17)
-   처음 한 번 저장할 곳을 고르면(파일 손잡이를 IndexedDB 'dw-autofile'에 보관), 저장할 때마다 그 파일에 최신 기록을 덮어씀.
-   앱을 지워 이 사이트 기록이 지워져도 파일은 휴대폰에 남음 → 「백업 불러오기」로 되살림.
-   파일 모양은 관리자 서식 백업과 같음(app:'manager-forms', funeral: 장례 · 휴무 저장값) → 관리자 서식 · 장례일정 어디서나 불러오기 가능.
-   장례 쪽은 funeral 부분만 바꾸고, 파일에 있던 관리자 서식 부분(주간보고 등)은 그대로 둠. ---------- */
-const AF_DB='dw-autofile', AF_META='dw-autofile-meta';
-const afSupported=()=>typeof window.showSaveFilePicker==='function';
-function afIdb(){ return new Promise((res,rej)=>{ const r=indexedDB.open(AF_DB,1); r.onupgradeneeded=()=>r.result.createObjectStore('h'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
-async function afGet(){ try{ const d=await afIdb(); return await new Promise(res=>{ const q=d.transaction('h').objectStore('h').get('main'); q.onsuccess=()=>res(q.result||null); q.onerror=()=>res(null); }); }catch(e){ return null; } }
-async function afPut(hd){ const d=await afIdb(); await new Promise((res,rej)=>{ const t=d.transaction('h','readwrite'), st=t.objectStore('h'); if(hd) st.put(hd,'main'); else st.delete('main'); t.oncomplete=res; t.onerror=()=>rej(t.error); }); }
-function afMeta(){ try{ return JSON.parse(localStorage.getItem(AF_META)||'{}')||{}; }catch(e){ return {}; } }
-function afSetMeta(m){ try{ localStorage.setItem(AF_META,JSON.stringify(Object.assign(afMeta(),m))); }catch(e){} }
-async function afPerm(hd,ask){ try{ let p=await hd.queryPermission({mode:'readwrite'}); if(p!=='granted'&&ask) p=await hd.requestPermission({mode:'readwrite'}); return p; }catch(e){ return 'denied'; } }
-function afFuneralPart(){ const o={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(funeral-|hyumu-)/.test(k)) o[k]=localStorage.getItem(k); } }catch(e){} return o; }
-const afCases=o=>{ try{ return (JSON.parse((o||{})['funeral-band-v2']||'{}').cases||[]).length; }catch(e){ return 0; } };
-async function afReadFile(hd){ try{ const t=await (await hd.getFile()).text(); const d=t.trim()?JSON.parse(t):null; return d&&d.app==='manager-forms'?d:null; }catch(e){ return null; } }
-/* 관리자 서식 · 자동 백업 파일 → 장례일정 전체 백업 모양으로 */
-function afToFuneralBackup(data){
-  if(!data||data.app!=='manager-forms'||!data.funeral) return data;
-  let b=null; try{ b=JSON.parse(data.funeral['funeral-band-v2']||'null'); }catch(e){}
-  const duty={}; Object.keys(data.funeral).forEach(k=>{ if(/^hyumu-/.test(k)) duty[k]=data.funeral[k]; });
-  return b&&Array.isArray(b.cases)?{app:'funeral-maker-backup',v:1,db:b,duty}:data;
-}
-
-/* ---------- 클라우드 자동 저장 (2026.10.18)
-   사용자 구글 드라이브에 저장 (구글 앱스 스크립트 웹 앱, 코드 tools/cloud-script.gs). 회사 서버 없음.
-   연결 정보 localStorage 'dw-cloud' {url,key}. key = 기기에서 만든 긴 무작위 「클라우드 코드」 (주소#코드 로 보관 · 붙여 넣기).
-   장례 쪽은 slot 'funeral' (장례 · 휴무 저장값), 관리자 서식은 slot 'forms'. 저장 10초 뒤 · 화면을 벗어날 때 올림.
-   안전장치: 이 기기에 행사가 없는데 클라우드에 있으면 덮어쓰지 않음. ---------- */
-const CL_CONF='dw-cloud', CL_META='dw-cloud-meta';
-const CL_URL_RE=/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
-function clConf(){ try{ const c=JSON.parse(localStorage.getItem(CL_CONF)||'null'); return c&&c.url&&c.key?c:null; }catch(e){ return null; } }
-function clSetConf(c){ try{ if(c) localStorage.setItem(CL_CONF,JSON.stringify(c)); else localStorage.removeItem(CL_CONF); }catch(e){} }
-function clMeta(){ try{ return JSON.parse(localStorage.getItem(CL_META)||'{}')||{}; }catch(e){ return {}; } }
-function clSetMeta(m){ try{ localStorage.setItem(CL_META,JSON.stringify(Object.assign(clMeta(),m))); }catch(e){} }
-function clParse(code){ const t=String(code||'').trim().replace(/\s+/g,''); const i=t.indexOf('#'); const u=i<0?t:t.slice(0,i), k=i<0?'':t.slice(i+1); if(!CL_URL_RE.test(u)) return null; return {url:u,key:/^[A-Za-z0-9]{24,64}$/.test(k)?k:''}; }
-function clNewKey(){ const A='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', a=new Uint8Array(32); crypto.getRandomValues(a); return [...a].map(b=>A[b%A.length]).join(''); }
-const clCode=c=>`${c.url}#${c.key}`;
-async function clGet(c,slot){ const r=await fetch(`${c.url}?key=${encodeURIComponent(c.key)}&slot=${slot}&t=${Date.now()}`,{cache:'no-store',redirect:'follow'}); const j=await r.json(); if(!j||!j.ok) throw new Error((j&&j.err)||'fail'); return j; }
-async function clPost(c,slot,obj){
-  const body=JSON.stringify({key:c.key,slot,data:JSON.stringify(obj)});
-  try{ const r=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body,redirect:'follow'}); const j=await r.json(); if(!j||!j.ok) throw new Error((j&&j.err)||'fail'); return j; }
-  catch(e){ if(e&&/key|big|busy/.test(e.message)) throw e;
-    // 답을 못 읽는 경우(일부 브라우저): 그냥 보내고, 다시 읽어서 같은지 확인
-    await fetch(c.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body});
-    const back=await clGet(c,slot); if(!back.data||back.data.length!==JSON.stringify(obj).length) throw new Error('fail'); return back; }
-}
-var clLast='', clTimer=0, clBusy=false;
-async function clPush(force){
-  const c=clConf(); if(!c) return 'off'; if(clBusy) return 'busy';
-  const fun=afFuneralPart(), sig=JSON.stringify(fun);
-  if(sig===clLast&&!force) return 'same';
-  clBusy=true;
-  try{
-    if(afCases(fun)) clSetMeta({guard:false});
-    if(!afCases(fun)){ const cur=await clGet(c,'funeral'); let d=null; try{ d=cur.data?JSON.parse(cur.data):null; }catch(e){} if(d&&afCases(d.funeral)>0){ clSetMeta({guard:true}); renderCL(); return 'guard'; } }
-    await clPost(c,'funeral',{app:'dw-cloud',slot:'funeral',v:1,at:new Date().toISOString(),funeral:fun});
-    clLast=sig; clSetMeta({fat:Date.now(),err:'',guard:false}); renderCL(); return 'ok';
-  }catch(e){ clSetMeta({err:String(e&&e.message||e)}); renderCL(); return 'err'; }
-  finally{ clBusy=false; }
-}
-function clSchedule(){ if(!clConf()) return; clearTimeout(clTimer); clTimer=setTimeout(()=>{ clPush(false); },10000); }
-async function clRestore(c){
-  const cur=await clGet(c,'funeral'); if(!cur.data) return null;
-  let d=null; try{ d=JSON.parse(cur.data); }catch(e){ return null; }
-  const data=afToFuneralBackup({app:'manager-forms',funeral:(d&&d.funeral)||{}}); if(!data||!data.db) return null;
-  const r=mergeBackup(data); clSetMeta({guard:false}); save(); dirty=true; renderAll(); return r;
-}
-function renderCL(){
-  const st=$('#clStatus'); if(!st) return;
-  const c=clConf(), m=clMeta();
-  $('#clSetup').hidden=!!c; $('#clOn').hidden=!c;
-  if(!c){ st.textContent='꺼져 있어요. 구글에서 받은 클라우드 주소를 붙여 넣고 「연결」을 누르세요. 앱을 다시 깔았으면 보관해 둔 클라우드 코드를 붙여 넣으세요.'; return; }
-  const d=m.fat?new Date(m.fat):null, at=d?`${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`:'아직 없음';
-  st.textContent=m.guard?'켜짐 · 클라우드에 기록이 있어서 덮어쓰지 않았어요. 「클라우드에서 불러오기」를 누르세요.'
-    :m.err?`켜짐 · 마지막 저장 ${at} · 지금은 올리지 못했어요(인터넷 확인). 다음 저장 때 다시 올립니다.`
-    :`켜짐 · 마지막 클라우드 저장 ${at} · 「클라우드 코드 복사」로 코드를 카톡 「나와의 채팅」에 보관해 두세요.`;
-}
-async function clCopyCode(){ const c=clConf(); if(!c) return; const t=clCode(c); try{ await navigator.clipboard.writeText(t); toast('클라우드 코드를 복사했어요. 카톡 「나와의 채팅」에 붙여 넣어 보관하세요'); }catch(e){ prompt('클라우드 코드 (길게 눌러 복사)',t); } }
 /* ---------- 실시간 저장 · 내 계정 (수파베이스, 2026.10.23) ----------
    각자 받은 아이디로 로그인 → 내 기록(행사 · 봉투 · 설정 · 휴무)이 내 계정에만 저장되고, 내 다른 기기에도 바로 바뀜. 다른 직원은 못 봄(서버 규칙 RLS).
    서버 표 dw_records (tools/supabase-setup.sql): user_id · app('funeral') · kind('case'|'env'|'state') · id · data · deleted · updated_at(ms) · device.
@@ -2857,6 +2721,8 @@ function sbSubscribe(){
   }).subscribe(st=>{ sbRt=st; renderSB(); if(st==='SUBSCRIBED') sbPull(false).catch(()=>{}); });
 }
 async function sbStart(user,first){
+  /* 2중 안전장치 (2026.10.28-21): 이 기기 기록의 주인(dw-owner)이 다른 계정이면 절대 올리지 않고 계정 바꾸기 화면으로 */
+  if(window.dwOwner&&window.dwOwner.get()!==user.id){ window.DW_HOLD=true; window.dwOwner.go(user.id,'login'); return; }
   sbUser=user;
   if(SBM.uid!==user.id){ SBM={uid:user.id,h:{},up:{},known:{},pullAt:''}; sbSaveMeta();
     /* 이 계정과 처음 맞추기 전: 이 기기 기록을 자동 보관본 · 휴무 사본으로 남김 (설정 · 휴무는 계정 쪽 것으로 바뀔 수 있어서) */
@@ -2868,7 +2734,7 @@ async function sbStart(user,first){
     try{ const nm=String((user.user_metadata||{}).name||'').trim(); if(nm&&!String(me().name||'').trim()){ me().name=nm; save(); } }catch(e){}   /* 내 이름이 비었으면 가입할 때 넣은 이름 */
     sent=await sbPush(); if(first) toast(`내 계정과 맞췄어요 · 받은 기록 ${got}건 · 올린 기록 ${sent}건`); }
   catch(e){ SBM.err=String(e&&(e.message||e.code)||e); sbSaveMeta(); sbSetState('err'); if(first) toast('로그인은 됐지만 지금은 기록을 맞추지 못했어요. 인터넷이 되면 자동으로 맞춰요'); }
-  sbSubscribe(); renderSB();
+  sbSubscribe(); renderSB(); try{ renderTtl(); }catch(e){}
 }
 function sbStop(){ if(sbChan&&sbc){ try{ sbc.removeChannel(sbChan); }catch(e){} } sbChan=null; sbUser=null; sbRt=''; clearTimeout(sbTimer); sbSetState('off'); updateSaveState('saved'); }
 async function sbBoot(){
@@ -2978,51 +2844,6 @@ window.addEventListener('online',()=>{ if(sbUser) sbPull(false).then(()=>sbPush(
 document.addEventListener('visibilitychange',()=>{ if(!sbUser) return; if(document.visibilityState==='hidden') sbPush(); else sbPull(false).then(()=>sbPush()).catch(()=>{}); });
 window.addEventListener('storage',e=>{ if(sbUser&&e.key&&/^hyumu-/.test(e.key)) sbSchedule(1500); });
 setInterval(()=>{ if(sbUser&&navigator.onLine!==false) sbPush(); },60000);
-var afLast="", afTimer=0, afBusy=false;
-async function afWrite(ask){
-  if(afBusy) return 'busy';
-  const hd=await afGet(); if(!hd) return 'off';
-  if(await afPerm(hd,ask)!=='granted'){ afSetMeta({need:true}); renderAF(); return 'perm'; }
-  afBusy=true;
-  try{
-    const fun=afFuneralPart(), sig=JSON.stringify(fun);
-    if(sig===afLast&&!ask){ afSetMeta({need:false}); return 'same'; }
-    const base=await afReadFile(hd)||{};
-    // 안전장치: 이 기기에 행사가 하나도 없는데 파일에는 있으면 덮어쓰지 않음 (앱을 다시 깐 직후 등)
-    if(!afCases(fun)&&afCases(base.funeral)>0){ afSetMeta({guard:true,need:false}); renderAF(); return 'guard'; }
-    const out=Object.assign({app:'manager-forms',version:1},base,{exportedAt:new Date().toISOString(),funeral:fun,autoFile:true});
-    const w=await hd.createWritable(); await w.write(JSON.stringify(out)); await w.close();
-    afLast=sig; afSetMeta({at:Date.now(),need:false,guard:false,name:hd.name||'',err:''}); renderAF(); return 'ok';
-  }catch(e){ afSetMeta({err:String(e&&e.message||e)}); renderAF(); return 'err'; }
-  finally{ afBusy=false; }
-}
-function afSchedule(){ clearTimeout(afTimer); afTimer=setTimeout(()=>{ afWrite(false); },6000); }
-async function afConnect(hd,{restoreAsk}={}){
-  await afPut(hd); afLast='';
-  if(await afPerm(hd,true)!=='granted'){ afSetMeta({need:true,name:hd.name||''}); renderAF(); toast('파일 수정을 허용해야 자동 백업이 됩니다'); return; }
-  const base=await afReadFile(hd);
-  if(restoreAsk&&base&&afCases(base.funeral)>0&&!db.cases.some(c=>Object.values(c.f||{}).some(v=>String(v??'').trim()))){
-    const data=afToFuneralBackup(base); if(data&&data.db){ const {nc,ne}=mergeBackup(data); save(); dirty=true; renderAll(); var restored=`이 파일에서 행사 ${nc}건, 봉투 ${ne}건을 되살리고 자동 백업을 이었습니다`; }
-  }
-  const r=await afWrite(true);
-  if(r==='ok') toast(restored||'자동 백업을 켰습니다. 저장할 때마다 이 파일에 최신 기록이 들어갑니다');
-  else if(r==='guard') toast('이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요');
-  else if(r==='err') toast('자동 백업 파일을 쓰지 못했습니다');
-  renderAF();
-}
-async function renderAF(){
-  const st=$('#afStatus'); if(!st) return;
-  const hd=await afGet(), m=afMeta();
-  $('#afBtns').hidden=!!hd; $('#afBtns2').hidden=!hd;
-  if(!afSupported()&&!hd){ st.textContent='이 휴대폰(브라우저)에서는 자동 백업을 쓸 수 없어요. 위의 「전체 기록 백업 파일 저장」을 써 주세요.'; $('#afBtns').hidden=true; return; }
-  if(!hd){ st.textContent='꺼져 있어요.'; return; }
-  const perm=await afPerm(hd,false), when=m.at?new Date(m.at):null;
-  const at=when?`${when.getMonth()+1}월 ${when.getDate()}일 ${String(when.getHours()).padStart(2,'0')}:${String(when.getMinutes()).padStart(2,'0')}`:'아직 없음';
-  st.textContent=m.guard?`켜짐 · 파일 「${hd.name}」에 기록이 있어 덮어쓰지 않았어요. 「이 파일에서 되살리기」를 누르세요.`
-    :perm!=='granted'?`켜짐 · 다시 연결이 필요해요 (마지막 자동 백업 ${at}). 「다시 연결」이나 위의 「저장」을 누르면 이어집니다.`
-    :`켜짐 · 파일 「${hd.name}」 · 마지막 자동 백업 ${at}`;
-  $('#afFix').hidden=perm==='granted';
-}
 /* ---------- 자동 보관본: 앱이 업데이트될 때(고치기 전 그대로)와 하루 한 번, 이 기기 안에 따로 보관 ---------- */
 const SNAP_DB='funeral-safe', SNAP_MAX=12;
 function snapOpen(){ return new Promise((ok,no)=>{ try{ const q=indexedDB.open(SNAP_DB,1); q.onupgradeneeded=()=>q.result.createObjectStore('snaps',{keyPath:'id'}); q.onsuccess=()=>ok(q.result); q.onerror=()=>no(q.error); }catch(e){ no(e); } }); }
@@ -3055,34 +2876,7 @@ $('#keepDelMonth').onclick=()=>{
     save(); dirty=true; renderAll(); toast(`${monthLabel(k)} 행사 ${before-db.cases.length}건을 지웠습니다. 봉투 기록은 남아 있습니다`);
   },{title:`${monthLabel(k)} 행사 기록을 지울까요?`,body:'그 달 행사만 지워져요. 봉투 기록과 자동 보관본은 남아요.',ok:'지우기'});
 };
-$('#saveNow').onclick=()=>{ saveNow(); if(afMeta().need) afWrite(true); };
-$('#afOn').onclick=async()=>{ if(!afSupported()){ toast('이 휴대폰에서는 자동 백업을 쓸 수 없어요'); return; } let hd; try{ hd=await window.showSaveFilePicker({suggestedName:'DW_자동백업.json',types:[{description:'DW 백업 파일',accept:{'application/json':['.json']}}]}); }catch(e){ return; } await afConnect(hd,{restoreAsk:true}); };
-$('#afOpen').onclick=async()=>{ if(typeof window.showOpenFilePicker!=='function'){ toast('이 휴대폰에서는 쓸 수 없어요'); return; } let hs; try{ hs=await window.showOpenFilePicker({types:[{description:'DW 백업 파일',accept:{'application/json':['.json']}}]}); }catch(e){ return; } if(hs&&hs[0]) await afConnect(hs[0],{restoreAsk:true}); };
-$('#afFix').onclick=async()=>{ const r=await afWrite(true); toast(r==='ok'||r==='same'?'자동 백업을 다시 이었습니다':r==='guard'?'이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요':'파일 수정을 허용해야 자동 백업이 됩니다'); renderAF(); };
-$('#afNow').onclick=async()=>{ save(); afLast=''; const r=await afWrite(true); toast(r==='ok'?'자동 백업 파일에 지금 기록을 넣었습니다':r==='guard'?'이 파일에 기록이 있어요. 「이 파일에서 되살리기」를 먼저 눌러 주세요':'자동 백업 파일을 쓰지 못했습니다'); };
-$('#afRestore').onclick=async()=>{ const hd=await afGet(); if(!hd) return; if(await afPerm(hd,true)!=='granted'){ toast('파일 읽기를 허용해 주세요'); return; } const data=afToFuneralBackup(await afReadFile(hd)); if(!data||!data.db){ toast('이 파일에 장례 기록이 없습니다'); return; } const {nc,ne}=mergeBackup(data); afSetMeta({guard:false}); save(); dirty=true; renderAll(); renderAF(); toast(`이 파일에서 행사 ${nc}건, 봉투 ${ne}건을 되살렸습니다`); };
-$('#afOff').onclick=()=>arm($('#afOff'),'자동 백업을 끌까요',async()=>{ await afPut(null); afSetMeta({at:0,need:false,guard:false}); renderAF(); toast('자동 백업을 껐습니다. 휴대폰의 파일은 그대로 남아 있어요'); });
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'){ clearTimeout(afTimer); afWrite(false); } });
-renderAF(); afWrite(false);
-$('#clGo').onclick=async()=>{
-  const p=clParse($('#clCode').value);
-  if(!p){ toast('주소가 맞지 않아요. 구글에서 받은 「…/exec」 주소나 클라우드 코드를 그대로 붙여 넣으세요'); return; }
-  const c={url:p.url,key:p.key||clNewKey()}, b=$('#clGo'); b.disabled=true; b.textContent='연결 중…';
-  try{
-    const cur=await clGet(c,'funeral'); clSetConf(c); $('#clCode').value='';
-    let msg='클라우드 자동 저장을 켰어요. 「클라우드 코드 복사」로 코드를 보관해 두세요';
-    if(p.key&&cur.data){ const r=await clRestore(c); if(r) msg=`클라우드에서 행사 ${r.nc}건, 봉투 ${r.ne}건을 되살리고 자동 저장을 이었어요`; }
-    clLast=''; await clPush(true); renderCL(); toast(msg);
-  }catch(e){ toast('연결하지 못했어요. 주소와 인터넷을 확인해 주세요'); }
-  finally{ b.disabled=false; b.textContent='연결'; }
-};
-$('#clNow').onclick=async()=>{ save(); const r=await clPush(true); toast(r==='ok'?'클라우드에 지금 기록을 올렸어요':r==='guard'?'클라우드에 기록이 있어요. 「클라우드에서 불러오기」를 먼저 눌러 주세요':'올리지 못했어요. 인터넷을 확인해 주세요'); };
-$('#clCopy').onclick=()=>clCopyCode();
-$('#clPull').onclick=async()=>{ const c=clConf(); if(!c) return; try{ const r=await clRestore(c); toast(r?`클라우드에서 행사 ${r.nc}건, 봉투 ${r.ne}건을 불러왔어요 (지금 기록은 지우지 않고 합쳤어요)`:'클라우드에 장례 기록이 없어요'); clLast=''; clPush(false); renderCL(); }catch(e){ toast('불러오지 못했어요. 인터넷을 확인해 주세요'); } };
-$('#clOff').onclick=()=>arm($('#clOff'),'클라우드 자동 저장을 끌까요',()=>{ clSetConf(null); clSetMeta({fat:0,err:'',guard:false}); renderCL(); toast('클라우드 자동 저장을 껐어요. 구글 드라이브의 기록은 그대로 있어요'); });
-window.addEventListener('online',()=>{ if(clMeta().err) clPush(false); });
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&clConf()){ clearTimeout(clTimer); clPush(false); } });
-renderCL(); if(clConf()) setTimeout(()=>clPush(false),2500);
+$('#saveNow').onclick=()=>saveNow();
 $('#newCase').onclick=()=>db.tab==='envelopes'?newManualEnvelope():db.tab==='settle'?startQuickSettle():openPicker('new');
 $('#caseSel').onchange=e=>{ db.cur=e.target.value; save(); dirty=true; renderAll(); };
 /* 한 줄 지우기 (제공 항목 · 공제 · 관리사 · 추가내역 · 실장 몫): 바로 지우고 「되돌리기」 (2026.10.24) */
@@ -3216,7 +3010,7 @@ $('#coDel').onclick=()=>arm($('#coDel'),'한 번 더 누르면 삭제',()=>{
   coSel=null; save(); renderCompanies(); renderCaseSel(); toast(`${co.name}을(를) 삭제했습니다`);
 },{title:'이 업체를 지울까요?',body:'이 업체로 넣은 행사는 「기타 업체」로 바뀌어요.',ok:'지우기'});
 
-/* ---------- 관리: 공유 · 백업 ---------- */
+/* ---------- 관리: 앱 · 양식 공유 ---------- */
 const APP_URL=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 const isWebApp=()=>/^https?:/.test(location.protocol) && !/claude\.ai|claudeusercontent/.test(location.host);
 function renderShare(){ $('#shareNote').textContent=isWebApp()?`주소: ${APP_URL()}`:'홈 화면 앱(인터넷 주소)으로 열었을 때 주소를 공유할 수 있습니다.'; }
@@ -3961,7 +3755,7 @@ function posterAuto(c){
    각자 아이디로 들어갔을 때 이름이랑 전화번호는 자동 · 전화번호는 설정에서 본인 번호 넣고 저장」.
    새 화면 'poster'(#p-poster, 행사 묶음 맨 끝 「장례일정표」). 입력값은 행사 기록과 따로 db.posterDoc
    = {name, casket, religion, depart, method('화장'|'매장'), rite(화장 · 하관 일시), burial, org} (이 기기, 마지막으로 쓴 것 하나).
-   아래 둘째 줄은 늘 「(문 의: 의전팀장 이름, 전화번호)」 — 이름 · 전화번호는 설정 → 내 계정 · 백업 → 내 정보(db.me.name · db.me.phone,
+   아래 둘째 줄은 늘 「(문 의: 의전팀장 이름, 전화번호)」 — 이름 · 전화번호는 설정 → 내 계정 → 내 정보(db.me.name · db.me.phone,
    db.me 는 내 계정 설정과 같이 저장돼서 같은 아이디로 들어가면 그대로 나옴). 「지금 행사에서 가져오기」로 행사 값을 한 번에 채울 수 있음. */
 function pxDoc(){ if(!db.posterDoc||typeof db.posterDoc!=='object') db.posterDoc={}; return db.posterDoc; }
 function myName(){ const n=String(me().name||'').trim(); if(n) return n;
@@ -5086,7 +4880,7 @@ function renderEnvelopes(){
   syncEnvelopeArchives();
   const rows=envelopeMonthRows(),months=[...new Set([seoulToday().slice(0,7),envelopeMonth,...db.envelopes.map(envelopeRecordMonth)])].sort().reverse();
   const [ey,em]=envelopeMonth.split('-').map(Number), AL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>', AR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
-  $('#p-envelopes').innerHTML='<div class="sec env-head"><div class="env-nav"><button class="cm-nav" type="button" data-env-shift="-1" aria-label="이전 달">'+AL+'</button><label class="env-mlabel"><b>'+ey+'년 '+em+'월</b><span>봉투 '+rows.length+'건</span><input id="envelopeMonth" type="month" value="'+envelopeMonth+'" aria-label="달 고르기"></label><button class="cm-nav" type="button" data-env-shift="1" aria-label="다음 달">'+AR+'</button></div><p class="note">정산에서 넣은 값으로 봉투가 자동으로 채워져요. 칸에 직접 넣으면 그 값이 먼저예요.</p><div class="row"><button class="btn" type="button" data-env-action="current" '+(curCase()?'':'disabled')+'>현재 행사 가져오기</button></div></div><div id="envelopeSummary" class="stack"></div>'+envelopeListTools()+'<div class="stack" id="envelopeList">'+(rows.length?rows.map(envelopeEditor).join(''):'<div class="sec env-empty"><h2>이달의 봉투 기록이 없습니다</h2><p class="note">정산 내용을 입력하면 자동으로 모입니다. 이전 행사는 직접 추가할 수 있습니다.</p></div>')+'</div><div class="sec"><div class="sec-head"><h2>봉투 기록 백업</h2></div><p class="note">이 기기에 자동 저장됩니다. 기기를 바꾸거나 브라우저 데이터를 지우기 전에 전체 기록을 파일로 보관하세요.</p><div class="row"><button class="btn" type="button" data-env-action="export">전체 기록 백업</button><button class="btn" type="button" data-env-action="import">백업 불러오기</button><input id="envelopeImport" type="file" accept=".json,application/json" hidden></div></div>';
+  $('#p-envelopes').innerHTML='<div class="sec env-head"><div class="env-nav"><button class="cm-nav" type="button" data-env-shift="-1" aria-label="이전 달">'+AL+'</button><label class="env-mlabel"><b>'+ey+'년 '+em+'월</b><span>봉투 '+rows.length+'건</span><input id="envelopeMonth" type="month" value="'+envelopeMonth+'" aria-label="달 고르기"></label><button class="cm-nav" type="button" data-env-shift="1" aria-label="다음 달">'+AR+'</button></div><p class="note">정산에서 넣은 값으로 봉투가 자동으로 채워져요. 칸에 직접 넣으면 그 값이 먼저예요.</p><div class="row"><button class="btn" type="button" data-env-action="current" '+(curCase()?'':'disabled')+'>현재 행사 가져오기</button></div></div><div id="envelopeSummary" class="stack"></div>'+envelopeListTools()+'<div class="stack" id="envelopeList">'+(rows.length?rows.map(envelopeEditor).join(''):'<div class="sec env-empty"><h2>이달의 봉투 기록이 없습니다</h2><p class="note">정산 내용을 입력하면 자동으로 모입니다. 이전 행사는 직접 추가할 수 있습니다.</p></div>')+'</div>';
   rows.forEach(updateEnvelopeCard); updateEnvelopeSummary();
 }
 function showEnvelopeMonth(month){
@@ -5103,37 +4897,6 @@ function newManualEnvelope(){
   const card=[...document.querySelectorAll('[data-env-id]')].find(el=>el.dataset.envId===r.id);
   card?.scrollIntoView({block:'start',behavior:'auto'});
   card?.querySelector('[data-env-meta="eventNo"]')?.focus();
-}
-function envelopeBackup(){
-  save();
-  const blob=new Blob([JSON.stringify({app:'funeral-envelopes',v:1,exportedAt:new Date().toISOString(),envelopes:db.envelopes},null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='봉투정리_전체기록_'+seoulToday()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-function importEnvelopeBackup(raw){
-  const data=JSON.parse(raw);
-  if(!data||data.app!=='funeral-envelopes'||data.v!==1||!Array.isArray(data.envelopes)) throw new Error('봉투정리 백업 파일이 아닙니다.');
-  const ids=new Set(),clean=[];
-  for(const r of data.envelopes){
-    if(!r||typeof r.id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(r.id)||ids.has(r.id)||!r.auto||typeof r.auto!=='object') throw new Error('봉투 기록 형식이 올바르지 않습니다.');
-    ids.add(r.id);
-    const item={id:r.id,auto:{},edits:{},amounts:{},notes:{},created:Number(r.created)||Date.now(),updated:Number(r.updated)||Date.now()};
-    if(r.sourceCaseId!==undefined){ if(typeof r.sourceCaseId!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(r.sourceCaseId)) throw new Error('행사 연결 정보가 올바르지 않습니다.'); item.sourceCaseId=r.sourceCaseId; }
-    for(const k of [...ENV_META,'date','settlement']) item.auto[k]=String(r.auto[k]??'');
-    for(const k of ['altar','urn']){ const n=Number(r.auto[k]||0);if(!Number.isSafeInteger(n)) throw new Error('수익 금액이 올바르지 않습니다.');item.auto[k]=n; }
-    for(const k of ENV_META) if(r.edits&&r.edits[k]!==undefined) item.edits[k]=String(r.edits[k]);
-    if(!envelopeMonthOK(envelopeMeta(item,'month'))) throw new Error('정산월이 올바르지 않습니다.');
-    for(const k of ENV_AMOUNTS) if(r.amounts&&r.amounts[k]!==undefined){ const value=String(r.amounts[k]);if(value!==''&&(!/^\d+(?:\.\d{1,4})?$/.test(value)||Number(value)>999999999)) throw new Error('입력 금액이 올바르지 않습니다.');item.amounts[k]=value; }
-    for(const k of ENV_NOTES) item.notes[k]=String((r.notes||{})[k]||'');
-    clean.push(item);
-  }
-  let count=0;
-  for(const r of clean){
-    const i=db.envelopes.findIndex(x=>x.id===r.id||(r.sourceCaseId&&x.sourceCaseId===r.sourceCaseId));
-    if(i<0){db.envelopes.push(r);count++;}
-    else if(r.updated>db.envelopes[i].updated){db.envelopes[i]=r;count++;}
-    if(r.sourceCaseId) db.envelopeSkipped=db.envelopeSkipped.filter(id=>id!==r.sourceCaseId);
-  }
-  save();renderEnvelopes();return count;
 }
 $('#p-envelopes').addEventListener('input',e=>{
   const t=e.target,root=t.closest('[data-env-id]');if(!root)return;
@@ -5153,10 +4916,7 @@ $('#p-envelopes').addEventListener('change',async e=>{
     if(!envelopeMonthOK(t.value)){t.value=envelopeRecordMonth(r);return;}
     r.edits.month=t.value;r.updated=Date.now();envelopeOpenId=r.id;showEnvelopeMonth(t.value);return;
   }
-  if(t.id==='envelopeImport'&&t.files&&t.files[0]){
-    try{if(t.files[0].size>8*1024*1024)throw new Error('파일이 너무 큽니다.');const count=importEnvelopeBackup(await t.files[0].text());toast(count+'건을 불러왔습니다. 기존 기록은 유지됩니다.');}
-    catch(err){toast(err.message||'백업 파일을 확인해 주세요.');}
-  }
+
 });
 $('#p-envelopes').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
@@ -5170,8 +4930,6 @@ $('#p-envelopes').addEventListener('click',e=>{
   if(action==='new'){newManualEnvelope();return;}
   if(action==='copySummary'){copyEnvelopeText(envelopeSummaryText());return;}
   if(action==='copyMonth'){copyEnvelopeText(envelopeSummaryText()+'\n\n'+envelopeMonthRows().map(x=>envelopeText(x,'part')+'\n\n'+envelopeText(x,'manager')).join('\n\n──────────\n\n'));return;}
-  if(action==='export'){envelopeBackup();return;}
-  if(action==='import'){$('#envelopeImport').click();return;}
   if(action==='edit'&&r){ envelopeEditId=r.id; envelopeEditSnap=JSON.stringify({edits:r.edits||{},amounts:r.amounts||{},notes:r.notes||{}}); envelopeOpenId=r.id; renderEnvelopes();
     const card=[...document.querySelectorAll('[data-env-id]')].find(el=>el.dataset.envId===r.id); card?.querySelector('[data-env-amount]')?.focus({preventScroll:true}); return; }
   if(action==='save'&&r){ envelopeEditId=null; envelopeEditSnap=null; r.updated=Date.now(); envelopeOpenId=r.id; saveNow('봉투를 저장했습니다'); renderEnvelopes(); return; }
@@ -5266,9 +5024,9 @@ $('#resetOffTpl').onclick=()=>{ $('#offTpl').value=OFF_TPL; db.offTpl=''; save()
 $('#saveDispTpl').onclick=()=>{ const t=$('#dispTpl').value.replace(/\s+$/,''); db.dispatchTpl=t&&t!==DISPATCH_TPL?t:''; save(); dirty=true; renderAll(); toast('배차 양식을 저장했습니다'); };
 $('#resetDispTpl').onclick=()=>{ $('#dispTpl').value=DISPATCH_TPL; db.dispatchTpl=''; save(); dirty=true; renderAll(); toast('배차 양식을 기본값으로 되돌렸습니다'); };
 $('#reportCards').onclick=e=>{ if(e.target.closest('[data-xlinput]')){ setTab('sched'); return; } { const b=e.target.closest('[data-xlsave]'); if(b){ szSave(curCase(),b.dataset.xlsave); return; } } { const z=e.target.closest('[data-sz-zoom]'); if(z){ z.classList.toggle('zoom'); return; } } if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
-const ADMIN_TITLES={forms:'업체 양식',common:'공통 양식',rules:'정산 기준',lists:'선택 목록',keep:'내 계정 · 백업'};
+const ADMIN_TITLES={forms:'업체 양식',common:'공통 양식',rules:'정산 기준',lists:'선택 목록',keep:'내 계정'};
 /* 설정 고르기 카드 (2026.10.28 사용자 「각 설정이 어떤 기능의 설정인지 한눈에」): 이름 · 무엇을 정하는지 · 쓰이는 곳 */
-const SET_INFO={forms:['업체별 밴드 · 회사 보고 양식, 제공내역','보고서 → 밴드 · 회사 양식'],common:['모든 업체 공통 배차 · 퇴근 문자','보고서 → 배차 · 퇴근'],rules:['정산 · 봉투 · 수당 나누는 기준','정산 · 봉투 · 수당 계산'],lists:['입력할 때 눌러 고르는 목록','행사 입력 · 정산'],keep:['로그인 · 백업 · 화면 밝기','모든 화면']};
+const SET_INFO={forms:['업체별 밴드 · 회사 보고 양식, 제공내역','보고서 → 밴드 · 회사 양식'],common:['모든 업체 공통 배차 · 퇴근 문자','보고서 → 배차 · 퇴근'],rules:['정산 · 봉투 · 수당 나누는 기준','정산 · 봉투 · 수당 계산'],lists:['입력할 때 눌러 고르는 목록','행사 입력 · 정산'],keep:['자동 저장 · 로그인 · 내 정보 · 화면 밝기','모든 화면']};
 (()=>{ const el=$('#setCards'); if(!el) return; el.innerHTML=Object.keys(ADMIN_TITLES).map(k=>`<button type="button" data-set="${k}"><b>${ADMIN_TITLES[k]}</b><span>${SET_INFO[k][0]}</span><small>${SET_INFO[k][1]}</small></button>`).join('');
   el.addEventListener('click',e=>{ const b=e.target.closest('[data-set]'); if(b) adminGo(b.dataset.set); }); })();
 function applyAdminView(){ const v=ADMIN_TITLES[db.adminView]?db.adminView:'forms';

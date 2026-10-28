@@ -1,7 +1,8 @@
 -- DW장례업무 · 파트 · 파트 게시판 · 권한 준비 (2026.10.23, -6: 한 사람은 한 파트에만 · 파트장은 다른 파트를 못 봄, -7: 앱에서 파트장 정하기,
 --   2026.10.26: 총괄실장 — 관리자가 앱에서 정함, 서식 · 회사 서류만 쓰고 파트장들의 서식 기록을 볼 수만 있음,
 --   2026.10.27: 물품 수령 · 불출 장부 — 파트장끼리 같이 쓰는 장부 (부산 · 울산 · 창원 입고 · 불출 · 남은 수량),
---   2026.10.28: 자료실 — 회사 기본 서류 파일을 올려 두고 직원 모두가 열어 보고 내려받음)
+--   2026.10.28: 자료실 — 회사 기본 서류 파일을 올려 두고 직원 모두가 열어 보고 내려받음 (모두 합쳐 800MB까지),
+--   2026.10.28-21: 섞인 기록 정리 — 예전에 다른 계정으로 같이 올라간 기록을 관리자가 원래 주인 계정에만 남김)
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -15,7 +16,7 @@
 --   · 총괄실장은 파트장들이 올린 주간보고 · 회의록 · 후기 · 탁송을 볼 수만 있음 (고치기 안 됨, 장례 기록 · 게시판은 안 보임)
 --   · 물품 수령 · 불출 장부: 파트장 모두가 같은 장부를 봄. 넣은 사람(과 관리자)만 고치고 지움, 지운 기록도 서버에 남음
 --   · 자료실: 파트에 들어간 직원 · 파트장 · 총괄실장이 서류 파일을 열어 보고 내려받음. 올리기는 파트장 · 총괄실장,
---     고치기 · 지우기는 올린 사람(과 관리자). 파일은 파일 보관함 「dw-docs」(공개 안 됨, 파일 하나 50MB까지)
+--     고치기 · 지우기는 올린 사람(과 관리자). 파일은 파일 보관함 「dw-docs」(공개 안 됨, 파일 하나 50MB까지, 모두 합쳐 800MB까지)
 -- 표는 앱에서 바로 건드릴 수 없고, 아래 함수(누가 무엇을 할 수 있는지 검사함)로만 읽고 씁니다.
 
 -- ---------- 표 ----------
@@ -657,7 +658,7 @@ end $$;
 create or replace function public.dw_doc_save(p jsonb) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare me uuid := auth.uid(); old public.dw_docs; v_id uuid; t text; b text; fs jsonb := '[]'::jsonb; f jsonb; pth text; n int := 0;
-  oldpaths text[] := '{}'; sz bigint; isnew boolean;
+  oldpaths text[] := '{}'; sz bigint; isnew boolean; others bigint; newsz bigint; oldsz bigint;
 begin
   if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
   if not public.dw_doc_can_upload() then return jsonb_build_object('ok', false, 'why', 'notup'); end if;
@@ -699,6 +700,15 @@ begin
       'name', left(coalesce(nullif(btrim(f ->> 'name'), ''), '파일'), 150), 'size', sz, 'type', left(coalesce(f ->> 'type', ''), 100)));
   end loop;
   if n = 0 then return jsonb_build_object('ok', false, 'why', 'nofiles'); end if;
+  -- 자료실 저장 공간: 모두 합쳐 800MB 까지 (2026.10.28-21 사용자 결정 — 700MB 부터 앱에서 경고). 줄어드는 고치기(파일 빼기)는 막지 않음
+  select coalesce(sum(case when (x ->> 'size') ~ '^\d{1,12}$' then (x ->> 'size')::bigint else 0 end), 0) into others
+    from public.dw_docs d, jsonb_array_elements(d.files) x where not d.deleted and d.id <> v_id;
+  select coalesce(sum((y ->> 'size')::bigint), 0) into newsz from jsonb_array_elements(fs) y;
+  select coalesce(sum(case when (x ->> 'size') ~ '^\d{1,12}$' then (x ->> 'size')::bigint else 0 end), 0) into oldsz
+    from jsonb_array_elements(coalesce(old.files, '[]'::jsonb)) x;
+  if others + newsz > 838860800 and newsz > oldsz then
+    return jsonb_build_object('ok', false, 'why', 'full', 'used', others + oldsz, 'limit', 838860800);
+  end if;
   perform public.dw_profile_ensure(me);
   if isnew then
     insert into public.dw_docs (id, title, body, files, author_id) values (v_id, t, b, fs, me);
@@ -721,6 +731,194 @@ begin
   if not ((coalesce(old.author_id = me, false) and public.dw_doc_can_upload()) or public.dw_is_admin(me)) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
   update public.dw_docs set deleted = true, updated_at = now() where id = p_id;
   return jsonb_build_object('ok', true, 'paths', coalesce((select jsonb_agg(x ->> 'path') from jsonb_array_elements(old.files) x), '[]'::jsonb));
+end $$;
+
+-- ---------- 섞인 기록 정리 (2026.10.28-21) ----------
+-- 예전(2026.10.28-20 전)에는 한 휴대폰에서 다른 계정으로 로그인 · 가입하면 그 휴대폰에 있던 앞사람 기록이 새 계정 서버로도 올라갔음.
+-- 관리자가 앱 설정 「섞인 기록 정리」에서 보고 고름:
+--   · 같은 기록(같은 번호)이 여러 계정에 있으면 원래 주인을 짐작하고, 나머지 계정 것은 「지움」 표시 (서버에 남음 · 되돌리기 가능)
+--     짐작 순서: ① 그 기록이 처음 생길 때 이미 가입해 있던 계정 ② 그 계정이 평소 쓰던 휴대폰에서 올라온 것 ③ 먼저 가입한 계정
+--   · 다른 사람 이름 · 전화번호(장례업무 내 정보) · 작성자 이름 · 서명(서식)이 그대로 들어간 계정 설정은 그 계정 것으로 되돌림
+-- 바꾼 것은 dw_unmix_log 에 적어 두고 「되돌리기」로 원래대로.
+create table if not exists public.dw_unmix_log (
+  batch      uuid        not null,
+  at         timestamptz not null default now(),
+  by_id      uuid,
+  user_id    uuid        not null references auth.users(id) on delete cascade,
+  app        text        not null,
+  kind       text        not null,
+  id         text        not null,
+  what       text        not null,     -- copy(지움 표시) · me(내 정보) · author(작성자) · sig(서명)
+  prev_data  jsonb,
+  primary key (batch, user_id, app, kind, id)
+);
+alter table public.dw_unmix_log enable row level security;
+revoke all on public.dw_unmix_log from anon, authenticated;
+
+-- 여러 계정에 같이 들어간 기록 (원래 주인이 아닌 쪽만)
+create or replace function public.dw_unmix_plan()
+returns table(copy_id uuid, owner_id uuid, app text, kind text, rid text, label text)
+language sql stable security definer set search_path = '' as $$
+  with live as (
+    select r.user_id, r.app, r.kind, r.id, r.device, r.updated_at, r.data,
+           case when r.kind in ('review', 'gnote') then md5(r.data::text) else '' end as dk   -- 날짜가 번호인 기록은 내용까지 같아야 복사본
+    from public.dw_records r
+    where not r.deleted and r.kind <> 'state' and r.data is not null
+      and not (r.kind = 'review' and coalesce(btrim(r.data ->> 'text'), '') = '')
+  ),
+  grp as (select l.app, l.kind, l.id, l.dk from live l group by l.app, l.kind, l.id, l.dk having count(distinct l.user_id) > 1),
+  ing as (select l.* from live l join grp g on g.app = l.app and g.kind = l.kind and g.id = l.id and g.dk = l.dk),
+  uniqdev as (   -- 다른 계정에 없는 기록이 올라온 휴대폰 = 그 계정이 쓰던 휴대폰
+    select l.user_id, l.device from live l
+    where l.device is not null and not exists (select 1 from grp g where g.app = l.app and g.kind = l.kind and g.id = l.id and g.dk = l.dk)
+    group by l.user_id, l.device
+  ),
+  devs as (
+    select u.user_id, u.device from uniqdev u
+    union
+    select l.user_id, l.device from live l   -- 그런 기록이 하나도 없는 계정은 그 계정 기록이 올라온 모든 휴대폰
+    where l.device is not null and not exists (select 1 from uniqdev u where u.user_id = l.user_id)
+  ),
+  scored as (
+    select i.*, (extract(epoch from u.created_at) * 1000)::bigint as made,
+      coalesce((extract(epoch from u.created_at) * 1000)::bigint <= coalesce(   -- 앱이 적어 둔 처음 만든 때가 있을 때만 봄 (없으면 모두 같게)
+          case when (i.data ->> 'created') ~ '^\d{12,14}$' then (i.data ->> 'created')::bigint end,
+          case when (i.data ->> 'createdAt') ~ '^\d{12,14}$' then (i.data ->> 'createdAt')::bigint end) + 3600000, true) as could,
+      exists (select 1 from devs d where d.user_id = i.user_id and d.device = i.device) as homedev
+    from ing i join auth.users u on u.id = i.user_id
+  ),
+  ranked as (
+    select s.*, row_number() over (partition by s.app, s.kind, s.id, s.dk order by s.could desc, s.homedev desc, s.made asc, s.user_id) as rk
+    from scored s
+  )
+  select r.user_id, o.user_id, r.app, r.kind, r.id,
+    left(case
+      when r.app = 'funeral' and r.kind = 'case' then concat_ws(' ', nullif(r.data -> 'f' ->> 'eventNo', '') || '번', nullif(r.data -> 'f' ->> 'place', ''),
+             case when coalesce(r.data -> 'f' ->> 'name', '') <> '' then '故 ' || (r.data -> 'f' ->> 'name') end, '행사')
+      when r.app = 'funeral' and r.kind = 'env' then concat_ws(' ', coalesce(nullif(r.data -> 'edits' ->> 'place', ''), nullif(r.data -> 'auto' ->> 'place', '')), '봉투')
+      when r.kind = 'weekly' then '주간보고 ' || coalesce(r.data ->> 'weekStart', '')
+      when r.kind = 'minute' then '회의록 ' || coalesce(r.data ->> 'date', '')
+      when r.kind = 'ship' then '탁송 ' || coalesce(r.data ->> 'date', '')
+      when r.kind = 'review' then '후기 ' || r.id
+      when r.kind = 'gnote' then '취합 글 ' || r.id
+      when r.kind = 'doc' then '회사 서류 ' || coalesce(r.data ->> 'title', '')
+      when r.kind = 'staff' then '직원 ' || coalesce(r.data ->> 'name', '')
+      when r.kind = 'img' then '사진'
+      else r.kind end, 80)
+  from ranked r join ranked o on o.app = r.app and o.kind = r.kind and o.id = r.id and o.dk = r.dk and o.rk = 1
+  where r.rk > 1
+$$;
+
+-- 다른 사람 이름 · 전화번호 · 서명이 그대로 들어간 계정 설정 (원래 주인이 아닌 쪽만, 고칠 값 fix 포함)
+create or replace function public.dw_unmix_states()
+returns table(uid uuid, what text, owner_id uuid, app text, kind text, rid text, fix jsonb)
+language sql stable security definer set search_path = '' as $$
+  with st as (
+    select r.user_id, r.app, r.kind, r.id, r.data,
+      case when r.app = 'funeral' and r.id = 'settings' then 'me'
+           when r.app = 'forms' and r.id = 'settings' then 'author' else 'sig' end as what,
+      case when r.app = 'funeral' then btrim(coalesce(r.data -> 'me' ->> 'name', ''))
+           when r.id = 'settings' then btrim(coalesce(r.data ->> 'author', ''))
+           else md5(coalesce(r.data ->> 'data', '')) end as k
+    from public.dw_records r
+    where not r.deleted and r.kind = 'state' and r.data is not null
+      and ((r.app = 'funeral' and r.id = 'settings') or (r.app = 'forms' and r.id in ('settings', 'signature')))
+  ),
+  st2 as (
+    select s.* from st s
+    where (s.what = 'sig' and coalesce(s.data ->> 'data', '') <> '') or (s.what <> 'sig' and s.k <> '')
+  ),
+  g as (select what, k from st2 group by what, k having count(distinct user_id) > 1),
+  m as (
+    select s.*, btrim(coalesce(p.name, '')) as pn, (extract(epoch from u.created_at) * 1000)::bigint as made
+    from st2 s join g on g.what = s.what and g.k = s.k
+    join auth.users u on u.id = s.user_id left join public.dw_profiles p on p.user_id = s.user_id
+  ),
+  rk as (
+    select m.*, row_number() over (partition by m.what, m.k order by (m.what <> 'sig' and m.pn <> '' and m.pn = m.k) desc, m.made asc, m.user_id) as r
+    from m
+  )
+  select x.user_id, x.what, o.user_id, x.app, x.kind, x.id,
+    case x.what
+      when 'me' then jsonb_set(x.data, '{me}', coalesce(x.data -> 'me', '{}'::jsonb) || jsonb_build_object('name', x.pn,
+             'phone', case when coalesce(x.data -> 'me' ->> 'phone', '') = coalesce(o.data -> 'me' ->> 'phone', '') then '' else coalesce(x.data -> 'me' ->> 'phone', '') end,
+             'rank', case when coalesce(x.data -> 'me' ->> 'rank', '') = coalesce(o.data -> 'me' ->> 'rank', '') then '' else coalesce(x.data -> 'me' ->> 'rank', '') end))
+      when 'author' then jsonb_set(x.data, '{author}', to_jsonb(x.pn))
+      else '{"none": true}'::jsonb end
+  from rk x join rk o on o.what = x.what and o.k = x.k and o.r = 1
+  where x.r > 1 and not (x.what <> 'sig' and x.pn <> '' and x.pn = x.k)   -- 자기 이름이면 그대로
+$$;
+
+-- 관리자: 무엇이 섞였는지 보기
+create or replace function public.dw_admin_mixed() returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid();
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_is_admin(me) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  return jsonb_build_object('ok', true,
+    'pairs', coalesce((
+      select jsonb_agg(jsonb_build_object('copy', q.copy_id, 'owner', q.owner_id, 'n', q.n, 'funeral', q.nf, 'forms', q.nm, 'company', q.nc,
+               'copy_name', coalesce(nullif(btrim(pc.name), ''), pc.login_id, ''), 'owner_name', coalesce(nullif(btrim(po.name), ''), po.login_id, ''),
+               'samples', q.samples) order by q.n desc)
+      from (select x.copy_id, x.owner_id, count(*) as n,
+                   count(*) filter (where x.app = 'funeral') as nf, count(*) filter (where x.app = 'forms') as nm, count(*) filter (where x.app = 'company') as nc,
+                   (array_agg(x.label order by x.app, x.kind, x.label))[1:4] as samples
+            from public.dw_unmix_plan() x group by x.copy_id, x.owner_id) q
+      left join public.dw_profiles pc on pc.user_id = q.copy_id left join public.dw_profiles po on po.user_id = q.owner_id), '[]'::jsonb),
+    'states', coalesce((
+      select jsonb_agg(jsonb_build_object('user', y.uid, 'what', y.what, 'owner', y.owner_id,
+               'user_name', coalesce(nullif(btrim(pu.name), ''), pu.login_id, ''), 'owner_name', coalesce(nullif(btrim(po.name), ''), po.login_id, '')))
+      from public.dw_unmix_states() y left join public.dw_profiles pu on pu.user_id = y.uid left join public.dw_profiles po on po.user_id = y.owner_id), '[]'::jsonb),
+    'batches', coalesce((
+      select jsonb_agg(jsonb_build_object('batch', b.batch, 'at', b.at, 'n', b.n) order by b.at desc)
+      from (select l.batch, max(l.at) as at, count(*) as n from public.dw_unmix_log l group by l.batch order by max(l.at) desc limit 5) b), '[]'::jsonb));
+end $$;
+
+-- 관리자: 고른 것 정리 (p = {pairs: [[복사된 계정, 원래 주인], …], states: [[계정, 'me'|'author'|'sig'], …]})
+create or replace function public.dw_admin_unmix(p jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); b uuid := gen_random_uuid(); t bigint := (extract(epoch from clock_timestamp()) * 1000)::bigint; n int := 0; ns int := 0;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_is_admin(me) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  insert into public.dw_unmix_log (batch, by_id, user_id, app, kind, id, what)
+  select distinct b, me, x.copy_id, x.app, x.kind, x.rid, 'copy' from public.dw_unmix_plan() x
+  where exists (select 1 from jsonb_array_elements(coalesce(p -> 'pairs', '[]'::jsonb)) e where e ->> 0 = x.copy_id::text and e ->> 1 = x.owner_id::text)
+  on conflict do nothing;
+  update public.dw_records r set deleted = true, updated_at = greatest(r.updated_at + 1, t), device = 'unmix'
+  from public.dw_unmix_log l where l.batch = b and l.what = 'copy' and r.user_id = l.user_id and r.app = l.app and r.kind = l.kind and r.id = l.id;
+  get diagnostics n = row_count;
+  insert into public.dw_unmix_log (batch, by_id, user_id, app, kind, id, what, prev_data)
+  select b, me, y.uid, y.app, y.kind, y.rid, y.what, r.data
+  from public.dw_unmix_states() y join public.dw_records r on r.user_id = y.uid and r.app = y.app and r.kind = y.kind and r.id = y.rid
+  where exists (select 1 from jsonb_array_elements(coalesce(p -> 'states', '[]'::jsonb)) e where e ->> 0 = y.uid::text and e ->> 1 = y.what)
+  on conflict do nothing;
+  update public.dw_records r set data = y.fix, updated_at = greatest(r.updated_at + 1, t), device = 'unmix'
+  from public.dw_unmix_states() y, public.dw_unmix_log l
+  where l.batch = b and l.what <> 'copy' and l.user_id = y.uid and l.app = y.app and l.kind = y.kind and l.id = y.rid
+    and r.user_id = y.uid and r.app = y.app and r.kind = y.kind and r.id = y.rid;
+  get diagnostics ns = row_count;
+  if n = 0 and ns = 0 then return jsonb_build_object('ok', true, 'n', 0, 'states', 0); end if;
+  return jsonb_build_object('ok', true, 'batch', b, 'n', n, 'states', ns);
+end $$;
+
+-- 관리자: 정리한 것 되돌리기
+create or replace function public.dw_admin_unmix_undo(p_batch uuid) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); t bigint := (extract(epoch from clock_timestamp()) * 1000)::bigint; n int := 0; ns int := 0;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_is_admin(me) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  update public.dw_records r set deleted = false, updated_at = greatest(r.updated_at + 1, t), device = 'unmix'
+  from public.dw_unmix_log l where l.batch = p_batch and l.what = 'copy' and r.user_id = l.user_id and r.app = l.app and r.kind = l.kind and r.id = l.id;
+  get diagnostics n = row_count;
+  update public.dw_records r set data = l.prev_data, updated_at = greatest(r.updated_at + 1, t), device = 'unmix'
+  from public.dw_unmix_log l where l.batch = p_batch and l.what <> 'copy' and l.prev_data is not null
+    and r.user_id = l.user_id and r.app = l.app and r.kind = l.kind and r.id = l.id;
+  get diagnostics ns = row_count;
+  delete from public.dw_unmix_log where batch = p_batch;
+  return jsonb_build_object('ok', true, 'n', n, 'states', ns);
 end $$;
 
 -- ---------- 누가 부를 수 있는지 ----------
@@ -793,5 +991,13 @@ grant execute on function public.dw_doc_is_admin()                           to 
 grant execute on function public.dw_docs_list()                              to authenticated;
 grant execute on function public.dw_doc_save(jsonb)                          to authenticated;
 grant execute on function public.dw_doc_delete(uuid)                         to authenticated;
+revoke all on function public.dw_unmix_plan()                  from public, anon, authenticated;
+revoke all on function public.dw_unmix_states()                from public, anon, authenticated;
+revoke all on function public.dw_admin_mixed()                 from public, anon;
+revoke all on function public.dw_admin_unmix(jsonb)            from public, anon;
+revoke all on function public.dw_admin_unmix_undo(uuid)        from public, anon;
+grant execute on function public.dw_admin_mixed()                            to authenticated;
+grant execute on function public.dw_admin_unmix(jsonb)                       to authenticated;
+grant execute on function public.dw_admin_unmix_undo(uuid)                   to authenticated;
 
 select 'DW 파트 · 게시판 · 물품 장부 · 자료실 준비 끝' as result;
