@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-2";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-3";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -533,6 +533,23 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
 @media (min-width:1000px){#tab-stock{width:100%;max-width:760px;margin-inline:auto}}
 @media (max-width:420px){#formTabs button{padding:0 5px;font-size:14px}}
 @media (max-width:370px){#formTabs button{padding:0 3px;font-size:13.5px}}   /* 서식 6칸(주간보고 … 물품 · 회사 서류)이 작은 휴대폰에서도 한 줄에 */
+/* 장례 상담서 (2026.10.28-3) */
+#tab-consult{gap:14px}
+.cs-pages{display:grid;gap:14px;justify-items:center;padding:12px;background:var(--pv-bg,#e9e9e6);border:1px solid var(--line);border-radius:6px}
+.cs-pages img{display:block;width:100%;max-width:620px;height:auto;background:#fff;border:1px solid var(--line);cursor:zoom-in}
+.cs-pages.zoom img{max-width:none;cursor:zoom-out}
+@media (min-width:1000px){#tab-consult{width:100%;max-width:760px;margin-inline:auto}}
+#ckPrint{display:none}
+@media print{
+  body.ck-print>*:not(#ckPrint){display:none!important}
+  body.ck-print{padding:0!important;margin:0!important;background:#fff!important}
+  body.ck-print #ckPrint{display:block!important}
+  #ckPrint img{display:block;width:100%;height:auto;break-after:page;page-break-after:always}
+  #ckPrint img:last-child{break-after:auto;page-break-after:auto}
+}
+@page{margin:8mm}
+@media (max-width:420px){#formTabs button{padding:0 4px;font-size:13.5px}}
+@media (max-width:370px){#formTabs button{padding:0 2px;font-size:12.5px}}
 /* 위쪽 메뉴 (2026.10.28 사용자 「메뉴 선택을 위쪽으로 다 올려서」): 태블릿 · PC 는 메뉴 줄이 위 막대 바로 아래 */
 .tabbar button[hidden]{display:none}
 @media (min-width:700px){
@@ -765,13 +782,14 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     기기 저장공간이 부족할 수 있어요. 설정에서 백업 파일을 먼저 받아 두세요.
   </div>
 
-  <!-- ===== 서식 고르기 (주간보고 · 회의록 · 후기보고 · 탁송 · 물품) — 파트장만 (물품은 총괄실장에게 안 보임) ===== -->
+  <!-- ===== 서식 고르기 (주간보고 · 회의록 · 후기보고 · 탁송 · 물품 · 상담서) — 파트장만 (물품 · 상담서는 총괄실장에게 안 보임) ===== -->
   <nav class="ftabs" id="formTabs" aria-label="서식 고르기" data-admin hidden>
     <button type="button" data-ftab="weekly">주간보고</button>
     <button type="button" data-ftab="minutes">회의록</button>
     <button type="button" data-ftab="review">후기보고</button>
     <button type="button" data-ftab="ship">탁송</button>
     <button type="button" data-ftab="stock" data-nochief>물품</button>
+    <button type="button" data-ftab="consult" data-nochief>상담서</button>
     <button type="button" data-goco>회사 서류</button>
   </nav>
 
@@ -953,6 +971,16 @@ html:not(.dw-chief) [data-chief]{display:none!important}
       </div>
       <aside class="live-pv" id="rptLive" aria-label="보고서 미리보기"><div class="live-head"><b>보고서 미리보기</b><button class="btn small" type="button" data-live-open>크게 보기 · 저장</button></div><div class="live-doc"></div></aside>
     </div>
+  </section>
+
+  <!-- ===== 장례 상담서 (2026.10.28-3): 파트장만 · 손으로 쓰는 빈 양식 A4 2장 · PDF 다운로드 ===== -->
+  <section class="tab" id="tab-consult" hidden data-nochief>
+    <div class="tab-head">
+      <h1>장례 상담서</h1>
+      <p>상담할 때 손으로 쓰는 A4 2장 양식이에요. 1쪽은 상담 내용, 2쪽은 인수인계 · 유가족 확인사항이에요.</p>
+    </div>
+    <div class="grid2 cs-acts"><button class="btn primary" type="button" id="csPdf">PDF 다운로드</button><button class="btn" type="button" id="csPrint">인쇄</button></div>
+    <div class="cs-pages" id="csPages"></div>
   </section>
 
   <!-- ===== 물품 수령 · 불출 (2026.10.27): 파트장끼리 같이 쓰는 장부 — 어떤 물품이 언제 몇 개 들어왔고(입고) 어디로 나갔는지(불출). 남은 수량은 안 셈 (사용자 결정) ===== -->
@@ -1569,7 +1597,7 @@ function showTab(t) {
   if (isMember() && ADMIN_TABS.includes(t)) t = 'home';   /* 직원 계정: 서식 · 설정은 안 열림 */
   if (isChief() && STAFF_TABS.includes(t)) t = 'gather';   /* 총괄실장: 홈 · 게시판 대신 취합 */
   if (!isChief() && t === 'gather') t = 'home';
-  if (isChief() && t === 'stock') t = 'gather';   /* 물품 장부는 파트장만 */
+  if (isChief() && (t === 'stock' || t === 'consult')) t = 'gather';   /* 물품 장부 · 상담서는 파트장만 */
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
   S.tab = t; document.body.dataset.view = t;
   ALL_TABS.forEach((k) => { $('#tab-' + k).hidden = k !== t; });
@@ -1585,6 +1613,7 @@ function showTab(t) {
   if (t === 'review') renderReview();
   if (t === 'gather') gatherOpen(false);
   if (t === 'stock') stockOpen();
+  if (t === 'consult') consultOpen();
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
 async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
@@ -3406,13 +3435,13 @@ function bindPwa() {
    홈: 이번 달(발인일 기준) 행사 수 · 봉투 합계 — 장례업무 기록(funeral-band-v2)을 읽기만 함 · 월말 마감 D-N · 파트 공지.
    게시판 · 파트: 수파베이스 서버 함수(tools/supabase-part.sql)로만 읽고 씀 → window.dwAcct.rpc (leader-gate.html).
    파트장은 파트원의 장례일정 · 봉투를 보기만 함(dw_member_records). 직원 계정(html.dw-member)은 서식 · 설정이 안 보임. */
-const FORM_TABS = ['weekly', 'minutes', 'review', 'ship', 'stock'];   /* stock = 물품 수령 · 불출 (2026.10.27, 파트장만 — 총괄실장은 안 봄) */
+const FORM_TABS = ['weekly', 'minutes', 'review', 'ship', 'stock', 'consult'];   /* consult = 장례 상담서 (2026.10.28-3, 파트장만) */   /* stock = 물품 수령 · 불출 (2026.10.27, 파트장만 — 총괄실장은 안 봄) */
 const ADMIN_TABS = FORM_TABS.concat(['settings']);
 const ALL_TABS = ['home', 'gather'].concat(FORM_TABS, ['board', 'settings']);
 const STAFF_TABS = ['home', 'board'];   /* 총괄실장은 안 씀 */
 const isMember = () => document.documentElement.classList.contains('dw-member');
 const isChief = () => document.documentElement.classList.contains('dw-chief');   /* 총괄실장 (2026.10.26) */
-function lastFormTab() { let t = ''; try { t = localStorage.getItem('mf.formTab') || ''; } catch (e) { /* ignore */ } return FORM_TABS.includes(t) && !(t === 'stock' && isChief()) ? t : 'weekly'; }
+function lastFormTab() { let t = ''; try { t = localStorage.getItem('mf.formTab') || ''; } catch (e) { /* ignore */ } return FORM_TABS.includes(t) && !((t === 'stock' || t === 'consult') && isChief()) ? t : 'weekly'; }
 function whenAcct(fn) { if (window.dwAcct) fn(); else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { if (window.dwAcct) fn(); }, { once: true }); }
 const SVG_R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
 const SVG_L = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
@@ -3873,7 +3902,7 @@ function bindHomeBoard() {
   });
   window.addEventListener('dw-role', () => {
     if (isMember() && (ADMIN_TABS.includes(S.tab) || S.tab === 'gather')) showTab('home');
-    else if (isChief() && (STAFF_TABS.includes(S.tab) || S.tab === 'stock')) showTab('gather');
+    else if (isChief() && (STAFF_TABS.includes(S.tab) || S.tab === 'stock' || S.tab === 'consult')) showTab('gather');
     else if (!isChief() && S.tab === 'gather') showTab('home');
     else if (S.tab === 'home') renderHome(); else if (S.tab === 'board') paintBoard(); else if (S.tab === 'gather') gatherOpen(true);
     if (S.tab === 'settings' && !S.sd) renderSettings();
@@ -4225,6 +4254,188 @@ function bindStock() {
   window.addEventListener('online', () => { if (ST.pend.size || S.tab === 'stock') stSync(); });
   /* 못 올린 것이 남아 있으면 앱을 열 때 올림 (파트장 계정만) */
   whenAcct(() => setTimeout(() => { stCacheLoad(); if (ST.pend.size) stSync(); }, 2500));
+}
+
+/* ================= 장례 상담서 (2026.10.28-3, 파트장만 · 서식) =================
+   사용자: 「업체 · 행사번호 다 삭제(어느 회사로 진행할지 모름) · 「업체명」 칸만 · 고인 인적사항(성함 · 주민번호 · 주소) ·
+   제공내역은 우리가 제공한 만큼만 적게 · 파트장만 서식으로 · PDF 다운로드」. 상담할 때 손으로 쓰는 빈 양식 A4 2장.
+   1쪽: 고인 인적사항 · 회원 · 상주 · 유족 · 장례 일정 · 장지 · 상품 · 금액 · 제공 내역(빈 줄) · 특이사항 · 동의 서명
+   2쪽: 담당자 확인사항(사망진단서 · 검사지휘서 · 화장 예약 …) · 인수인계 · 유가족 확인사항 · 기타 전달 사항 · 서명 */
+const CK = { W: 1240, H: 1754, M: 70, ink: '#1c1d1f', mute: '#6a6e73', lab: '#efefec', hint: '#9a9d9a', pdf: null, pngs: [], urls: [], busy: null };
+const CK_SANS = '"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif';
+const CK_SERIF = '"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif';
+async function ckFonts() {
+  if (!document.fonts || !document.fonts.load) return;
+  const t = '장례상담서인수인계유가족확인사항고인인적성함주민등록번호주소본관종교직분병명사망원인장소회원상주업체명소속회사관계연락처배우자아들딸며느리사위손주일정임종빈소입관발인화장하관장법매장수목장봉안해양장회차장지차상품금액지원기납입잔액제공내역번호항목내용수량비고특이담당지도사설명동의합니다년월일시분인대표진단서검사지휘화장예약하늘정보시스템날짜제물제사여부준비유골함종류각인용품관수의배차버스리무진출발시간경유지자택종교시설도우미인원근무상복남여벌반납안내영정사진원본받음제작꽃장식참관생화교회성당사찰연락부고문자게시표시일시인계자인수자넉넉히받아두세요보험은행상속정리에쓰입니다신고안날부터개월안에구읍면사무소나주민센터에서합니다때안심원스톱서비스재산한번에조회를같이신청할수있습니다식장사용료안치식대와따로정산될추가비용시간차량거리등을미리안내받았습니다날준비물위패서류계약서귀중품유품을했습니다기타전달위내용';
+  const jobs = [400, 500, 600, 700].map((w) => document.fonts.load(`${w} 40px "Pretendard Variable"`, t + '0123456789()·-~,.:「」').catch(() => {}));
+  jobs.push(document.fonts.load('700 40px "Noto Serif KR"', '장례상담서인수인계유가족확인사항·').catch(() => {}));
+  await Promise.race([Promise.all(jobs), new Promise((r) => setTimeout(r, 3000))]);
+}
+function ckFit(g, t, maxW, px, w, fam) { let p = px; g.font = `${w} ${p}px ${fam}`; const tw = g.measureText(String(t)).width; if (maxW > 0 && tw > maxW) { p = Math.max(px * 0.55, px * maxW / tw); g.font = `${w} ${p}px ${fam}`; } return p; }
+function ckNew() { const cv = document.createElement('canvas'); cv.width = CK.W; cv.height = CK.H; const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, CK.W, CK.H); g.textBaseline = 'middle'; return [cv, g]; }
+function ckT(g, t, x, y, o = {}) { const px = o.px || 21, w = o.w || 500, fam = o.fam || CK_SANS; g.fillStyle = o.color || CK.ink; g.textAlign = o.align || 'left'; if (o.maxW) ckFit(g, t, o.maxW, px, w, fam); else g.font = `${w} ${px}px ${fam}`; g.fillText(String(t), x, y); }
+function ckBox(g, x, y, w, h, fill) { if (fill) { g.fillStyle = fill; g.fillRect(x, y, w, h); } g.strokeStyle = CK.ink; g.lineWidth = 1.3; g.strokeRect(x + 0.5, y + 0.5, w, h); }
+function ckCheck(g, x, y, size = 20) { g.strokeStyle = CK.ink; g.lineWidth = 1.6; g.strokeRect(x + 0.5, y - size / 2 + 0.5, size, size); }
+function ckChecks(g, x, y, opts, maxW) {
+  let px = 20, gap = 18; const tot = () => { g.font = `500 ${px}px ${CK_SANS}`; return opts.reduce((a, o) => a + 24 + g.measureText(o).width + gap, 0) - gap; };
+  while (maxW && tot() > maxW && px > 14) { px -= 1; gap = Math.max(8, gap - 2); }
+  let cx = x; opts.forEach((o) => { ckCheck(g, cx, y, 17); ckT(g, o, cx + 23, y, { px }); g.font = `500 ${px}px ${CK_SANS}`; cx += 24 + g.measureText(o).width + gap; });
+}
+/* 표 한 줄: cells = [{w, lab} | {w, hint} | {w, checks}] */
+function ckRow(g, x, y, h, cells) {
+  let cx = x;
+  cells.forEach((c) => {
+    if (c.lab != null) { ckBox(g, cx, y, c.w, h, CK.lab); const L = String(c.lab).split('\n'); L.forEach((l, i) => ckT(g, l, cx + c.w / 2, y + h / 2 + (i - (L.length - 1) / 2) * 23, { px: 19, w: 600, align: 'center', maxW: c.w - 14 })); }
+    else { ckBox(g, cx, y, c.w, h); if (c.checks) ckChecks(g, cx + 12, y + h / 2, c.checks, c.w - 24); else if (c.hint) ckT(g, c.hint, cx + 12, y + h / 2, { px: 18, w: 400, color: CK.hint, maxW: c.w - 24 }); }
+    cx += c.w;
+  });
+  return y + h;
+}
+function ckSec(g, y, title, sub) { ckT(g, '■', CK.M, y + 16, { px: 16, w: 700 }); ckT(g, title, CK.M + 24, y + 16, { px: 23, w: 700 }); if (sub) { g.font = `700 23px ${CK_SANS}`; ckT(g, sub, CK.M + 24 + g.measureText(title).width + 14, y + 17, { px: 17, w: 400, color: CK.mute }); } return y + 38; }
+function ckHead(g, title, right, sub) {
+  const M = CK.M, R = CK.W - M;
+  ckT(g, title, M, 104, { px: 46, w: 700, fam: CK_SERIF });
+  ckT(g, right, R, 104, { px: 19, w: 500, align: 'right' });
+  if (sub) ckT(g, sub, M, 152, { px: 18, w: 500, color: CK.mute, maxW: R - M });
+  g.fillStyle = CK.ink; g.fillRect(M, 170, R - M, 3); g.fillRect(M, 176, R - M, 1);
+  return 196;
+}
+const CK_DT = '      월      일      시      분';
+function ckPage1() {
+  const [cv, g] = ckNew(), M = CK.M, X = M, CW = CK.W - 2 * M, L = 150, V = (CW - 2 * L) / 2, H = 44;
+  let y = ckHead(g, '장례 상담서', '상담일 :        년      월      일');
+  const r = (cells, h = H) => { y = ckRow(g, X, y, h, cells); };
+  const pair = (l1, h1, l2, h2) => r([{ w: L, lab: l1 }, { w: V, hint: h1 }, { w: L, lab: l2 }, { w: V, hint: h2 }]);
+  const six = (a, b, c) => r([{ w: L, lab: a }, { w: 230 }, { w: 110, lab: b }, { w: 140 }, { w: 110, lab: c }, { w: CW - L - 230 - 110 - 140 - 110 }]);
+  y = ckSec(g, y, '고인 인적사항');
+  pair('성함', '', '주민등록번호', '                -');
+  r([{ w: L, lab: '주소' }, { w: CW - L }]);
+  pair('본관', '', '종교 · 직분', '유교 · 불교 · 기독교 · 천주교 · 무교');
+  pair('병명 · 사망 원인', '', '사망 장소', '병원 · 자택 · 기타');
+  y += 12; y = ckSec(g, y, '회원 · 상주 · 유족');
+  pair('업체명', '', '소속 · 회사', '');
+  six('회원명', '관계', '연락처');
+  six('상주명', '관계', '연락처');
+  { const P = (CW - L) / 3, l2 = 96, rows = [['배우자', '아들', '딸'], ['며느리', '사위', '손주']], hh = 42, y0 = y;
+    ckBox(g, X, y0, L, hh * 2, CK.lab); ckT(g, '유족 관계', X + L / 2, y0 + hh, { px: 19, w: 600, align: 'center' });
+    rows.forEach((row, ri) => { let cx = X + L; row.forEach((k) => { ckBox(g, cx, y0 + ri * hh, l2, hh, CK.lab); ckT(g, k, cx + l2 / 2, y0 + ri * hh + hh / 2, { px: 18, w: 600, align: 'center' }); ckBox(g, cx + l2, y0 + ri * hh, P - l2, hh); cx += P; }); });
+    y = y0 + hh * 2; }
+  y += 12; y = ckSec(g, y, '장례 일정 · 장지');
+  pair('임종', CK_DT, '장례식장 · 빈소', '');
+  pair('입관', CK_DT, '발인', CK_DT);
+  r([{ w: L, lab: '화장 · 하관' }, { w: V, hint: CK_DT }, { w: L, lab: '장법' }, { w: V, checks: ['화장', '매장', '수목장', '봉안', '해양장'] }]);
+  pair('화장장 · 회차', '', '장지 (1차 · 2차)', '');
+  y += 12; y = ckSec(g, y, '상품 · 금액');
+  pair('상품명', '', '상품 금액', '');
+  pair('회사지원 ·\n기납입금', '', '잔액', '');
+  y += 12; y = ckSec(g, y, '제공 내역', '우리가 제공한 것만 적어 주세요');
+  { const C = [70, 380, 380, CW - 830], hh = 36; let cx = X;
+    ['번호', '제공 항목', '내용 · 수량', '비고'].forEach((t, i) => { ckBox(g, cx, y, C[i], hh, CK.lab); ckT(g, t, cx + C[i] / 2, y + hh / 2, { px: 18, w: 700, align: 'center' }); cx += C[i]; }); y += hh;
+    for (let i = 0; i < 7; i++) { cx = X; C.forEach((w, j) => { ckBox(g, cx, y, w, hh); if (j === 0) ckT(g, String(i + 1), cx + w / 2, y + hh / 2, { px: 17, w: 500, align: 'center', color: CK.hint }); cx += w; }); y += hh; } }
+  y += 12; y = ckSec(g, y, '특이사항');
+  { const h = Math.max(80, CK.H - y - 232); ckBox(g, X, y, CW, h); y += h; }
+  y += 34; ckT(g, '담당 장례지도사에게 금액과 제공 내역 등 충분한 설명을 듣고 장례 진행에 동의합니다.', CK.W / 2, y, { px: 21, w: 700, align: 'center', maxW: CW });
+  y += 46; ckT(g, '20      년      월      일', CK.W - M, y, { px: 20, w: 500, align: 'right' });
+  y += 50;
+  const sig = (k, x) => { ckT(g, k, x, y, { px: 21, w: 700 }); g.font = `700 21px ${CK_SANS}`; const lw = g.measureText(k).width; ckT(g, ':', x + lw + 10, y, { px: 21, w: 700 }); g.fillStyle = CK.ink; g.fillRect(x + lw + 28, y + 18, 210, 1.3); ckT(g, '(인)', x + lw + 250, y, { px: 19 }); };
+  sig('장례지도사', M + 40); sig('유가족 대표', CK.W / 2 + 20);
+  return cv;
+}
+function ckPage2() {
+  const [cv, g] = ckNew(), M = CK.M, X = M, CW = CK.W - 2 * M;
+  let y = ckHead(g, '인수인계 · 유가족 확인사항', '장례 상담서 2쪽', '고인 :                        장례식장 :                              발인 :');
+  y = ckSec(g, y, '담당자 확인사항', '확인하면 표시');
+  const W = [70, 190, CW - 70 - 190 - 290, 290], hh = 40;
+  { let cx = X; ['확인', '항목', '확인할 내용', '메모'].forEach((t, i) => { ckBox(g, cx, y, W[i], hh, CK.lab); ckT(g, t, cx + W[i] / 2, y + hh / 2, { px: 18, w: 700, align: 'center' }); cx += W[i]; }); y += hh; }
+  const items = [
+    ['사망진단서', '원본 확인 · 필요한 만큼 발급 (사망신고 · 보험 · 은행 · 상속용)', '(        )부'],
+    ['검사지휘서', '사고 · 외인사 · 자택 사망 등 검안한 경우 경찰 · 검사 지휘 확인', '해당 · 없음'],
+    ['화장 예약', 'e하늘 장사정보시스템 예약 · 화장장 · 날짜 · 회차 확인', ''],
+    ['장지', '봉안당 · 자연장 · 선산 계약, 서류 · 안치 시간 확인', ''],
+    ['장지 제물', '장지 제사 여부 · 제물 준비', ''],
+    ['유골함', '종류 · 금액 · 각인 확인', ''],
+    ['용품', '관 · 수의 · 입관용품 준비', ''],
+    ['배차', '버스 · 리무진 · 출발 시간 · 경유지(자택 · 종교시설)', ''],
+    ['도우미', '인원 · 근무 시간', ''],
+    ['상복', '남 · 여 벌수 · 반납 안내', ''],
+    ['영정사진', '원본 사진 받음 · 제작', ''],
+    ['입관 · 꽃장식', '입관 시간 · 참관 가족 · 생화장식', ''],
+    ['종교의식', '교회 · 성당 · 사찰 연락 · 의식 시간', ''],
+    ['부고 · 안내', '부고 문자 · 빈소 안내 · 주요 장례일정 게시', ''],
+  ];
+  const ih = 42;
+  items.forEach(([k, t, m]) => {
+    let cx = X; ckBox(g, cx, y, W[0], ih); ckCheck(g, cx + W[0] / 2 - 10, y + ih / 2, 20); cx += W[0];
+    ckBox(g, cx, y, W[1], ih); ckT(g, k, cx + 14, y + ih / 2, { px: 19, w: 700, maxW: W[1] - 24 }); cx += W[1];
+    ckBox(g, cx, y, W[2], ih); ckT(g, t, cx + 12, y + ih / 2, { px: 17, maxW: W[2] - 22 }); cx += W[2];
+    ckBox(g, cx, y, W[3], ih); if (m) ckT(g, m, cx + 12, y + ih / 2, { px: 17, w: 400, color: CK.hint, maxW: W[3] - 22 });
+    y += ih;
+  });
+  y += 16; y = ckSec(g, y, '인수인계', '담당이 바뀔 때');
+  { const C = [180, 170, 170, CW - 520]; let cx = X; ['일시', '인계자', '인수자', '인계 내용'].forEach((t, i) => { ckBox(g, cx, y, C[i], 38, CK.lab); ckT(g, t, cx + C[i] / 2, y + 19, { px: 18, w: 700, align: 'center' }); cx += C[i]; }); y += 38;
+    for (let i = 0; i < 3; i++) { cx = X; C.forEach((w, j) => { ckBox(g, cx, y, w, 48); if (j === 0) ckT(g, '   월    일    시', cx + w / 2, y + 24, { px: 17, w: 400, color: CK.hint, align: 'center' }); cx += w; }); y += 48; } }
+  y += 16; y = ckSec(g, y, '유가족 확인사항', '설명 듣고 표시');
+  [
+    '사망진단서는 넉넉히 받아 두세요. 사망신고 · 보험 · 은행 · 상속 정리에 쓰입니다.',
+    '사망신고는 사망 사실을 안 날부터 1개월 안에 시 · 구 · 읍 · 면사무소나 주민센터에서 합니다.',
+    '사망신고 때 「안심상속 원스톱 서비스」(고인 재산 한 번에 조회)를 같이 신청할 수 있습니다.',
+    '장례식장 사용료(빈소 · 안치 · 식대)와 화장장 · 장지 사용료는 상품 금액과 따로 정산될 수 있습니다.',
+    '추가 비용(상복 추가 · 도우미 시간 · 차량 거리 추가 등)을 미리 안내받았습니다.',
+    '발인 날 준비물: 영정사진 · 위패 · 사망진단서 · 장지 서류(계약서 등)',
+    '고인의 귀중품 · 유품을 확인했습니다.',
+  ].forEach((t) => { ckCheck(g, X + 6, y + 19, 20); ckT(g, t, X + 40, y + 19, { px: 19, maxW: CW - 44 }); y += 38; });
+  y += 12;
+  { const bottom = CK.H - 212; if (bottom - y > 110) { y = ckSec(g, y, '기타 전달 사항'); const h = bottom - y; ckBox(g, X, y, CW, h); g.strokeStyle = '#d6d7d4'; g.lineWidth = 1; for (let ly = y + 44; ly < y + h - 8; ly += 44) { g.beginPath(); g.moveTo(X + 12, ly + 0.5); g.lineTo(X + CW - 12, ly + 0.5); g.stroke(); } y += h; } }
+  y = Math.max(y + 40, CK.H - 170);
+  ckT(g, '위 내용을 확인했습니다.', X, y, { px: 20, w: 700 }); ckT(g, '20      년      월      일', CK.W - M, y, { px: 20, align: 'right' });
+  y += 60; const cw = CW / 3;
+  ['인계자', '인수자', '유가족 대표'].forEach((k, i) => { const x = X + i * cw; ckT(g, k, x, y, { px: 20, w: 700 }); g.font = `700 20px ${CK_SANS}`; const lw = g.measureText(k).width; g.fillStyle = CK.ink; g.fillRect(x + lw + 12, y + 18, cw - lw - 70, 1.3); ckT(g, '(인)', x + cw - 50, y, { px: 18 }); });
+  return cv;
+}
+async function consultBuild() {   /* 한 번 만들어 두고 다시 씀 (빈 양식이라 늘 같음) */
+  if (CK.pngs.length) return;
+  if (CK.busy) return CK.busy;
+  CK.busy = (async () => {
+    await ckFonts();
+    const cvs = [ckPage1(), ckPage2()];
+    CK.pngs = []; for (const c of cvs) CK.pngs.push(await canvasBlob(c, 'image/png'));
+    CK.urls = CK.pngs.map((b) => URL.createObjectURL(b));
+    const JS = window.jspdf && window.jspdf.jsPDF;
+    if (JS) { const pdf = new JS({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }); cvs.forEach((c, i) => { if (i) pdf.addPage('a4', 'portrait'); pdf.addImage(c.toDataURL('image/jpeg', 0.93), 'JPEG', 0, 0, 210, 297, undefined, 'FAST'); }); CK.pdf = pdf.output('blob'); }
+    cvs.forEach((c) => { c.width = 0; c.height = 0; });
+  })();
+  try { await CK.busy; } finally { CK.busy = null; }
+}
+async function consultOpen() {
+  const box = $('#csPages'); if (!box) return;
+  if (!CK.urls.length) box.innerHTML = '<div class="loading">양식을 만드는 중…</div>';
+  try { await consultBuild(); box.innerHTML = CK.urls.map((u, i) => `<img src="${u}" alt="장례 상담서 ${i + 1}쪽">`).join(''); }
+  catch (e) { box.innerHTML = '<div class="loading">양식을 만들지 못했어요. 다시 열어 주세요.</div>'; }
+}
+async function consultPdf(btn) {
+  setBusy(btn, true, 'PDF 만드는 중…');
+  try { await consultBuild(); } catch (e) { /* 아래에서 안내 */ } finally { setBusy(btn, false); }
+  if (!CK.pdf) { toast('PDF를 만들지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'); return; }
+  await deliver([{ name: '장례상담서.pdf', blob: CK.pdf }], { title: '장례 상담서 PDF', okMsg: 'PDF를 저장했어요',
+    hint: isIOS() ? '아이폰은 「카톡 등으로 보내기」에서 「파일에 저장」을 고르면 파일 앱에 보관돼요.' : '' });
+}
+async function consultPrint() {
+  try { await consultBuild(); } catch (e) { /* 아래에서 안내 */ }
+  if (!CK.urls.length) { toast('양식을 만드는 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
+  let box = $('#ckPrint'); if (!box) { box = document.createElement('div'); box.id = 'ckPrint'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
+  box.innerHTML = CK.urls.map((u) => `<img src="${u}" alt="">`).join('');
+  await Promise.all([...box.querySelectorAll('img')].map((im) => (im.decode ? im.decode().catch(() => {}) : null)));
+  const done = () => { document.body.classList.remove('ck-print'); window.removeEventListener('afterprint', done); };
+  document.body.classList.add('ck-print'); window.addEventListener('afterprint', done);
+  setTimeout(() => { try { window.print(); } catch (e) { done(); toast('인쇄창을 열지 못했어요. 「PDF 다운로드」를 써 주세요.'); } }, 60);
+}
+function bindConsult() {
+  const tab = $('#tab-consult'); if (!tab) return;
+  tab.addEventListener('click', (e) => {
+    if (e.target.closest('#csPdf')) { consultPdf(e.target.closest('#csPdf')); return; }
+    if (e.target.closest('#csPrint')) { consultPrint(); return; }
+    const im = e.target.closest('#csPages img'); if (im) $('#csPages').classList.toggle('zoom');
+  });
 }
 
 /* ================= 서버 자동 저장 · 서식 (2026.10.23-7) — 맞추는 일은 src/sync-kit.html (dw_records app='forms', 내 것만) =================
@@ -4898,6 +5109,7 @@ async function init() {
   bind();
   bindGather();
   bindStock();
+  bindConsult();
   bindPwa();
   setupPwa();
   getDownloads();

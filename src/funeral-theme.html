@@ -308,7 +308,7 @@ html{scroll-padding-top:calc(var(--ab-h) + var(--tn-h,0px) + 16px)}
 </style>
 
 <style id="print-out">
-/* 주요 장례일정 · 장례 상담서 (2026.10.28): 미리보기 · 저장 버튼 · 인쇄 */
+/* 주요 장례일정 (2026.10.28): 미리보기 · 저장 버튼 · 인쇄 (상담서는 서식으로 옮김 2026.10.28-3) */
 .px-pv,.cs-pv{display:grid;gap:12px;justify-items:center;padding:12px;background:var(--field);border:1px solid var(--line);border-radius:6px;cursor:zoom-in}
 .px-pv canvas{display:block;width:100%;max-width:420px;height:auto;background:#fff;border:1px solid var(--line)}
 .cs-pv canvas{display:block;width:100%;max-width:560px;height:auto;background:#fff;border:1px solid var(--line)}
@@ -316,15 +316,12 @@ html{scroll-padding-top:calc(var(--ab-h) + var(--tn-h,0px) + 16px)}
 .px-pv.zoom,.cs-pv.zoom{cursor:zoom-out}
 .px-pv.err{position:relative}
 .px-pv.err::after{content:"양식을 불러오지 못했어요 · 인터넷이 될 때 다시 열어 주세요";position:absolute;inset:auto 12px 12px;padding:10px;background:var(--surface);border:1px solid var(--warn);color:var(--warn);font-size:13px;border-radius:4px;text-align:center}
-.cs-pv:empty{min-height:200px}
-.cs-pv:empty::before{content:"상담서를 만드는 중…";align-self:center;color:var(--muted);font-size:13px}
 .pr-acts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .pr-acts.pr-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:560px){ .pr-acts{grid-template-columns:repeat(2,minmax(0,1fr))} .pr-acts.pr-3>.btn:first-child{grid-column:1/-1} }
 .px-edit{border-top:1px solid var(--line);padding-top:4px}
 .px-edit>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:14px;font-weight:600;color:var(--ink)}
 .px-edit>.fields{padding-top:6px}
-.cs-blank{align-self:flex-start}
 #prBox{display:none}
 @media print{
   body.pr-on>*:not(#prBox){display:none!important}
