@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-18";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.28-19";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -394,6 +394,30 @@ p{text-wrap:pretty}
 .bd-pp b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bd-pp small{font-size:12.5px;color:var(--muted)}
 .bd-pp .btn{flex:none}
+/* 자료실 (2026.10.28) */
+.dc-top{display:grid;gap:8px}
+.dc-use{margin:0;font-size:13px;color:var(--muted)}
+.dc-q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.dc-list{display:grid;border-top:1px solid var(--ink)}
+.dc-item{display:grid;gap:6px;padding:14px 4px;border-bottom:1px solid var(--line);min-width:0}
+.dc-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
+.dc-h b{font-size:16px;font-weight:700;line-height:1.4;min-width:0;overflow-wrap:anywhere}
+.dc-h .btn{flex:none}
+.dc-p{margin:0;font-size:14px;color:var(--muted);line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.dc-files{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:6px}
+.dc-files li{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;border:1px solid var(--line);border-radius:6px;padding:6px 6px 6px 10px;background:var(--surface)}
+.dc-fn{display:flex;align-items:center;gap:8px;min-width:0}
+.dc-fn span{min-width:0;display:grid}
+.dc-fn b{font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dc-fn small{font-size:12.5px;color:var(--muted)}
+.dc-ext{flex:none;font-style:normal;min-width:42px;text-align:center;font-size:11.5px;font-weight:700;letter-spacing:.02em;border:1px solid var(--ink);border-radius:4px;padding:2px 4px;color:var(--ink)}
+.dc-act{display:flex;gap:6px;flex:none}
+.dc-m{font-size:12.5px;color:var(--muted)}
+.de-files{display:grid;gap:6px}
+.de-files:empty{display:none}
+.de-files li{list-style:none}
+.de-note{margin:0;font-size:13px;color:var(--muted);line-height:1.55}
+.de-prog{margin:0;font-size:14px;font-weight:600}
 .tm-wrap{overflow-x:auto}
 .tm-tbl{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
 .tm-tbl th{font-size:12.5px;color:var(--muted);font-weight:500;text-align:right;padding:6px 4px;border-bottom:1px solid var(--ink);white-space:nowrap}
@@ -792,6 +816,11 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     <button type="button" data-ftab="consult" data-nochief>상담서</button>
     <button type="button" data-goco>회사 서류</button>
   </nav>
+  <!-- 게시판 고르는 줄 (2026.10.28): 파트 게시판 · 자료실 (총괄실장은 아래 메뉴 「자료실」) -->
+  <nav class="ftabs" id="boardTabs" aria-label="게시판 고르기" data-nochief hidden>
+    <button type="button" data-btab="board">파트 게시판</button>
+    <button type="button" data-btab="docs">자료실</button>
+  </nav>
 
   <!-- ===== 홈 (2026.10.23-5) ===== -->
   <section class="tab" id="tab-home" hidden>
@@ -841,6 +870,15 @@ html:not(.dw-chief) [data-chief]{display:none!important}
       <p>같은 파트 사람끼리만 보여요. 파트장님 공지와 파트원 글 · 댓글을 여기서 나눠요.</p>
     </div>
     <div class="tab" id="bdBody"></div>
+  </section>
+
+  <!-- ===== 자료실 (2026.10.28): 회사 기본 서류 파일 — 직원 모두 보기 · 받기, 파트장 · 총괄실장 올리기 ===== -->
+  <section class="tab" id="tab-docs" hidden>
+    <div class="tab-head">
+      <h1>자료실</h1>
+      <p>회사 기본 서류를 모아 두는 곳이에요. 누르면 열어 보거나 휴대폰에 저장할 수 있어요.</p>
+    </div>
+    <div class="tab" id="dcBody"></div>
   </section>
 
   <!-- ===== 취합 (총괄실장, 2026.10.26): 파트장들이 올린 주간보고 · 회의록 · 후기 · 탁송을 모아 보고 정리 (보기만) ===== -->
@@ -1107,6 +1145,10 @@ html:not(.dw-chief) [data-chief]{display:none!important}
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H11l-4.5 3.5V16H4z"/><path d="M8 9h8M8 12h5"/></svg>
       게시판
     </button>
+    <button type="button" data-tab="docs" aria-current="false" data-chief>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a2 2 0 0 0-2-2H12l-2-2.5H5.5a2 2 0 0 0-2 2z"/><path d="M8 13.5h8"/></svg>
+      자료실
+    </button>
     <button type="button" data-tab="settings" aria-current="false" data-admin>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 17h3M11 17h9"/><circle cx="15.5" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/></svg>
       설정
@@ -1143,6 +1185,29 @@ html:not(.dw-chief) [data-chief]{display:none!important}
     </div>
   </div>
   <div class="screen-actions"><div class="inner"><button class="btn primary" type="button" id="peSave">올리기</button></div></div>
+</div>
+
+<!-- ===== 자료실 서류 올리기 · 고치기 ===== -->
+<div class="screen" id="docEditor" hidden>
+  <div class="screen-bar">
+    <button class="back" type="button" id="deBack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>취소</button>
+    <div class="screen-title" id="deBar">서류 올리기</div>
+  </div>
+  <div class="screen-body">
+    <div class="inner">
+      <label class="field"><span>제목</span><input id="deTitle" type="text" maxlength="100" placeholder="예: 취업규칙 (2026년)"></label>
+      <label class="field"><span>설명 (안 써도 돼요)</span><textarea id="deBody" rows="3" maxlength="3000" placeholder="예: 2026년 1월부터 적용"></textarea></label>
+      <div class="field"><span>파일</span>
+        <ul class="de-files dc-files" id="deFiles"></ul>
+        <button class="btn block" type="button" id="dePick">+ 파일 고르기</button>
+        <input id="deInput" type="file" multiple hidden>
+        <p class="de-note">PDF · 사진 · 한글 · 엑셀 · 워드 등 무엇이든 돼요. 파일 하나 50MB까지, 한 번에 10개까지. 큰 사진은 올릴 때 알맞게 줄여요.</p>
+      </div>
+      <p class="de-prog" id="deProg" role="status" hidden></p>
+      <div class="wipe-zone" id="deDelZone" hidden><p class="small-t muted">지우면 서류와 파일이 모두 지워져요. 되돌릴 수 없어요.</p><button class="btn danger block" type="button" id="deDel">이 서류 지우기</button></div>
+    </div>
+  </div>
+  <div class="screen-actions"><div class="inner"><button class="btn primary" type="button" id="deSave">올리기</button></div></div>
 </div>
 
 <!-- ===== 파트원 장례일정 · 봉투 보기 (파트장, 보기만) ===== -->
@@ -1604,11 +1669,15 @@ function showTab(t) {
   const isForm = FORM_TABS.includes(t);
   $('#formTabs').hidden = !isForm;
   $$('#formTabs [data-ftab]').forEach((b) => b.setAttribute('aria-current', b.dataset.ftab === t ? 'page' : 'false'));
-  $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === (isForm ? 'forms' : t) ? 'page' : 'false'));
+  const navT = isForm ? 'forms' : (t === 'docs' && !isChief()) ? 'board' : t;   /* 자료실은 파트장 · 직원에게는 「게시판」 안에 */
+  $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === navT ? 'page' : 'false'));
+  $('#boardTabs').hidden = !(t === 'board' || t === 'docs') || isChief();
+  $$('#boardTabs [data-btab]').forEach((b) => b.setAttribute('aria-current', b.dataset.btab === t ? 'page' : 'false'));
   try { localStorage.setItem('mf.tab', t); if (isForm) localStorage.setItem('mf.formTab', t); sessionStorage.setItem('mf.tabS', t); } catch (e) { /* ignore */ }
   window.scrollTo(0, 0);
   if (t === 'home') renderHome();
   if (t === 'board') boardOpen();
+  if (t === 'docs') docsOpen();
   if (t === 'settings') { renderSettings(); roleLoad(); }
   if (t === 'review') renderReview();
   if (t === 'gather') gatherOpen(false);
@@ -2981,6 +3050,7 @@ function bind() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBackup(); });
   $$('.tabbar button').forEach((b) => b.addEventListener('click', () => (b.dataset.tab === 'funeral' ? goFuneral() : showTab(b.dataset.tab))));
   bindHomeBoard();
+  bindDocs();
   // 회의록
   $('#newMinutes').addEventListener('click', () => openMinutes());
   $('#minutesList').addEventListener('click', (e) => { const card = e.target.closest('[data-id]'); if (card) openMinutes(card.dataset.id); });
@@ -3437,7 +3507,7 @@ function bindPwa() {
    파트장은 파트원의 장례일정 · 봉투를 보기만 함(dw_member_records). 직원 계정(html.dw-member)은 서식 · 설정이 안 보임. */
 const FORM_TABS = ['weekly', 'minutes', 'review', 'ship', 'stock', 'consult'];   /* consult = 장례 상담서 (2026.10.28-3, 파트장만) */   /* stock = 물품 수령 · 불출 (2026.10.27, 파트장만 — 총괄실장은 안 봄) */
 const ADMIN_TABS = FORM_TABS.concat(['settings']);
-const ALL_TABS = ['home', 'gather'].concat(FORM_TABS, ['board', 'settings']);
+const ALL_TABS = ['home', 'gather'].concat(FORM_TABS, ['board', 'docs', 'settings']);   /* docs = 자료실 (2026.10.28) */
 const STAFF_TABS = ['home', 'board'];   /* 총괄실장은 안 씀 */
 const isMember = () => document.documentElement.classList.contains('dw-member');
 const isChief = () => document.documentElement.classList.contains('dw-chief');   /* 총괄실장 (2026.10.26) */
@@ -3813,6 +3883,172 @@ async function postSave() {
   hmNote = null; boardLoad(true); if (wasEdit && PS.id) openPost(PS.id);
 }
 
+/* ---- 자료실 (2026.10.28, 사용자 「기본 회사 서류 올리는 게시판」 + 고른 답: 전 직원 보기 · 파트장 · 총괄실장 올리기) ----
+   서버: tools/supabase-part.sql 의 dw_docs_list · dw_doc_save · dw_doc_delete + 파일 보관함 「dw-docs」(공개 안 됨, 파일 하나 50MB).
+   파일 자리 = <내 id>/<서류 번호>/<영문 · 숫자 이름> (보관함은 한글 이름을 못 씀 → 원래 이름은 서류 기록에 따로) */
+const DC = { list: null, used: 0, canUp: false, err: '', busy: false, at: 0, q: '' };
+const DC_MAX = 50 * 1024 * 1024, DC_TOTAL = 1024 * 1024 * 1024, DC_FILES = 10, DC_BUCKET = 'dw-docs';
+const DC_VIEW = /^(pdf|png|jpe?g|gif|webp|txt)$/i;   /* 「열기」로 바로 볼 수 있는 파일 (나머지는 저장해서 엶) */
+function fmtBytes(n) { n = Number(n) || 0; return n >= 1073741824 ? (n / 1073741824).toFixed(2) + 'GB' : n >= 1048576 ? (n / 1048576).toFixed(n >= 10485760 ? 0 : 1) + 'MB' : n >= 1024 ? Math.max(1, Math.round(n / 1024)) + 'KB' : n + 'B'; }
+const dcExt = (name) => { const m = /\.([A-Za-z0-9]{1,8})$/.exec(String(name || '')); return m ? m[1].toLowerCase() : ''; };
+const DC_WHY = { notstaff: '파트에 들어간 직원만 볼 수 있어요', notup: '파트장 · 총괄실장만 올릴 수 있어요', title: '제목을 넣어 주세요', nofiles: '파일을 하나 이상 골라 주세요', many: '파일은 한 번에 10개까지예요', denied: '올린 사람이나 관리자만 할 수 있어요', gone: '지워진 서류예요', bad: '파일을 올리지 못했어요. 다시 해 주세요' };
+function dcWhyText(why) { return DC_WHY[why] || (why === 'noserver' ? (isMember() ? '자료실이 아직 준비되지 않았어요. 파트장님께 말씀해 주세요.' : '자료실이 서버에 아직 준비되지 않았어요. 수파베이스 SQL Editor에서 「파트 · 게시판 준비」 글(tools/supabase-part.sql)을 한 번 더 실행해 주세요.') : pbWhyText(why, !isMember())); }
+async function docsLoad(force) {
+  if (DC.busy) return; DC.busy = true; if (!DC.list) paintDocs();
+  try { const d = await window.dwAcct.rpc('dw_docs_list'); if (!d || !d.ok) throw { why: (d && d.why) || 'net' }; DC.list = d.docs || []; DC.used = Number(d.used) || 0; DC.canUp = !!d.can_upload; DC.err = ''; DC.at = Date.now(); }
+  catch (e) { DC.err = (e && e.why) || 'net'; if (DC.err === 'notstaff') DC.list = null; }
+  DC.busy = false; if (S.tab === 'docs') paintDocs();
+}
+function docsOpen() { if (!DC.list || Date.now() - DC.at > 30000) whenAcct(() => docsLoad(false)); else paintDocs(); }
+const dcKey = (s) => String(s || '').toLowerCase().replace(/\s+/g, '');
+function dcShown() { const q = dcKey(DC.q); return !q ? DC.list : DC.list.filter((d) => dcKey([d.title, d.body, d.author].concat((d.files || []).map((f) => f.name)).join(' ')).includes(q)); }
+function paintDocs() {
+  const el = $('#dcBody'); if (!el) return;
+  if (!DC.list) {
+    el.innerHTML = DC.err === 'notstaff'
+      ? `<div class="card"><h2>아직 볼 수 없어요</h2><p>자료실은 파트에 들어간 직원만 볼 수 있어요. 파트장님께 내 계정(<b>${esc((window.dwAcct && window.dwAcct.id()) || '')}</b>)을 알려 주세요.</p></div>`
+      : DC.err ? `<div class="card"><p class="bd-warn">${esc(dcWhyText(DC.err))}</p><button class="btn" type="button" data-dc="reload">다시 불러오기</button></div>` : '<p class="bd-empty">불러오는 중…</p>';
+    return;
+  }
+  let h = '';
+  if (DC.err) h += `<p class="bd-warn" role="status">${esc(dcWhyText(DC.err))}<button class="btn quiet small" type="button" data-dc="reload">다시 시도</button></p>`;
+  if (DC.canUp) h += `<div class="dc-top"><button class="btn primary block" type="button" data-dc="new">서류 올리기</button>${DC.used ? `<p class="dc-use">올린 서류 ${esc(fmtBytes(DC.used))} · 무료 저장 공간 1GB 중 ${DC.used / DC_TOTAL < 0.01 ? '1% 미만' : Math.min(100, Math.round(DC.used / DC_TOTAL * 100)) + '%'} 사용</p>` : ''}</div>`;
+  if (DC.list.length > 3) h += `<div class="dc-q"><input id="dcQ" type="search" value="${esc(DC.q)}" placeholder="서류 찾기 (제목 · 파일 이름)" aria-label="서류 찾기" autocomplete="off">${DC.q ? '<button class="btn small quiet" type="button" data-dc="clearq">지우기</button>' : ''}</div>`;
+  const list = dcShown();
+  if (!DC.list.length) h += `<p class="bd-empty">아직 올라온 서류가 없어요.${DC.canUp ? ' 「서류 올리기」로 첫 서류를 올려 보세요.' : ''}</p>`;
+  else if (!list.length) h += `<p class="bd-empty">「${esc(DC.q)}」에 맞는 서류가 없어요.</p>`;
+  else h += '<div class="dc-list">' + list.map((d) => `<article class="dc-item"><div class="dc-h"><b>${esc(d.title)}</b>${d.can_edit ? `<button class="btn small quiet" type="button" data-dc-edit="${esc(d.id)}">고치기</button>` : ''}</div>${d.body ? `<p class="dc-p">${esc(d.body)}</p>` : ''}
+      <ul class="dc-files">${(d.files || []).map((f, i) => { const x = dcExt(f.name) || dcExt(f.path); return `<li><span class="dc-fn"><i class="dc-ext" aria-hidden="true">${esc((x || '파일').toUpperCase().slice(0, 5))}</i><span><b>${esc(f.name)}</b><small>${esc(fmtBytes(f.size))}</small></span></span><span class="dc-act">${DC_VIEW.test(x) ? `<button class="btn small" type="button" data-dc-open="${esc(d.id)}" data-i="${i}">열기</button>` : ''}<button class="btn small${DC_VIEW.test(x) ? ' quiet' : ''}" type="button" data-dc-save="${esc(d.id)}" data-i="${i}">저장</button></span></li>`; }).join('')}</ul>
+      <span class="dc-m">${esc([d.author, fmtWhen(d.created_at), d.updated_at && new Date(d.updated_at) - new Date(d.created_at) > 60000 ? '고침' : ''].filter(Boolean).join(' · '))}</span></article>`).join('') + '</div>';
+  el.innerHTML = h;
+}
+function dcStoreErr(err) {
+  const m = String((err && (err.message || err.error)) || '') + ' ' + String((err && (err.statusCode || err.status)) || '');
+  if (navigator.onLine === false) return '인터넷에 연결한 뒤 다시 해 주세요';
+  if (/bucket not found/i.test(m)) return dcWhyText('noserver');
+  if (/maximum allowed size|too large|413|payload/i.test(m)) return '파일이 너무 커요. 파일 하나 50MB까지예요';
+  if (/row-level security|unauthorized|403|denied/i.test(m)) return '권한이 없어요. 파트장 · 총괄실장만 올릴 수 있어요';
+  if (/not found|404/i.test(m)) return '파일을 찾지 못했어요. 지워졌을 수 있어요';
+  return '지금은 하지 못했어요. 잠시 뒤에 다시 해 주세요';
+}
+async function dcFile(id, i, mode, btn) {
+  const d = (DC.list || []).find((x) => x.id === id), f = d && (d.files || [])[i]; if (!f) return;
+  let w = null;
+  if (mode === 'open') { try { w = window.open('', '_blank'); } catch (e) { w = null; } }   /* 창을 먼저 열어 둠 (막힘 방지) */
+  if (btn) btn.disabled = true;
+  try {
+    if (navigator.onLine === false) throw { message: 'offline' };
+    const c = await window.dwAcct.client(), st = c.storage.from(DC_BUCKET);
+    if (mode === 'open') {
+      const { data, error } = await st.createSignedUrl(f.path, 600); if (error || !data || !data.signedUrl) throw error || {};
+      if (w && !w.closed) w.location.href = data.signedUrl; else location.href = data.signedUrl;
+    } else {
+      toast('받는 중…');
+      const { data, error } = await st.download(f.path); if (error || !data) throw error || {};
+      await deliver([{ name: f.name, blob: data }], { title: '서류 저장', okMsg: '저장했어요' });
+    }
+  } catch (e) { if (w && !w.closed) w.close(); toast(dcStoreErr(e)); }
+  finally { if (btn && btn.isConnected) btn.disabled = false; }
+}
+/* 올리기 · 고치기 */
+const DE = { id: null, newId: '', keep: [], add: [], dirty: false, busy: false };
+const dcUUID = () => (crypto && crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => { const r = Math.random() * 16 | 0; return (ch === 'x' ? r : (r & 3 | 8)).toString(16); }));
+function openDocEditor(doc) {
+  DE.id = doc ? doc.id : null; DE.newId = doc ? '' : dcUUID(); DE.keep = doc ? (doc.files || []).map((f) => Object.assign({}, f)) : []; DE.add = []; DE.dirty = false; DE.busy = false;
+  $('#deBar').textContent = doc ? '서류 고치기' : '서류 올리기'; $('#deSave').textContent = doc ? '고친 서류 올리기' : '올리기';
+  $('#deTitle').value = doc ? doc.title || '' : ''; $('#deBody').value = doc ? doc.body || '' : '';
+  $('#deDelZone').hidden = !doc; $('#deProg').hidden = true; $('#deSave').disabled = false;
+  deFilesPaint(); openScreen('docEditor'); setTimeout(() => { autosize($('#deBody')); if (!doc) $('#deTitle').focus(); }, 30);
+}
+function deFilesPaint() {
+  const row = (f, k, i) => `<li><span class="dc-fn"><i class="dc-ext" aria-hidden="true">${esc((dcExt(f.name) || '파일').toUpperCase().slice(0, 5))}</i><span><b>${esc(f.name)}</b><small>${esc(fmtBytes(f.size))}${k === 'add' ? ' · 새 파일' : ''}</small></span></span><button class="btn small quiet" type="button" data-de-rm="${k}" data-i="${i}" aria-label="${esc(f.name)} 빼기">빼기</button></li>`;
+  $('#deFiles').innerHTML = DE.keep.map((f, i) => row(f, 'keep', i)).join('') + DE.add.map((x, i) => row({ name: x.file.name, size: x.file.size }, 'add', i)).join('');
+  $('#dePick').hidden = DE.keep.length + DE.add.length >= DC_FILES;
+}
+/* 큰 사진은 줄여서 올림 (긴 쪽 2400px · JPEG). 줄인 게 더 크면 원래 파일 */
+async function dcShrink(file) {
+  if (!/^image\/(jpeg|png|webp)$/i.test(file.type || '') || file.size < 1.5 * 1048576 || typeof createImageBitmap !== 'function') return file;
+  try {
+    const bmp = await createImageBitmap(file), k = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(bmp, 0, 0, cv.width, cv.height); if (bmp.close) bmp.close();
+    const blob = await new Promise((r) => cv.toBlob(r, 'image/jpeg', 0.85)); cv.width = 0; cv.height = 0;
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], String(file.name).replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+  } catch (e) { return file; }
+}
+async function dePicked(files) {
+  let skipped = 0;
+  for (const f0 of [...(files || [])]) {
+    if (DE.keep.length + DE.add.length >= DC_FILES) { toast('파일은 한 번에 10개까지예요'); break; }
+    const f = await dcShrink(f0);
+    if (f.size > DC_MAX) { skipped++; toast(`「${f0.name}」은(는) 50MB가 넘어서 올릴 수 없어요`); continue; }
+    if (!f.size) { skipped++; continue; }
+    DE.add.push({ file: f }); DE.dirty = true;
+  }
+  deFilesPaint();
+  if (!$('#deTitle').value.trim() && DE.add.length === 1 && !DE.keep.length) { $('#deTitle').value = String(DE.add[0].file.name).replace(/\.[^.]+$/, '').slice(0, 100); }
+  return skipped;
+}
+async function deSave() {
+  if (DE.busy) return;
+  const title = String($('#deTitle').value || '').trim(), body = String($('#deBody').value || '');
+  if (!title) { toast('제목을 넣어 주세요'); $('#deTitle').focus(); return; }
+  if (!DE.keep.length && !DE.add.length) { toast('파일을 하나 이상 골라 주세요'); return; }
+  const u = window.dwAcct && window.dwAcct.user(); if (!u) { toast(pbWhyText('login')); return; }
+  if (navigator.onLine === false) { toast('인터넷에 연결한 뒤 올려 주세요'); return; }
+  DE.busy = true; const btn = $('#deSave'), prog = $('#deProg'); btn.disabled = true; prog.hidden = false;
+  const docId = DE.id || DE.newId, done = [];
+  let st = null;
+  try {
+    const c = await window.dwAcct.client(); st = c.storage.from(DC_BUCKET);
+    for (let i = 0; i < DE.add.length; i++) {
+      const f = DE.add[i].file, ext = dcExt(f.name) || 'bin';
+      prog.textContent = `올리는 중 ${i + 1} / ${DE.add.length} · ${f.name}`;
+      const path = `${u.id}/${docId}/${Date.now().toString(36)}${i}${Math.random().toString(36).slice(2, 6)}.${ext}`;
+      const { error } = await st.upload(path, f, { contentType: f.type || 'application/octet-stream', upsert: false, cacheControl: '3600' });
+      if (error) throw { store: error };
+      done.push({ path, name: String(f.name).slice(0, 150), size: f.size, type: f.type || '' });
+    }
+    prog.textContent = '저장하는 중…';
+    const d = await window.dwAcct.rpc('dw_doc_save', { p: { id: DE.id, new_id: DE.id ? null : DE.newId, title, body, files: DE.keep.concat(done) } });
+    if (!d || !d.ok) throw { why: (d && d.why) || 'net' };
+    if (d.removed && d.removed.length) st.remove(d.removed).catch(() => {});   /* 뺀 파일은 보관함에서도 지움 */
+    const wasEdit = !!DE.id; DE.dirty = false; DE.busy = false; closeScreen('docEditor'); toast(wasEdit ? '서류를 고쳤어요' : '서류를 올렸어요');
+    DC.q = ''; docsLoad(true);
+  } catch (e) {
+    if (done.length && st) st.remove(done.map((x) => x.path)).catch(() => {});   /* 반쯤 올라간 파일 치우기 */
+    toast(e && e.store ? dcStoreErr(e.store) : dcWhyText((e && e.why) || 'net'));
+    DE.busy = false; btn.disabled = false; prog.hidden = true;
+  }
+}
+async function deDelete() {
+  const id = DE.id; if (!id) return;
+  const d = await pbCall('dw_doc_delete', { p_id: id }, $('#deDel')); if (!d) return;
+  try { if (d.paths && d.paths.length) { const c = await window.dwAcct.client(); await c.storage.from(DC_BUCKET).remove(d.paths); } } catch (e) { /* 파일은 다음에 관리자가 정리 */ }
+  DE.dirty = false; closeScreen('docEditor'); toast('서류를 지웠어요'); docsLoad(true);
+}
+function bindDocs() {
+  $('#boardTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-btab]'); if (b) showTab(b.dataset.btab); });
+  $('#dcBody').addEventListener('click', (e) => {
+    const o = e.target.closest('[data-dc-open]'); if (o) { dcFile(o.dataset.dcOpen, Number(o.dataset.i), 'open', o); return; }
+    const sv = e.target.closest('[data-dc-save]'); if (sv) { dcFile(sv.dataset.dcSave, Number(sv.dataset.i), 'save', sv); return; }
+    const ed = e.target.closest('[data-dc-edit]'); if (ed) { const d = (DC.list || []).find((x) => x.id === ed.dataset.dcEdit); if (d) openDocEditor(d); return; }
+    const b = e.target.closest('[data-dc]'); if (!b) return;
+    if (b.dataset.dc === 'reload') docsLoad(true);
+    else if (b.dataset.dc === 'new') openDocEditor(null);
+    else if (b.dataset.dc === 'clearq') { DC.q = ''; paintDocs(); }
+  });
+  $('#dcBody').addEventListener('input', (e) => { if (e.target.id !== 'dcQ') return; DC.q = e.target.value; const pos = e.target.selectionStart; paintDocs(); const q = $('#dcQ'); if (q) { q.focus(); try { q.setSelectionRange(pos, pos); } catch (err) { /* ignore */ } } });
+  $('#dePick').addEventListener('click', () => $('#deInput').click());
+  $('#deInput').addEventListener('change', async (e) => { const fs = e.target.files; await dePicked(fs); e.target.value = ''; });
+  $('#deFiles').addEventListener('click', (e) => { const b = e.target.closest('[data-de-rm]'); if (!b) return; (b.dataset.deRm === 'keep' ? DE.keep : DE.add).splice(Number(b.dataset.i), 1); DE.dirty = true; deFilesPaint(); });
+  ['#deTitle', '#deBody'].forEach((sel) => $(sel).addEventListener('input', (e) => { DE.dirty = true; if (e.target.tagName === 'TEXTAREA') autosize(e.target); }));
+  $('#deBack').addEventListener('click', (e) => { if (DE.busy) return; if (DE.dirty) { armConfirm(e.currentTarget, '한 번 더 누르면 나가기', () => { DE.dirty = false; closeScreen('docEditor'); }, { title: '고르던 서류를 버리고 나갈까요?', ok: '나가기' }); return; } closeScreen('docEditor'); });
+  $('#deSave').addEventListener('click', deSave);
+  $('#deDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 지우기', deDelete, { title: '이 서류를 지울까요?', body: '서류와 파일이 모두 지워져요. 되돌릴 수 없어요.', ok: '지우기' }));
+}
+
 /* ---- 파트원 장례일정 · 봉투 (파트장, 보기만) ---- */
 const teamKey = (part, month) => part + '|' + month;
 function teamCached(part, month) { return PB.team[teamKey(part, month)] || null; }   /* 오래된 것도 먼저 보여 주고 뒤에서 새로 받음 */
@@ -3904,7 +4140,7 @@ function bindHomeBoard() {
     if (isMember() && (ADMIN_TABS.includes(S.tab) || S.tab === 'gather')) showTab('home');
     else if (isChief() && (STAFF_TABS.includes(S.tab) || S.tab === 'stock' || S.tab === 'consult')) showTab('gather');
     else if (!isChief() && S.tab === 'gather') showTab('home');
-    else if (S.tab === 'home') renderHome(); else if (S.tab === 'board') paintBoard(); else if (S.tab === 'gather') gatherOpen(true);
+    else if (S.tab === 'home') renderHome(); else if (S.tab === 'board') paintBoard(); else if (S.tab === 'gather') gatherOpen(true); else if (S.tab === 'docs') { DC.at = 0; showTab('docs'); }
     if (S.tab === 'settings' && !S.sd) renderSettings();
     homeAcctSlot();
   });

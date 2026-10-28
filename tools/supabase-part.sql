@@ -1,6 +1,7 @@
 -- DW장례업무 · 파트 · 파트 게시판 · 권한 준비 (2026.10.23, -6: 한 사람은 한 파트에만 · 파트장은 다른 파트를 못 봄, -7: 앱에서 파트장 정하기,
 --   2026.10.26: 총괄실장 — 관리자가 앱에서 정함, 서식 · 회사 서류만 쓰고 파트장들의 서식 기록을 볼 수만 있음,
---   2026.10.27: 물품 수령 · 불출 장부 — 파트장끼리 같이 쓰는 장부 (부산 · 울산 · 창원 입고 · 불출 · 남은 수량))
+--   2026.10.27: 물품 수령 · 불출 장부 — 파트장끼리 같이 쓰는 장부 (부산 · 울산 · 창원 입고 · 불출 · 남은 수량),
+--   2026.10.28: 자료실 — 회사 기본 서류 파일을 올려 두고 직원 모두가 열어 보고 내려받음)
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -13,6 +14,8 @@
 --   · 관리자(처음 실행할 때의 파트장)는 앱 설정 「직원 권한」에서 직원을 파트장 · 총괄실장으로 정하거나 직원으로 바꿀 수 있음
 --   · 총괄실장은 파트장들이 올린 주간보고 · 회의록 · 후기 · 탁송을 볼 수만 있음 (고치기 안 됨, 장례 기록 · 게시판은 안 보임)
 --   · 물품 수령 · 불출 장부: 파트장 모두가 같은 장부를 봄. 넣은 사람(과 관리자)만 고치고 지움, 지운 기록도 서버에 남음
+--   · 자료실: 파트에 들어간 직원 · 파트장 · 총괄실장이 서류 파일을 열어 보고 내려받음. 올리기는 파트장 · 총괄실장,
+--     고치기 · 지우기는 올린 사람(과 관리자). 파일은 파일 보관함 「dw-docs」(공개 안 됨, 파일 하나 50MB까지)
 -- 표는 앱에서 바로 건드릴 수 없고, 아래 함수(누가 무엇을 할 수 있는지 검사함)로만 읽고 씁니다.
 
 -- ---------- 표 ----------
@@ -580,6 +583,146 @@ begin
   return jsonb_build_object('ok', true, 'id', v_id);
 end $$;
 
+-- ---------- 자료실 · 회사 기본 서류 (2026.10.28) ----------
+-- 회사 기본 서류(규정 · 양식 · 안내문 등) 파일을 올려 두고 직원 모두가 열어 보고 내려받는 곳.
+--   · 보기 · 내려받기: 파트에 들어간 직원 · 파트장 · 총괄실장 · 관리자 (가입만 하고 파트에 안 들어간 계정은 못 봄)
+--   · 올리기: 파트장 · 총괄실장 · 관리자. 고치기 · 지우기: 올린 사람(파트장 · 총괄실장일 때) 또는 관리자
+--   · 파일은 수파베이스 파일 보관함 「dw-docs」(공개 안 됨, 파일 하나 50MB까지), 제목 · 설명 · 파일 목록은 표 dw_docs
+--   · 파일 자리: <올린 사람 id>/<글 번호>/<영문 · 숫자 이름> — 자기 폴더에만 올릴 수 있음 (한글 원래 이름은 표에 따로 둠)
+create table if not exists public.dw_docs (
+  id         uuid primary key default gen_random_uuid(),
+  title      text not null,
+  body       text not null default '',
+  files      jsonb not null default '[]'::jsonb,   -- [{path, name(원래 이름), size(바이트), type}]
+  author_id  uuid references public.dw_profiles(user_id) on delete set null,   -- 올린 사람 (탈퇴해도 서류는 남음)
+  deleted    boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists dw_docs_created on public.dw_docs (created_at desc);
+alter table public.dw_docs enable row level security;
+revoke all on public.dw_docs from anon, authenticated;
+
+-- 나(로그인한 사람)는 볼 수 있나 · 올릴 수 있나 · 관리자인가 (파일 보관함 규칙에서도 씀 → 로그인한 사람이 부를 수 있음, 자기 자신만 검사)
+create or replace function public.dw_doc_can_view() returns boolean
+language sql stable security definer set search_path = '' as $$
+  select auth.uid() is not null and (public.dw_is_leader(auth.uid()) or public.dw_is_chief(auth.uid()) or public.dw_is_admin(auth.uid())
+    or exists (select 1 from public.dw_part_members m where m.user_id = auth.uid()))
+$$;
+create or replace function public.dw_doc_can_upload() returns boolean
+language sql stable security definer set search_path = '' as $$
+  select auth.uid() is not null and (public.dw_is_leader(auth.uid()) or public.dw_is_chief(auth.uid()) or public.dw_is_admin(auth.uid()))
+$$;
+create or replace function public.dw_doc_is_admin() returns boolean
+language sql stable security definer set search_path = '' as $$
+  select auth.uid() is not null and public.dw_is_admin(auth.uid())
+$$;
+
+-- 파일 보관함 (공개 안 됨, 파일 하나 50MB)
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('dw-docs', 'dw-docs', false, 52428800)
+on conflict (id) do update set public = false, file_size_limit = 52428800;
+
+drop policy if exists "dw docs read" on storage.objects;
+create policy "dw docs read" on storage.objects for select to authenticated
+  using (bucket_id = 'dw-docs' and public.dw_doc_can_view());
+drop policy if exists "dw docs upload" on storage.objects;
+create policy "dw docs upload" on storage.objects for insert to authenticated
+  with check (bucket_id = 'dw-docs' and public.dw_doc_can_upload() and (storage.foldername(name))[1] = (select auth.uid())::text);
+drop policy if exists "dw docs remove" on storage.objects;
+create policy "dw docs remove" on storage.objects for delete to authenticated
+  using (bucket_id = 'dw-docs' and ((public.dw_doc_can_upload() and (storage.foldername(name))[1] = (select auth.uid())::text) or public.dw_doc_is_admin()));
+
+-- 자료실 목록 (볼 수 있는 사람만). used = 지금 올라 있는 파일 크기 합 (바이트)
+create or replace function public.dw_docs_list() returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+declare me uuid := auth.uid(); up boolean; adm boolean;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_doc_can_view() then return jsonb_build_object('ok', false, 'why', 'notstaff'); end if;
+  up := public.dw_doc_can_upload(); adm := public.dw_is_admin(me);
+  return jsonb_build_object('ok', true, 'can_upload', up,
+    'used', coalesce((select sum(case when (f ->> 'size') ~ '^\d{1,12}$' then (f ->> 'size')::bigint else 0 end)
+                      from public.dw_docs d cross join lateral jsonb_array_elements(d.files) f where not d.deleted), 0),
+    'docs', coalesce((select jsonb_agg(jsonb_build_object(
+        'id', d.id, 'title', d.title, 'body', d.body, 'files', d.files, 'created_at', d.created_at, 'updated_at', d.updated_at,
+        'author', case when d.author_id is null then '나간 직원' else public.dw_name(d.author_id) end,
+        'mine', coalesce(d.author_id = me, false),
+        'can_edit', (coalesce(d.author_id = me, false) and up) or adm)
+      order by d.created_at desc) from public.dw_docs d where not d.deleted), '[]'::jsonb));
+end $$;
+
+-- 서류 올리기 · 고치기. p = {id(고칠 때), new_id(새로 올릴 때 · 파일 폴더 이름), title, body, files:[{path, name, size, type}]}
+-- 새 파일은 먼저 파일 보관함에 올린 뒤 부름 (자기 폴더 · 정말 올라가 있는 파일만 받음, 크기는 보관함 기록 기준)
+create or replace function public.dw_doc_save(p jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); old public.dw_docs; v_id uuid; t text; b text; fs jsonb := '[]'::jsonb; f jsonb; pth text; n int := 0;
+  oldpaths text[] := '{}'; sz bigint; isnew boolean;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_doc_can_upload() then return jsonb_build_object('ok', false, 'why', 'notup'); end if;
+  t := left(btrim(regexp_replace(coalesce(p ->> 'title', ''), '\s+', ' ', 'g')), 100);
+  b := left(coalesce(p ->> 'body', ''), 3000);
+  if t = '' then return jsonb_build_object('ok', false, 'why', 'title'); end if;
+  if jsonb_typeof(p -> 'files') is distinct from 'array' then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+  isnew := nullif(btrim(coalesce(p ->> 'id', '')), '') is null;
+  begin
+    v_id := case when isnew then (p ->> 'new_id')::uuid else (p ->> 'id')::uuid end;
+  exception when others then return jsonb_build_object('ok', false, 'why', 'bad'); end;
+  if v_id is null then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+  select * into old from public.dw_docs where id = v_id for update;
+  if isnew then
+    if old.id is not null then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+  else
+    if old.id is null or old.deleted then return jsonb_build_object('ok', false, 'why', 'gone'); end if;
+    if not ((coalesce(old.author_id = me, false)) or public.dw_is_admin(me)) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+    select coalesce(array_agg(x ->> 'path'), '{}') into oldpaths from jsonb_array_elements(old.files) x;
+  end if;
+  for f in select x from jsonb_array_elements(p -> 'files') x loop
+    n := n + 1;
+    if n > 10 then return jsonb_build_object('ok', false, 'why', 'many'); end if;
+    pth := coalesce(f ->> 'path', '');
+    if pth = any(oldpaths) then
+      sz := coalesce((select (x ->> 'size')::bigint from jsonb_array_elements(old.files) x where x ->> 'path' = pth limit 1), 0);
+    else
+      if pth !~ ('^' || me::text || '/' || v_id::text || '/[A-Za-z0-9._-]{1,80}$') then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+      sz := null;
+      begin   -- 크기는 보관함 기록 기준 (못 읽으면 앱이 보낸 크기)
+        select (o.metadata ->> 'size')::bigint into sz from storage.objects o where o.bucket_id = 'dw-docs' and o.name = pth;
+      exception when others then sz := null; end;
+      if sz is null then
+        sz := case when (f ->> 'size') ~ '^\d{1,12}$' then (f ->> 'size')::bigint else 0 end;
+      end if;
+    end if;
+    if fs @> jsonb_build_array(jsonb_build_object('path', pth)) then return jsonb_build_object('ok', false, 'why', 'bad'); end if;   -- 같은 파일 두 번
+    fs := fs || jsonb_build_array(jsonb_build_object('path', pth,
+      'name', left(coalesce(nullif(btrim(f ->> 'name'), ''), '파일'), 150), 'size', sz, 'type', left(coalesce(f ->> 'type', ''), 100)));
+  end loop;
+  if n = 0 then return jsonb_build_object('ok', false, 'why', 'nofiles'); end if;
+  perform public.dw_profile_ensure(me);
+  if isnew then
+    insert into public.dw_docs (id, title, body, files, author_id) values (v_id, t, b, fs, me);
+  else
+    update public.dw_docs set title = t, body = b, files = fs, updated_at = now() where id = v_id;
+  end if;
+  return jsonb_build_object('ok', true, 'id', v_id,
+    'removed', coalesce((select jsonb_agg(x ->> 'path') from jsonb_array_elements(old.files) x
+                         where not isnew and not ((x ->> 'path') = any(select y ->> 'path' from jsonb_array_elements(fs) y))), '[]'::jsonb));
+end $$;
+
+-- 서류 지우기 (올린 사람 또는 관리자). 표에는 「지움」 표시만, 파일은 앱이 이어서 보관함에서 지움 (돌려준 paths)
+create or replace function public.dw_doc_delete(p_id uuid) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); old public.dw_docs;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  select * into old from public.dw_docs where id = p_id for update;
+  if old.id is null or old.deleted then return jsonb_build_object('ok', true, 'paths', '[]'::jsonb); end if;
+  if not ((coalesce(old.author_id = me, false) and public.dw_doc_can_upload()) or public.dw_is_admin(me)) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  update public.dw_docs set deleted = true, updated_at = now() where id = p_id;
+  return jsonb_build_object('ok', true, 'paths', coalesce((select jsonb_agg(x ->> 'path') from jsonb_array_elements(old.files) x), '[]'::jsonb));
+end $$;
+
 -- ---------- 누가 부를 수 있는지 ----------
 revoke all on function public.dw_login_of(text, uuid)          from public, anon, authenticated;
 revoke all on function public.dw_profile_ensure(uuid)          from public, anon, authenticated;
@@ -614,6 +757,12 @@ revoke all on function public.dw_chief_leaders()                             fro
 revoke all on function public.dw_chief_records(text, text, text)             from public, anon;
 revoke all on function public.dw_stock_list(text)                         from public, anon;
 revoke all on function public.dw_stock_save(jsonb)                        from public, anon;
+revoke all on function public.dw_doc_can_view()                           from public, anon;
+revoke all on function public.dw_doc_can_upload()                         from public, anon;
+revoke all on function public.dw_doc_is_admin()                           from public, anon;
+revoke all on function public.dw_docs_list()                              from public, anon;
+revoke all on function public.dw_doc_save(jsonb)                          from public, anon;
+revoke all on function public.dw_doc_delete(uuid)                         from public, anon;
 
 grant execute on function public.dw_me()                                        to authenticated;
 grant execute on function public.dw_people()                                    to authenticated;
@@ -638,5 +787,11 @@ grant execute on function public.dw_chief_leaders()                             
 grant execute on function public.dw_chief_records(text, text, text)             to authenticated;
 grant execute on function public.dw_stock_list(text)                         to authenticated;
 grant execute on function public.dw_stock_save(jsonb)                        to authenticated;
+grant execute on function public.dw_doc_can_view()                           to authenticated;
+grant execute on function public.dw_doc_can_upload()                         to authenticated;
+grant execute on function public.dw_doc_is_admin()                           to authenticated;
+grant execute on function public.dw_docs_list()                              to authenticated;
+grant execute on function public.dw_doc_save(jsonb)                          to authenticated;
+grant execute on function public.dw_doc_delete(uuid)                         to authenticated;
 
-select 'DW 파트 · 게시판 · 물품 장부 준비 끝' as result;
+select 'DW 파트 · 게시판 · 물품 장부 · 자료실 준비 끝' as result;

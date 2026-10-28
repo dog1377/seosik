@@ -5,7 +5,7 @@ CNT=itertools.count()
 def now_iso(): return (datetime.datetime(2026,10,23,9)+datetime.timedelta(seconds=next(CNT))).isoformat()+'+00:00'
 class Srv:
     def __init__(s):
-        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.noserver=False; s.calls=[]
+        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.OBJ={}; s.DOCS={}; s.noserver=False; s.calls=[]
     def add_user(s,login,pw,leader=False,name='',chief=False,admin=False):
         email=login if '@' in login else login+'@dwfuneral.com'; lid=login.split('@')[0] if email.endswith('@dwfuneral.com') else email
         am={'dw_role':'leader'} if leader else {'dw_role':'chief'} if chief else {}
@@ -240,6 +240,65 @@ class Srv:
         if not (old['author_id']==me or s.admin(me)): return s.no('denied')
         if up<old['updated_at']: return s.ok(id=i,stale=True)
         old.update(row); return s.ok(id=i)
+    # 자료실 (2026.10.28) — 보기: 파트원 · 파트장 · 총괄실장 · 관리자, 올리기: 파트장 · 총괄실장 · 관리자, 고치기 · 지우기: 올린 사람 또는 관리자
+    def doc_view(s,uid): return s.leader(uid) or s.chief(uid) or s.admin(uid) or any(b==uid for a,b,_ in s.MEM)
+    def doc_up(s,uid): return s.leader(uid) or s.chief(uid) or s.admin(uid)
+    def storage(s,src,op,uid,bucket,path,size):
+        import json
+        if s.noserver or bucket!='dw-docs': return {'error':'Bucket not found','status':404}
+        if op=='upload':
+            if not s.doc_up(uid) or path.split('/')[0]!=uid: return {'error':'new row violates row-level security policy','status':403}
+            if size>50*1024*1024: return {'error':'The object exceeded the maximum allowed size','status':413}
+            if path in s.OBJ: return {'error':'The resource already exists','status':409}
+            s.OBJ[path]={'owner':uid,'size':size}; return {'ok':True}
+        if op=='read':
+            if not s.doc_view(uid) or path not in s.OBJ: return {'error':'Object not found','status':400}
+            return {'ok':True}
+        if op=='remove':
+            out=[]
+            for p in json.loads(path):
+                if p in s.OBJ and ((s.doc_up(uid) and p.split('/')[0]==uid) or s.admin(uid)): del s.OBJ[p]; out.append(p)
+            return {'removed':out}
+        return {'error':'bad'}
+    def f_dw_docs_list(s,me):
+        if not s.doc_view(me): return s.no('notstaff')
+        up=s.doc_up(me); ds=sorted([d for d in s.DOCS.values() if not d['deleted']],key=lambda d:d['created_at'],reverse=True)
+        return s.ok(can_upload=up,used=sum(int(f.get('size') or 0) for d in ds for f in d['files']),
+                    docs=[dict(id=d['id'],title=d['title'],body=d['body'],files=d['files'],created_at=d['created_at'],updated_at=d['updated_at'],
+                               author=s.name(d['author_id']) if d['author_id'] else '나간 직원',mine=d['author_id']==me,can_edit=(d['author_id']==me and up) or s.admin(me)) for d in ds])
+    def f_dw_doc_save(s,me,p):
+        import re
+        if not s.doc_up(me): return s.no('notup')
+        t=re.sub(r'\s+',' ',str(p.get('title') or '')).strip()[:100]; b=str(p.get('body') or '')[:3000]
+        if not t: return s.no('title')
+        if not isinstance(p.get('files'),list): return s.no('bad')
+        isnew=not str(p.get('id') or '').strip(); did=str(p.get('new_id') if isnew else p.get('id') or '')
+        if not re.match(r'^[0-9a-f-]{36}$',did): return s.no('bad')
+        old=s.DOCS.get(did)
+        if isnew and old: return s.no('bad')
+        if not isnew:
+            if not old or old['deleted']: return s.no('gone')
+            if not (old['author_id']==me or s.admin(me)): return s.no('denied')
+        oldp={f['path']:f for f in (old['files'] if old else [])}; fs=[]
+        for f in p['files']:
+            pth=str(f.get('path') or '')
+            if len(fs)>=10: return s.no('many')
+            if pth in oldp: sz=oldp[pth]['size']
+            else:
+                if not re.match('^'+re.escape(me)+'/'+did+r'/[A-Za-z0-9._-]{1,80}$',pth): return s.no('bad')
+                sz=s.OBJ[pth]['size'] if pth in s.OBJ else int(f.get('size') or 0)
+            if any(x['path']==pth for x in fs): return s.no('bad')
+            fs.append(dict(path=pth,name=(str(f.get('name') or '').strip() or '파일')[:150],size=sz,type=str(f.get('type') or '')[:100]))
+        if not fs: return s.no('nofiles')
+        ts=now_iso()
+        if isnew: s.DOCS[did]=dict(id=did,title=t,body=b,files=fs,author_id=me,deleted=False,created_at=ts,updated_at=ts); return s.ok(id=did,removed=[])
+        removed=[x for x in oldp if not any(y['path']==x for y in fs)]
+        old.update(title=t,body=b,files=fs,updated_at=ts); return s.ok(id=did,removed=removed)
+    def f_dw_doc_delete(s,me,p_id):
+        d=s.DOCS.get(p_id)
+        if not d or d['deleted']: return s.ok(paths=[])
+        if not ((d['author_id']==me and s.doc_up(me)) or s.admin(me)): return s.no('denied')
+        d['deleted']=True; return s.ok(paths=[f['path'] for f in d['files']])
 def wire(ctx,srv,mockjs):
     ctx.route('**/vendor/supabase.js', lambda r: r.fulfill(status=200,content_type='application/javascript',body=mockjs))
-    for n,f in [('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert)]: ctx.expose_binding(n,f)
+    for n,f in [('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert),('mockStorage',srv.storage)]: ctx.expose_binding(n,f)

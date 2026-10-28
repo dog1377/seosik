@@ -17,6 +17,12 @@ var supabase={createClient:function(url,key,opts){
       then:function(res,rej){ var s=sess(); if(!s) return Promise.resolve({data:[],error:null}).then(res,rej); return window.mockSelect(s.user.id,q._f.app,q._gt,q._r[0],q._r[1]).then(function(d){ return d&&d.error?{data:null,error:d.error}:{data:d,error:null}; }).then(res,rej); },
       upsert:function(rows){ var s=sess(); return window.mockUpsert(s?s.user.id:'',rows).then(function(r){ return r&&r.error?{error:r.error}:{error:null}; }); }
     }; return q; },
+    storage:{from:function(bucket){ var F=window.__mockFiles=window.__mockFiles||{}; return {
+      upload:async function(path,file,opts){ var s=sess(); if(!s) return {data:null,error:{message:'not signed in',statusCode:'401'}}; var r=await window.mockStorage('upload',s.user.id,bucket,path,(file&&file.size)||0); if(r.error) return {data:null,error:{message:r.error,statusCode:String(r.status||403)}}; F[path]=file; return {data:{path:path},error:null}; },
+      remove:async function(paths){ var s=sess(); var r=await window.mockStorage('remove',s?s.user.id:'',bucket,JSON.stringify(paths||[]),0); if(r.error) return {data:null,error:{message:r.error}}; (r.removed||[]).forEach(function(p){ delete F[p]; }); return {data:(r.removed||[]).map(function(p){ return {name:p}; }),error:null}; },
+      download:async function(path){ var s=sess(); var r=await window.mockStorage('read',s?s.user.id:'',bucket,path,0); if(r.error) return {data:null,error:{message:r.error,statusCode:String(r.status||400)}}; return {data:F[path]||new Blob(['mock file'],{type:'application/pdf'}),error:null}; },
+      createSignedUrl:async function(path,sec){ var s=sess(); var r=await window.mockStorage('read',s?s.user.id:'',bucket,path,0); if(r.error) return {data:null,error:{message:r.error,statusCode:String(r.status||400)}}; window.__lastSigned=path; return {data:{signedUrl:URL.createObjectURL(F[path]||new Blob(['mock'],{type:'text/plain'}))},error:null}; }
+    }; }},
     channel:function(name){ var ch={_cb:null,_f:null, on:function(ev,f,cb){ ch._f=f; ch._cb=cb; return ch; }, subscribe:function(st){ (window.__rtChans=window.__rtChans||[]).push(ch); setTimeout(function(){ st&&st('SUBSCRIBED'); },10); return ch; } }; return ch; },
     removeChannel:function(ch){ window.__rtChans=(window.__rtChans||[]).filter(function(x){ return x!==ch; }); }
   };
