@@ -102,6 +102,10 @@ html.dwme-on,html.dwme-on body{overflow:hidden}
 .dw-mode button:focus-visible{outline:2px solid var(--accent,#1c1d1f);outline-offset:-4px}
 html:not(.dw-leader) .dw-mode{display:none!important}
 .ab-in .dw-mode{margin-right:2px}
+/* 업무 순서 단계 번호 동그라미 (2026.10.30) — 장례업무 위 메뉴 · 행사 칸 단계 줄 · 다음 단계 버튼 · 게시판(행사 칸) 위 메뉴가 같이 씀 */
+.st-no{display:inline-grid;place-items:center;flex:none;width:20px;height:20px;box-sizing:border-box;border:1px solid var(--edge,var(--line-2,currentColor));border-radius:50%;font-style:normal;font-size:11.5px;font-weight:700;line-height:1;letter-spacing:0;color:inherit;font-variant-numeric:tabular-nums}
+.done>.st-no{border-color:var(--ink,#1c1d1f);color:var(--ink,#1c1d1f)}
+[aria-current="page"]>.st-no{background:var(--ink,#1c1d1f);border-color:var(--ink,#1c1d1f);color:var(--surface,#fff)}
 @media (max-width:560px){.dw-mode button{min-height:44px;min-width:58px}html.dw-leader .ab-in .ab-title,html.dw-leader .appbar-in .brand{display:none}html.dw-leader .ab-in .dw-mode{margin-right:auto}}
 </style>
 <script>
@@ -167,7 +171,7 @@ html:not(.dw-leader) .dw-mode{display:none!important}
   /* [열쇠, 이름, 그림, 주소] — 주소는 forms/ 기준 */
   var NAV = {
     event: [['event', '행사', 'list', 'funeral.html#sec-event'], ['money', '정산', 'settle', 'funeral.html#sec-money'], ['duty', '휴무', 'duty', 'funeral.html#duty'], ['board', '게시판', 'board', './#board'], ['fset', '설정', 'set', 'funeral.html#admin']],
-    eventWide: [['list', '행사 목록', 'list', 'funeral.html#list'], ['input', '행사 입력', 'input', 'funeral.html#input'], ['out', '보고서', 'out', 'funeral.html#out'], ['sched', '보고서 입력', 'sched', 'funeral.html#sched'], ['poster', '장례일정표', 'poster', 'funeral.html#poster'], ['settle', '정산 · 수당', 'settle', 'funeral.html#settle'], ['envelopes', '봉투정리', 'envelopes', 'funeral.html#envelopes'], ['duty', '휴무 · 당직', 'duty', 'funeral.html#duty'], ['board', '게시판', 'board', './#board'], ['fset', '설정', 'set', 'funeral.html#admin']],
+    eventWide: [['list', '행사 목록', 'list', 'funeral.html#list'], ['input', '입력', 'input', 'funeral.html#input', 1], ['out', '보고서', 'out', 'funeral.html#out', 2], ['sched', '일정표', 'sched', 'funeral.html#sched', 3], ['settle', '정산', 'settle', 'funeral.html#settle', 4], ['envelopes', '봉투', 'envelopes', 'funeral.html#envelopes', 5], ['poster', '장례일정표', 'poster', 'funeral.html#poster'], ['duty', '휴무 · 당직', 'duty', 'funeral.html#duty'], ['board', '게시판', 'board', './#board'], ['fset', '설정', 'set', 'funeral.html#admin']],
     forms: [['report', '보고', 'doc', './#report'], ['shipg', '탁송 · 물품', 'box', './#shipg'], ['company', '회사 서류', 'brief', 'admin.html'], ['settings', '설정', 'set', './#settings']],
     chief: [['gather', '취합', 'gather', './#gather'], ['forms', '서식', 'doc', './#forms'], ['company', '회사 서류', 'brief', 'admin.html'], ['docs', '자료실', 'folder', './#docs'], ['settings', '설정', 'set', './#settings']]
   };
@@ -177,7 +181,8 @@ html:not(.dw-leader) .dw-mode{display:none!important}
     ic: IC, role: role,
     /* 그 칸의 메뉴 (wide: 태블릿 · PC 위 메뉴 줄 — 행사 칸은 화면마다 다 보임) */
     items: function (mode, wide) { var r = role(); if (r === 'chief') return NAV.chief; if (mode === 'event' || r === 'member') return wide ? NAV.eventWide : NAV.event; return NAV.forms; },
-    html: function (items, active, attr) { return items.map(function (x) { return '<button type="button" data-nav="' + x[0] + '"' + (attr || '') + (x[0] === active ? ' aria-current="page"' : ' aria-current="false"') + '>' + (IC[x[2]] || '') + '<span>' + x[1] + '</span></button>'; }).join(''); },
+    /* 5번째 값 = 업무 순서 단계 번호(1~5) → 그림 대신 번호 동그라미 */
+    html: function (items, active, attr) { return items.map(function (x) { return '<button type="button" data-nav="' + x[0] + '"' + (attr || '') + (x[0] === active ? ' aria-current="page"' : ' aria-current="false"') + (x[4] ? ' aria-label="' + x[4] + '단계 ' + x[1] + '"' : '') + '>' + (x[4] ? '<i class="st-no" aria-hidden="true">' + x[4] + '</i>' : (IC[x[2]] || '')) + '<span>' + x[1] + '</span></button>'; }).join(''); },
     href: function (k) { var x = find(k); return x ? x[3] : ''; }
   };
 })();

@@ -55,7 +55,7 @@
     if (out && out.email && !(u && u.email)) u = { email: out.email };
     if (!join && !(u && u.email)) { var lid = ''; try { lid = localStorage.getItem(LIDK) || ''; } catch (e) {} if (lid) u = { email: lid }; }   /* 마지막으로 로그인한 아이디 (2026.10.29) */
     box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
-      + (out && out.why === 'idle' && !join ? '<p class="gt-note" role="status">10분 동안 쓰지 않아서 로그아웃됐어요. 다시 로그인해 주세요.</p>' : '')
+      + (out && out.why === 'idle' && !join ? '<p class="gt-note" role="status">10분 동안 쓰지 않아서 로그아웃됐습니다. 다시 로그인해 주십시오.</p>' : '')
       + '<input id="gtId" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="이메일 입력" aria-label="이메일">'
       + '<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '" placeholder="비밀번호 입력" aria-label="비밀번호">'
       + (join ? '<input id="gtPw2" type="password" autocomplete="new-password" placeholder="비밀번호 확인" aria-label="비밀번호 확인"><input id="gtName" autocomplete="name" placeholder="이름 입력" aria-label="이름">' : '')
@@ -71,7 +71,7 @@
       e.preventDefault();
       var id = String(idEl.value || '').trim(), pw = String(pwEl.value || '');
       if (join) { joinSubmit(id, pw, String((box.querySelector('#gtPw2') || {}).value || ''), String((box.querySelector('#gtName') || {}).value || '').trim(), go, err); return; }
-      if (!id || !pw) { err.textContent = '이메일과 비밀번호를 넣어 주세요.'; (id ? pwEl : idEl).focus(); return; }
+      if (!id || !pw) { err.textContent = '이메일과 비밀번호를 입력하십시오.'; (id ? pwEl : idEl).focus(); return; }
       go.disabled = true; go.textContent = '로그인 중…'; err.textContent = '';
       getClient().then(function (c) { return c.auth.signInWithPassword({ email: toEmail(id), password: pw }); })
         .then(function (r) {
@@ -79,23 +79,23 @@
           try { localStorage.setItem(LIDK, id); } catch (e) {}
           signedIn(r.data && r.data.user, false);
         })
-        .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주세요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; })
+        .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주십시오.' : '로그인하지 못했습니다. 인터넷을 확인해 주십시오.'; })
         .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '로그인'; } });
     });
   }
   /* 로그인 · 가입 오류를 알아듣기 쉽게 (수파베이스 오류 코드 기준). 모르는 오류는 끝에 오류 이름을 붙여 보여 줌 → 화면 캡처로 원인을 알 수 있게 */
   function authMsg(e, join) {
     var c = String((e && e.code) || ''), m = String((e && e.message) || ''), st = e && e.status;
-    if (c === 'user_already_exists' || c === 'email_exists' || /already (been )?registered|already exists/i.test(m)) return '이미 가입된 이메일이에요. 로그인해 주세요.';
-    if (c === 'signup_disabled' || c === 'email_provider_disabled' || /signups? not allowed|signup.*disabled/i.test(m)) return '지금은 회원가입이 꺼져 있어요. 관리자에게 말씀해 주세요. (회원가입 꺼짐)';
-    if (c === 'email_address_not_authorized' || c === 'over_email_send_rate_limit' || /not authorized|email rate limit/i.test(m)) return '가입 확인 메일 설정 때문에 가입이 막혔어요. 관리자에게 말씀해 주세요. (이메일 확인 켜짐)';
-    if (c === 'email_not_confirmed' || /not confirmed/i.test(m)) return '가입 확인이 안 된 계정이에요. 관리자에게 말씀해 주세요. (이메일 확인 안 됨)';
-    if (c === 'invalid_credentials' || /invalid login|credentials/i.test(m)) return '이메일이나 비밀번호가 맞지 않아요.';
-    if (c === 'weak_password' || /password/i.test(m)) return '비밀번호를 더 어렵게 해 주세요. (6자 이상, 영문과 숫자를 섞어서)';
-    if (c === 'email_address_invalid' || c === 'validation_failed' || /invalid.*email|email.*invalid/i.test(m)) return '쓸 수 없는 이메일이에요. 다른 이메일로 해 주세요.';
-    if (c === 'over_request_rate_limit' || st === 429) return '잠깐 사이에 너무 많이 시도했어요. 조금 뒤에 다시 해 주세요.';
-    if (navigator.onLine === false) return '인터넷에 연결한 뒤 다시 해 주세요.';
-    return (join ? '가입' : '로그인') + '하지 못했어요. (' + (c || m || '알 수 없는 오류').slice(0, 60) + ')';
+    if (c === 'user_already_exists' || c === 'email_exists' || /already (been )?registered|already exists/i.test(m)) return '이미 가입된 이메일입니다. 로그인해 주십시오.';
+    if (c === 'signup_disabled' || c === 'email_provider_disabled' || /signups? not allowed|signup.*disabled/i.test(m)) return '지금은 회원가입이 꺼져 있습니다. 관리자에게 말씀해 주십시오. (회원가입 꺼짐)';
+    if (c === 'email_address_not_authorized' || c === 'over_email_send_rate_limit' || /not authorized|email rate limit/i.test(m)) return '가입 확인 메일 설정 때문에 가입이 막혔습니다. 관리자에게 말씀해 주십시오. (이메일 확인 켜짐)';
+    if (c === 'email_not_confirmed' || /not confirmed/i.test(m)) return '가입 확인이 안 된 계정입니다. 관리자에게 말씀해 주십시오. (이메일 확인 안 됨)';
+    if (c === 'invalid_credentials' || /invalid login|credentials/i.test(m)) return '이메일이나 비밀번호가 맞지 않습니다.';
+    if (c === 'weak_password' || /password/i.test(m)) return '비밀번호를 더 어렵게 해 주십시오. (6자 이상, 영문과 숫자를 섞어서)';
+    if (c === 'email_address_invalid' || c === 'validation_failed' || /invalid.*email|email.*invalid/i.test(m)) return '쓸 수 없는 이메일입니다. 다른 이메일로 해 주십시오.';
+    if (c === 'over_request_rate_limit' || st === 429) return '잠깐 사이에 너무 많이 시도했습니다. 조금 뒤에 다시 해 주십시오.';
+    if (navigator.onLine === false) return '인터넷에 연결한 뒤 다시 해 주십시오.';
+    return (join ? '가입' : '로그인') + '하지 못했습니다. (' + (c || m || '알 수 없는 오류').slice(0, 60) + ')';
   }
   /* 로그인 · 가입 성공: 이 기기 기록 주인과 다른 계정(가입은 언제나)이면 계정 바꾸기 화면(switch.html)으로 → 가입한 계정은 빈 화면에서 시작 */
   function signedIn(u, join) {
@@ -107,18 +107,18 @@
   function joinSubmit(id, pw, pw2, name, go, err) {
     var v = String(id || '').trim().toLowerCase();
     var ok = v.indexOf('@') >= 0 ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) : /^[a-z0-9][a-z0-9._-]{2,19}$/.test(v);
-    if (!ok) { err.textContent = '이메일을 확인해 주세요.'; return; }
-    if (pw.length < 6) { err.textContent = '비밀번호는 6자 이상으로 넣어 주세요.'; return; }
-    if (pw !== pw2) { err.textContent = '비밀번호 확인이 달라요.'; return; }
+    if (!ok) { err.textContent = '이메일을 확인해 주십시오.'; return; }
+    if (pw.length < 6) { err.textContent = '비밀번호는 6자 이상으로 입력하십시오.'; return; }
+    if (pw !== pw2) { err.textContent = '비밀번호 확인이 다릅니다.'; return; }
     go.disabled = true; go.textContent = '가입 중…'; err.textContent = '';
     getClient().then(function (c) { return c.auth.signUp({ email: toEmail(v), password: pw, options: { data: name ? { name: name } : {} } }); })
       .then(function (r) {
         if (r.error) { err.textContent = authMsg(r.error, true); return; }
-        if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입은 됐는데 「이메일 확인」이 켜져 있어서 아직 로그인이 안 돼요. 관리자에게 말씀해 주세요.'; return; }
+        if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입은 됐는데 「이메일 확인」이 켜져 있어서 아직 로그인이 안 됩니다. 관리자에게 말씀해 주십시오.'; return; }
         try { localStorage.setItem(LIDK, v); } catch (e) {}
         signedIn(r.data.user, true);
       })
-      .catch(function () { err.textContent = '가입하지 못했어요. 인터넷을 확인해 주세요.'; })
+      .catch(function () { err.textContent = '가입하지 못했습니다. 인터넷을 확인해 주십시오.'; })
       .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '가입하기'; } });
   }
   /* 서버 함수 부르기 (게시판 · 파트 · 이름). 실패 이유: login · offline · noserver(서버 준비 안 됨) · net */
@@ -237,7 +237,7 @@
       + '<label>이름<input id="dwMeName" maxlength="20" autocomplete="name" placeholder="예: 홍길동"></label>'
       + '<label>전화번호<input id="dwMePhone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel" placeholder="010-0000-0000"></label>'
       + '<label>직급<input id="dwMeRank" maxlength="20" placeholder="예: 팀장"></label>'
-      + '<p class="dwme-note">게시판 이름 · 장례일정표 문의 줄 · 수당 정산에 들어가요. 어느 휴대폰에서 고쳐도 같아요.</p>'
+      + '<p class="dwme-note">게시판 이름 · 장례일정표 문의 줄 · 수당 정산에 들어갑니다. 어느 휴대폰에서 고쳐도 같습니다.</p>'
       + '<button type="submit" class="dwme-main" id="dwMeSave">저장</button><p class="dwme-msg" id="dwMeMsg" role="status"></p></form>'
       + '<div class="dwme-sec"><button type="button" class="dwme-row" id="dwMePwOpen" aria-expanded="false" aria-controls="dwMePwBox">비밀번호 바꾸기' + CH_SVG + '</button>'
       + '<form class="dwme-box" id="dwMePwBox" hidden novalidate><input type="email" autocomplete="username" id="dwMeUser" hidden>'
@@ -248,7 +248,7 @@
       + '<div class="dwme-sec"><div class="dw-theme-row" id="dwMeTheme"><span>화면</span></div></div>'
       + '<div class="dwme-sec"><button type="button" class="dwme-sub" id="dwMeOut">로그아웃</button>'
       + '<button type="button" class="dwme-link" id="dwMeDelOpen">회원 탈퇴</button>'
-      + '<form class="dwme-box" id="dwMeDelBox" hidden novalidate><p class="dwme-warn">탈퇴하면 내 계정과 저장된 기록이 모두 지워지고 되돌릴 수 없어요. 이 휴대폰에서도 지워져요.</p>'
+      + '<form class="dwme-box" id="dwMeDelBox" hidden novalidate><p class="dwme-warn">탈퇴하면 내 계정과 저장된 기록이 모두 지워지고 되돌릴 수 없습니다. 이 휴대폰에서도 삭제됩니다.</p>'
       + '<label>비밀번호 확인<input id="dwMeDelPw" type="password" autocomplete="current-password"></label>'
       + '<div class="dwme-del"><button type="submit" class="dwme-main dwme-danger" id="dwMeDelGo">탈퇴하기</button><button type="button" class="dwme-sub" id="dwMeDelNo">취소</button></div><p class="dwme-msg" id="dwMeDelMsg" role="alert"></p></form></div>'
       + '</div>';
@@ -267,11 +267,11 @@
     meEl('dwMeDelBox').addEventListener('submit', function (e) {
       e.preventDefault();
       var b = meEl('dwMeDelGo'), pw = meEl('dwMeDelPw').value;
-      if (!pw) { meMsg('dwMeDelMsg', '비밀번호를 넣어 주세요.', true); return; }
+      if (!pw) { meMsg('dwMeDelMsg', '비밀번호를 입력하십시오.', true); return; }
       b.disabled = true; b.textContent = '탈퇴하는 중…';
       acct.deleteMe(pw).then(function (r) {
         if (r === 'ok') { if (window.dwOwner && window.dwOwner.erase) window.dwOwner.erase(); else location.reload(); return; }
-        meMsg('dwMeDelMsg', r === 'pw' ? '비밀번호가 맞지 않아요.' : r === 'nofn' ? '지금은 탈퇴할 수 없어요. 잠시 뒤에 다시 해 주세요.' : '지금은 탈퇴하지 못했어요. 인터넷을 확인해 주세요.', true);
+        meMsg('dwMeDelMsg', r === 'pw' ? '비밀번호가 맞지 않습니다.' : r === 'nofn' ? '지금은 탈퇴할 수 없습니다. 잠시 뒤에 다시 해 주십시오.' : '지금은 탈퇴하지 못했습니다. 인터넷을 확인해 주십시오.', true);
         b.disabled = false; b.textContent = '탈퇴하기';
       });
     });
@@ -310,32 +310,32 @@
       ME.p = { name: d.name || '', phone: d.phone || '', rank: d.rank || '', info_at: Number(d.info_at) || 0 };
       if (d.stale) {   /* 다른 휴대폰에서 더 나중에 고친 게 있음 → 그것으로 */
         if (local) { try { window.dwMeApply({ name: ME.p.name, phone: ME.p.phone, rank: ME.p.rank, at: ME.p.info_at }); } catch (e) {} }
-        meFill(); meDone(ME.p, '다른 휴대폰에서 더 나중에 고친 내 정보가 있어서 그것으로 바꿨어요.'); return;
+        meFill(); meDone(ME.p, '다른 휴대폰에서 더 나중에 고친 내 정보가 있어서 그것으로 바꿨습니다.'); return;
       }
-      meDone(v, '저장했어요');
+      meDone(v, '저장했습니다');
     }).catch(function (e) {
       var why = e && e.why;
       if (why === 'noserver') {   /* 서버 준비 글을 다시 실행하기 전: 이름만 서버(게시판)에 */
-        return rpc('dw_set_name', { p_name: v.name }).then(function () { meDone(v, local ? '저장했어요' : '이름을 저장했어요. 전화번호 · 직급은 장례업무 화면에서 저장돼요.'); }, function () { meDone(v, local ? '이 휴대폰에 저장했어요.' : ''); });
+        return rpc('dw_set_name', { p_name: v.name }).then(function () { meDone(v, local ? '저장했습니다' : '이름을 저장했습니다. 전화번호 · 직급은 장례업무 화면에서 저장됩니다.'); }, function () { meDone(v, local ? '이 휴대폰에 저장했습니다.' : ''); });
       }
-      if (local) { meDone(v, '이 휴대폰에 저장했어요. 인터넷이 되면 내 계정에도 올려요.'); return; }
-      meMsg('dwMeMsg', why === 'offline' ? '인터넷에 연결한 뒤 저장해 주세요.' : why === 'login' ? '로그인이 풀렸어요. 다시 로그인해 주세요.' : '지금은 저장하지 못했어요. 잠시 뒤에 다시 해 주세요.', true);
+      if (local) { meDone(v, '이 휴대폰에 저장했습니다. 인터넷이 되면 내 계정에도 올립니다.'); return; }
+      meMsg('dwMeMsg', why === 'offline' ? '인터넷에 연결한 뒤 저장해 주십시오.' : why === 'login' ? '로그인이 풀렸습니다. 다시 로그인해 주십시오.' : '지금은 저장하지 못했습니다. 잠시 뒤에 다시 해 주십시오.', true);
     }).then(function () { b.disabled = false; });
   }
   function pwMsg(e) {
     var c = String((e && e.code) || ''), m = String((e && e.message) || '');
-    if (c === 'same_password' || /different from the old/i.test(m)) return '지금 비밀번호와 다른 비밀번호로 해 주세요.';
-    if (c === 'weak_password' || /at least|weak/i.test(m)) return '비밀번호를 더 어렵게 해 주세요. (6자 이상, 영문과 숫자를 섞어서)';
-    if (c === 'reauthentication_needed') return '보안 설정 때문에 지금은 바꾸지 못했어요. 관리자에게 말씀해 주세요. (reauthentication_needed)';
+    if (c === 'same_password' || /different from the old/i.test(m)) return '지금 비밀번호와 다른 비밀번호로 해 주십시오.';
+    if (c === 'weak_password' || /at least|weak/i.test(m)) return '비밀번호를 더 어렵게 해 주십시오. (6자 이상, 영문과 숫자를 섞어서)';
+    if (c === 'reauthentication_needed') return '보안 설정 때문에 지금은 바꾸지 못했습니다. 관리자에게 말씀해 주십시오. (reauthentication_needed)';
     return authMsg(e, false).replace('로그인하지', '바꾸지');
   }
   function mePw() {
     var u = acct.user(), p0 = meEl('dwMePw0').value, p1 = meEl('dwMePw1').value, p2 = meEl('dwMePw2').value, b = meEl('dwMePwGo');
-    if (!p0) { meMsg('dwMePwMsg', '지금 비밀번호를 넣어 주세요.', true); meEl('dwMePw0').focus(); return; }
-    if (p1.length < 6) { meMsg('dwMePwMsg', '새 비밀번호는 6자 이상으로 넣어 주세요.', true); meEl('dwMePw1').focus(); return; }
-    if (p1 !== p2) { meMsg('dwMePwMsg', '새 비밀번호 확인이 달라요.', true); meEl('dwMePw2').focus(); return; }
-    if (p1 === p0) { meMsg('dwMePwMsg', '지금 비밀번호와 다른 비밀번호로 해 주세요.', true); return; }
-    if (navigator.onLine === false) { meMsg('dwMePwMsg', '인터넷에 연결한 뒤 바꿔 주세요.', true); return; }
+    if (!p0) { meMsg('dwMePwMsg', '지금 비밀번호를 입력하십시오.', true); meEl('dwMePw0').focus(); return; }
+    if (p1.length < 6) { meMsg('dwMePwMsg', '새 비밀번호는 6자 이상으로 입력하십시오.', true); meEl('dwMePw1').focus(); return; }
+    if (p1 !== p2) { meMsg('dwMePwMsg', '새 비밀번호 확인이 다릅니다.', true); meEl('dwMePw2').focus(); return; }
+    if (p1 === p0) { meMsg('dwMePwMsg', '지금 비밀번호와 다른 비밀번호로 해 주십시오.', true); return; }
+    if (navigator.onLine === false) { meMsg('dwMePwMsg', '인터넷에 연결한 뒤 바꿔 주십시오.', true); return; }
     b.disabled = true; meMsg('dwMePwMsg', '바꾸는 중…');
     getClient().then(function (c) {
       return c.auth.signInWithPassword({ email: u.email, password: p0 }).then(function (r) {
@@ -344,16 +344,16 @@
       }).then(function (r) { if (r.error) return Promise.reject({ e: r.error }); });
     }).then(function () {
       ['dwMePw0', 'dwMePw1', 'dwMePw2'].forEach(function (id) { meEl(id).value = ''; });
-      meMsg('dwMePwMsg', '비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.');
+      meMsg('dwMePwMsg', '비밀번호를 바꿨습니다. 다음 로그인부터 새 비밀번호를 쓰십시오.');
     }, function (x) {
       var e = x && x.e;
-      meMsg('dwMePwMsg', x && x.cur ? (/invalid|credential/i.test(String((e && (e.code || e.message)) || '')) ? '지금 비밀번호가 맞지 않아요.' : authMsg(e, false)) : e ? pwMsg(e) : '바꾸지 못했어요. 인터넷을 확인해 주세요.', true);
+      meMsg('dwMePwMsg', x && x.cur ? (/invalid|credential/i.test(String((e && (e.code || e.message)) || '')) ? '지금 비밀번호가 맞지 않습니다.' : authMsg(e, false)) : e ? pwMsg(e) : '바꾸지 못했습니다. 인터넷을 확인해 주십시오.', true);
     }).then(function () { b.disabled = false; });
   }
   /* 로그아웃 확인 (위 막대 버튼 · 내 정보 공통) */
   function askLogout(btn) {
     var go = function (ok) { if (!ok) return; if (btn) btn.disabled = true; acct.logout(); };
-    if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃할까요?', body: '기록은 내 계정에 저장돼 있어요. 다시 들어올 때 이메일과 비밀번호를 넣어야 해요 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
+    if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃하시겠습니까?', body: '기록은 내 계정에 저장돼 있습니다. 다시 들어올 때 이메일과 비밀번호를 넣어야 합니다 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
     else go(true);
   }
   window.dwMe = { open: meOpen, close: meClose, vals: meVals, load: meLoad };
@@ -363,7 +363,7 @@
   acct.resetPw = function (uid, name) {
     var nm = String(name || '').trim() || '이 직원';
     var ask = typeof window.dwConfirm === 'function'
-      ? window.dwConfirm({ title: nm + ' 님 비밀번호를 초기화할까요?', body: '비밀번호가 ' + PW0 + ' 로 바뀌어요. 그 직원이 다음에 로그인하면 바로 새 비밀번호를 정하게 돼요.', ok: '초기화', danger: true })
+      ? window.dwConfirm({ title: nm + ' 님 비밀번호를 초기화하시겠습니까?', body: '비밀번호가 ' + PW0 + ' 로 바뀝니다. 그 직원이 다음에 로그인하면 바로 새 비밀번호를 정하게 됩니다.', ok: '초기화', danger: true })
       : Promise.resolve(true);
     return ask.then(function (ok) {
       if (!ok) return null;
@@ -372,12 +372,12 @@
   };
   acct.resetWhy = function (e) {
     var w = (e && e.why) || 'net';
-    return w === 'noserver' ? '비밀번호 초기화가 서버에 아직 없어요. 수파베이스 SQL Editor에서 새 SQL을 한 번 실행해 주세요'
-      : w === 'deny' ? '내 파트원만 초기화할 수 있어요 (파트장 · 총괄실장 계정은 관리자만)'
-      : w === 'self' ? '내 비밀번호는 위쪽 내 아이디를 눌러 「내 정보」에서 바꿔요'
-      : w === 'nouser' ? '그 직원 계정을 찾지 못했어요'
-      : w === 'offline' ? '인터넷에 연결한 뒤 다시 해 주세요'
-      : w === 'login' ? '로그인한 뒤에 할 수 있어요' : '지금은 초기화하지 못했어요. 잠시 뒤에 다시 해 주세요';
+    return w === 'noserver' ? '비밀번호 초기화가 서버에 아직 없습니다. 수파베이스 SQL Editor에서 새 SQL을 한 번 실행해 주십시오'
+      : w === 'deny' ? '내 파트원만 초기화할 수 있습니다 (파트장 · 총괄실장 계정은 관리자만)'
+      : w === 'self' ? '내 비밀번호는 위쪽 내 아이디를 눌러 「내 정보」에서 바꿉니다'
+      : w === 'nouser' ? '그 직원 계정을 찾지 못했습니다'
+      : w === 'offline' ? '인터넷에 연결한 뒤 다시 해 주십시오'
+      : w === 'login' ? '로그인한 뒤에 할 수 있습니다' : '지금은 초기화하지 못했습니다. 잠시 뒤에 다시 해 주십시오';
   };
 
   /* ---------- 비밀번호가 초기화된 계정: 새 비밀번호를 정해야 앱을 씀 ---------- */
@@ -390,7 +390,7 @@
     if (!box.hidden && box.dataset.mode === 'newpw') return;   /* 이미 보고 있음 → 넣던 글 그대로 */
     box.hidden = false; box.dataset.mode = 'newpw';
     box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">새 비밀번호 정하기</h1>'
-      + '<p class="gt-note">비밀번호가 초기화됐어요. 앞으로 쓸 새 비밀번호를 정해 주세요.</p>'
+      + '<p class="gt-note">비밀번호가 초기화됐습니다. 앞으로 쓸 새 비밀번호를 정해 주십시오.</p>'
       + '<p class="gt-note" id="gtWho"></p><input type="email" autocomplete="username" id="gtUser" hidden>'
       + '<input id="gtNp1" type="password" autocomplete="new-password" placeholder="새 비밀번호 (6자 이상)" aria-label="새 비밀번호">'
       + '<input id="gtNp2" type="password" autocomplete="new-password" placeholder="새 비밀번호 확인" aria-label="새 비밀번호 확인">'
@@ -404,10 +404,10 @@
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       var a = n1.value, b = n2.value;
-      if (a.length < 6) { err.textContent = '새 비밀번호는 6자 이상으로 넣어 주세요.'; n1.focus(); return; }
-      if (a !== b) { err.textContent = '비밀번호 확인이 달라요.'; n2.focus(); return; }
-      if (a === PW0) { err.textContent = '초기 비밀번호(' + PW0 + ')와 다른 비밀번호로 해 주세요.'; n1.focus(); return; }
-      if (navigator.onLine === false) { err.textContent = '인터넷에 연결한 뒤 해 주세요.'; return; }
+      if (a.length < 6) { err.textContent = '새 비밀번호는 6자 이상으로 입력하십시오.'; n1.focus(); return; }
+      if (a !== b) { err.textContent = '비밀번호 확인이 다릅니다.'; n2.focus(); return; }
+      if (a === PW0) { err.textContent = '초기 비밀번호(' + PW0 + ')와 다른 비밀번호로 해 주십시오.'; n1.focus(); return; }
+      if (navigator.onLine === false) { err.textContent = '인터넷에 연결한 뒤 해 주십시오.'; return; }
       go.disabled = true; go.textContent = '저장하는 중…'; err.textContent = '';
       var cl = null, uid = (u && u.id) || ((sess() || {}).user || {}).id || '';
       getClient().then(function (c) { cl = c; return c.auth.updateUser({ password: a }); })
@@ -418,7 +418,7 @@
         .then(function () { return Promise.resolve(cl.auth.refreshSession()).catch(function () {}); })
         .then(function () { try { sessionStorage.setItem('dw-pw-clear', uid); localStorage.setItem(IK, String(Date.now())); } catch (x) {} location.reload(); })
         .catch(function (e) {
-          err.textContent = e && (e.code || e.message) ? pwMsg(e) : '저장하지 못했어요. 인터넷을 확인해 주세요.';
+          err.textContent = e && (e.code || e.message) ? pwMsg(e) : '저장하지 못했습니다. 인터넷을 확인해 주십시오.';
           go.disabled = false; go.textContent = '저장하고 시작하기';
         });
     });

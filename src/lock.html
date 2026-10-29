@@ -57,17 +57,17 @@ html.app-locked body>*:not(#appLock){visibility:hidden!important}
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var now = Date.now();
-      if (now < waitUntil) { err.textContent = Math.ceil((waitUntil - now) / 1000) + '초 뒤에 다시 넣어 주세요.'; return; }
+      if (now < waitUntil) { err.textContent = Math.ceil((waitUntil - now) / 1000) + '초 뒤에 다시 입력하십시오.'; return; }
       if (!pw.value) return;
       go.disabled = true; err.textContent = '';
       check(pw.value).then(function (ok) {
         go.disabled = false;
         if (ok) { set(KEY, TOKEN); fails = 0; pw.value = ''; box.hidden = true; root.classList.remove('app-locked'); setupRelock(); try { window.dispatchEvent(new Event('app-unlocked')); } catch (x) { /* ignore */ } return; }
         fails++; pw.value = ''; pw.focus();
-        if (fails >= 5) { waitUntil = Date.now() + 30000; fails = 0; err.textContent = '5번 틀렸습니다. 30초 뒤에 다시 넣어 주세요.'; }
+        if (fails >= 5) { waitUntil = Date.now() + 30000; fails = 0; err.textContent = '5번 틀렸습니다. 30초 뒤에 다시 입력하십시오.'; }
         else err.textContent = '비밀번호가 맞지 않습니다.';
         form.classList.remove('lk-shake'); void form.offsetWidth; form.classList.add('lk-shake');
-      }, function () { go.disabled = false; err.textContent = '이 화면에서는 확인할 수 없습니다. 주소가 https 인지 확인해 주세요.'; });
+      }, function () { go.disabled = false; err.textContent = '이 화면에서는 확인할 수 없습니다. 주소가 https 인지 확인해 주십시오.'; });
     });
     setTimeout(function () { pw.focus(); }, 60);
   }

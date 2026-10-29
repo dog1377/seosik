@@ -31,7 +31,7 @@
       var back = document.activeElement, bg = document.createElement('div');
       bg.className = 'dwc-bg';
       bg.innerHTML = '<div class="dwc" role="alertdialog" aria-modal="true" aria-labelledby="dwcT"' + (o.body ? ' aria-describedby="dwcB"' : '') + '>'
-        + '<h2 id="dwcT">' + esc(o.title || '계속할까요?') + '</h2>' + (o.body ? '<p id="dwcB">' + esc(o.body) + '</p>' : '')
+        + '<h2 id="dwcT">' + esc(o.title || '계속하시겠습니까?') + '</h2>' + (o.body ? '<p id="dwcB">' + esc(o.body) + '</p>' : '')
         + '<div class="dwc-row"><button type="button" class="dwc-no">' + esc(o.cancel || '취소') + '</button>'
         + '<button type="button" class="dwc-ok' + (o.danger === false ? '' : ' danger') + '">' + esc(o.ok || '확인') + '</button></div></div>';
       document.body.appendChild(bg);

@@ -321,12 +321,12 @@ p{text-wrap:pretty}
 
 <div class="wrap">
   <div class="update-bar" id="updateBar" hidden>
-    <span>새 버전이 나왔어요.</span>
+    <span>새 버전이 나왔습니다.</span>
     <button class="btn small primary" type="button" id="updateBtn">지금 적용</button>
   </div>
   <div class="banner" id="inappBanner" hidden>
-    <b>카카오톡 같은 앱 안에서 열렸어요</b>
-    여기서는 기록 저장과 앱 설치가 제대로 안 될 수 있어요. 화면 위나 아래의 메뉴(⋮ 또는 ···)에서 <b>다른 브라우저로 열기</b>를 눌러 주세요.
+    <b>카카오톡 같은 앱 안에서 열렸습니다</b>
+    여기서는 기록 저장과 앱 설치가 제대로 안 될 수 있습니다. 화면 위나 아래의 메뉴(⋮ 또는 ···)에서 <b>다른 브라우저로 열기</b>를 눌러 주십시오.
     <div><button class="btn small copy-link" type="button">주소 복사</button></div>
   </div>
   <div class="install-card" id="installCard" hidden>
@@ -334,12 +334,12 @@ p{text-wrap:pretty}
     <div class="install-body" id="installBody"></div>
   </div>
   <div class="banner" id="storeBanner" hidden>
-    <b>이 화면에서는 기기 저장이 막혀 있어요</b>
-    입력은 할 수 있지만 창을 닫으면 사라집니다. 일반 브라우저 창(비공개 모드 아님)에서 다시 열어 주세요.
+    <b>이 화면에서는 기기 저장이 막혀 있습니다</b>
+    입력은 할 수 있지만 창을 닫으면 사라집니다. 일반 브라우저 창(비공개 모드 아님)에서 다시 열어 주십시오.
   </div>
   <div class="banner" id="failBanner" hidden>
-    <b>저장에 실패했어요</b>
-    기기 저장공간이 부족할 수 있어요. 인터넷이 되면 내 계정에는 그대로 저장돼요.
+    <b>저장에 실패했습니다</b>
+    기기 저장공간이 부족할 수 있습니다. 인터넷이 되면 내 계정에는 그대로 저장됩니다.
   </div>
 
   <!-- ===== 서식 ===== -->
@@ -351,20 +351,20 @@ p{text-wrap:pretty}
   <section class="tab" id="tab-docs">
     <div class="tab-head">
       <h1>인사 · 총무 서식</h1>
-      <p>회사 공통 서식을 작성해 이미지와 PDF로 저장하거나 카톡으로 보내요.</p>
+      <p>회사 공통 서식을 작성해 이미지와 PDF로 저장하거나 카톡으로 보냅니다.</p>
     </div>
     <div class="type-grid" id="typeGrid"></div>
     <div class="sec-h"><h2>작성한 문서</h2><span class="muted small-t" id="docCount"></span></div>
     <div class="seg" id="docFilter" role="group" aria-label="문서 종류"></div>
     <div class="list" id="docList"></div>
-    <p class="empty-msg" id="docEmpty" hidden>아직 작성한 문서가 없어요. 위에서 서식을 고르면 바로 작성할 수 있어요.</p>
+    <p class="empty-msg" id="docEmpty" hidden>아직 작성한 문서가 없습니다. 위에서 서식을 고르면 바로 작성할 수 있습니다.</p>
   </section>
 
   <!-- ===== 직원 ===== -->
   <section class="tab" id="tab-staff" hidden>
     <div class="tab-head">
       <h1>직원 · 인사기록카드</h1>
-      <p>등록한 직원 정보는 재직증명서, 사직서, 시말서, 인사발령에 자동으로 채워져요.</p>
+      <p>등록한 직원 정보는 재직증명서, 사직서, 시말서, 인사발령에 자동으로 채워집니다.</p>
     </div>
     <button class="btn primary block" type="button" id="newStaff">+ 직원 등록</button>
     <div class="seg" id="staffSeg" role="group" aria-label="재직 구분">
@@ -379,7 +379,7 @@ p{text-wrap:pretty}
   <section class="tab" id="tab-settings" hidden>
     <div class="tab-head">
       <h1>회사 정보 · 직인</h1>
-      <p>서식에 들어갈 회사 정보와 직인을 정해요. 기록은 내 계정에 자동으로 저장돼요.</p>
+      <p>서식에 들어갈 회사 정보와 직인을 정합니다. 기록은 내 계정에 자동으로 저장됩니다.</p>
     </div>
     <div class="card">
       <h2>회사 정보</h2>
@@ -395,31 +395,31 @@ p{text-wrap:pretty}
       <label class="field"><span>결재란 칸 이름 <span class="opt">(쉼표로 구분, 최대 4칸)</span></span><input id="coAppr" type="text" placeholder="총괄실장, 본부장, 대표이사"></label>
     </div>
     <div class="save-bar" id="coSaveBar">
-      <span class="state" id="coSaveState">설정이 저장되어 있어요</span>
+      <span class="state" id="coSaveState">설정이 저장되어 있습니다</span>
       <button class="btn quiet small" type="button" id="coCancel" hidden>되돌리기</button>
       <button class="btn primary" type="button" id="coSave" disabled>저장됨</button>
     </div>
     <div class="card">
       <h2>회사 직인</h2>
-      <p class="small-t muted">흰 종이에 찍은 직인을 가까이에서 찍어 올리면 바탕을 지우고 붉은 도장만 남겨요. 공지사항, 인사발령, 재직증명서의 「(인)」 자리에 찍혀요. 올리는 즉시 저장돼요.</p>
-      <div class="seal-box" id="sealBox"><span>등록된 직인이 없어요</span></div>
+      <p class="small-t muted">흰 종이에 찍은 직인을 가까이에서 찍어 올리면 바탕을 지우고 붉은 도장만 남깁니다. 공지사항, 인사발령, 재직증명서의 「(인)」 자리에 찍힙니다. 올리는 즉시 저장됩니다.</p>
+      <div class="seal-box" id="sealBox"><span>등록된 직인이 없습니다</span></div>
       <label class="switch" for="sealOn"><span>서식에 직인 찍기</span><input type="checkbox" id="sealOn"></label>
       <div class="grid2">
         <label class="btn primary" for="sealFile" id="sealPick">직인 사진 올리기</label>
-        <button class="btn danger" type="button" id="sealDel">직인 지우기</button>
+        <button class="btn danger" type="button" id="sealDel">직인 삭제</button>
       </div>
       <input type="file" id="sealFile" accept="image/*" class="vh">
     </div>
     <div class="card" id="pwCard" hidden>
       <h2>앱 비밀번호</h2>
-      <p class="small-t muted">DW관리(관리자)와 관리자 서식(파트장) 비밀번호를 정해요. 여기서 만든 <b>비밀번호 코드</b>를 앱 담당자에게 보내면 앱에 적용돼요. 코드로는 비밀번호를 알아낼 수 없지만, <b>비밀번호 자체는 어디에도 보내지 마세요.</b> 장례일정은 비밀번호 없이 열려요.</p>
+      <p class="small-t muted">DW관리(관리자)와 관리자 서식(파트장) 비밀번호를 정합니다. 여기서 만든 <b>비밀번호 코드</b>를 앱 담당자에게 보내면 앱에 적용됩니다. 코드로는 비밀번호를 알아낼 수 없지만, <b>비밀번호 자체는 어디에도 보내지 마십시오.</b> 장례일정은 비밀번호 없이 열립니다.</p>
       <p class="small-t" id="pwState"></p>
       <label class="field"><span>대상</span><select class="sel" id="pwFor"><option value="admin">DW관리 · 관리자 비밀번호</option><option value="forms">관리자 서식 · 파트장 비밀번호</option></select></label>
       <label class="field"><span class="field-label">새 비밀번호 <span class="opt">6자 이상, 영문과 숫자를 섞어서</span></span><input type="password" id="pwNew" autocomplete="new-password"></label>
       <label class="field"><span>한 번 더</span><input type="password" id="pwNew2" autocomplete="new-password"></label>
       <button class="btn primary" type="button" id="pwMake">비밀번호 코드 만들기</button>
       <div class="pw-out" id="pwOut" hidden>
-        <p class="small-t">아래 코드를 그대로 복사해서 보내 주세요.</p>
+        <p class="small-t">아래 코드를 그대로 복사해서 보내 주십시오.</p>
         <textarea id="pwCode" readonly rows="3"></textarea>
         <button class="btn" type="button" id="pwCopy">코드 복사</button>
       </div>
@@ -430,8 +430,8 @@ p{text-wrap:pretty}
     </div>
     <div class="card">
       <h2>저장</h2>
-      <p class="small-t muted">직원 인적사항과 문서는 내 계정(서버)에 자동으로 저장돼요. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아와요. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주세요.</p>
-      <p class="small-t" id="srvSync">로그인하면 내 계정에 자동 저장돼요.</p>
+      <p class="small-t muted">직원 인적사항과 문서는 내 계정(서버)에 자동으로 저장됩니다. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아옵니다. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주십시오.</p>
+      <p class="small-t" id="srvSync">로그인하면 내 계정에 자동 저장됩니다.</p>
       <p class="small-t" id="dataCount">-</p>
     </div>
     <p class="ver" id="appVersion"></p>
@@ -484,7 +484,7 @@ p{text-wrap:pretty}
         <div class="sec-h"><h2>카톡 문구</h2><span class="muted small-t">단체방에 붙여 넣기</span></div>
         <pre class="rv-preview" id="pvKakaoText"></pre>
       </div>
-      <p class="pv-note" id="pvHint">버튼이 안 되면 이미지를 길게 눌러 저장할 수 있어요.</p>
+      <p class="pv-note" id="pvHint">버튼이 안 되면 이미지를 길게 눌러 저장할 수 있습니다.</p>
     </div>
   </div>
   <div class="screen-actions" id="pvActions"><div class="inner">
@@ -502,15 +502,15 @@ p{text-wrap:pretty}
   </div>
   <div class="screen-body">
     <div class="inner">
-      <p class="muted small-t" style="margin:0" id="sigHelp">직원에게 휴대폰을 건네 직접 서명받으세요. 손가락(PC는 마우스)으로 천천히 크게 쓰면 돼요.</p>
+      <p class="muted small-t" style="margin:0" id="sigHelp">직원에게 휴대폰을 건네 직접 서명받으십시오. 손가락(PC는 마우스)으로 천천히 크게 쓰면 됩니다.</p>
       <div class="sig-wrap" id="sigWrap">
         <div class="sig-guide"></div>
-        <div class="sig-ph" id="sigPh">여기에 서명하세요</div>
+        <div class="sig-ph" id="sigPh">여기에 서명하십시오</div>
         <canvas id="sigCanvas" aria-label="서명 입력란"></canvas>
       </div>
       <div class="sig-tools">
-        <button class="btn small" type="button" id="sigUndo">한 획 지우기</button>
-        <button class="btn small" type="button" id="sigClear">전부 지우기</button>
+        <button class="btn small" type="button" id="sigUndo">한 획 취소</button>
+        <button class="btn small" type="button" id="sigClear">전체 삭제</button>
       </div>
     </div>
   </div>
@@ -609,23 +609,23 @@ function closeSheet() { $('#sheet').hidden = true; }
 async function sheetShare() {
   const j = sheetJob; closeSheet(); if (!j) return;
   try { await navigator.share({ files: j.files }); if (j.onDone) j.onDone(); }
-  catch (e) { if (!e || e.name !== 'AbortError') toast('보내기 창을 열지 못했어요. 「파일로 저장」을 눌러 주세요.'); }
+  catch (e) { if (!e || e.name !== 'AbortError') toast('보내기 창을 열지 못했습니다. 「파일로 저장」을 눌러 주십시오.'); }
 }
 function sheetSave() {
   const j = sheetJob; closeSheet(); if (!j) return;
   j.items.forEach((it) => downloadBlob(it.blob, it.name));
-  toast(isIOS() ? '파일 앱의 「다운로드」 폴더에 저장했어요' : '다운로드 폴더에 저장했어요');
+  toast(isIOS() ? '파일 앱의 「다운로드」 폴더에 저장했습니다' : '다운로드 폴더에 저장했습니다');
   if (j.onDone) j.onDone();
 }
 function handleSave(r, okMsg) {
-  if (r === 'saved') { toast(okMsg || '저장했어요'); return true; }
+  if (r === 'saved') { toast(okMsg || '저장했습니다'); return true; }
   if (r === 'declined') return false;
-  if (r === 'rate_limited') { toast('저장 창이 이미 열려 있어요. 잠시 후 다시 눌러 주세요.'); return false; }
-  if (r === 'too_large') { toast('파일이 너무 커요. 기간을 나눠서 저장해 주세요.'); return false; }
+  if (r === 'rate_limited') { toast('저장 창이 이미 열려 있습니다. 잠시 후 다시 눌러 주십시오.'); return false; }
+  if (r === 'too_large') { toast('파일이 너무 큽니다. 기간을 나눠서 저장해 주십시오.'); return false; }
   if (['unavailable', 'not_granted', 'capability_disabled', 'capability_removed', 'extension_not_enabled'].includes(r)) {
-    toast('여기서는 파일 저장이 안 돼요. 미리보기 이미지를 길게 눌러 저장해 주세요.'); return false;
+    toast('여기서는 파일 저장이 안 됩니다. 미리보기 이미지를 길게 눌러 저장해 주십시오.'); return false;
   }
-  toast('저장하지 못했어요. 잠시 후 다시 시도해 주세요.'); return false;
+  toast('저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.'); return false;
 }
 
 /* ================= toast & confirm ================= */
@@ -641,7 +641,7 @@ function undoOr(msg, fn) { if (fn && window.dwUndo) window.dwUndo(msg, fn); else
 function armConfirm(btn, label, onConfirm, o) {
   if (window.dwConfirm) {
     o = o || {}; const k = String(label).replace(/^한 번 더 누르면\s*/, '');
-    window.dwConfirm({ title: o.title || (k === '전부 삭제' ? '이 기기의 회사 서류 기록을 모두 지울까요?' : k === '빼기' ? '이 줄을 뺄까요?' : '지울까요?'), body: o.body || '', ok: o.ok || (k === '빼기' ? '빼기' : k === '전부 삭제' ? '전부 지우기' : '지우기'), danger: true }).then((ok) => { if (ok) onConfirm(); });
+    window.dwConfirm({ title: o.title || (k === '전부 삭제' ? '이 기기의 회사 서류 기록을 모두 삭제하시겠습니까?' : k === '빼기' ? '이 줄을 빼시겠습니까?' : '삭제하시겠습니까?'), body: o.body || '', ok: o.ok || (k === '빼기' ? '빼기' : k === '전부 삭제' ? '전체 삭제' : '삭제'), danger: true }).then((ok) => { if (ok) onConfirm(); });
     return;
   }
   if (btn.dataset.armed === '1') {
@@ -851,15 +851,15 @@ function renderInstall() {
   if (!window.__PWA__ || isStandalone()) { $('#installCard').hidden = true; $('#installSettings').hidden = true; return; }
   let html;
   if (isInApp()) {
-    html = '<p>카카오톡 같은 앱 안에서는 설치할 수 없어요. 주소를 복사해서 <b>Chrome</b>(안드로이드)이나 <b>Safari</b>(아이폰)에 붙여 넣어 열어 주세요.</p><div><button class="btn small copy-link" type="button">주소 복사</button></div>';
+    html = '<p>카카오톡 같은 앱 안에서는 설치할 수 없습니다. 주소를 복사해서 <b>Chrome</b>(안드로이드)이나 <b>Safari</b>(아이폰)에 붙여 넣어 열어 주십시오.</p><div><button class="btn small copy-link" type="button">주소 복사</button></div>';
   } else if (deferredInstall) {
-    html = '<p>설치하면 홈 화면 아이콘으로 바로 열리고, 인터넷이 약한 곳에서도 열려요.</p><div><button class="btn primary small do-install" type="button">앱 설치</button></div>';
+    html = '<p>설치하면 홈 화면 아이콘으로 바로 열리고, 인터넷이 약한 곳에서도 열립니다.</p><div><button class="btn primary small do-install" type="button">앱 설치</button></div>';
   } else if (isIOS()) {
-    html = '<ol><li>Safari 화면 아래(또는 위)의 <b>공유 버튼</b>을 누르세요.</li><li>목록에서 <b>홈 화면에 추가</b>를 누르세요.</li><li>오른쪽 위 <b>추가</b>를 누르면 끝이에요.</li></ol><p class="small-t muted">설치한 뒤에는 홈 화면 아이콘으로 여세요. 기록은 내 계정에 저장돼서 같은 계정으로 로그인하면 그대로 보여요.</p>';
+    html = '<ol><li>Safari 화면 아래(또는 위)의 <b>공유 버튼</b>을 누르십시오.</li><li>목록에서 <b>홈 화면에 추가</b>를 누르십시오.</li><li>오른쪽 위 <b>추가</b>를 누르면 완료됩니다.</li></ol><p class="small-t muted">설치한 뒤에는 홈 화면 아이콘으로 여십시오. 기록은 내 계정에 저장돼서 같은 계정으로 로그인하면 그대로 보입니다.</p>';
   } else if (isDesktop()) {
-    html = '<ol><li>Chrome·엣지 주소창 오른쪽 끝의 <b>설치</b> 아이콘을 누르세요.</li><li>안 보이면 오른쪽 위 메뉴(<b>⋮</b> 또는 <b>…</b>)에서 <b>앱 설치</b>를 찾으세요.</li></ol><p class="small-t muted">기록은 내 계정에 저장돼서 휴대폰 · PC 어디서든 같은 계정으로 로그인하면 그대로 보여요.</p>';
+    html = '<ol><li>Chrome·엣지 주소창 오른쪽 끝의 <b>설치</b> 아이콘을 누르십시오.</li><li>안 보이면 오른쪽 위 메뉴(<b>⋮</b> 또는 <b>…</b>)에서 <b>앱 설치</b>를 찾으십시오.</li></ol><p class="small-t muted">기록은 내 계정에 저장돼서 휴대폰 · PC 어디서든 같은 계정으로 로그인하면 그대로 보입니다.</p>';
   } else {
-    html = '<ol><li>Chrome 오른쪽 위 <b>⋮</b> 메뉴를 누르세요.</li><li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르세요.</li></ol>';
+    html = '<ol><li>Chrome 오른쪽 위 <b>⋮</b> 메뉴를 누르십시오.</li><li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르십시오.</li></ol>';
   }
   $('#installBody').innerHTML = html; $('#installBody2').innerHTML = html;
   let dismissed = false; try { dismissed = localStorage.getItem('ca.installDismissed') === '1'; } catch (e) { /* ignore */ }
@@ -868,7 +868,7 @@ function renderInstall() {
 }
 async function copyLink() {
   const url = location.href.split('#')[0];
-  try { await navigator.clipboard.writeText(url); toast('주소를 복사했어요'); }
+  try { await navigator.clipboard.writeText(url); toast('주소를 복사했습니다'); }
   catch (e) { toast(url); }
 }
 
@@ -983,13 +983,13 @@ const FIELDS = {
     [F_('docNo', '문서번호'), F_('date', '공지일', 'date')],
     [F_('to', '수신'), F_('effective', '시행일', 'date', { opt: true })],
     [F_('title', '제목', 'text', { ph: '예: 동절기 근무 수칙 안내' })],
-    [F_('body', '내용', 'textarea', { rows: 8, ph: '공지할 내용을 적어 주세요. 번호를 붙여 적으면 그대로 나와요.' })],
+    [F_('body', '내용', 'textarea', { rows: 8, ph: '공지할 내용을 적어 주십시오. 번호를 붙여 적으면 그대로 나옵니다.' })],
     [F_('contact', '문의처', 'text', { opt: true, ph: '예: 총괄실장 010-0000-0000' })],
   ],
   appoint: [
     [F_('docNo', '발령번호'), F_('date', '발령일', 'date')],
     'ROWS',
-    [F_('note', '덧붙일 말', 'textarea', { opt: true, rows: 2, ph: '표 아래에 들어갈 안내 (없으면 비워 두세요)' })],
+    [F_('note', '덧붙일 말', 'textarea', { opt: true, rows: 2, ph: '표 아래에 들어갈 안내 (없으면 비워 두십시오)' })],
   ],
   employ: [
     'STAFF',
@@ -1135,7 +1135,7 @@ async function sealFromFile(file) {
 function openScreen(id) { const el = $('#' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
 function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
 function showTab(t) {
-  if (S.tab === 'settings' && t !== 'settings' && S.cd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
+  if (S.tab === 'settings' && t !== 'settings' && S.cd) toast('설정을 아직 저장하지 않았습니다. 설정 탭에서 저장을 눌러 주십시오.');
   S.tab = t;
   ['docs', 'staff', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
   $$('#coTabs [data-ctab]').forEach((b) => b.setAttribute('aria-current', b.dataset.ctab === t ? 'page' : 'false'));
@@ -1238,15 +1238,15 @@ function renderDocForm() {
   FIELDS[d.type].forEach((row) => {
     if (row === 'STAFF') {
       const st = d.staffId && S.staff.get(d.staffId);
-      h += `<div class="staff-pick"><span>${st ? `${esc(st.f.name)} 님 정보를 불러왔어요` : '등록한 직원이면 정보를 불러올 수 있어요'}</span><button class="btn small" type="button" id="dPickStaff">직원 불러오기</button></div>`;
+      h += `<div class="staff-pick"><span>${st ? `${esc(st.f.name)} 님 정보를 불러왔습니다` : '등록한 직원이면 정보를 불러올 수 있습니다'}</span><button class="btn small" type="button" id="dPickStaff">직원 불러오기</button></div>`;
     } else if (row === 'ENDHINT') {
-      h += '<p class="field-hint">퇴사일을 넣으면 「경력증명서」로 바뀌어요. 재직 중이면 비워 두세요.</p>';
+      h += '<p class="field-hint">퇴사일을 넣으면 「경력증명서」로 바뀝니다. 재직 중이면 비워 두십시오.</p>';
     } else if (row === 'SIGN') {
-      h += `<div class="card sig-card"><h2>본인 서명</h2><div class="sig-prev" id="dSigPrev"><span>아직 서명하지 않았어요</span></div><div class="grid2"><button class="btn primary" type="button" id="dSign">서명 받기</button><button class="btn danger" type="button" id="dSigDel">서명 지우기</button></div></div>`;
+      h += `<div class="card sig-card"><h2>본인 서명</h2><div class="sig-prev" id="dSigPrev"><span>아직 서명하지 않았습니다</span></div><div class="grid2"><button class="btn primary" type="button" id="dSign">서명 받기</button><button class="btn danger" type="button" id="dSigDel">서명 삭제</button></div></div>`;
     } else if (row === 'ROWS') {
       h += `<div class="sec-h"><h2>발령 대상</h2><span class="muted small-t" id="aCount"></span></div><div class="list" id="aRows"></div>
         <div class="grid2"><button class="btn" type="button" id="aAdd">+ 대상 추가</button><button class="btn" type="button" id="aApply">직원 정보에 반영</button></div>
-        <p class="field-hint">「직원 정보에 반영」을 누르면 직원에서 고른 사람의 소속·직위(퇴사 발령은 퇴사 처리)가 인사기록카드에 반영돼요.</p>`;
+        <p class="field-hint">「직원 정보에 반영」을 누르면 직원에서 고른 사람의 소속·직위(퇴사 발령은 퇴사 처리)가 인사기록카드에 반영됩니다.</p>`;
     } else {
       h += rowsHtml([row], 'df', d.f);
     }
@@ -1280,7 +1280,7 @@ async function renderDocSig() {
   const d = S.ed, box = $('#dSigPrev'); if (!box) return;
   const data = await imgData(d.sig);
   if (S.ed !== d) return;
-  box.innerHTML = data ? `<img src="${data}" alt="서명">` : '<span>아직 서명하지 않았어요</span>';
+  box.innerHTML = data ? `<img src="${data}" alt="서명">` : '<span>아직 서명하지 않았습니다</span>';
   $('#dSign').textContent = data ? '다시 서명' : '서명 받기';
   $('#dSigDel').hidden = !data;
 }
@@ -1305,7 +1305,7 @@ function applyStaffToDoc(st) {
   if (want.has('endDate')) f.endDate = s.status === '퇴사' ? (s.leaveDate || '') : '';
   d.staffId = st.id;
   renderDocForm(); saveDocSoon();
-  toast(`${s.name || '직원'} 님 정보를 넣었어요`);
+  toast(`${s.name || '직원'} 님 정보를 넣었습니다`);
 }
 function applyStaffToRow(i, st) {
   const r = S.ed.rows[i];
@@ -1326,7 +1326,7 @@ async function applyAppointToStaff() {
     await Store.put('staff', clone(st)); n++;
   }
   renderStaffList(); fillDatalists();
-  toast(n ? `직원 ${n}명의 인사기록카드에 반영했어요` : '직원에서 고른 대상이 없어요. 각 줄의 「직원」 버튼으로 골라 주세요.');
+  toast(n ? `직원 ${n}명의 인사기록카드에 반영했습니다` : '직원에서 고른 대상이 없습니다. 각 줄의 「직원」 버튼으로 선택하십시오.');
 }
 
 /* ================= 직원 고르기 ================= */
@@ -1334,7 +1334,7 @@ function openPick(onPick) {
   S.pick = onPick;
   const list = [...S.staff.values()].sort((a, b) => (a.f.status === '퇴사') - (b.f.status === '퇴사') || String(a.f.name || '').localeCompare(String(b.f.name || ''), 'ko'));
   $('#pickList').innerHTML = list.length ? list.map((s) => `<button type="button" data-id="${esc(s.id)}" class="${s.f.status === '퇴사' ? 'left' : ''}"><span>${esc(s.f.name || '(이름 없음)')}</span><small>${esc([s.f.dept, s.f.position].filter(Boolean).join(' · '))}${s.f.status === '퇴사' ? ' · 퇴사' : ''}</small></button>`).join('')
-    : '<p class="muted small-t">아직 등록한 직원이 없어요. 아래 「직원」 탭에서 인사기록카드를 먼저 만들어 주세요.</p>';
+    : '<p class="muted small-t">아직 등록한 직원이 없습니다. 아래 「직원」 탭에서 인사기록카드를 먼저 만들어 주십시오.</p>';
   $('#pickSheet').hidden = false;
 }
 function closePick() { $('#pickSheet').hidden = true; S.pick = null; }
@@ -1351,7 +1351,7 @@ function renderStaffList() {
     <span class="chip">${s.f.joinDate ? '입사 ' + esc(dotDate(s.f.joinDate).slice(0, -1)) : '입사일 없음'}</span>
   </button>`).join('');
   $('#staffEmpty').hidden = list.length > 0;
-  $('#staffEmpty').textContent = S.staffView === 'active' ? '아직 등록한 직원이 없어요. 「+ 직원 등록」으로 인사기록카드를 만들어 주세요.' : '퇴사한 직원이 없어요.';
+  $('#staffEmpty').textContent = S.staffView === 'active' ? '아직 등록한 직원이 없습니다. 「+ 직원 등록」으로 인사기록카드를 만들어 주십시오.' : '퇴사한 직원이 없습니다.';
   $$('#staffList [data-photo]').forEach(async (el) => { const id = el.dataset.photo; if (!id) return; const d = await imgData(id); if (d) el.innerHTML = `<img src="${d}" alt="">`; });
 }
 const newStaff = () => ({ id: uid(), photo: null, f: { status: '재직' }, edu: [], career: [], license: [], family: [], createdAt: Date.now(), updatedAt: Date.now() });
@@ -1718,7 +1718,7 @@ async function openPreview(job) {
     $('#pvImages').innerHTML = pv.urls.map((u, i) => `<img src="${u}" alt="${esc(job.title)}${pv.urls.length > 1 ? ` ${i + 1}쪽` : ''}">`).join('');
     pngBtn.disabled = false;
   } catch (e) {
-    if (S.pv === pv) $('#pvImages').innerHTML = '<div class="loading">문서를 만들지 못했어요. 돌아가서 다시 시도해 주세요.</div>';
+    if (S.pv === pv) $('#pvImages').innerHTML = '<div class="loading">문서를 만들지 못했습니다. 돌아가서 다시 시도해 주십시오.</div>';
     return;
   }
   try {
@@ -1731,16 +1731,16 @@ async function openPreview(job) {
   if (S.pv === pv) { pdfBtn.disabled = false; pdfBtn.textContent = LABELS.pdf; }
 }
 async function savePng() {
-  const pv = S.pv; if (!pv || !pv.pngs.length) { toast('문서를 만드는 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
+  const pv = S.pv; if (!pv || !pv.pngs.length) { toast('문서를 만드는 중입니다. 잠시 후 다시 눌러 주십시오.'); return; }
   const items = pv.pngs.map((b, i) => ({ name: pv.pngs.length > 1 ? `${pv.job.fileBase}_${i + 1}.png` : `${pv.job.fileBase}.png`, blob: b }));
-  await deliver(items, { title: '문서 이미지', okMsg: '이미지를 저장했어요',
-    hint: isIOS() ? '아이폰은 「카톡 등으로 보내기」에서 「이미지 저장」을 누르면 사진첩에 저장돼요.' : '「카톡 등으로 보내기」에서 카카오톡을 고르면 바로 보낼 수 있어요.' });
+  await deliver(items, { title: '문서 이미지', okMsg: '이미지를 저장했습니다',
+    hint: isIOS() ? '아이폰은 「카톡 등으로 보내기」에서 「이미지 저장」을 누르면 사진첩에 저장됩니다.' : '「카톡 등으로 보내기」에서 카카오톡을 고르면 바로 보낼 수 있습니다.' });
 }
 async function savePdf() {
   const pv = S.pv; if (!pv) return;
-  if (!pv.pdf) { toast(pv.pdfErr ? 'PDF를 만들지 못했어요. 미리보기를 다시 열어 주세요.' : 'PDF를 만드는 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
-  await deliver([{ name: `${pv.job.fileBase}.pdf`, blob: pv.pdf }], { title: '문서 PDF', okMsg: 'PDF를 저장했어요',
-    hint: isIOS() ? '아이폰은 「카톡 등으로 보내기」에서 「파일에 저장」을 고르면 파일 앱에 보관돼요.' : '' });
+  if (!pv.pdf) { toast(pv.pdfErr ? 'PDF를 만들지 못했습니다. 미리보기를 다시 열어 주십시오.' : 'PDF를 만드는 중입니다. 잠시 후 다시 눌러 주십시오.'); return; }
+  await deliver([{ name: `${pv.job.fileBase}.pdf`, blob: pv.pdf }], { title: '문서 PDF', okMsg: 'PDF를 저장했습니다',
+    hint: isIOS() ? '아이폰은 「카톡 등으로 보내기」에서 「파일에 저장」을 고르면 파일 앱에 보관됩니다.' : '' });
 }
 async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; }
@@ -1777,7 +1777,7 @@ function sigExport() {
   return data;
 }
 async function sigCommit() {
-  if (!Sig.strokes.length) { toast('서명을 먼저 써 주세요'); return; }
+  if (!Sig.strokes.length) { toast('서명을 먼저 해 주십시오'); return; }
   const data = sigExport();
   closeScreen('sigScreen');
   const cb = sigCb; sigCb = null;
@@ -1798,13 +1798,13 @@ function renderSettings() {
 function renderCoBar() {
   const dirty = !!S.cd;
   $('#coSaveBar').classList.toggle('dirty', dirty);
-  $('#coSaveState').textContent = dirty ? '저장 안 된 변경 있음' : '설정이 저장되어 있어요';
+  $('#coSaveState').textContent = dirty ? '저장 안 된 변경 있음' : '설정이 저장되어 있습니다';
   $('#coSave').disabled = !dirty; $('#coSave').textContent = dirty ? '저장' : '저장됨';
   $('#coCancel').hidden = !dirty;
 }
 async function renderSeal() {
   const d = await imgData(S.co.seal);
-  $('#sealBox').innerHTML = d ? `<img src="${d}" alt="등록된 직인">` : '<span>등록된 직인이 없어요</span>';
+  $('#sealBox').innerHTML = d ? `<img src="${d}" alt="등록된 직인">` : '<span>등록된 직인이 없습니다</span>';
   $('#sealOn').checked = !!d && S.co.sealOn !== false; $('#sealOn').disabled = !d;
   $('#sealDel').hidden = !d; $('#sealPick').textContent = d ? '다른 사진으로 바꾸기' : '직인 사진 올리기';
 }
@@ -1820,7 +1820,7 @@ async function coCommit() {
   d.seal = S.co.seal; d.sealOn = S.co.sealOn;
   S.co = d; S.cd = null;
   const ok = await saveCo(); renderSettings();
-  toast(ok ? '설정을 저장했어요' : '저장하지 못했어요. 다시 눌러 주세요.');
+  toast(ok ? '설정을 저장했습니다' : '저장하지 못했습니다. 다시 눌러 주십시오.');
 }
 
 function renderAll() { renderTypeGrid(); renderDocList(); renderStaffList(); renderSettings(); fillDatalists(); }
@@ -1830,19 +1830,19 @@ function bind() {
   { const st = window.__LOCK_STATE__ || {}; $('#pwState').textContent = `지금: DW관리 잠금 ${st.admin ? '켜짐' : '꺼짐'} · 관리자 서식 잠금 ${st.forms ? '켜짐' : '꺼짐'}`; }
   $('#pwMake').addEventListener('click', async () => {
     const a = $('#pwNew').value, b = $('#pwNew2').value;
-    if (a.length < 6) { toast('비밀번호는 6자 이상으로 정해 주세요'); return; }
-    if (!/[0-9]/.test(a) || !/[^0-9]/.test(a)) { toast('영문(또는 한글)과 숫자를 섞어 주세요'); return; }
-    if (a !== b) { toast('두 번 넣은 비밀번호가 달라요'); return; }
-    if (!window.crypto || !crypto.subtle) { toast('이 화면에서는 만들 수 없어요. https 주소에서 열어 주세요'); return; }
+    if (a.length < 6) { toast('비밀번호는 6자 이상으로 정해 주십시오'); return; }
+    if (!/[0-9]/.test(a) || !/[^0-9]/.test(a)) { toast('영문(또는 한글)과 숫자를 섞어 주십시오'); return; }
+    if (a !== b) { toast('두 번 넣은 비밀번호가 다릅니다'); return; }
+    if (!window.crypto || !crypto.subtle) { toast('이 화면에서는 만들 수 없습니다. https 주소에서 열어 주십시오'); return; }
     const salt = crypto.getRandomValues(new Uint8Array(16)), it = 210000;
     const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(a), 'PBKDF2', false, ['deriveBits']);
     const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: it }, key, 256);
     const b64 = (u) => btoa(String.fromCharCode(...new Uint8Array(u)));
     $('#pwCode').value = `${$('#pwFor').value}:p2$${it}$${b64(salt)}$${b64(bits)}`;
     $('#pwOut').hidden = false; $('#pwNew').value = ''; $('#pwNew2').value = '';
-    toast('코드를 만들었어요. 복사해서 보내 주세요');
+    toast('코드를 만들었습니다. 복사해서 보내 주십시오');
   });
-  $('#pwCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#pwCode').value); toast('코드를 복사했어요'); } catch (e) { $('#pwCode').select(); toast('선택된 코드를 길게 눌러 복사해 주세요'); } });
+  $('#pwCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#pwCode').value); toast('코드를 복사했습니다'); } catch (e) { $('#pwCode').select(); toast('선택된 코드를 길게 눌러 복사해 주십시오'); } });
   $('#coTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-ctab]'); if (b) showTab(b.dataset.ctab); });
   // 서식 목록
   $('#typeGrid').addEventListener('click', (e) => {
@@ -1868,11 +1868,11 @@ function bind() {
     if (del) { const i = +del.dataset.ardel; armConfirm(del, '빼기', () => { d.rows.splice(i, 1); if (!d.rows.length) d.rows.push(emptyAppointRow()); renderAppointRows(); saveDocSoon(); }); return; }
     if (e.target.closest('#aAdd')) { d.rows.push(emptyAppointRow()); renderAppointRows(); saveDocSoon(); const ins = $$('#aRows [data-ar="name"]'); const last = ins[ins.length - 1]; if (last) { last.focus(); last.scrollIntoView({ block: 'center', behavior: 'smooth' }); } return; }
     if (e.target.closest('#aApply')) { saveDocNow().then(applyAppointToStaff); return; }
-    if (e.target.closest('#dSign')) { openSig(`${d.f.name || '직원'} 님 서명`, async (data) => { const id = await putImg(data); if (!id) { toast('서명을 저장하지 못했어요'); return; } const old = d.sig; d.sig = id; if (old) Store.del('img', old); saveDocSoon(); renderDocSig(); toast('서명을 넣었어요'); }); return; }
+    if (e.target.closest('#dSign')) { openSig(`${d.f.name || '직원'} 님 서명`, async (data) => { const id = await putImg(data); if (!id) { toast('서명을 저장하지 못했습니다'); return; } const old = d.sig; d.sig = id; if (old) Store.del('img', old); saveDocSoon(); renderDocSig(); toast('서명을 넣었습니다'); }); return; }
     const sd = e.target.closest('#dSigDel'); if (sd) { armConfirm(sd, '한 번 더 누르면 삭제', () => { if (d.sig) Store.del('img', d.sig); d.sig = null; saveDocSoon(); renderDocSig(); }); return; }
     const dd = e.target.closest('#dDelete');
     if (dd) armConfirm(dd, '한 번 더 누르면 삭제', async () => { clearTimeout(dTimer); const old = clone(d), sigImg = d.sig ? await Store.get('img', d.sig) : null; if (d.sig) Store.del('img', d.sig); S.docs.delete(d.id); await Store.del('docs', d.id); S.ed = null; S.edDirty = false; closeScreen('docEditor'); renderDocList();
-      undoOr('문서를 지웠어요', async () => { if (sigImg) await Store.put('img', sigImg); old.updatedAt = Date.now(); S.docs.set(old.id, old); await Store.put('docs', old); renderDocList(); toast('문서를 되살렸어요'); }); }, { title: '이 문서를 지울까요?', ok: '지우기' });
+      undoOr('문서를 삭제했습니다', async () => { if (sigImg) await Store.put('img', sigImg); old.updatedAt = Date.now(); S.docs.set(old.id, old); await Store.put('docs', old); renderDocList(); toast('문서를 복원했습니다'); }); }, { title: '이 문서를 삭제하시겠습니까?', ok: '삭제' });
   });
   $('#dLive').addEventListener('click', async () => { if (!S.ed) return; S.edDirty = true; await saveDocNow(); openPreview(docJob(clone(S.ed))); });
   $('#sLive').addEventListener('click', async () => { if (!S.se) return; S.seDirty = true; await saveStaffNow(); openPreview(staffJob(clone(S.se))); });
@@ -1902,14 +1902,14 @@ function bind() {
     const pd = e.target.closest('#sPhotoDel'); if (pd) { if (s.photo) Store.del('img', s.photo); s.photo = null; saveStaffSoon(); renderStaffPhoto(); return; }
     const sd = e.target.closest('#sDelete');
     if (sd) armConfirm(sd, '한 번 더 누르면 삭제', async () => { clearTimeout(sTimer); const old = clone(s), photo = s.photo ? await Store.get('img', s.photo) : null; if (s.photo) Store.del('img', s.photo); S.staff.delete(s.id); await Store.del('staff', s.id); S.se = null; S.seDirty = false; closeScreen('staffEditor'); renderStaffList();
-      undoOr('직원을 지웠어요', async () => { if (photo) await Store.put('img', photo); old.updatedAt = Date.now(); S.staff.set(old.id, old); await Store.put('staff', old); renderStaffList(); toast('직원을 되살렸어요'); }); }, { title: '이 직원을 지울까요?', body: '인사기록카드가 지워져요.', ok: '지우기' });
+      undoOr('직원을 삭제했습니다', async () => { if (photo) await Store.put('img', photo); old.updatedAt = Date.now(); S.staff.set(old.id, old); await Store.put('staff', old); renderStaffList(); toast('직원을 복원했습니다'); }); }, { title: '이 직원을 삭제하시겠습니까?', body: '인사기록카드가 삭제됩니다.', ok: '삭제' });
   });
   $('#sForm').addEventListener('change', async (e) => {
     if (e.target.id !== 'sPhotoFile') return;
     const file = e.target.files && e.target.files[0]; e.target.value = ''; if (!file || !S.se) return;
     const s = S.se;
     try { const data = await photoFromFile(file); const id = await putImg(data); if (!id) throw new Error('save'); const old = s.photo; s.photo = id; if (old) Store.del('img', old); saveStaffSoon(); renderStaffPhoto(); }
-    catch (err) { toast('사진을 읽지 못했어요. 다른 사진으로 다시 시도해 주세요.'); }
+    catch (err) { toast('사진을 읽지 못했습니다. 다른 사진으로 다시 시도해 주십시오.'); }
   });
   $('#sPreview').addEventListener('click', async () => { if (!S.se) return; S.seDirty = true; await saveStaffNow(); openPreview(staffJob(clone(S.se))); });
   // 미리보기
@@ -1919,7 +1919,7 @@ function bind() {
   $('#pvText').addEventListener('click', async () => {
     const t = S.pv && S.pv.job.kakao; if (!t) return;
     if (window.__PWA__ && navigator.share) { try { await navigator.share({ text: t }); return; } catch (err) { if (err && err.name === 'AbortError') return; } }
-    toast((await copyText(t)) ? '카톡 문구를 복사했어요. 단체방에 붙여 넣으세요.' : '복사하지 못했어요. 문구를 길게 눌러 복사해 주세요.');
+    toast((await copyText(t)) ? '카톡 문구를 복사했습니다. 단체방에 붙여 넣으십시오.' : '복사하지 못했습니다. 문구를 길게 눌러 복사해 주십시오.');
   });
   // 서명
   const sc = $('#sigCanvas');
@@ -1935,14 +1935,14 @@ function bind() {
   ['#coName', '#coCeo', '#coBiz', '#coAddr', '#coTel', '#coAppr'].forEach((s) => $(s).addEventListener('input', coInput));
   $('#coShowAppr').addEventListener('change', coInput);
   $('#coSave').addEventListener('click', coCommit);
-  $('#coCancel').addEventListener('click', () => { S.cd = null; renderSettings(); toast('저장 전 상태로 되돌렸어요'); });
+  $('#coCancel').addEventListener('click', () => { S.cd = null; renderSettings(); toast('저장 전 상태로 되돌렸습니다'); });
   $('#sealFile').addEventListener('change', async (e) => {
     const file = e.target.files && e.target.files[0]; e.target.value = ''; if (!file) return;
-    try { const data = await sealFromFile(file); const id = await putImg(data); if (!id) throw new Error('save'); const old = S.co.seal; S.co.seal = id; S.co.sealOn = true; if (S.cd) { S.cd.seal = id; S.cd.sealOn = true; } if (old) Store.del('img', old); await saveCo(); renderSeal(); toast('직인을 저장했어요'); }
-    catch (err) { toast('직인을 찾지 못했어요. 흰 종이에 찍은 도장을 밝은 곳에서 가까이 찍어 주세요.'); }
+    try { const data = await sealFromFile(file); const id = await putImg(data); if (!id) throw new Error('save'); const old = S.co.seal; S.co.seal = id; S.co.sealOn = true; if (S.cd) { S.cd.seal = id; S.cd.sealOn = true; } if (old) Store.del('img', old); await saveCo(); renderSeal(); toast('직인을 저장했습니다'); }
+    catch (err) { toast('직인을 찾지 못했습니다. 흰 종이에 찍은 도장을 밝은 곳에서 가까이 찍어 주십시오.'); }
   });
-  $('#sealOn').addEventListener('change', async (e) => { S.co.sealOn = e.target.checked; if (S.cd) S.cd.sealOn = e.target.checked; await saveCo(); toast(e.target.checked ? '서식에 직인을 찍어요' : '서식에서 직인을 뺐어요'); });
-  $('#sealDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => { if (S.co.seal) Store.del('img', S.co.seal); S.co.seal = null; if (S.cd) S.cd.seal = null; await saveCo(); renderSeal(); toast('직인을 지웠어요'); }));
+  $('#sealOn').addEventListener('change', async (e) => { S.co.sealOn = e.target.checked; if (S.cd) S.cd.sealOn = e.target.checked; await saveCo(); toast(e.target.checked ? '서식에 직인을 찍습니다' : '서식에서 직인을 뺐습니다'); });
+  $('#sealDel').addEventListener('click', (e) => armConfirm(e.currentTarget, '한 번 더 누르면 삭제', async () => { if (S.co.seal) Store.del('img', S.co.seal); S.co.seal = null; if (S.cd) S.cd.seal = null; await saveCo(); renderSeal(); toast('직인을 삭제했습니다'); }));
 }
 
 /* ================= 설치 앱 ================= */
@@ -1976,7 +1976,7 @@ function setupPwa() {
   }
   renderInstall();
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; renderInstall(); });
-  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했어요. 이제 홈 화면의 「DW장례업무」 아이콘으로 열어 주세요.'); });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; renderInstall(); toast('설치했습니다. 이제 홈 화면의 「DW장례업무」 아이콘으로 열어 주십시오.'); });
   if ('serviceWorker' in navigator) {
     const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.register('./sw.js').then((reg) => {
@@ -2039,8 +2039,8 @@ window.DW_SYNC = {
     const el = $('#srvSync'); if (!el) return;
     const d = m && m.at ? new Date(m.at) : null, at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
     el.textContent = st === 'ok' ? `내 계정에 자동 저장 · 마지막 저장 ${at}` : st === 'sync' ? '내 계정에 저장하는 중…'
-      : st === 'err' ? '지금은 내 계정에 올리지 못했어요. 인터넷이 되면 바로 다시 올려요.'
-      : st === 'wait' ? '인터넷이 연결되면 바로 올려요.' : '로그인하면 내 계정에 자동 저장돼요.';
+      : st === 'err' ? '지금은 내 계정에 올리지 못했습니다. 인터넷이 되면 바로 다시 올립니다.'
+      : st === 'wait' ? '인터넷이 연결되면 바로 올립니다.' : '로그인하면 내 계정에 자동 저장됩니다.';
   }
 };
 
