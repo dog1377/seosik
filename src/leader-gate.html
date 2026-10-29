@@ -33,10 +33,11 @@
   function applyRole(u) {
     var lead = isLeader(u), chief = !lead && isChief(u);
     var was = root.classList.contains('dw-leader') ? 'leader' : root.classList.contains('dw-chief') ? 'chief' : 'member', now = lead ? 'leader' : chief ? 'chief' : 'member';
-    if (now === 'member' && window.DW_LEADER_ONLY) { location.replace('./#home'); return; }   /* 회사 서류: 파트장 · 총괄실장만 */
+    if (now === 'member' && window.DW_LEADER_ONLY) { location.replace('funeral.html'); return; }   /* 회사 서류: 파트장 · 총괄실장만 */
     if (now === 'chief' && window.DW_STAFF_ONLY) { location.replace('./#gather'); return; }   /* 장례업무: 총괄실장은 안 씀 */
     root.classList.toggle('dw-leader', lead); root.classList.toggle('dw-chief', chief); root.classList.toggle('dw-member', now === 'member');
     if (was !== now) { try { window.dispatchEvent(new CustomEvent('dw-role', { detail: { leader: lead, chief: chief, role: now } })); } catch (e) {} }
+    paintMode();
   }
   var box = null, outBusy = null, outN;
   /* 방금 로그아웃된 이유 · 이메일 (로그인 화면에 한 번 보여 줌) */
@@ -466,6 +467,32 @@
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') idleCheck(); });
   window.addEventListener('focus', idleCheck);
 
+  /* ---------- 행사 칸 · 서식 칸 바꾸기 (2026.10.29, 파트장만 보임 — 직원 · 총괄실장은 CSS 로 숨김) ----------
+     휴대폰은 위 막대 왼쪽(제목 · 앱 이름 자리), 넓은 화면은 제목 앞. 화면이 window.DW_MODE(지금 칸) · window.DW_MODE_GO(바꿀 칸)를 줌 */
+  function modeNow() { var m = window.DW_MODE; try { m = typeof m === 'function' ? m() : m; } catch (e) { m = ''; } return m === 'event' ? 'event' : 'forms'; }
+  function paintMode() {
+    var m = document.getElementById('dwMode'); if (!m) return;
+    var cur = modeNow(); m.querySelectorAll('[data-dwmode]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-dwmode') === cur)); });
+  }
+  function modeSwitch() {
+    if (document.getElementById('dwMode')) { paintMode(); return; }
+    var bar = document.querySelector('header.appbar .appbar-in') || document.querySelector('header.appbar .ab-in');
+    if (!bar) return;
+    var m = document.createElement('div');
+    m.id = 'dwMode'; m.className = 'dw-mode'; m.setAttribute('role', 'group'); m.setAttribute('aria-label', '행사 · 서식 바꾸기');
+    m.innerHTML = '<button type="button" data-dwmode="event">행사</button><button type="button" data-dwmode="forms">서식</button>';
+    m.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-dwmode]'); if (!b) return;
+      var to = b.getAttribute('data-dwmode'); if (to === modeNow()) return;
+      if (typeof window.DW_MODE_GO === 'function' && window.DW_MODE_GO(to) !== false) return;
+      location.replace(to === 'event' ? 'funeral.html' : './#forms');
+    });
+    var brand = bar.querySelector('.brand'), title = bar.querySelector('.ab-title');
+    bar.insertBefore(m, brand ? brand.nextSibling : title || bar.firstChild);
+    paintMode();
+  }
+  window.dwMode = { paint: paintMode, now: modeNow };
+
   /* ---------- 로그아웃 버튼: 위 막대 오른쪽 끝 (세 화면 공통) ---------- */
   function outButton() {
     if (document.getElementById('dwOut')) return;
@@ -491,7 +518,7 @@
     return;
   }
   if (window.DW_HOLD) return;   /* 계정 바꾸기 화면으로 넘어가는 중 */
-  outButton();
+  outButton(); modeSwitch();
   if (root.classList.contains('dw-gated')) gate('login', (sess() || {}).user); else renderAcct();
   verify();
   window.addEventListener('online', verify);

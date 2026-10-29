@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.29-5">
+<meta name="app-version" content="2026.10.29-6">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -106,6 +106,15 @@ html.dwme-on,html.dwme-on body{overflow:hidden}
 .ac-me i{flex:none;font-style:normal;font-size:14px;font-weight:600;color:var(--muted,#5a5e63)}
 .ac-me:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px}
 @media (hover:hover){.ac-me:hover{border-color:var(--ink,#1c1d1f)}}
+/* 행사 칸 · 서식 칸 바꾸기 (2026.10.29, 파트장만 — leader-gate.html modeSwitch) */
+.dw-mode{display:inline-flex;flex:none;border:1px solid var(--ink,#1c1d1f);border-radius:4px;overflow:hidden;background:var(--surface,#fff)}
+.dw-mode button{font:inherit;font-size:14px;font-weight:600;min-height:38px;min-width:54px;padding:0 12px;border:0;border-radius:0;background:transparent;color:var(--ink,#1c1d1f);cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.dw-mode button+button{border-left:1px solid var(--ink,#1c1d1f)}
+.dw-mode button[aria-pressed="true"]{background:var(--ink,#1c1d1f);color:var(--surface,#fff);font-weight:700}
+.dw-mode button:focus-visible{outline:2px solid var(--accent,#1c1d1f);outline-offset:-4px}
+html:not(.dw-leader) .dw-mode{display:none!important}
+.ab-in .dw-mode{margin-right:2px}
+@media (max-width:560px){.dw-mode button{min-height:44px;min-width:58px}html.dw-leader .ab-in .ab-title,html.dw-leader .appbar-in .brand{display:none}html.dw-leader .ab-in .dw-mode{margin-right:auto}}
 </style>
 <script>
 /* 화면 밝기: 자동(휴대폰 설정 따라) · 밝게 · 어둡게. <html data-theme> 로 색을 바꿈 (각 화면 CSS가 data-theme 를 앎). 같은 기기 모든 화면 · 휴무 화면(iframe)에 같이 적용 */
@@ -138,6 +147,51 @@ html.dwme-on,html.dwme-on body{overflow:hidden}
   document.addEventListener('DOMContentLoaded', sync);
   window.addEventListener('storage', function (e) { if (e.key === KEY) sync(); });
   try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync); } catch (e) {}
+})();
+</script>
+<script>
+/* 행사 칸 · 서식 칸 (2026.10.29, 사용자: 「모바일로 보면 불편 · 관리자 서식이랑 행사랑 아예 분리, 애매하게 섞여 있어서 보기 힘듦」
+   → 고른 답: 한 앱 안에서 두 칸(아이콘 그대로) · 예전 홈은 행사 목록 맨 위로)
+   - 행사 칸(파트장 · 직원): 장례업무(funeral.html) + 게시판 · 자료실(index.html #board · #docs). 휴대폰 아래 메뉴 = 행사 · 정산 · 휴무 · 게시판 · 설정(장례업무 설정)
+   - 서식 칸(파트장): 보고(주간보고 · 회의록 · 후기보고 · 상담서) · 탁송 · 물품 · 회사 서류(admin.html) · 설정(서식 설정)
+   - 총괄실장: 서식 칸만 = 취합 · 서식 · 회사 서류 · 자료실 · 설정
+   - 파트장은 위 막대 왼쪽 「행사 | 서식」으로 바꿈. 화면마다 window.DW_MODE = 'event' | 'forms' (또는 그 값을 돌려주는 함수), 바꿀 때 window.DW_MODE_GO(칸) */
+(function () {
+  var A = ' class="ui-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+  var I = function (p) { return '<svg' + A + '>' + p + '</svg>'; };
+  var IC = {
+    list: I('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>'),
+    input: I('<path d="m16 3 5 5-12 12-6 1 1-6zM13 6l5 5M3 6V3h5"/>'),
+    out: I('<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>'),
+    sched: I('<path d="M9 4h6v3H9zM9 5.5H6a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6.5a1 1 0 0 0-1-1h-3M8.5 14l2.5 2.5 4.5-5"/>'),
+    poster: I('<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7.5h6M8.5 11.5h7M8.5 15h7M8.5 18h4"/>'),
+    settle: I('<rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 8h18M21 12h-6v5h6M17 14.5h.01"/>'),
+    envelopes: I('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/>'),
+    duty: I('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2"/>'),
+    board: I('<path d="M4 5h16v11H11l-4.5 3.5V16H4z"/><path d="M8 9h8M8 12h5"/>'),
+    set: I('<path d="M4 7h9M18 7h2M4 17h3M11 17h9"/><circle cx="15.5" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/>'),
+    doc: I('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/>'),
+    box: I('<path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9"/>'),
+    brief: I('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 12.5h18"/>'),
+    gather: I('<path d="M12 4 3.5 8.5 12 13l8.5-4.5z"/><path d="M3.5 12.5 12 17l8.5-4.5"/><path d="M3.5 16.5 12 21l8.5-4.5"/>'),
+    folder: I('<path d="M3.5 7.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a2 2 0 0 0-2-2H12l-2-2.5H5.5a2 2 0 0 0-2 2z"/><path d="M8 13.5h8"/>')
+  };
+  /* [열쇠, 이름, 그림, 주소] — 주소는 forms/ 기준 */
+  var NAV = {
+    event: [['event', '행사', 'list', 'funeral.html#sec-event'], ['money', '정산', 'settle', 'funeral.html#sec-money'], ['duty', '휴무', 'duty', 'funeral.html#duty'], ['board', '게시판', 'board', './#board'], ['fset', '설정', 'set', 'funeral.html#admin']],
+    eventWide: [['list', '행사 목록', 'list', 'funeral.html#list'], ['input', '행사 입력', 'input', 'funeral.html#input'], ['out', '보고서', 'out', 'funeral.html#out'], ['sched', '보고서 입력', 'sched', 'funeral.html#sched'], ['poster', '장례일정표', 'poster', 'funeral.html#poster'], ['settle', '정산 · 수당', 'settle', 'funeral.html#settle'], ['envelopes', '봉투정리', 'envelopes', 'funeral.html#envelopes'], ['duty', '휴무 · 당직', 'duty', 'funeral.html#duty'], ['board', '게시판', 'board', './#board'], ['fset', '설정', 'set', 'funeral.html#admin']],
+    forms: [['report', '보고', 'doc', './#report'], ['shipg', '탁송 · 물품', 'box', './#shipg'], ['company', '회사 서류', 'brief', 'admin.html'], ['settings', '설정', 'set', './#settings']],
+    chief: [['gather', '취합', 'gather', './#gather'], ['forms', '서식', 'doc', './#forms'], ['company', '회사 서류', 'brief', 'admin.html'], ['docs', '자료실', 'folder', './#docs'], ['settings', '설정', 'set', './#settings']]
+  };
+  function role() { var c = document.documentElement.classList; return c.contains('dw-chief') ? 'chief' : c.contains('dw-leader') ? 'leader' : 'member'; }
+  function find(k) { var all = [].concat(NAV.event, NAV.eventWide, NAV.forms, NAV.chief); for (var i = 0; i < all.length; i++) if (all[i][0] === k) return all[i]; return null; }
+  window.dwNav = {
+    ic: IC, role: role,
+    /* 그 칸의 메뉴 (wide: 태블릿 · PC 위 메뉴 줄 — 행사 칸은 화면마다 다 보임) */
+    items: function (mode, wide) { var r = role(); if (r === 'chief') return NAV.chief; if (mode === 'event' || r === 'member') return wide ? NAV.eventWide : NAV.event; return NAV.forms; },
+    html: function (items, active, attr) { return items.map(function (x) { return '<button type="button" data-nav="' + x[0] + '"' + (attr || '') + (x[0] === active ? ' aria-current="page"' : ' aria-current="false"') + '>' + (IC[x[2]] || '') + '<span>' + x[1] + '</span></button>'; }).join(''); },
+    href: function (k) { var x = find(k); return x ? x[3] : ''; }
+  };
 })();
 </script>
 <script>
@@ -222,7 +276,7 @@ window.dwMobile = function () {
       var lead = am.dw_role === 'leader' || localStorage.getItem('dw-leader') === s.user.id;
       var chief = !lead && (am.dw_role === 'chief' || localStorage.getItem('dw-chief') === s.user.id);
       root.classList.add(lead ? 'dw-leader' : chief ? 'dw-chief' : 'dw-member');
-      if (!lead && !chief && window.DW_LEADER_ONLY) location.replace('./#home');
+      if (!lead && !chief && window.DW_LEADER_ONLY) location.replace('funeral.html');
       if (chief && window.DW_STAFF_ONLY) location.replace('./#gather');
     } else root.classList.add('dw-gated');
   } catch (e) { root.classList.add('dw-gated'); }
@@ -1236,6 +1290,11 @@ body.split #p-sched .sz-pv-done{display:none}
 /* 행사 목록 · 정산 상태 (2026.10.24) — 디자인 A: 제목줄 아래 먹색 선, 줄 사이 옅은 선, 금액 오른쪽 정렬, 합계 두 줄 밑줄 */
 body[data-tab="list"] .case-panel{display:none}
 .lv-filter{display:grid;gap:8px}
+/* 예전 홈의 「이번 달 마감」 (2026.10.29 행사 목록 맨 위로) */
+.lv-dd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.lv-dd .lv-today{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink)}
+.lv-dd .lv-close{display:inline-flex;align-items:baseline;gap:8px;font-size:13.5px;color:var(--muted);flex-wrap:wrap}
+.lv-dd .lv-close b{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;padding:0 8px;border:3px double var(--ink);border-radius:2px;line-height:1.35}
 .lv-search{position:relative;display:block}
 .lv-search .ui-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 .lv-search .input{padding-left:40px;width:100%}
@@ -3423,7 +3482,9 @@ function renderList(){
   rows.forEach(r=>{ if(r.st.k==='open'||r.st.k==='changed'){ sum.open++; sum.openWon+=r.st.won; } if(r.st.k==='minus') sum.minus++; if(r.st.k==='sent') sum.sent++; sum.part+=r.env.part; sum.mgr+=r.env.manager; });
   const opt=(v,t,cur)=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(t)}</option>`;
   const has=$('#lvQ')&&document.activeElement===$('#lvQ');
-  let h=`<div class="lv-filter">
+  const ymd=seoulToday(), [yy,mm,dd]=ymd.split('-').map(Number), lastD=new Date(Date.UTC(yy,mm,0)).getUTCDate(), left=lastD-dd, wdOfD=x=>'일월화수목금토'[new Date(Date.UTC(yy,mm-1,x)).getUTCDay()];
+  let h=`<div class="lv-dd"><span class="lv-today">${mm}월 ${dd}일 ${wdOfD(dd)}요일</span><span class="lv-close">${mm}월 마감 <b>${left===0?'D-Day':'D-'+left}</b>${left===0?'오늘이 마감일이에요':`${mm}월 ${lastD}일(${wdOfD(lastD)})까지`}</span></div>
+  <div class="lv-filter">
     <label class="lv-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="lvQ" type="search" value="${esc(LV.q)}" placeholder="고인 · 장례식장 · 행사번호 · 상주 검색" aria-label="행사 검색" enterkeyhint="search"></label>
     <div class="lv-sel">
       <select class="input" data-lv="month" aria-label="달">${opt('','전체 기간',LV.month)}${months.map(m=>opt(m,monthLabel(m),LV.month)).join('')}</select>
@@ -5150,9 +5211,14 @@ const secOf=t=>NAV_SEC.find(sc=>sc.tabs.some(x=>x[0]===t))||NAV_SEC[0];
 const NAV_IC={};
 document.querySelectorAll('#mobileNav [data-ui-go], .work-tabs [data-ui-go]').forEach(b=>{ const sv=b.querySelector('svg'); if(sv&&!NAV_IC[b.dataset.uiGo]) NAV_IC[b.dataset.uiGo]=sv.outerHTML; });
 NAV_IC.poster='<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7.5h6M8.5 11.5h7M8.5 15h7M8.5 18h4"/></svg>';
-(()=>{ const m=$('#tnMain'); if(m) m.innerHTML=NAV_SEC.map(sc=>sc.tabs.map(([k,l])=>`<button type="button" data-tn="${k}">${NAV_IC[k]||''}<span>${l}</span></button>`).join('')).join('<span class="tn-sep" aria-hidden="true"></span>');
-  const mn=$('#mobileNav'); if(mn){ mn.innerHTML=NAV_SEC.map(sc=>`<button type="button" data-sec="${sc.k}">${NAV_IC[sc.ic]||''}<span>${sc.l}</span></button>`).join(''); mn.classList.add('mn-sec');
-    mn.addEventListener('click',e=>{ const b=e.target.closest('[data-sec]'); if(!b) return; const sc=NAV_SEC.find(x=>x.k===b.dataset.sec); if(!sc) return;
+/* 행사 칸 (2026.10.29): 설정 앞에 「게시판」(DW장례업무 첫 화면 index.html #board — 파트 게시판 · 자료실). 홈은 없앰 → 행사 목록 맨 위에 마감 · 이번 달 */
+const BOARD_IC=(window.dwNav&&window.dwNav.ic.board)||'';
+function goBoard(){ try{ save(); }catch(e){} location.replace('./#board'); }
+(()=>{ const m=$('#tnMain'); if(m){ const g=NAV_SEC.map(sc=>sc.tabs.map(([k,l])=>`<button type="button" data-tn="${k}">${NAV_IC[k]||''}<span>${l}</span></button>`).join(''));
+    g.splice(g.length-1,0,`<button type="button" data-tn-ext="board">${BOARD_IC}<span>게시판</span></button>`); m.innerHTML=g.join('<span class="tn-sep" aria-hidden="true"></span>'); }
+  const mn=$('#mobileNav'); if(mn){ const g=NAV_SEC.map(sc=>`<button type="button" data-sec="${sc.k}">${NAV_IC[sc.ic]||''}<span>${sc.l}</span></button>`);
+    g.splice(g.length-1,0,`<button type="button" data-ext="board">${BOARD_IC}<span>게시판</span></button>`); mn.innerHTML=g.join(''); mn.classList.add('mn-sec');
+    mn.addEventListener('click',e=>{ if(e.target.closest('[data-ext]')){ goBoard(); return; } const b=e.target.closest('[data-sec]'); if(!b) return; const sc=NAV_SEC.find(x=>x.k===b.dataset.sec); if(!sc) return;
       const last=(db.navLast||{})[sc.k], t=sc.tabs.some(x=>x[0]===last)?last:sc.tabs[0][0];
       if(t===db.tab&&t==='duty'){ setTab('duty'); return; } if(t!==db.tab) setTab(t); else window.scrollTo({top:0,behavior:'smooth'}); }); } })();
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }
@@ -5171,7 +5237,7 @@ function paintTopNav(t){
   const cur=m.querySelector('[aria-current]'); if(cur) tbScroll(cur); tabsFade(m);
   const cs=$('#tnSub [aria-current]'); if(cs) tbScroll(cs); tabsFade($('#tnSub'));
 }
-$('#topNav').addEventListener('click',e=>{ const b=e.target.closest('[data-tn]'); if(b){ setTab(b.dataset.tn); return; }
+$('#topNav').addEventListener('click',e=>{ if(e.target.closest('[data-tn-ext]')){ goBoard(); return; } const b=e.target.closest('[data-tn]'); if(b){ setTab(b.dataset.tn); return; }
   const sb=e.target.closest('[data-tn-sub]'); if(sb){ const [t,sub]=sb.dataset.tnSub.split(':'); if(t==='duty'&&db.tab==='duty'){ db.dutyView=sub; save(); openDuty(sub); $('#abTitle').textContent=DUTY_TITLES[sub]; paintTopNav('duty'); } else setTab(t,sub); } });
 ['tnMain','tnSub'].forEach(id=>{ const el=$('#'+id); if(el) el.addEventListener('scroll',()=>tabsFade(el),{passive:true}); });
 window.addEventListener('resize',()=>{ tnMeasure(); tabsFade($('#tnMain')); });
@@ -5207,7 +5273,9 @@ if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].inc
 save();
 renderAll();
 /* DW장례업무 홈에서 「봉투정리 보기」 등을 누르면 funeral.html#envelopes 로 옴 → 그 화면을 엶 */
-(()=>{ const h=(location.hash||'').slice(1); if(['list','input','out','sched','poster','settle','envelopes','duty'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
+(()=>{ let h=(location.hash||'').slice(1); if(!h) return;
+  if(h.startsWith('sec-')){ const sc=NAV_SEC.find(x=>x.k===h.slice(4)); if(sc){ const last=(db.navLast||{})[sc.k]; h=sc.tabs.some(x=>x[0]===last)?last:sc.tabs[0][0]; } }   /* 게시판 화면 아래 메뉴 「행사」 · 「정산」 → 그 묶음에서 마지막에 본 화면 */
+  if(['list','input','out','sched','poster','settle','envelopes','duty','admin'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
 $('#sbSyncBtn').onclick=sbSyncNow; $('#sbMeRow').onclick=function(){ if(window.dwMe) window.dwMe.open(this); };
 $('#snFoot').addEventListener('click',e=>{ if(e.target.closest('[data-sbout]')){ e.stopPropagation(); sbLogout(); return; } setTab('admin','keep'); closeNav(); });
 renderSB(); sbBoot();
@@ -5370,7 +5438,6 @@ body .burial-seg,body .sum,body .must,body .fold-ex,body .acc,body .crem-preview
 body .csheet{border-radius:6px 6px 0 0}
 @media (min-width:700px){ body .csheet,body .sheet{border-radius:6px} }
 body .settle-bar{border-radius:6px;box-shadow:none}
-body .mf-home{border-radius:4px}
 body .toast{box-shadow:none}
 /* 보기 쉬움 점검 (2026.10.16): 글자 대비 4.5:1 이상 · 작은 글자 12px 이상 · 누르는 곳 44px 이상 · 아이폰에서 칸을 눌러도 화면이 확대되지 않게 16px */
 .wz-amt .input:focus-visible{box-shadow:0 2px 0 var(--ink)}
@@ -5506,8 +5573,8 @@ html{scroll-padding-top:calc(var(--ab-h) + var(--tn-h,0px) + 16px)}
 /* 메뉴 묶음 (2026.10.28-5 사용자 「모바일로 봤을 때도 섹션을 나눠 줘야 함 · 너무 밑에 몰려 있는 느낌」)
    넓은 화면: 위 메뉴 줄 묶음 사이 가는 세로선 / 휴대폰: 아래 메뉴 묶음 4개 + 위에는 그 묶음 화면을 밑줄 탭으로 (진한 칸 버튼 대신 조용하게) */
 .tn-sep{flex:none;align-self:center;width:1px;height:18px;background:var(--line);margin:0 8px}
-body .mobile-nav.mn-sec{grid-template-columns:repeat(4,minmax(0,1fr))}
-@media (min-width:700px) and (max-width:1023px){ .tn-main-row .tn-in button{padding:0 8px} .tn-main-row .tn-in>button:first-child{margin-left:-8px} .tn-sep{margin:0 6px} }
+body .mobile-nav.mn-sec{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (min-width:700px) and (max-width:1023px){ .tn-main-row .tn-in button{padding:0 6px;font-size:14px} .tn-main-row .tn-in>button:first-child{margin-left:-6px} .tn-sep{margin:0 4px} }   /* 게시판이 더해져도 태블릿 세로에서 한 줄 (2026.10.29) */
 body .mobile-nav.mn-sec button{font-size:12.5px;gap:4px}
 @media (max-width:699px){
   .tn-sub-row{background:var(--surface)}
@@ -5565,61 +5632,25 @@ body[data-tab="poster"] .case-panel{display:none}
 }
 @page{margin:8mm}
 </style>
-<!-- DW장례업무 안의 장례업무에만 붙는 부분: 홈으로 돌아가는 버튼과 메뉴. 직원 계정(html.dw-member)이면 [data-admin] 메뉴는 숨김 (leader-gate-head.html) -->
+<!-- DW장례업무 안의 장례업무(= 「행사」 칸)에만 붙는 부분 (2026.10.29 행사 칸 · 서식 칸 나눔)
+     예전 「홈」 버튼과 왼쪽 메뉴 안 서식 바로가기는 없앰 → 파트장은 위 막대 「행사 | 서식」(leader-gate.html), 게시판은 아래 메뉴 「게시판」 -->
 <style id="mf-bridge">
-.mf-home{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;height:40px;padding:0 11px;border:1px solid var(--edge,#dce3ec);border-radius:12px;background:var(--surface,#fff);color:var(--ink,#182538);font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
-.mf-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.mf-home:focus-visible{outline:2px solid var(--accent,#293f65);outline-offset:2px}
 .ab-title{min-width:0}
 .ab-title b,.ab-title small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
-@media (max-width:560px){.mf-home span{display:none}.mf-home{width:44px;padding:0}}
 </style>
 <script>
 (function () {
   'use strict';
-  function setLast(v) { try { localStorage.setItem('mf.lastApp', v); } catch (e) { /* ignore */ } }
-  function toForms(tab) { setLast('forms'); location.replace('./#' + (tab || 'home')); }
-  setLast('funeral');
-
-  var DOC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>';
-  var HOME = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10 19.5v-5h4v5"/></svg>';
-
-  // 앱 위쪽 막대: 서식함으로 돌아가는 버튼
-  var bar = document.querySelector('.ab-in');
-  if (bar) {
-    var home = document.createElement('button');
-    home.type = 'button';
-    home.className = 'mf-home';
-    home.setAttribute('aria-label', 'DW장례업무 홈으로 가기');
-    home.innerHTML = HOME + '<span>홈</span>';
-    home.addEventListener('click', function () { toForms('home'); });
-    bar.insertBefore(home, document.getElementById('newCase'));
-  }
-
-  // 왼쪽 메뉴: 서식함 바로가기
-  var body = document.querySelector('#sideNav .sn-body');
-  if (body) {
-    var acc = document.createElement('div');
-    acc.className = 'acc';
-    acc.setAttribute('data-acc', 'forms');
-    acc.innerHTML =
-      '<button class="acc-h" type="button" aria-expanded="true"><span>' + HOME + 'DW장례업무</span><i></i></button>' +
-      '<div class="acc-b"><div>' +
-      '<button type="button" data-mf="home">홈</button>' +
-      '<button type="button" data-mf="board">파트 게시판</button>' +
-      '<button type="button" data-mf="weekly" data-admin>주간 파트 보고</button>' +
-      '<button type="button" data-mf="minutes" data-admin>회의록</button>' +
-      '<button type="button" data-mf="review" data-admin>후기 일일보고</button>' +
-      '<button type="button" data-mf="ship" data-admin>용품 · 근조기 탁송</button>' +
-      '<button type="button" data-mf="company" data-admin>회사 서류</button>' +
-      '<button type="button" data-mf="settings" data-admin>서식 설정</button>' +
-      '</div></div>';
-    acc.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-mf]');
-      if (b) { if (b.getAttribute('data-mf') === 'company') { setLast('forms'); location.replace('./admin.html'); } else toForms(b.getAttribute('data-mf')); }
-    });
-    body.appendChild(acc);
-  }
+  try { localStorage.setItem('mf.lastApp', 'funeral'); } catch (e) { /* ignore */ }
+  window.DW_MODE = 'event';
+  /* 「서식」으로 바꾸기: 지금 기록을 저장한 뒤 서식 칸(마지막에 본 서식) */
+  window.DW_MODE_GO = function (to) {
+    if (to !== 'forms') return false;
+    try { if (typeof save === 'function') save(); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('mf.lastApp', 'forms'); } catch (e) { /* ignore */ }
+    location.replace('./#forms');
+    return true;
+  };
 })();
 </script>
 <!-- 확인 창 · 되돌리기 (2026.10.24, 세 화면 공통: DW장례업무 · 장례업무 · 회사 서류).
@@ -5715,10 +5746,11 @@ body[data-tab="poster"] .case-panel{display:none}
   function applyRole(u) {
     var lead = isLeader(u), chief = !lead && isChief(u);
     var was = root.classList.contains('dw-leader') ? 'leader' : root.classList.contains('dw-chief') ? 'chief' : 'member', now = lead ? 'leader' : chief ? 'chief' : 'member';
-    if (now === 'member' && window.DW_LEADER_ONLY) { location.replace('./#home'); return; }   /* 회사 서류: 파트장 · 총괄실장만 */
+    if (now === 'member' && window.DW_LEADER_ONLY) { location.replace('funeral.html'); return; }   /* 회사 서류: 파트장 · 총괄실장만 */
     if (now === 'chief' && window.DW_STAFF_ONLY) { location.replace('./#gather'); return; }   /* 장례업무: 총괄실장은 안 씀 */
     root.classList.toggle('dw-leader', lead); root.classList.toggle('dw-chief', chief); root.classList.toggle('dw-member', now === 'member');
     if (was !== now) { try { window.dispatchEvent(new CustomEvent('dw-role', { detail: { leader: lead, chief: chief, role: now } })); } catch (e) {} }
+    paintMode();
   }
   var box = null, outBusy = null, outN;
   /* 방금 로그아웃된 이유 · 이메일 (로그인 화면에 한 번 보여 줌) */
@@ -6148,6 +6180,32 @@ body[data-tab="poster"] .case-panel{display:none}
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') idleCheck(); });
   window.addEventListener('focus', idleCheck);
 
+  /* ---------- 행사 칸 · 서식 칸 바꾸기 (2026.10.29, 파트장만 보임 — 직원 · 총괄실장은 CSS 로 숨김) ----------
+     휴대폰은 위 막대 왼쪽(제목 · 앱 이름 자리), 넓은 화면은 제목 앞. 화면이 window.DW_MODE(지금 칸) · window.DW_MODE_GO(바꿀 칸)를 줌 */
+  function modeNow() { var m = window.DW_MODE; try { m = typeof m === 'function' ? m() : m; } catch (e) { m = ''; } return m === 'event' ? 'event' : 'forms'; }
+  function paintMode() {
+    var m = document.getElementById('dwMode'); if (!m) return;
+    var cur = modeNow(); m.querySelectorAll('[data-dwmode]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-dwmode') === cur)); });
+  }
+  function modeSwitch() {
+    if (document.getElementById('dwMode')) { paintMode(); return; }
+    var bar = document.querySelector('header.appbar .appbar-in') || document.querySelector('header.appbar .ab-in');
+    if (!bar) return;
+    var m = document.createElement('div');
+    m.id = 'dwMode'; m.className = 'dw-mode'; m.setAttribute('role', 'group'); m.setAttribute('aria-label', '행사 · 서식 바꾸기');
+    m.innerHTML = '<button type="button" data-dwmode="event">행사</button><button type="button" data-dwmode="forms">서식</button>';
+    m.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-dwmode]'); if (!b) return;
+      var to = b.getAttribute('data-dwmode'); if (to === modeNow()) return;
+      if (typeof window.DW_MODE_GO === 'function' && window.DW_MODE_GO(to) !== false) return;
+      location.replace(to === 'event' ? 'funeral.html' : './#forms');
+    });
+    var brand = bar.querySelector('.brand'), title = bar.querySelector('.ab-title');
+    bar.insertBefore(m, brand ? brand.nextSibling : title || bar.firstChild);
+    paintMode();
+  }
+  window.dwMode = { paint: paintMode, now: modeNow };
+
   /* ---------- 로그아웃 버튼: 위 막대 오른쪽 끝 (세 화면 공통) ---------- */
   function outButton() {
     if (document.getElementById('dwOut')) return;
@@ -6173,7 +6231,7 @@ body[data-tab="poster"] .case-panel{display:none}
     return;
   }
   if (window.DW_HOLD) return;   /* 계정 바꾸기 화면으로 넘어가는 중 */
-  outButton();
+  outButton(); modeSwitch();
   if (root.classList.contains('dw-gated')) gate('login', (sess() || {}).user); else renderAcct();
   verify();
   window.addEventListener('online', verify);

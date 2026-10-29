@@ -286,6 +286,27 @@ p{text-wrap:pretty}
 @media (prefers-reduced-motion:reduce){body .btn:active,body .type-card:active,body .seg button:active,body .icon-btn:active{transform:none}}
 
 
+/* 서식 칸 (2026.10.29 행사 칸 · 서식 칸 나눔): 회사 서류 안 화면은 위쪽 밑줄 탭(서류 · 직원 · 회사 정보), 아래 메뉴는 서식 칸 메뉴
+   (파트장: 보고 · 탁송 · 물품 · 회사 서류 · 설정 / 총괄실장: 취합 · 서식 · 회사 서류 · 자료실 · 설정 — leader-gate-head.html window.dwNav, admin-bridge.html 이 그림) */
+.ftabs{display:flex;border-bottom:1px solid var(--line);margin:-2px 0 16px;overflow-x:auto;scrollbar-width:none}
+.ftabs::-webkit-scrollbar{display:none}
+.ftabs button{flex:1 0 auto;min-height:46px;padding:0 12px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;color:var(--muted);font-size:15px;font-weight:500;white-space:nowrap}
+.ftabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+@media (hover:hover){.ftabs button:hover{color:var(--ink)}}
+@media (min-width:1000px){.ftabs{width:100%;max-width:860px;margin-inline:auto;margin-bottom:16px}}
+.tabbar-in{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+.tabbar button svg{width:22px;height:22px}
+@media (min-width:700px){
+  :root{--tabbar-h:0px}
+  .appbar .tabbar{position:static;border-top:1px solid var(--line);border-bottom:0;padding-bottom:0;background:var(--surface)}
+  .appbar .tabbar-in{display:flex;gap:2px;max-width:640px;margin:0 auto;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+  .appbar .tabbar button{flex:none;height:46px;display:inline-flex;align-items:center;gap:7px;padding:0 12px;font-size:14.5px;font-weight:600;position:relative}
+  .appbar .tabbar button:first-child{margin-left:-12px}
+  .appbar .tabbar button svg{width:18px;height:18px}
+  .appbar .tabbar button[aria-current="page"]{color:var(--ink)}
+  .appbar .tabbar button[aria-current="page"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;background:var(--ink)}
+}
+@media (min-width:1000px){.appbar .tabbar-in{max-width:1220px}}
 </style>
 
 <header class="appbar">
@@ -322,6 +343,11 @@ p{text-wrap:pretty}
   </div>
 
   <!-- ===== 서식 ===== -->
+  <nav class="ftabs" id="coTabs" aria-label="회사 서류 고르기">
+    <button type="button" data-ctab="docs" aria-current="page">서류</button>
+    <button type="button" data-ctab="staff" aria-current="false">직원</button>
+    <button type="button" data-ctab="settings" aria-current="false">회사 정보</button>
+  </nav>
   <section class="tab" id="tab-docs">
     <div class="tab-head">
       <h1>인사 · 총무 서식</h1>
@@ -352,7 +378,7 @@ p{text-wrap:pretty}
   <!-- ===== 설정 ===== -->
   <section class="tab" id="tab-settings" hidden>
     <div class="tab-head">
-      <h1>설정</h1>
+      <h1>회사 정보 · 직인</h1>
       <p>서식에 들어갈 회사 정보와 직인을 정해요. 기록은 내 계정에 자동으로 저장돼요.</p>
     </div>
     <div class="card">
@@ -413,21 +439,9 @@ p{text-wrap:pretty}
 </div>
 
 <nav class="tabbar" aria-label="메뉴">
-  <div class="tabbar-in" style="grid-template-columns:repeat(3,1fr)">
-    <button type="button" data-tab="docs" aria-current="page">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>
-      서식
-    </button>
-    <button type="button" data-tab="staff" aria-current="false">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.6-3.3 2.9-5 5.5-5s4.9 1.7 5.5 5"/><path d="M15.5 5.3a3 3 0 0 1 0 5.4M17.8 14.8c1.5.7 2.4 2.2 2.7 4.7"/></svg>
-      직원
-    </button>
-    <button type="button" data-tab="settings" aria-current="false">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 17h3M11 17h9"/><circle cx="15.5" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/></svg>
-      설정
-    </button>
-  </div>
+  <div class="tabbar-in" id="navIn"></div>   <!-- 서식 칸 메뉴 (admin-bridge.html 이 그림) -->
 </nav>
+<script>/* 태블릿 · PC 는 메뉴 줄을 위 막대 안으로 (DW장례업무 첫 화면과 같게) */(function(){ var ab=document.querySelector('header.appbar'), tb=document.querySelector('nav.tabbar'); if(ab&&tb) ab.appendChild(tb); })();</script>
 
 <!-- ===== 문서 작성 화면 ===== -->
 <div class="screen" id="docEditor" hidden>
@@ -1124,7 +1138,7 @@ function showTab(t) {
   if (S.tab === 'settings' && t !== 'settings' && S.cd) toast('설정을 아직 저장하지 않았어요. 설정 탭에서 저장을 눌러 주세요.');
   S.tab = t;
   ['docs', 'staff', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
-  $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  $$('#coTabs [data-ctab]').forEach((b) => b.setAttribute('aria-current', b.dataset.ctab === t ? 'page' : 'false'));
   try { localStorage.setItem('ca.tab', t); } catch (e) { /* ignore */ }
   window.scrollTo(0, 0);
   if (t === 'settings') renderSettings();
@@ -1829,7 +1843,7 @@ function bind() {
     toast('코드를 만들었어요. 복사해서 보내 주세요');
   });
   $('#pwCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#pwCode').value); toast('코드를 복사했어요'); } catch (e) { $('#pwCode').select(); toast('선택된 코드를 길게 눌러 복사해 주세요'); } });
-  $$('.tabbar button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+  $('#coTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-ctab]'); if (b) showTab(b.dataset.ctab); });
   // 서식 목록
   $('#typeGrid').addEventListener('click', (e) => {
     const c = e.target.closest('[data-type]'); if (!c) return;

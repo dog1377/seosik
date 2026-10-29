@@ -1013,6 +1013,11 @@ body.split #p-sched .sz-pv-done{display:none}
 /* 행사 목록 · 정산 상태 (2026.10.24) — 디자인 A: 제목줄 아래 먹색 선, 줄 사이 옅은 선, 금액 오른쪽 정렬, 합계 두 줄 밑줄 */
 body[data-tab="list"] .case-panel{display:none}
 .lv-filter{display:grid;gap:8px}
+/* 예전 홈의 「이번 달 마감」 (2026.10.29 행사 목록 맨 위로) */
+.lv-dd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.lv-dd .lv-today{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink)}
+.lv-dd .lv-close{display:inline-flex;align-items:baseline;gap:8px;font-size:13.5px;color:var(--muted);flex-wrap:wrap}
+.lv-dd .lv-close b{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;padding:0 8px;border:3px double var(--ink);border-radius:2px;line-height:1.35}
 .lv-search{position:relative;display:block}
 .lv-search .ui-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 .lv-search .input{padding-left:40px;width:100%}
@@ -3200,7 +3205,9 @@ function renderList(){
   rows.forEach(r=>{ if(r.st.k==='open'||r.st.k==='changed'){ sum.open++; sum.openWon+=r.st.won; } if(r.st.k==='minus') sum.minus++; if(r.st.k==='sent') sum.sent++; sum.part+=r.env.part; sum.mgr+=r.env.manager; });
   const opt=(v,t,cur)=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(t)}</option>`;
   const has=$('#lvQ')&&document.activeElement===$('#lvQ');
-  let h=`<div class="lv-filter">
+  const ymd=seoulToday(), [yy,mm,dd]=ymd.split('-').map(Number), lastD=new Date(Date.UTC(yy,mm,0)).getUTCDate(), left=lastD-dd, wdOfD=x=>'일월화수목금토'[new Date(Date.UTC(yy,mm-1,x)).getUTCDay()];
+  let h=`<div class="lv-dd"><span class="lv-today">${mm}월 ${dd}일 ${wdOfD(dd)}요일</span><span class="lv-close">${mm}월 마감 <b>${left===0?'D-Day':'D-'+left}</b>${left===0?'오늘이 마감일이에요':`${mm}월 ${lastD}일(${wdOfD(lastD)})까지`}</span></div>
+  <div class="lv-filter">
     <label class="lv-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="lvQ" type="search" value="${esc(LV.q)}" placeholder="고인 · 장례식장 · 행사번호 · 상주 검색" aria-label="행사 검색" enterkeyhint="search"></label>
     <div class="lv-sel">
       <select class="input" data-lv="month" aria-label="달">${opt('','전체 기간',LV.month)}${months.map(m=>opt(m,monthLabel(m),LV.month)).join('')}</select>
@@ -4927,9 +4934,14 @@ const secOf=t=>NAV_SEC.find(sc=>sc.tabs.some(x=>x[0]===t))||NAV_SEC[0];
 const NAV_IC={};
 document.querySelectorAll('#mobileNav [data-ui-go], .work-tabs [data-ui-go]').forEach(b=>{ const sv=b.querySelector('svg'); if(sv&&!NAV_IC[b.dataset.uiGo]) NAV_IC[b.dataset.uiGo]=sv.outerHTML; });
 NAV_IC.poster='<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7.5h6M8.5 11.5h7M8.5 15h7M8.5 18h4"/></svg>';
-(()=>{ const m=$('#tnMain'); if(m) m.innerHTML=NAV_SEC.map(sc=>sc.tabs.map(([k,l])=>`<button type="button" data-tn="${k}">${NAV_IC[k]||''}<span>${l}</span></button>`).join('')).join('<span class="tn-sep" aria-hidden="true"></span>');
-  const mn=$('#mobileNav'); if(mn){ mn.innerHTML=NAV_SEC.map(sc=>`<button type="button" data-sec="${sc.k}">${NAV_IC[sc.ic]||''}<span>${sc.l}</span></button>`).join(''); mn.classList.add('mn-sec');
-    mn.addEventListener('click',e=>{ const b=e.target.closest('[data-sec]'); if(!b) return; const sc=NAV_SEC.find(x=>x.k===b.dataset.sec); if(!sc) return;
+/* 행사 칸 (2026.10.29): 설정 앞에 「게시판」(DW장례업무 첫 화면 index.html #board — 파트 게시판 · 자료실). 홈은 없앰 → 행사 목록 맨 위에 마감 · 이번 달 */
+const BOARD_IC=(window.dwNav&&window.dwNav.ic.board)||'';
+function goBoard(){ try{ save(); }catch(e){} location.replace('./#board'); }
+(()=>{ const m=$('#tnMain'); if(m){ const g=NAV_SEC.map(sc=>sc.tabs.map(([k,l])=>`<button type="button" data-tn="${k}">${NAV_IC[k]||''}<span>${l}</span></button>`).join(''));
+    g.splice(g.length-1,0,`<button type="button" data-tn-ext="board">${BOARD_IC}<span>게시판</span></button>`); m.innerHTML=g.join('<span class="tn-sep" aria-hidden="true"></span>'); }
+  const mn=$('#mobileNav'); if(mn){ const g=NAV_SEC.map(sc=>`<button type="button" data-sec="${sc.k}">${NAV_IC[sc.ic]||''}<span>${sc.l}</span></button>`);
+    g.splice(g.length-1,0,`<button type="button" data-ext="board">${BOARD_IC}<span>게시판</span></button>`); mn.innerHTML=g.join(''); mn.classList.add('mn-sec');
+    mn.addEventListener('click',e=>{ if(e.target.closest('[data-ext]')){ goBoard(); return; } const b=e.target.closest('[data-sec]'); if(!b) return; const sc=NAV_SEC.find(x=>x.k===b.dataset.sec); if(!sc) return;
       const last=(db.navLast||{})[sc.k], t=sc.tabs.some(x=>x[0]===last)?last:sc.tabs[0][0];
       if(t===db.tab&&t==='duty'){ setTab('duty'); return; } if(t!==db.tab) setTab(t); else window.scrollTo({top:0,behavior:'smooth'}); }); } })();
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }
@@ -4948,7 +4960,7 @@ function paintTopNav(t){
   const cur=m.querySelector('[aria-current]'); if(cur) tbScroll(cur); tabsFade(m);
   const cs=$('#tnSub [aria-current]'); if(cs) tbScroll(cs); tabsFade($('#tnSub'));
 }
-$('#topNav').addEventListener('click',e=>{ const b=e.target.closest('[data-tn]'); if(b){ setTab(b.dataset.tn); return; }
+$('#topNav').addEventListener('click',e=>{ if(e.target.closest('[data-tn-ext]')){ goBoard(); return; } const b=e.target.closest('[data-tn]'); if(b){ setTab(b.dataset.tn); return; }
   const sb=e.target.closest('[data-tn-sub]'); if(sb){ const [t,sub]=sb.dataset.tnSub.split(':'); if(t==='duty'&&db.tab==='duty'){ db.dutyView=sub; save(); openDuty(sub); $('#abTitle').textContent=DUTY_TITLES[sub]; paintTopNav('duty'); } else setTab(t,sub); } });
 ['tnMain','tnSub'].forEach(id=>{ const el=$('#'+id); if(el) el.addEventListener('scroll',()=>tabsFade(el),{passive:true}); });
 window.addEventListener('resize',()=>{ tnMeasure(); tabsFade($('#tnMain')); });
@@ -4984,7 +4996,9 @@ if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].inc
 save();
 renderAll();
 /* DW장례업무 홈에서 「봉투정리 보기」 등을 누르면 funeral.html#envelopes 로 옴 → 그 화면을 엶 */
-(()=>{ const h=(location.hash||'').slice(1); if(['list','input','out','sched','poster','settle','envelopes','duty'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
+(()=>{ let h=(location.hash||'').slice(1); if(!h) return;
+  if(h.startsWith('sec-')){ const sc=NAV_SEC.find(x=>x.k===h.slice(4)); if(sc){ const last=(db.navLast||{})[sc.k]; h=sc.tabs.some(x=>x[0]===last)?last:sc.tabs[0][0]; } }   /* 게시판 화면 아래 메뉴 「행사」 · 「정산」 → 그 묶음에서 마지막에 본 화면 */
+  if(['list','input','out','sched','poster','settle','envelopes','duty','admin'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
 $('#sbSyncBtn').onclick=sbSyncNow; $('#sbMeRow').onclick=function(){ if(window.dwMe) window.dwMe.open(this); };
 $('#snFoot').addEventListener('click',e=>{ if(e.target.closest('[data-sbout]')){ e.stopPropagation(); sbLogout(); return; } setTab('admin','keep'); closeNav(); });
 renderSB(); sbBoot();

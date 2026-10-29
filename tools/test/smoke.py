@@ -109,11 +109,16 @@ def main():
 
         for (w, h, sc) in SIZES:
             tag = f'{w}x{h}_{sc}'
-            # 파트장: 홈 · 게시판 · 서식 · 설정
+            # 파트장: 게시판 · 자료실(행사 칸) · 서식 · 설정(서식 칸) — 2026.10.29 행사 칸 · 서식 칸 나눔 (예전 홈 없음)
             ctx, p = page(w, h, sc)
-            p.goto(BASE + 'forms/'); login(p, 'seo', 'pw1111')
-            for t in ['home', 'board', 'docs', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings']:
+            p.goto(BASE + 'forms/#board'); login(p, 'seo', 'pw1111')
+            p.wait_for_function("typeof showTab==='function' && typeof S!=='undefined'", timeout=15000)
+            for t in ['board', 'docs', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings']:
                 p.evaluate(f"showTab('{t}')"); p.wait_for_timeout(500); look(p, f'forms_{t}_{tag}')
+                want = 'event' if t in ('board', 'docs') else 'forms'
+                got = p.evaluate("[document.body.dataset.mode, (document.querySelector('#dwMode [aria-pressed=\"true\"]')||{getAttribute:()=>''}).getAttribute('data-dwmode')]")
+                if got[0] != want or got[1] != want:
+                    problems.append(f'{tag} {t}: 행사 · 서식 칸 표시가 다름 {got}')
             # 내 정보 (위 막대 아이디를 누르면, 2026.10.29)
             p.click('.appbar .local'); p.wait_for_selector('#dwMe:not([hidden])', timeout=5000); look(p, f'forms_me_{tag}')
             if p.input_value('#dwMeName') != '서영우':
@@ -122,6 +127,8 @@ def main():
             # 장례업무 (같은 기기 · 로그인 유지)
             p.goto(BASE + 'forms/funeral.html'); p.wait_for_function("typeof setTab==='function'", timeout=15000)
             p.evaluate(SEED)
+            if w < 700 and p.evaluate("document.querySelectorAll('#mobileNav button').length") != 5:
+                problems.append(f'{tag}: 장례업무 아래 메뉴가 5칸(행사 · 정산 · 휴무 · 게시판 · 설정)이 아님')
             for t in ['list', 'input', 'out', 'poster', 'settle', 'envelopes', 'duty', 'admin']:
                 p.evaluate(f"setTab('{t}')"); look(p, f'funeral_{t}_{tag}')
             # 회사 서류
@@ -131,7 +138,13 @@ def main():
             ctx.close()
             # 직원: 서식 · 회사 서류는 못 들어감
             ctx, p = page(w, h, sc)
-            p.goto(BASE + 'forms/'); login(p, 'kim', 'pw2222'); look(p, f'member_home_{tag}')
+            p.goto(BASE + 'forms/'); login(p, 'kim', 'pw2222')   # 앱을 열면 행사 목록 (2026.10.29)
+            p.wait_for_function("typeof setTab==='function' && !document.documentElement.classList.contains('dw-gated')", timeout=15000); look(p, f'member_list_{tag}')
+            if 'funeral.html' not in p.url:
+                problems.append(f'member {tag}: 앱을 열었는데 행사 목록이 아님')
+            if p.evaluate("!!(document.getElementById('dwMode')||{}).offsetParent"):
+                problems.append(f'member {tag}: 직원에게 행사 · 서식 바꾸기가 보임')
+            p.goto(BASE + 'forms/#board'); p.wait_for_function("typeof showTab==='function' && typeof S!=='undefined' && S.tab==='board'", timeout=15000); look(p, f'member_board_{tag}')
             p.goto(BASE + 'forms/admin.html'); p.wait_for_timeout(1500)
             if 'admin.html' in p.url:
                 problems.append(f'member {tag}: 직원이 회사 서류에 들어감')
@@ -139,7 +152,11 @@ def main():
             # 총괄실장: 취합 · 서식 · 설정만, 장례업무는 못 들어감
             ctx, p = page(w, h, sc)
             p.goto(BASE + 'forms/'); login(p, 'boss', 'pw5555')
-            if p.evaluate('S.tab') != 'gather':
+            try:
+                p.wait_for_function("typeof S!=='undefined' && S.tab==='gather'", timeout=15000)
+            except Exception:
+                pass
+            if p.evaluate("typeof S!=='undefined' ? S.tab : ''") != 'gather':
                 problems.append(f'chief {tag}: 첫 화면이 취합이 아님')
             for v in ['weekly', 'minutes', 'review', 'ship']:
                 p.click(f"#gtTabs [data-gv='{v}']"); p.wait_for_timeout(500); look(p, f'chief_{v}_{tag}')

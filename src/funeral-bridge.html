@@ -1,57 +1,21 @@
-<!-- DW장례업무 안의 장례업무에만 붙는 부분: 홈으로 돌아가는 버튼과 메뉴. 직원 계정(html.dw-member)이면 [data-admin] 메뉴는 숨김 (leader-gate-head.html) -->
+<!-- DW장례업무 안의 장례업무(= 「행사」 칸)에만 붙는 부분 (2026.10.29 행사 칸 · 서식 칸 나눔)
+     예전 「홈」 버튼과 왼쪽 메뉴 안 서식 바로가기는 없앰 → 파트장은 위 막대 「행사 | 서식」(leader-gate.html), 게시판은 아래 메뉴 「게시판」 -->
 <style id="mf-bridge">
-.mf-home{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;height:40px;padding:0 11px;border:1px solid var(--edge,#dce3ec);border-radius:12px;background:var(--surface,#fff);color:var(--ink,#182538);font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
-.mf-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.mf-home:focus-visible{outline:2px solid var(--accent,#293f65);outline-offset:2px}
 .ab-title{min-width:0}
 .ab-title b,.ab-title small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
-@media (max-width:560px){.mf-home span{display:none}.mf-home{width:44px;padding:0}}
 </style>
 <script>
 (function () {
   'use strict';
-  function setLast(v) { try { localStorage.setItem('mf.lastApp', v); } catch (e) { /* ignore */ } }
-  function toForms(tab) { setLast('forms'); location.replace('./#' + (tab || 'home')); }
-  setLast('funeral');
-
-  var DOC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>';
-  var HOME = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10 19.5v-5h4v5"/></svg>';
-
-  // 앱 위쪽 막대: 서식함으로 돌아가는 버튼
-  var bar = document.querySelector('.ab-in');
-  if (bar) {
-    var home = document.createElement('button');
-    home.type = 'button';
-    home.className = 'mf-home';
-    home.setAttribute('aria-label', 'DW장례업무 홈으로 가기');
-    home.innerHTML = HOME + '<span>홈</span>';
-    home.addEventListener('click', function () { toForms('home'); });
-    bar.insertBefore(home, document.getElementById('newCase'));
-  }
-
-  // 왼쪽 메뉴: 서식함 바로가기
-  var body = document.querySelector('#sideNav .sn-body');
-  if (body) {
-    var acc = document.createElement('div');
-    acc.className = 'acc';
-    acc.setAttribute('data-acc', 'forms');
-    acc.innerHTML =
-      '<button class="acc-h" type="button" aria-expanded="true"><span>' + HOME + 'DW장례업무</span><i></i></button>' +
-      '<div class="acc-b"><div>' +
-      '<button type="button" data-mf="home">홈</button>' +
-      '<button type="button" data-mf="board">파트 게시판</button>' +
-      '<button type="button" data-mf="weekly" data-admin>주간 파트 보고</button>' +
-      '<button type="button" data-mf="minutes" data-admin>회의록</button>' +
-      '<button type="button" data-mf="review" data-admin>후기 일일보고</button>' +
-      '<button type="button" data-mf="ship" data-admin>용품 · 근조기 탁송</button>' +
-      '<button type="button" data-mf="company" data-admin>회사 서류</button>' +
-      '<button type="button" data-mf="settings" data-admin>서식 설정</button>' +
-      '</div></div>';
-    acc.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-mf]');
-      if (b) { if (b.getAttribute('data-mf') === 'company') { setLast('forms'); location.replace('./admin.html'); } else toForms(b.getAttribute('data-mf')); }
-    });
-    body.appendChild(acc);
-  }
+  try { localStorage.setItem('mf.lastApp', 'funeral'); } catch (e) { /* ignore */ }
+  window.DW_MODE = 'event';
+  /* 「서식」으로 바꾸기: 지금 기록을 저장한 뒤 서식 칸(마지막에 본 서식) */
+  window.DW_MODE_GO = function (to) {
+    if (to !== 'forms') return false;
+    try { if (typeof save === 'function') save(); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('mf.lastApp', 'forms'); } catch (e) { /* ignore */ }
+    location.replace('./#forms');
+    return true;
+  };
 })();
 </script>
