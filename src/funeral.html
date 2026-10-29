@@ -2763,7 +2763,7 @@ function renderOut(){
   const c=curCase();
   if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; $('#outTabs').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
-  $('#bandText').value=fillTpl(co.band,c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
+  $('#bandText').value=bandOut(c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
   $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   $('#outTabs').innerHTML=outViews(c).map(([k,l])=>`<button type="button" role="tab" data-ov-tab="${k}">${esc(l)}</button>`).join(''); applyOutView();
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c,{'업체명':dispCoName(c)});   /* 배차는 업체별 배차 회사명 (대한선진(국향) → 대한항공노동조합) */
@@ -2892,10 +2892,13 @@ const mgrName=()=>String(rules().mgrName||'').trim()||'실장';
    → 수금액에서 빼지 않음(보내는금액 · 영수증 · 일정표 모두 수금액 그대로), 양식 글은 「20만원 법인카드결제」 */
 function altarText(v,card){ const t=String(v??'').trim(); if(!t) return ''; if(/^\d+(\.\d+)?$/.test(t.replace(/,/g,''))) return `${money(t)} ${card?'법인카드결제':'공제'}`; return card&&!/카드|법카/.test(t)?`${t} (법인카드결제)`:t; }
 function altarDeductWon(c){ if(!c||!c.altarNet||(c.f||{}).altarCard) return 0; const t=String((c.f||{}).altar||'').trim(); return t?Math.abs(toWon(t)):0; }
+/* 밴드 양식은 법인카드결제를 켜도 「카드결제」 글자 없이 평소처럼 「20만원 공제」 (2026.10.29 사용자: 「법카결제 체크해도 카드결제라고 밴드 양식에는 입력되지 않게」).
+   업체 보고 양식 · 일정표 등 다른 양식은 그대로 「20만원 법인카드결제」. 수금액 줄은 실제 금액(법인카드결제면 빼지 않은 금액) */
+function bandOut(c){ const co=coById(c.companyId); return fillTpl(co.band,c,{'제단공제':altarText((c.f||{}).altar,false)}); }
 function collectNetWon(c){ const w=toWon((c&&c.f||{}).collect); return w ? w-altarDeductWon(c) : 0; }
 function altarNotes(c){
   const f=c.f||{}, at=altarText(f.altar,f.altarCard), ded=altarDeductWon(c), col=toWon(f.collect);
-  if(f.altarCard) return { altar: at ? `양식: 제단공제 : ${at} · 법인카드로 대신 결제해서 수금액에서 빼지 않아요` : '',
+  if(f.altarCard) return { altar: at ? `양식: 제단공제 : ${at} (밴드 양식은 「${altarText(f.altar,false)}」) · 법인카드로 대신 결제해서 수금액에서 빼지 않아요` : '',
            collect: at&&col ? `제단 ${at} → 수금액에서 빼지 않아요` : '' };
   return { altar: at ? `양식: 제단공제 : ${at}${ded?` · 수금액에서 ${wonStr(ded)} 빼요`:''}` : '',
            collect: ded&&col ? `제단공제 ${wonStr(ded)} 빼고 ${fullWon(col-ded)||'0원'}` : '' };

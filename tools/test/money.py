@@ -35,11 +35,11 @@ SETUP = r"""(()=>{
    part:v.part, mgr:v.manager, seaBur:[sea.partBurial,sea.managerBurial],
    comm:(commText(c1).match(/총계 : .*/)||[''])[0], rc:rcptForms(c1).map(f=>f.text).join('\n'), t1:settleText(c1),
    altar:(()=>{ startCase(co('디더블유')); const a=curCase(); Object.assign(a.f,{collect:'300',altar:'20'}); Object.assign(S(a),{pay:'현금'});   // 제단공제 20 · 2026.10.29 법인카드결제
-     const ded=settleCalc(a).sendWon; a.f.altarCard=true; const card=settleCalc(a).sendWon, txt=vals(a)['제단공제']; a.f.altarCard=false; return [ded,card,txt]; })()};
+     const ded=settleCalc(a).sendWon; a.f.altarCard=true; const card=settleCalc(a).sendWon, txt=vals(a)['제단공제'], band=(bandOut(a).match(/제단공제 : .*/)||[''])[0]; a.f.altarCard=false; return [ded,card,txt,band]; })()};
 })()"""
 
 EXPECT = [
-    ('제단공제 20 · 수금 300 현금 → 공제 / 법인카드결제(공제 안 함)', 'altar', [2800000, 3000000, '20만원 법인카드결제']),
+    ('제단공제 20 · 수금 300 현금 → 공제 / 법인카드결제(공제 안 함, 밴드 양식은 「20만원 공제」)', 'altar', [2800000, 3000000, '20만원 법인카드결제', '제단공제 : 20만원 공제']),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시2 보내는금액', 'ex2', -180000),
     ('예시2 마이너스 이름', 'tag2', '10월3번행사'),
