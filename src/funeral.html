@@ -363,6 +363,12 @@ select.input{padding-right:30px}
 .suffix span{font-size:12px}
 .check{padding:10px 12px;font-size:13px;line-height:1.5;min-height:46px;border-radius:10px}
 .check input{width:18px;height:18px}
+/* 제단공제 · 법인카드결제 (2026.10.29) */
+div.f{display:grid;gap:7px;min-width:0;color:var(--ink-2)}
+div.f>.field-label{color:var(--muted)}
+.f>.check.altar-card{margin-top:0}
+.check.altar-card{flex-wrap:wrap;row-gap:2px;font-weight:600;color:var(--ink)}
+.check.altar-card small{flex-basis:100%;padding-left:28px;font-size:12.5px;font-weight:400;color:var(--muted)}
 .co-card{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:15px 18px;gap:12px;box-shadow:var(--shadow)}
 .co-identity{display:flex;align-items:center;gap:12px;min-width:0}
 .co-symbol{width:38px;height:38px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;border-radius:11px;flex-shrink:0}
@@ -466,7 +472,7 @@ body.duty-mode .wrap{padding:0}
 @media(min-width:700px){
   .input-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sec[data-section="sched"],.sec[data-section="prov"],.sec[data-section="mgr"]{grid-column:1/-1}
-  .sec[data-section="sched"]>.fields,.sec[data-section="prov"]>.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sec[data-section="sched"]>.fields,.sec[data-section="prov"]>.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
   .sec[data-section="sched"]>.fields>label:first-child,#schedInfo{grid-column:1/-1}
   .sec[data-section="prov"]>.fields>.pair,.sec[data-section="prov"] .items,.sec[data-section="prov"]>.fields>.btn,.sec[data-section="prov"]>.fields>.note{grid-column:1/-1}
   .sec[data-section="prov"] .items{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}
@@ -1941,7 +1947,7 @@ function vals(c){
     '회사지원':money(f.support), '수금액':(altarDeductWon(c)&&toWon(f.collect))?(wonStr(collectNetWon(c))||'0원'):money(f.collect), '담당':g('staff'), '담당연락처':g('staffTel'), '특이사항':g('note'),
     '도우미':[g('helper'), g('helperHours')?g('helperHours')+'시간':''].filter(Boolean).join(' '), '상복':(g('mournM')||g('mournW')||g('mournBrand'))?[g('mournM')?`남 ${cntText(g('mournM'),'세트')}`:'', g('mournW')?`여 ${cntText(g('mournW'),'벌')}`:'', g('mournBrand')].filter(Boolean).join(' '):g('mourning'),
     '차량':(g('vehType')||g('vehCo'))?[noPlus(g('vehType')),g('vehCo')].filter(Boolean).join(' '):g('vehicle'),
-    '제단공제':altarText(g('altar')), '수의대체':g('shroud'), '제공특이사항':g('provNote'),
+    '제단공제':altarText(g('altar'),(c.f||{}).altarCard), '수의대체':g('shroud'), '제공특이사항':g('provNote'),
     '제공항목':(c.items||[]).filter(it=>it.on&&it.text.trim()).map((it,i)=>`${i+1}.${itemLines(it.text).join('\n')}`).join('\n'),
     '상구분':g('mourn'), '소속':g('staffOrg'), '상품약칭':g('productShort')||g('product'), '도우미이름':g('helper'), '행사번호':g('eventNo'),
     '접수월일':(p=>p?`${pad(p.mo)}/${pad(p.d)}`:'')(parseDT(f.recv||f.death)),
@@ -2299,7 +2305,7 @@ function ctl(fd){
   if(fd.t==='cnt') return `<div class="suffix cnt"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" value="${esc(v)}" placeholder="숫자 또는 글" autocomplete="off"><span ${isNum(v)||!String(v).trim()?'':'hidden'}>${fd.o}</span></div>
     <div class="cnt-quick">${CNT_WORDS.map(w=>`<button type="button" class="chip" data-cnt="${fd.k}" data-v="${w}" aria-pressed="${String(v).trim()===w}">${w}</button>`).join('')}</div>`;
   if(fd.t==='num') return `<div class="suffix"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="${fd.k==='eventNo'?'numeric':'decimal'}" value="${esc(v)}" ${fd.k==='eventNo'?'placeholder="예: 3" autocomplete="off"':''}><span>${fd.o}</span></div>`;
-  if(fd.k==='altar'){ const n=altarNotes(curCase()).altar; return `<input class="input" id="f_altar" data-k="altar" type="text" value="${esc(v)}" placeholder="예: 20 → 20만원 공제" autocomplete="off"><span class="amt-r altar-net" data-altar-note="altar" ${n?'':'hidden'}>${esc(n)}</span>`; }
+  if(fd.k==='altar'){ const c0=curCase(), card=!!(c0&&c0.f.altarCard), n=altarNotes(c0).altar; return `<input class="input" id="f_altar" data-k="altar" type="text" aria-labelledby="lb_altar" value="${esc(v)}" placeholder="${card?'예: 20 → 20만원 법인카드결제':'예: 20 → 20만원 공제'}" autocomplete="off"><label class="check altar-card"><input type="checkbox" id="altarCard" ${card?'checked':''}> 법인카드결제 <small>고객 대신 법카로 결제 · 수금액에서 안 뺌</small></label><span class="amt-r altar-net" data-altar-note="altar" ${n?'':'hidden'}>${esc(n)}</span>`; }
   return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="${fd.t}" value="${esc(v)}"${exAttr(fd.k)||labPh(fd)} ${fd.t==='tel'?'inputmode="tel" autocomplete="off"':''}>`;
 }
 const lab=fd=>{
@@ -2308,7 +2314,9 @@ const lab=fd=>{
   const text=short[fd.k]||raw.replace(/\s*\([^)]*\)/g,'');
   return `<span class="field-label">${esc(text)}${REQUIRED[fd.k]?'<i class="required-dot" aria-hidden="true"></i>':''}</span>`;
 };
-const fieldRow=r=>r.length>1?`<div class="pair">${r.map(fd=>`<label class="f">${lab(fd)}${ctl(fd)}</label>`).join('')}</div>`:`<label class="f">${lab(r[0])}${ctl(r[0])}</label>`;
+/* 칸 하나 = <label class="f">. 제단공제는 안에 「법인카드결제」 체크 칸이 있어서 <div>(label 안에 label 이 들어가지 않게, 2026.10.29) */
+const fWrap=fd=>fd.k==='altar'?`<div class="f f-wrap">${lab(fd).replace('<span class="field-label">','<span class="field-label" id="lb_altar">')}${ctl(fd)}</div>`:`<label class="f">${lab(fd)}${ctl(fd)}</label>`;
+const fieldRow=r=>r.length>1?`<div class="pair">${r.map(fWrap).join('')}</div>`:fWrap(r[0]);
 
 function itemsHtml(c){
   let n=0;
@@ -2418,6 +2426,8 @@ function composeDT(box){
 $('#p-input').addEventListener('change',e=>{
   const t=e.target, c=curCase(); if(!c) return; const f=c.f;
   if(updateHagwanInput(t,c)||updateCremInput(t,c)) return;
+  if(t.id==='altarCard'){ c.f.altarCard=t.checked; touched(); updAltarNotes(); const a=$('#f_altar'); if(a) a.placeholder=t.checked?'예: 20 → 20만원 법인카드결제':'예: 20 → 20만원 공제';
+    toast(t.checked?'제단공제를 법인카드결제로 바꿨어요 · 수금액에서 빼지 않아요':'제단공제를 수금액에서 빼요'); return; }
   if(t.id==='sameChief'){ c.f.sameChief=t.checked; syncChief(c); touched(); renderInput(); toast(t.checked?`상주 칸에 ${custWord(c)} 정보를 넣었습니다`:'상주 칸을 직접 입력할 수 있습니다'); return; }
   if(t.dataset.pk){
     const k=t.dataset.pk, txt=t.parentElement.querySelector('[data-pd]');
@@ -3001,12 +3011,16 @@ function rules(){ if(!db.settleRules) db.settleRules={altarFixed:24, urnShare:50
 const mgrName=()=>String(rules().mgrName||'').trim()||'실장';
 // 본부장 몫이 0.5만원(5,000원)으로 끝나면 내림: 32.5만 → 32만
 /* 제단공제: 숫자만 넣으면 양식에 「20만원 공제」, 그 금액만큼 수금액에서 뺌.
-   업데이트 뒤 새로 만든 행사 · 제단공제 칸을 고친 행사만(c.altarNet). 예전 행사는 그대로 */
-function altarText(v){ const t=String(v??'').trim(); if(!t) return ''; return /^\d+(\.\d+)?$/.test(t.replace(/,/g,'')) ? `${money(t)} 공제` : t; }
-function altarDeductWon(c){ if(!c||!c.altarNet) return 0; const t=String((c.f||{}).altar||'').trim(); return t?Math.abs(toWon(t)):0; }
+   업데이트 뒤 새로 만든 행사 · 제단공제 칸을 고친 행사만(c.altarNet). 예전 행사는 그대로.
+   「법인카드결제」(c.f.altarCard, 2026.10.29 사용자: 「카드결제 체크하면 20만원 고객에게 대납해 주고 카드로 결제해 준 거니까 상품금액에서는 공제가 안 되어야 함」)
+   → 수금액에서 빼지 않음(보내는금액 · 영수증 · 일정표 모두 수금액 그대로), 양식 글은 「20만원 법인카드결제」 */
+function altarText(v,card){ const t=String(v??'').trim(); if(!t) return ''; if(/^\d+(\.\d+)?$/.test(t.replace(/,/g,''))) return `${money(t)} ${card?'법인카드결제':'공제'}`; return card&&!/카드|법카/.test(t)?`${t} (법인카드결제)`:t; }
+function altarDeductWon(c){ if(!c||!c.altarNet||(c.f||{}).altarCard) return 0; const t=String((c.f||{}).altar||'').trim(); return t?Math.abs(toWon(t)):0; }
 function collectNetWon(c){ const w=toWon((c&&c.f||{}).collect); return w ? w-altarDeductWon(c) : 0; }
 function altarNotes(c){
-  const f=c.f||{}, at=altarText(f.altar), ded=altarDeductWon(c), col=toWon(f.collect);
+  const f=c.f||{}, at=altarText(f.altar,f.altarCard), ded=altarDeductWon(c), col=toWon(f.collect);
+  if(f.altarCard) return { altar: at ? `양식: 제단공제 : ${at} · 법인카드로 대신 결제해서 수금액에서 빼지 않아요` : '',
+           collect: at&&col ? `제단 ${at} → 수금액에서 빼지 않아요` : '' };
   return { altar: at ? `양식: 제단공제 : ${at}${ded?` · 수금액에서 ${wonStr(ded)} 빼요`:''}` : '',
            collect: ded&&col ? `제단공제 ${wonStr(ded)} 빼고 ${fullWon(col-ded)||'0원'}` : '' };
 }
@@ -3069,7 +3083,7 @@ function settleCalc(c){
   const altarDed=altarDeductWon(c), collectWon=collectNetWon(c);
   // 보내는금액에 들어가는 줄(on) / 안 들어가는 줄(off)
   const rows=[];
-  if(collectWon) rows.push({k:'상품 수금',note:(s.pay||'현금')+(altarDed?` · 제단공제 ${wonStr(altarDed)} 뺌`:''),won:collectWon,on:(s.pay||'현금')==='현금',off:s.pay});
+  if(collectWon) rows.push({k:'상품 수금',note:(s.pay||'현금')+(altarDed?` · 제단공제 ${wonStr(altarDed)} 뺌`:f.altarCard&&altarText(f.altar)?' · 제단 법인카드결제(공제 안 함)':''),won:collectWon,on:(s.pay||'현금')==='현금',off:s.pay});
   if(altarWon) rows.push({k:'제단',note:`받은 ${wonStr(altarWon)} 중`,won:altarSend,on:altarCash,off:altarPay});
   if(U.uCol){ rows.push({k:'유골함 본부장 몫',note:`이익 ${wonStr(U.profit)||'0원'}의 ${R.urnShare}%`,won:U.share,on:urnCash,off:s.urnPay}); if(U.uCost) rows.push({k:'유골함 원가',note:'',won:U.uCost,on:urnCash,off:s.urnPay}); }
   extras.forEach(x=>rows.push({k:x.text||'기타추가',note:x.pay,won:x.won,on:x.pay==='현금',off:x.pay||'결제 안 고름'}));
@@ -3492,7 +3506,7 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
     const m=MAP.find(([re])=>re.test(String(x.text||''))); if(m) add(m[1],line); else rest.push(line); });
   const notes=[...itemLines(f.note),...itemLines(f.provNote)];
   if(pj) notes.push(`사전가입 할인 : ${/^\d+(\.\d+)?$/.test(pj.replace(/,/g,''))?money(pj):pj}`);
-  if(altarText(f.altar)) notes.push(`제단공제 : ${altarText(f.altar)}`);
+  if(altarText(f.altar)) notes.push(`제단공제 : ${altarText(f.altar,f.altarCard)}`);
   if(String(s.transfer||'').trim()) notes.push(`이송 : ${String(s.transfer).trim()}`);
   if(rest.length) notes.push(`추가 : ${rest.join(' · ')}`);
   V.__notes=notes;
