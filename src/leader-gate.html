@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var SK = 'dw-sb-auth', LK = 'dw-leader', CK = 'dw-chief', DOMAIN = 'dwfuneral.com';
-  var OUTK = 'dw-out', IK = 'dw-last-act', IDLE = 10 * 60 * 1000;   /* 로그아웃 이유(sessionStorage) · 마지막으로 만진 시각 · 자동 로그아웃 10분 */
+  var OUTK = 'dw-out', IK = 'dw-last-act', IDLE = 10 * 60 * 1000, LIDK = 'dw-last-id';   /* 로그아웃 이유(sessionStorage) · 마지막으로 만진 시각 · 자동 로그아웃 10분(PC 만) · 마지막으로 로그인한 아이디(로그인 화면에 미리 채움) */
   var SB_URL = 'https://bruqeidlbougfdveomag.supabase.co', SB_KEY = 'sb_publishable_nA1F7Ye-9e5Xy6Zj4xTQjg_J56YLY2P';
   var root = document.documentElement, client = null;
   function sess() { try { return JSON.parse(localStorage.getItem(SK) || 'null'); } catch (e) { return null; } }
@@ -52,6 +52,7 @@
     box.hidden = false; box.dataset.mode = mode;
     var join = mode === 'join', out = outNote();
     if (out && out.email && !(u && u.email)) u = { email: out.email };
+    if (!join && !(u && u.email)) { var lid = ''; try { lid = localStorage.getItem(LIDK) || ''; } catch (e) {} if (lid) u = { email: lid }; }   /* 마지막으로 로그인한 아이디 (2026.10.29) */
     box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
       + (out && out.why === 'idle' && !join ? '<p class="gt-note" role="status">10분 동안 쓰지 않아서 로그아웃됐어요. 다시 로그인해 주세요.</p>' : '')
       + '<input id="gtId" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="이메일 입력" aria-label="이메일">'
@@ -74,6 +75,7 @@
       getClient().then(function (c) { return c.auth.signInWithPassword({ email: toEmail(id), password: pw }); })
         .then(function (r) {
           if (r.error) { err.textContent = authMsg(r.error, false); return; }
+          try { localStorage.setItem(LIDK, id); } catch (e) {}
           signedIn(r.data && r.data.user, false);
         })
         .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주세요.' : '로그인하지 못했어요. 인터넷을 확인해 주세요.'; })
@@ -112,6 +114,7 @@
       .then(function (r) {
         if (r.error) { err.textContent = authMsg(r.error, true); return; }
         if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입은 됐는데 「이메일 확인」이 켜져 있어서 아직 로그인이 안 돼요. 관리자에게 말씀해 주세요.'; return; }
+        try { localStorage.setItem(LIDK, v); } catch (e) {}
         signedIn(r.data.user, true);
       })
       .catch(function () { err.textContent = '가입하지 못했어요. 인터넷을 확인해 주세요.'; })
@@ -164,7 +167,7 @@
           return c.rpc('dw_delete_me').then(function (d) {
             if (d.error) return /function|not found|PGRST202|schema cache/i.test(String(d.error.message || '') + String(d.error.code || '')) ? 'nofn' : 'net';
             /* 탈퇴한 계정의 이 휴대폰 기록은 남기지 않음 → 부른 쪽이 dwOwner.erase() 로 비움 (2026.10.28-22, 예전: 주인 없는 기록으로 남김) */
-            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { [IK, LK, CK, SK].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} return 'ok'; });
+            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { [IK, LK, CK, SK, LIDK].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} return 'ok'; });
           });
         });
       }).catch(function () { return 'net'; });
@@ -439,13 +442,13 @@
       if (st === 401 || st === 403) { setLeader(null); gate('login', s.user); }   /* 로그인이 풀림(비밀번호 바뀜 등) → 다시 로그인 */
     }).catch(function () { /* 인터넷 안 됨 → 지금 상태 그대로 */ });
   }
-  /* ---------- 10분 동안 안 쓰면 자동 로그아웃 (2026.10.28-20) ----------
+  /* ---------- 10분 동안 안 쓰면 자동 로그아웃 (2026.10.28-20, 2026.10.29 부터 PC 만 — 휴대폰 · 태블릿은 로그인 유지 window.dwMobile) ----------
      누르기 · 글쇠 · 손가락 · 휠을 「쓴 것」으로 봄(휴무 화면 iframe 안도). 마지막으로 쓴 시각은 이 기기 모든 창이 같이 씀(dw-last-act).
      30초마다 · 화면으로 돌아올 때 확인. 앱을 닫았다가 10분 지나서 열면 leader-gate-head.html 이 알아채고 여기서 로그인 화면으로. */
   var lastW = 0;
   function stamp() { var n = Date.now(); if (n - lastW < 15000) return; lastW = n; try { if (acct.user()) localStorage.setItem(IK, String(n)); } catch (e) {} }
   function idleCheck() {
-    if (outBusy || window.DW_HOLD || !acct.user() || root.classList.contains('dw-gated')) return;
+    if (outBusy || window.DW_HOLD || !acct.user() || root.classList.contains('dw-gated') || (window.dwMobile && window.dwMobile())) return;
     var t = 0; try { t = Number(localStorage.getItem(IK)) || 0; } catch (e) {}
     if (!t) { lastW = 0; stamp(); return; }
     if (Date.now() - t >= IDLE) acct.logout('idle');
