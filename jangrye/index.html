@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <!-- 예전 앱(장례일정 /jangrye/ · DW관리 /admin/) 자리 (2026.10.23-6): DW장례업무 하나로 합침.
      예전 앱 아이콘으로 열면 이 안내가 보이고, 브라우저로 열면 바로 DW장례업무로 넘어감.
-     이 기기(예전 앱 저장 공간)에 기록이 있으면 「기록 백업 파일 받기」 → DW장례업무에서 불러오기 (아이폰은 앱마다 저장 공간이 따로라서).
-     빌드: build.py 가 funeral · 장례일정 · 장례일정은 이제 DW장례업무 앱에서 써요. 로그인하면 기록이 그대로 이어져요. · ../forms/ · 2026.10.29-3 을 바꿔 넣음. 직접 고치지 말고 src/moved.html 을 고칠 것. -->
+     기록은 로그인한 계정(서버)에 저장됨. 백업 파일 받기는 2026.10.29 에 없앰 (불러오기를 없앤 뒤라 쓸 곳이 없음).
+     빌드: build.py 가 funeral · 장례일정 · 장례일정은 이제 DW장례업무 앱에서 써요. 로그인하면 기록이 그대로 이어져요. · ../forms/ · 2026.10.29-4 을 바꿔 넣음. 직접 고치지 말고 src/moved.html 을 고칠 것. -->
 <title>DW장례업무로 합쳐졌어요</title>
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="장례일정">
 <meta name="robots" content="noindex">
-<meta name="app-version" content="2026.10.29-3">
+<meta name="app-version" content="2026.10.29-4">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
@@ -36,8 +36,7 @@ h1{margin:0;font-family:"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;fo
 p{margin:0;color:var(--muted);font-size:15px}
 .btn{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:4px;border:1px solid var(--ink);background:var(--surface);color:var(--ink);font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.bk{display:grid;gap:10px;margin-top:8px;padding-top:16px;border-top:1px solid var(--line)}
-.bk p,.note{font-size:13.5px}
+.note{font-size:13.5px}
 .btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 </style>
 </head>
@@ -47,64 +46,11 @@ p{margin:0;color:var(--muted);font-size:15px}
   <h1>DW장례업무로 합쳐졌어요</h1>
   <p>장례일정은 이제 DW장례업무 앱에서 써요. 로그인하면 기록이 그대로 이어져요.</p>
   <a class="btn primary" href="../forms/">DW장례업무 열기</a>
-  <div class="bk" id="bk" hidden>
-    <p>이 앱에 남은 기록을 파일로 받아 두면 DW장례업무에서 불러올 수 있어요.</p>
-    <button class="btn" type="button" id="bkBtn">기록 백업 파일 받기</button>
-  </div>
   <p class="note">예전 아이콘을 지우면 이 기기의 기록이 같이 지워질 수 있어요. 지우기 전에 DW장례업무에서 로그인해 주세요.</p>
 </main>
 <script>
 (function () {
   'use strict';
-  var KIND = 'funeral';
-  var pad = function (n) { return String(n).padStart(2, '0'); };
-  var today = function () { var d = new Date(); return '' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()); };
-  function deliver(name, text) {
-    var blob = new Blob([text], { type: 'application/json' });
-    try { var file = new File([blob], name, { type: 'application/json' }); if (navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], title: name }).catch(function () {}); } catch (e) {}
-    var url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 20000);
-    return Promise.resolve();
-  }
-  /* 장례일정: 장례일정 「전체 백업」과 같은 모양 → DW장례업무 → 장례업무 → 설정 → 행사 기록 보관 → 백업 불러오기 */
-  function funeralData() {
-    var db = null, duty = {};
-    try { db = JSON.parse(localStorage.getItem('funeral-band-v2') || 'null'); } catch (e) {}
-    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (/^hyumu-/.test(k)) duty[k] = localStorage.getItem(k); } } catch (e) {}
-    var has = !!(db && ((db.cases || []).length || (db.envelopes || []).length));
-    return has ? { app: 'funeral-maker-backup', v: 1, exportedAt: new Date().toISOString(), db: db, duty: duty } : null;
-  }
-  /* DW관리: DW관리 백업과 같은 모양 → DW장례업무 → 서식 → 회사 서류 → 설정 → 백업 불러오기 */
-  function idbAll(db, store) { return new Promise(function (res) { try { var r = db.transaction(store, 'readonly').objectStore(store).getAll(); r.onsuccess = function () { res(r.result || []); }; r.onerror = function () { res([]); }; } catch (e) { res([]); } }); }
-  function idbGet(db, store, key) { return new Promise(function (res) { try { var r = db.transaction(store, 'readonly').objectStore(store).get(key); r.onsuccess = function () { res(r.result); }; r.onerror = function () { res(null); }; } catch (e) { res(null); } }); }
-  function adminData() {
-    return new Promise(function (res) {
-      if (!window.indexedDB) { res(null); return; }
-      /* 없는 저장소를 새로 만들지 않게: 목록에 있을 때만 열고, 열다가 새로 만들어지려 하면 취소 */
-      var check = indexedDB.databases ? indexedDB.databases().then(function (l) { return (l || []).some(function (d) { return d.name === 'company-admin'; }); }, function () { return false; }) : Promise.resolve(false);
-      check.then(function (exists) {
-        if (!exists) { res(null); return; }
-        var req = indexedDB.open('company-admin');
-        req.onupgradeneeded = function () { try { req.transaction.abort(); } catch (e) {} };
-        req.onerror = function () { res(null); };
-        req.onsuccess = function () {
-          var db = req.result, names = db.objectStoreNames;
-          if (!names.contains('docs') || !names.contains('staff')) { db.close(); res(null); return; }
-          Promise.all([idbAll(db, 'docs'), idbAll(db, 'staff'), names.contains('img') ? idbAll(db, 'img') : [], names.contains('kv') ? idbGet(db, 'kv', 'company') : null]).then(function (r) {
-            db.close();
-            res(r[0].length || r[1].length ? { app: 'company-admin', version: 1, exportedAt: new Date().toISOString(), company: r[3] || {}, staff: r[1], docs: r[0], img: r[2] } : null);
-          });
-        };
-      });
-    });
-  }
-  var get = KIND === 'admin' ? adminData : function () { return Promise.resolve(funeralData()); };
-  get().then(function (data) {
-    if (!data) return;
-    document.getElementById('bk').hidden = false;
-    document.getElementById('bkBtn').addEventListener('click', function () {
-      get().then(function (d) { if (d) deliver((KIND === 'admin' ? '회사서류_백업_' : '장례일정_전체백업_') + today() + '.json', JSON.stringify(d)); });
-    });
-  });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () {});
 })();
 </script>

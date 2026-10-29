@@ -67,11 +67,6 @@ svg{flex:none}
 .tab-head h1{font-family:var(--font-display);font-size:24px;line-height:1.3;margin:0;text-wrap:balance}
 .tab-head p{margin:4px 0 0;color:var(--muted);font-size:14px}
 .banner{border-radius:12px;padding:12px 14px;font-size:14px;background:var(--warn-soft);color:var(--warn);margin-bottom:16px}
-.bk-banner{display:grid;gap:6px;background:var(--accent-soft);color:var(--ink);border:1px solid var(--accent)}
-.bk-banner[hidden]{display:none}
-.bk-banner b{color:var(--accent)}
-.bk-banner span{font-size:13.5px;line-height:1.55}
-.bk-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
 .banner b{display:block;margin-bottom:2px}
 
 /* ---------- Buttons ---------- */
@@ -205,7 +200,6 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 
 /* ---------- Install, update, action sheet ---------- */
 .ac-card .btn.quiet{justify-self:start;text-decoration:underline;text-underline-offset:3px}
-.ac-del{display:grid;gap:10px}
 .wipe-zone{display:grid;gap:8px;margin-top:10px;padding-top:16px;border-top:1px solid var(--line)}
 body[data-view="settings"] #installCard{display:none!important}   /* 설정에는 「앱 설치」 칸이 따로 있음 */
 .install-card{background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;display:grid;gap:10px;margin-bottom:16px}
@@ -298,7 +292,6 @@ input[type="text"]:focus,input[type="number"]:focus,input[type="date"]:focus,sel
 /* 모서리 · 그림자 통일 (디자인 통일 점검 2026.10.16): 상자 · 창 6px, 버튼 · 칸 · 작은 아이콘 4px, 그림자 대신 선 */
 body .sheet{border-radius:6px}
 body .save-bar{border-radius:6px;box-shadow:none;border-color:var(--ink)}
-body .type-card .ic{border-radius:4px}
 body .toast{box-shadow:none}
 body label.field input,body label.field select,body label.field textarea,body .sel{border-radius:4px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:var(--muted)}
@@ -306,8 +299,6 @@ body .sig-box span,body .sig-prev span,body .seal-box span{color:var(--muted)}
 body .icon-btn{width:44px;height:44px}
 body .seg button,body .save-bar .btn{min-height:44px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:#5a5e63}
-.af-box{display:grid;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
-.af-h{margin:0;font-size:15px;font-weight:700}
 @media (max-width:999px){ body .r-row{grid-template-columns:minmax(0,1fr) 88px 44px 44px} body .r-row .icon-btn{width:44px;height:44px} }
 /* 손맛 다듬기 (audit-suite, 2026.10.16): 누르면 살짝 눌림, 창 안 스크롤 가두기, 글자 또렷하게, 설명 줄바꿈 */
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
@@ -353,8 +344,6 @@ p{text-wrap:pretty}
 .hm-n span{font-size:13px;color:var(--muted)}
 .hm-msg{margin:0;font-size:14px;color:var(--muted);line-height:1.6}
 .hm-team-sum{font-size:15px;line-height:1.6;margin:0}
-.ac-name{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
-.ac-name[hidden]{display:none}
 .bd-head{display:grid;gap:10px}
 .bd-title{display:grid;gap:2px}
 .bd-title b{font-family:var(--font-display);font-size:20px;line-height:1.35}

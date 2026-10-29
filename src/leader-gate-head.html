@@ -45,7 +45,8 @@ html:not(.dw-chief) [data-chief]{display:none!important}
 .gt-note{margin:0;font-size:14px;line-height:1.5;color:var(--muted,#5a5e63);font-weight:600;word-break:keep-all;text-wrap:balance}
 .gt-note:empty{display:none}
 /* 내 정보 (2026.10.29): 위 막대 아이디 · 설정 「내 계정」을 누르면 여기서 이름 · 전화번호 · 직급 · 비밀번호 · 화면 · 로그아웃을 한 번에 (세 화면 공통) */
-.appbar-in .local[role="button"]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.appbar-in .local[role="button"]{cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative}
+.appbar-in .local[role="button"]::after{content:"";position:absolute;inset:-9px 0}
 .appbar-in .local[role="button"]:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px;border-radius:4px}
 .dwme{position:fixed;inset:0;z-index:2147480000;display:flex;align-items:flex-end;justify-content:center;font-family:inherit;color:var(--ink,#1c1d1f);word-break:keep-all}
 .dwme[hidden]{display:none!important}

@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.29-3";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.29-4";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <!-- 글꼴: 본문은 Pretendard(한국어 화면용), 제목은 명조(Noto Serif KR). 한 번 받으면 앱이 보관해서 인터넷이 약해도 그대로 -->
@@ -84,11 +84,6 @@ svg{flex:none}
 .tab-head h1{font-family:var(--font-display);font-size:24px;line-height:1.3;margin:0;text-wrap:balance}
 .tab-head p{margin:4px 0 0;color:var(--muted);font-size:14px}
 .banner{border-radius:12px;padding:12px 14px;font-size:14px;background:var(--warn-soft);color:var(--warn);margin-bottom:16px}
-.bk-banner{display:grid;gap:6px;background:var(--accent-soft);color:var(--ink);border:1px solid var(--accent)}
-.bk-banner[hidden]{display:none}
-.bk-banner b{color:var(--accent)}
-.bk-banner span{font-size:13.5px;line-height:1.55}
-.bk-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
 .banner b{display:block;margin-bottom:2px}
 
 /* ---------- Buttons ---------- */
@@ -222,7 +217,6 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 
 /* ---------- Install, update, action sheet ---------- */
 .ac-card .btn.quiet{justify-self:start;text-decoration:underline;text-underline-offset:3px}
-.ac-del{display:grid;gap:10px}
 .wipe-zone{display:grid;gap:8px;margin-top:10px;padding-top:16px;border-top:1px solid var(--line)}
 body[data-view="settings"] #installCard{display:none!important}   /* 설정에는 「앱 설치」 칸이 따로 있음 */
 .install-card{background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;display:grid;gap:10px;margin-bottom:16px}
@@ -315,7 +309,6 @@ input[type="text"]:focus,input[type="number"]:focus,input[type="date"]:focus,sel
 /* 모서리 · 그림자 통일 (디자인 통일 점검 2026.10.16): 상자 · 창 6px, 버튼 · 칸 · 작은 아이콘 4px, 그림자 대신 선 */
 body .sheet{border-radius:6px}
 body .save-bar{border-radius:6px;box-shadow:none;border-color:var(--ink)}
-body .type-card .ic{border-radius:4px}
 body .toast{box-shadow:none}
 body label.field input,body label.field select,body label.field textarea,body .sel{border-radius:4px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:var(--muted)}
@@ -323,8 +316,6 @@ body .sig-box span,body .sig-prev span,body .seal-box span{color:var(--muted)}
 body .icon-btn{width:44px;height:44px}
 body .seg button,body .save-bar .btn{min-height:44px}
 body .sig-box span,body .sig-prev span,body .seal-box span{color:#5a5e63}
-.af-box{display:grid;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
-.af-h{margin:0;font-size:15px;font-weight:700}
 @media (max-width:999px){ body .r-row{grid-template-columns:minmax(0,1fr) 88px 44px 44px} body .r-row .icon-btn{width:44px;height:44px} }
 /* 손맛 다듬기 (audit-suite, 2026.10.16): 누르면 살짝 눌림, 창 안 스크롤 가두기, 글자 또렷하게, 설명 줄바꿈 */
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
@@ -370,8 +361,6 @@ p{text-wrap:pretty}
 .hm-n span{font-size:13px;color:var(--muted)}
 .hm-msg{margin:0;font-size:14px;color:var(--muted);line-height:1.6}
 .hm-team-sum{font-size:15px;line-height:1.6;margin:0}
-.ac-name{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
-.ac-name[hidden]{display:none}
 .bd-head{display:grid;gap:10px}
 .bd-title{display:grid;gap:2px}
 .bd-title b{font-family:var(--font-display);font-size:20px;line-height:1.35}
@@ -744,7 +733,8 @@ html:not(.dw-chief) [data-chief]{display:none!important}
 .gt-note{margin:0;font-size:14px;line-height:1.5;color:var(--muted,#5a5e63);font-weight:600;word-break:keep-all;text-wrap:balance}
 .gt-note:empty{display:none}
 /* 내 정보 (2026.10.29): 위 막대 아이디 · 설정 「내 계정」을 누르면 여기서 이름 · 전화번호 · 직급 · 비밀번호 · 화면 · 로그아웃을 한 번에 (세 화면 공통) */
-.appbar-in .local[role="button"]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.appbar-in .local[role="button"]{cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative}
+.appbar-in .local[role="button"]::after{content:"";position:absolute;inset:-9px 0}
 .appbar-in .local[role="button"]:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px;border-radius:4px}
 .dwme{position:fixed;inset:0;z-index:2147480000;display:flex;align-items:flex-end;justify-content:center;font-family:inherit;color:var(--ink,#1c1d1f);word-break:keep-all}
 .dwme[hidden]{display:none!important}

@@ -119,7 +119,7 @@ label.f>.field-label{color:var(--muted)}
 .wz-total b{font-family:var(--serif);font-weight:700;color:var(--ink);letter-spacing:-.01em}
 .wz-total.neg{background:var(--surface);border-color:var(--warn)}
 .wz-total.neg b{color:var(--warn)}
-.wz-result,.calc,.ledger,.text-out,.ex,.mg,.rp,.rc-box,.wz-item,.wz-text,.missing,.def-alert,.def-me,.def-month,.def-row,.auto-mi,.snap-list,.sub-fold,.sub-block,.settle-guide,.sm-switch,.settle-bar,.bk-banner,.acc-h,.wz-back{border-radius:4px}
+.wz-result,.calc,.ledger,.text-out,.ex,.mg,.rp,.rc-box,.wz-item,.wz-text,.missing,.def-alert,.def-me,.def-month,.def-row,.auto-mi,.sub-fold,.settle-guide,.sm-switch,.settle-bar,.acc-h,.wz-back{border-radius:4px}
 .env-event,.env-form,.env-stat,.env-prev,.env-lock{border-radius:6px}
 /* 행사 입력: 한 칸씩 보기 */
 .im-mode{border:0;background:none;color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;min-height:40px;padding:0 4px}
@@ -148,9 +148,9 @@ label.f>.field-label{color:var(--muted)}
   .wz-amt .input{font-size:38px}
 }
 /* 모서리 · 그림자 통일 (디자인 통일 점검 2026.10.16): 버튼 · 칸 · 작은 표시 4px, 상자 · 창 6px, 그림자 대신 먹색 선 */
-body .ab-menu,body .jr-x,body .jr-btn,body .cm-nav,body .co-symbol,body .x,body .pick-x,body .tp-clear,body .tp-grid button,body .mobile-nav button,
+body .ab-menu,body .cm-nav,body .co-symbol,body .x,body .pick-x,body .tp-clear,body .tp-grid button,body .mobile-nav button,
 body .burial-seg button,body .missing button,body .ph button,body .seg,body .seg button,body .acc-b button,body .item .tog,body .csheet-list button,body .check,body .btn.link,body .group-tabs button{border-radius:4px}
-body .jr-card,body .burial-seg,body .sum,body .must,body .fold-ex,body .acc,body .crem-preview,body .env-notice,body .warnline,body .calc,body .text-out,body .toast,body .sheet{border-radius:6px}
+body .burial-seg,body .sum,body .must,body .fold-ex,body .acc,body .crem-preview,body .env-notice,body .warnline,body .calc,body .text-out,body .toast,body .sheet{border-radius:6px}
 body .csheet{border-radius:6px 6px 0 0}
 @media (min-width:700px){ body .csheet,body .sheet{border-radius:6px} }
 body .settle-bar{border-radius:6px;box-shadow:none}
@@ -158,10 +158,11 @@ body .mf-home{border-radius:4px}
 body .toast{box-shadow:none}
 /* 보기 쉬움 점검 (2026.10.16): 글자 대비 4.5:1 이상 · 작은 글자 12px 이상 · 누르는 곳 44px 이상 · 아이폰에서 칸을 눌러도 화면이 확대되지 않게 16px */
 .wz-amt .input:focus-visible{box-shadow:0 2px 0 var(--ink)}
-body .sn-foot,body .env-badge,body #ttlNote,body .out-head h2 small,body .sec-head h2 small,body .sn-head small,body .sec-num,body .co-card small{font-size:12px}
+body .sn-foot,body .env-badge,body #ttlNote,body .out-head h2 small,body .sec-head h2 small,body .sn-head small,body .sec-num,body .co-card small,body .field-hint,body .ph button{font-size:12px}
 @media (max-width:699px){
   body .appbar button,body #newCase,body #saveNow{min-height:44px}
-  body #menuBtn,body .jr-x,body #snClose,body #wzBack{min-width:44px;min-height:44px}
+  body #menuBtn,body #snClose,body #wzBack,body #szBack{min-width:44px;min-height:44px}
+  body .chip,body .cnt-quick .chip,body .crem-picks .chip,body .ph button{min-height:44px}
   body .case-panel{grid-template-columns:44px minmax(0,1fr) 44px auto}
   body .cm-nav{width:44px;height:44px}
   body .case-panel #delCase{min-height:44px;min-width:46px}
@@ -322,17 +323,14 @@ body .mobile-nav.mn-sec button{font-size:12.5px;gap:4px}
 
 <style id="print-out">
 /* 주요 장례일정 (2026.10.28): 미리보기 · 저장 버튼 · 인쇄 (상담서는 서식으로 옮김 2026.10.28-3) */
-.px-pv,.cs-pv{display:grid;gap:12px;justify-items:center;padding:12px;background:var(--field);border:1px solid var(--line);border-radius:6px;cursor:zoom-in}
+.px-pv{display:grid;gap:12px;justify-items:center;padding:12px;background:var(--field);border:1px solid var(--line);border-radius:6px;cursor:zoom-in}
 .px-pv canvas{display:block;width:100%;max-width:420px;height:auto;background:#fff;border:1px solid var(--line)}
-.cs-pv canvas{display:block;width:100%;max-width:560px;height:auto;background:#fff;border:1px solid var(--line)}
-.px-pv.zoom canvas,.cs-pv.zoom canvas{max-width:none}
-.px-pv.zoom,.cs-pv.zoom{cursor:zoom-out}
+.px-pv.zoom canvas{max-width:none}
+.px-pv.zoom{cursor:zoom-out}
 .px-pv.err{position:relative}
 .px-pv.err::after{content:"양식을 불러오지 못했어요 · 인터넷이 될 때 다시 열어 주세요";position:absolute;inset:auto 12px 12px;padding:10px;background:var(--surface);border:1px solid var(--warn);color:var(--warn);font-size:13px;border-radius:4px;text-align:center}
 .pr-acts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.pr-acts.pr-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media (max-width:560px){ .pr-acts{grid-template-columns:repeat(2,minmax(0,1fr))} .pr-acts.pr-3>.btn:first-child{grid-column:1/-1} }
-.px-edit{border-top:1px solid var(--line);padding-top:4px}
+@media (max-width:560px){ .pr-acts{grid-template-columns:repeat(2,minmax(0,1fr))} }
 /* 장례일정표 화면 (2026.10.28-5, 행사와 따로 입력) */
 body[data-tab="poster"] .case-panel{display:none}
 .px-page{display:grid;gap:16px;min-width:0}
@@ -341,8 +339,6 @@ body[data-tab="poster"] .case-panel{display:none}
   .px-side .px-pv canvas{width:auto;height:auto;max-width:100%;max-height:calc(100dvh - var(--ab-h) - var(--tn-h,0px) - 300px - env(safe-area-inset-top,0px));min-height:300px} }
 .px-from{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--field);font-size:14px;color:var(--ink-2)}
 .px-fixed{padding:12px 14px;border:1px dashed var(--edge);border-radius:4px;background:var(--field);font-weight:600;color:var(--ink);word-break:keep-all;overflow-wrap:break-word}
-.px-edit>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:14px;font-weight:600;color:var(--ink)}
-.px-edit>.fields{padding-top:6px}
 #prBox{display:none}
 @media print{
   body.pr-on>*:not(#prBox){display:none!important}
