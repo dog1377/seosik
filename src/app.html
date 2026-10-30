@@ -1409,17 +1409,13 @@ window.DW_MODE_GO = (m) => { const ph = !!(window.dwPhone && window.dwPhone());
   if (m === 'event') goFuneral(ph ? 'home' : 'sec-event'); else if (m === 'deliv') goFuneral(ph ? 'dhome' : 'deliv'); else showTab(ph ? 'fhome' : 'forms'); return true; };
 /* 「‹ 홈」(휴대폰, leader-gate.html): 행사 칸 화면(게시판 · 자료실)은 장례업무 첫 화면, 서식 칸은 서식 첫 화면 */
 window.DW_HOME_GO = () => { if (modeOf(S.tab) === 'event') goFuneral('home'); else showTab('fhome'); return true; };
-/* 서식 칸 첫 화면 (2026.10.30 사용자 「모바일 화면 ATM 큰 글씨처럼 큰 바둑판 배열 · 원하는 기능으로만 바로」) — 총괄실장은 총괄실장 메뉴 */
+/* 서식 칸 첫 화면 (2026.10.30, 참고 화면 모양): 파트장 = 보고 · 탁송 · 물품 · 회사 서류 · 설정, 총괄실장 = 취합 · 서식 · 회사 서류 · 자료실 · 설정 (dwNav 휴대폰 메뉴와 같음)
+   세부 화면은 안쪽 — 들어가면 위쪽 밑줄 탭(주간보고 · 회의록 …) */
 function renderFHome() {
   const el = $('#fhBody'); if (!el || !window.dwHome) return;
-  const d = new Date(), T = (k, l, ic, sub, pri) => ({ k, l, ic, s: sub, pri });
-  const tiles = isChief()
-    ? [T('gather', '취합', 'gather', '파트장 보고 모아 보기', true), T('weekly', '주간보고', 'doc', '파트원 주간 보고서'), T('minutes', '회의록', 'minutes', '회의 안건 · 내용'), T('review', '후기보고', 'review', '출상일별 일일보고'),
-      T('ship', '탁송', 'truck', '용품 · 근조기 탁송'), T('company', '회사 서류', 'brief', '공지 · 발령 · 증명서'), T('docs', '자료실', 'folder', '회사 기본 서류'), T('settings', '설정', 'set', '결재란 · 서명')]
-    : [T('weekly', '주간보고', 'doc', '파트원 주간 보고서'), T('minutes', '회의록', 'minutes', '회의 안건 · 내용'), T('review', '후기보고', 'review', '출상일별 일일보고'), T('consult', '상담서', 'consult', '장례 상담서 인쇄'),
-      T('ship', '탁송', 'truck', '용품 · 근조기 탁송'), T('stock', '물품', 'box', '수령 · 불출 장부'), T('company', '회사 서류', 'brief', '공지 · 발령 · 증명서'), T('settings', '설정', 'set', '결재란 · 서명 · 파트원')];
-  el.innerHTML = window.dwHome.html({ mode: 'forms', top: `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`, tiles });
-  window.dwHome.bind(el, (k) => { if (k === 'company') goCompany(); else showTab(k); });
+  const d = new Date();
+  el.innerHTML = window.dwHome.html({ mode: 'forms', sub: `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`, cards: window.dwHome.cards('forms') });
+  window.dwHome.bind(el, navGo, () => { if (S.tab === 'fhome') renderFHome(); });
 }
 function showTab(t) {
   if (t === 'forms') t = lastFormTab();

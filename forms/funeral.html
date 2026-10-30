@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.30-4">
+<meta name="app-version" content="2026.10.30-5">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -132,39 +132,54 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   html:not(.dw-at-home) .dw-home-btn{display:inline-flex}
   html:not(.dw-at-home) #dwOut{display:none!important}
 }
-.dwh{display:grid;gap:14px}
-.dwh-modes{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--ink,#1c1d1f);border-radius:6px;overflow:hidden;background:var(--surface,#fff)}
-.dwh-modes button{min-height:56px;border:0;background:transparent;color:var(--ink,#1c1d1f);font:inherit;font-size:20px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.dwh-modes button+button{border-left:1px solid var(--ink,#1c1d1f)}
+/* 첫 화면 모양 (2026.10.30 사용자가 보낸 참고 화면 「디자인 참고만 해, 이런 식으로 · 세부 기능이나 화면은 안쪽에」)
+   인사말 · 큰 카드 몇 개(위 짧은 색 줄 · 큰 이름 · 안에 든 것 · 오른쪽 아래 ›) · 두 줄 엇갈림. 휴대폰은 차분한 어두운 바탕에 흰 카드, 위 막대도 바탕에 녹아듦.
+   카드는 그 칸의 큰 묶음만(메뉴 목록 dwNav 휴대폰 묶음과 같음), 세부 화면은 들어가서 위쪽 밑줄 탭 · 단계 줄로 */
+.dwh{--dwh-hi:var(--ink,#1c1d1f);--dwh-mute:var(--muted,#5a5e63);--dwh-card:var(--surface,#fff);--dwh-chev:#8a8d90;
+  --t-olive:#56763a;--t-taupe:#76664f;--t-rust:#9c5530;--t-mustard:#8a681a;--t-slate:#4d5f6b;display:grid;gap:18px}
+.dwh-hello{display:grid;gap:6px;margin:6px 0 4px}
+.dwh-hi{margin:0;font-size:26px;line-height:1.3;font-weight:700;letter-spacing:-.01em;color:var(--dwh-hi);word-break:keep-all;text-wrap:balance}
+.dwh-sub{margin:0;display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;font-size:15px;color:var(--dwh-mute);word-break:keep-all}
+.dwh-sub b{font-family:var(--serif,"Noto Serif KR",serif);font-size:16px;font-weight:700;color:var(--dwh-hi);padding:0 7px;border:3px double currentColor;border-radius:2px;line-height:1.45;font-variant-numeric:tabular-nums}
+.dwh-modes{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;padding:4px;border:1px solid var(--line,#d6d7d4);border-radius:12px;background:var(--dwh-card)}
+.dwh-modes button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--dwh-hi);font:inherit;font-size:17px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dwh-modes button[aria-pressed="true"]{background:var(--ink,#1c1d1f);color:var(--surface,#fff);font-weight:700}
-.dwh-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:16px;font-weight:700;color:var(--ink,#1c1d1f)}
-.dwh-top small{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:500;color:var(--muted,#5a5e63)}
-.dwh-top b{font-family:var(--serif,"Noto Serif KR",serif);font-size:18px;font-weight:700;color:var(--ink,#1c1d1f);padding:0 8px;border:3px double var(--ink,#1c1d1f);border-radius:2px;line-height:1.5;font-variant-numeric:tabular-nums}
-.dwh-h{margin:4px 0 -4px;font-size:16px;font-weight:700;color:var(--ink,#1c1d1f)}
-.dwh-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.dwh-tile{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:10px;min-height:112px;padding:16px;box-sizing:border-box;border:1px solid var(--line,#d6d7d4);border-radius:6px;background:var(--surface,#fff);color:var(--ink,#1c1d1f);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0}
-.dwh .dwh-tile svg{width:32px;height:32px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.dwh-tile .dwh-l{display:grid;gap:2px;min-width:0}
-.dwh-tile b{font-size:22px;font-weight:700;line-height:1.25;word-break:keep-all}
-.dwh-tile small{font-size:14px;line-height:1.4;color:var(--muted,#5a5e63);word-break:keep-all}
-.dwh-tile small.warn{color:var(--warn,#9a3b1e);font-weight:600}
-.dwh-tile.pri{background:var(--ink,#1c1d1f);border-color:var(--ink,#1c1d1f);color:var(--surface,#fff)}
-.dwh-tile.pri small{color:inherit;opacity:.8}
-.dwh-tile.wide{grid-column:1/-1;flex-direction:row;align-items:center;min-height:100px;border:2px solid var(--ink,#1c1d1f)}
-.dwh-tile.wide .dwh-l{flex:1;gap:4px}
-.dwh-tile.wide em{font-style:normal;font-size:15px;font-weight:600;color:var(--muted,#5a5e63)}
-.dwh-tile.wide b{font-family:var(--serif,"Noto Serif KR",serif);font-size:22px;line-height:1.35}
-.dwh-tile.wide small{font-size:15px;color:var(--ink-2,#3d4044)}
-.dwh .dwh-tile.wide svg{width:26px;height:26px;stroke-width:2}
-.dwh-tile.row{grid-column:1/-1;flex-direction:row;align-items:center;min-height:76px}
-.dwh-tile.row .dwh-l{flex:1;grid-auto-flow:column;justify-content:space-between;align-items:center}
-.dwh-tile.row b{font-size:21px}
-.dwh-tile:focus-visible,.dwh-modes button:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px}
-@media (hover:hover){.dwh-tile:not(.pri):hover{border-color:var(--ink,#1c1d1f)}}
-.dwh-tile:active{transform:scale(.98)}
-@media (prefers-reduced-motion:reduce){.dwh-tile:active{transform:none}}
-@media (min-width:700px){.dwh-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.dwh-modes{display:none}}   /* 넓은 화면은 위 막대에 칸 바꾸기가 있음 */
-@media (min-width:1000px){.dwh-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.dwh-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch;padding-bottom:48px}
+.dwh-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:150px;padding:20px 18px 44px;box-sizing:border-box;border:0;border-radius:18px;background:var(--dwh-card);color:var(--dwh-hi);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0;transition:transform .12s ease}
+.dwh-card:nth-child(even){transform:translateY(48px)}   /* 오른쪽 줄은 조금 아래로 (참고 화면처럼 엇갈림) */
+.dwh-card .dwh-bar{display:block;width:32px;height:4px;border-radius:2px;background:var(--tone);margin-bottom:8px}
+.dwh-card b{font-size:22px;line-height:1.3;font-weight:700;color:var(--tone);word-break:keep-all}
+.dwh-card .dwh-st{font-size:14.5px;font-weight:700;line-height:1.4;color:var(--dwh-hi);word-break:keep-all}
+.dwh-card .dwh-st.warn{color:var(--warn,#9a3b1e)}
+.dwh-card .dwh-in{font-size:13px;line-height:1.45;color:var(--dwh-mute);word-break:keep-all}
+.dwh-card>svg{position:absolute;right:14px;bottom:14px;width:24px;height:24px;fill:none;stroke:var(--dwh-chev);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dwh-card.t-olive{--tone:var(--t-olive)}.dwh-card.t-taupe{--tone:var(--t-taupe)}.dwh-card.t-rust{--tone:var(--t-rust)}.dwh-card.t-mustard{--tone:var(--t-mustard)}.dwh-card.t-slate{--tone:var(--t-slate)}
+.dwh-card:active{transform:scale(.98)}.dwh-card:nth-child(even):active{transform:translateY(48px) scale(.98)}
+.dwh-card:focus-visible,.dwh-modes button:focus-visible{outline:2px solid var(--dwh-hi);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.dwh-card{transition:none}.dwh-card:active{transform:none}.dwh-card:nth-child(even):active{transform:translateY(48px)}}
+@media (hover:hover){.dwh-card:hover{box-shadow:inset 0 0 0 1px var(--tone)}}
+@media (min-width:700px){.dwh-modes{display:none}.dwh-card{border:1px solid var(--line,#d6d7d4)}.dwh-cards{grid-template-columns:repeat(4,minmax(0,1fr));padding-bottom:0}.dwh-card:nth-child(even),.dwh-card:nth-child(even):active{transform:none}}
+:root[data-theme="dark"] .dwh{--t-olive:#a8c48a;--t-taupe:#cbb9a6;--t-rust:#e3a27f;--t-mustard:#d8b45f;--t-slate:#a9bccb;--dwh-chev:#8d9196}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dwh{--t-olive:#a8c48a;--t-taupe:#cbb9a6;--t-rust:#e3a27f;--t-mustard:#d8b45f;--t-slate:#a9bccb;--dwh-chev:#8d9196}}
+/* 휴대폰 첫 화면: 차분한 어두운 바탕(흐린 사진 느낌) · 흰 글씨 · 위 막대 투명 */
+@media (max-width:699px){
+  html.dw-at-home body{background:radial-gradient(90% 55% at 85% 38%,rgba(122,98,78,.85),rgba(122,98,78,0) 70%),radial-gradient(80% 50% at 10% 85%,rgba(84,92,90,.9),rgba(84,92,90,0) 70%),radial-gradient(70% 45% at 30% 10%,rgba(110,112,112,.8),rgba(110,112,112,0) 70%),#5e605f!important;min-height:100dvh}
+  :root[data-theme="dark"].dw-at-home body{background:radial-gradient(90% 55% at 85% 38%,rgba(92,72,58,.8),rgba(92,72,58,0) 70%),radial-gradient(80% 50% at 10% 85%,rgba(52,60,58,.9),rgba(52,60,58,0) 70%),#26282a!important}
+  html.dw-at-home .dwh{--dwh-hi:#fff;--dwh-mute:rgba(255,255,255,.82)}
+  html.dw-at-home .dwh-card{--dwh-hi:#1c1d1f;--dwh-mute:#5a5e63;background:#fff}
+  :root[data-theme="dark"].dw-at-home .dwh-card{--dwh-hi:#ecebe8;--dwh-mute:#a3a6aa;background:#1f2023}
+  html.dw-at-home .dwh-modes{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.45)}
+  html.dw-at-home .dwh-modes button{color:#fff}
+  html.dw-at-home .dwh-modes button[aria-pressed="true"]{background:#fff;color:#1c1d1f}
+  html.dw-at-home header.appbar{position:relative!important;background:transparent!important;border-bottom-color:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  html.dw-at-home header.appbar .ab-title small,html.dw-at-home header.appbar .ab-title b,html.dw-at-home header.appbar .brand{color:#fff!important}
+  html.dw-at-home header.appbar button,html.dw-at-home header.appbar .local{background:transparent!important;border-color:rgba(255,255,255,.5)!important;color:#fff!important}
+  html.dw-at-home .topnav{background:transparent;border:0}
+}
+@media (max-width:699px) and (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]).dw-at-home body{background:radial-gradient(90% 55% at 85% 38%,rgba(92,72,58,.8),rgba(92,72,58,0) 70%),radial-gradient(80% 50% at 10% 85%,rgba(52,60,58,.9),rgba(52,60,58,0) 70%),#26282a!important}
+  :root:not([data-theme="light"]).dw-at-home .dwh-card{--dwh-hi:#ecebe8;--dwh-mute:#a3a6aa;background:#1f2023}
+}
 </style>
 <script>
 /* 화면 밝기: 자동(휴대폰 설정 따라) · 밝게 · 어둡게. <html data-theme> 로 색을 바꿈 (각 화면 CSS가 data-theme 를 앎). 같은 기기 모든 화면 · 휴무 화면(iframe)에 같이 적용 */
@@ -251,33 +266,48 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
     html: function (items, active, attr) { return items.map(function (x) { return '<button type="button" data-nav="' + x[0] + '"' + (attr || '') + (x[0] === active ? ' aria-current="page"' : ' aria-current="false"') + (x[4] ? ' aria-label="' + x[4] + '단계 ' + x[1] + '"' : '') + '>' + (x[4] ? '<i class="st-no" aria-hidden="true">' + x[4] + '</i>' : (IC[x[2]] || '')) + '<span>' + x[1] + '</span></button>'; }).join(''); },
     href: function (k) { var x = find(k); return x ? x[3] : ''; }
   };
-  /* 휴대폰 첫 화면 바둑판 (2026.10.30) — 장례업무(행사 · 배송 칸) · 서식 칸이 같이 씀.
-     dwHome.html({mode, top, tiles:[{k, l(이름), s(작은 글), warn, ic(그림 이름), pri(주 버튼), wide(이어서 하기), row(한 줄), em(위 작은 글), h(묶음 제목)}]}) → 바둑판 글,
-     dwHome.bind(el, go) → 칸 누르면 go(k), 맨 위 큰 칸 바꾸기는 dwMode.go(칸) */
-  var ML = { event: '행사', forms: '서식', deliv: '배송' };
+  /* 휴대폰 첫 화면 (2026.10.30, 참고 화면 모양) — 장례업무(행사 · 배송 칸) · 서식 칸이 같이 씀.
+     dwHome.cards(칸) = 그 칸 큰 묶음(dwNav 휴대폰 메뉴와 같음) + 안에 든 것,
+     dwHome.html({mode, sub(날짜 줄), badge(두 줄 테두리 숫자), cards:[{k, l(이름), s(안에 든 것), st(상태), warn}]}) → 첫 화면 글,
+     dwHome.bind(el, go, redraw) → 카드 누르면 go(k), 맨 위 칸 바꾸기는 dwMode.go(칸), 내 이름이 바뀌면 redraw */
+  var ML = { event: '행사', forms: '서식', deliv: '배송' }, TONES = ['olive', 'taupe', 'rust', 'mustard', 'slate'];
+  var INFO = { event: ['행사', '목록 · 입력 · 보고서 · 일정표'], money: ['정산', '정산 · 수당 · 봉투정리'], duty: ['휴무 · 당직', '달력 · 현황 · 직원'], board: ['게시판', '파트 게시판 · 자료실'], fset: ['설정', '양식 · 정산 기준 · 내 계정'],
+    report: ['보고', '주간보고 · 회의록 · 후기보고 · 상담서'], shipg: ['탁송 · 물품', '탁송 · 물품 장부'], company: ['회사 서류', '공지 · 발령 · 증명서'], settings: ['설정', '결재란 · 서명 · 파트원'],
+    gather: ['취합', '파트장 보고 모아 보기'], forms: ['서식', '주간보고 · 회의록 · 후기보고 · 탁송'], docs: ['자료실', '회사 기본 서류'] };
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function who() {   /* 인사말 이름 · 직급: 내 정보 창 → 장례업무 내 정보 → 로그인 정보 */
+    var v = null;
+    try { if (window.dwMe && window.dwMe.vals) v = window.dwMe.vals(); } catch (e) {}
+    try { if ((!v || !v.name) && window.dwMeLocal) { var L = window.dwMeLocal(); if (L && L.name) v = { name: L.name, rank: L.rank }; } } catch (e) {}
+    try { if (!v || !v.name) { var st = JSON.parse(localStorage.getItem('dw-sb-auth') || 'null'), u = st && (st.user || (st.currentSession && st.currentSession.user)), n = u && u.user_metadata && u.user_metadata.name; if (n) v = { name: n, rank: (v && v.rank) || '' }; } } catch (e) {}
+    v = v || {}; var r = role(), rank = String(v.rank || '').trim() || (r === 'leader' ? '파트장' : r === 'chief' ? '총괄실장' : '');
+    return String(v.name || '').trim() ? String(v.name).trim() + (rank ? ' ' + rank : '') + '님' : '';
+  }
   window.dwPhone = function () { return !!(window.matchMedia && matchMedia('(max-width:699px)').matches); };
   window.dwHome = {
     modes: function () { var r = role(); return r === 'chief' ? [] : r === 'leader' ? ['event', 'forms', 'deliv'] : ['event', 'deliv']; },
+    cards: function (mode) {
+      var chief = role() === 'chief';
+      return window.dwNav.items(mode, false).map(function (x) { var i = INFO[x[0]] || [x[1], '']; return { k: x[0], l: i[0], s: chief && x[0] === 'settings' ? '결재란 · 서명' : i[1] }; });
+    },
     html: function (o) {
-      var ms = this.modes(), out = '<div class="dwh">';
+      var ms = this.modes(), nm = who();
+      var out = '<div class="dwh"><div class="dwh-hello"><h1 class="dwh-hi">좋은 하루입니다.' + (nm ? ' <span>' + esc(nm) + '</span>' : '') + '</h1>'
+        + '<p class="dwh-sub"><span>' + esc(o.sub || '') + '</span>' + (o.badge ? '<span>' + esc(o.badge[0]) + ' <b>' + esc(o.badge[1]) + '</b></span>' : '') + '</p></div>';
       if (ms.length > 1) out += '<div class="dwh-modes" role="group" aria-label="칸 바꾸기">' + ms.map(function (m) { return '<button type="button" data-dwh-mode="' + m + '" aria-pressed="' + (m === o.mode) + '">' + ML[m] + '</button>'; }).join('') + '</div>';
-      if (o.top) out += '<div class="dwh-top">' + o.top + '</div>';
-      out += '<div class="dwh-grid">' + (o.tiles || []).map(function (t) {
-        if (t.h) return '<h2 class="dwh-h" style="grid-column:1/-1">' + esc(t.h) + '</h2>';
-        var cls = 'dwh-tile' + (t.pri ? ' pri' : '') + (t.wide ? ' wide' : '') + (t.row ? ' row' : ''), ic = IC[t.ic] || '';
-        if (t.wide) return '<button type="button" class="' + cls + '" data-dwh="' + esc(t.k) + '"><span class="dwh-l"><em>' + esc(t.em || '') + '</em><b>' + esc(t.l) + '</b>' + (t.s ? '<small>' + esc(t.s) + '</small>' : '') + '</span>' + IC.right + '</button>';
-        if (t.row) return '<button type="button" class="' + cls + '" data-dwh="' + esc(t.k) + '">' + ic + '<span class="dwh-l"><b>' + esc(t.l) + '</b>' + (t.s ? '<small>' + esc(t.s) + '</small>' : '') + '</span></button>';
-        return '<button type="button" class="' + cls + '" data-dwh="' + esc(t.k) + '">' + ic + '<span class="dwh-l"><b>' + esc(t.l) + '</b>' + (t.s ? '<small' + (t.warn ? ' class="warn"' : '') + '>' + esc(t.s) + '</small>' : '') + '</span></button>';
+      out += '<div class="dwh-cards">' + (o.cards || []).map(function (c, i) {
+        return '<button type="button" class="dwh-card t-' + TONES[i % TONES.length] + '" data-dwh="' + esc(c.k) + '"><i class="dwh-bar" aria-hidden="true"></i><b>' + esc(c.l) + '</b>'
+          + (c.st ? '<span class="dwh-st' + (c.warn ? ' warn' : '') + '">' + esc(c.st) + '</span>' : '') + (c.s ? '<span class="dwh-in">' + esc(c.s) + '</span>' : '') + IC.right + '</button>';
       }).join('') + '</div></div>';
       return out;
     },
-    bind: function (el, go) {
+    bind: function (el, go, redraw) {
       if (!el || el.__dwh) return; el.__dwh = true;
       el.addEventListener('click', function (e) {
         var m = e.target.closest('[data-dwh-mode]'); if (m) { if (m.getAttribute('aria-pressed') !== 'true' && window.dwMode) window.dwMode.go(m.getAttribute('data-dwh-mode')); return; }
         var b = e.target.closest('[data-dwh]'); if (b) go(b.getAttribute('data-dwh'));
       });
+      if (redraw) ['dw-me', 'dw-name', 'dw-role'].forEach(function (ev) { window.addEventListener(ev, function () { if (!el.hidden && !(el.closest('[hidden]'))) redraw(); }); });
     }
   };
 })();
@@ -4230,9 +4260,9 @@ function renderDeliv(){
 function dvPaint(){ const r=dvCur(); if(!r) return; const t=$('#dvT'), s2=$('#dvS'), ta=$('#dvText'); if(t) t.textContent=dvTitle(r); if(s2) s2.textContent=dvSub(r); if(ta&&document.activeElement!==ta) ta.value=dvText(r); }
 function dvTouched(){ const r=dvCur(); if(r) r.updated=Date.now(); markUnsaved(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),400); dvPaint(); }
 const dvId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-function dvNew(kind){
+function dvNew(){
   const last=[...dvList()].sort((a,b)=>(b.updated||0)-(a.updated||0))[0];
-  const r={id:dvId('dv_'),kind:(typeof kind==='string'&&DV_KINDS.some(x=>x[0]===kind)?kind:'')||(last&&last.kind)||'goods',mgr:[],veh:{},subs:[],created:Date.now(),updated:Date.now()};
+  const r={id:dvId('dv_'),kind:(last&&last.kind)||'goods',mgr:[],veh:{},subs:[],created:Date.now(),updated:Date.now()};
   dvList().push(r); db.shipCur=r.id; dvClose(false); save(); dirty=true;
   if(db.tab!=='deliv') setTab('deliv'); else { renderDeliv(); window.scrollTo(0,0); }
   toast('새 배송을 시작했습니다'); const f=$('#p-deliv [data-dv="co"]'); if(f) f.focus();
@@ -5452,7 +5482,7 @@ $('#adminTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-av
 $('#adminTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; const bs=[...e.currentTarget.querySelectorAll('[data-av-tab]')], i=bs.indexOf(document.activeElement); if(i<0) return;
   const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정',data:'데이터 관리'};
-const TAB_TITLES={home:['DW장례업무','행사'],dhome:['DW장례업무','배송'],deliv:['배송','배송 양식'],list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],sched:['장례 행사','장례행사 일정표'],poster:['장례 행사','장례일정표'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
+const TAB_TITLES={home:['','DW장례업무'],dhome:['','DW장례업무'],deliv:['배송','배송 양식'],list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','보고서 · 복사'],sched:['장례 행사','장례행사 일정표'],poster:['장례 행사','장례일정표'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
 /* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
 const isSplit=()=>document.body.classList.contains('split');
 function applySplit(){
@@ -5575,30 +5605,24 @@ window.DW_MODE_GO=to=>{ const ph=!!(window.dwPhone&&window.dwPhone());
   if(to==='event'){ const last=(db.navLast||{}).event; setTab(ph?'home':(secOf(last).k==='event'&&ALL_TABS.includes(last)&&!HOME_TABS.includes(last)?last:'list')); return true; }
   return false; };
 window.DW_HOME_GO=()=>{ setTab(modeOfTab(db.tab)==='deliv'?'dhome':'home'); return true; };
-function renderHome(){
+function renderHome(){   /* 행사 칸 첫 화면 = 행사 · 정산 · 휴무 · 당직 · 게시판 · 설정 (세부 화면은 안쪽: 행사 목록 · 장례일정표 밑줄 탭, 1~5 단계 줄) */
   const el=$('#p-home'); if(!el||!window.dwHome) return;
   const {mm,dd,wd,dday}=ddInfo(), ym=seoulToday().slice(0,7), used=carryUse();
   let open=0, minus=0; db.cases.forEach(c=>{ const k=settleStatus(c,used).k; if(k==='open'||k==='changed') open++; else if(k==='minus') minus++; });
-  const n=db.cases.filter(c=>caseMonth(c)===ym).length; let env=0; try{ env=envelopeSummary(ym).all.total; }catch(e){}
-  const tiles=[{k:'new',l:'새 행사',ic:'plus',pri:true},{k:'list',l:'행사 목록',ic:'list',s:`${mm}월 ${n}건`}];
-  const c=db.cases.length?curCase():null;
-  if(c){ const i=STEP_KEYS.findIndex(k=>!stepDone(c,k));
-    tiles.push({k:'resume',wide:true,em:'이어서 하기',l:caseTitle(c),s:i<0?'5단계까지 모두 마쳤습니다':`${i+1}단계 · ${STEPS[i][2]}부터`}); }
-  tiles.push({k:'settle',l:'정산',ic:'settle',s:open||minus?[open&&`미정산 ${open}건`,minus&&`마이너스 ${minus}건`].filter(Boolean).join(' · '):'미정산 없음',warn:!!(open||minus)},
-    {k:'envelopes',l:'봉투정리',ic:'envelopes',s:`${mm}월 ${wonStr(env)||'0원'}`},{k:'poster',l:'장례일정표',ic:'poster'},{k:'duty',l:'휴무 · 당직',ic:'duty'},{k:'board',l:'게시판',ic:'board'},{k:'admin',l:'설정',ic:'set'});
-  el.innerHTML=window.dwHome.html({mode:'event',top:`${mm}월 ${dd}일 ${wd(dd)}요일<small>${mm}월 마감 <b>${dday}</b></small>`,tiles});
-  window.dwHome.bind(el,k=>{ if(k==='new') openPicker('new'); else if(k==='board') goBoard();
-    else if(k==='resume'){ const c=curCase(); const i=c?STEP_KEYS.findIndex(x=>!stepDone(c,x)):0; setTab(STEP_KEYS[i<0?STEP_KEYS.length-1:i]); }
-    else if(ALL_TABS.includes(k)) setTab(k); });
+  const n=db.cases.filter(c=>caseMonth(c)===ym).length;
+  const st={event:{st:`${mm}월 ${n}건`},money:open||minus?{st:[open&&`미정산 ${open}건`,minus&&`마이너스 ${minus}건`].filter(Boolean).join(' · '),warn:true}:{st:'미정산 없음'}};
+  el.innerHTML=window.dwHome.html({mode:'event',sub:`${mm}월 ${dd}일 ${wd(dd)}요일`,badge:[`${mm}월 마감`,dday],cards:window.dwHome.cards('event').map(c=>Object.assign(c,st[c.k]||{}))});
+  window.dwHome.bind(el,k=>{ if(k==='board'){ goBoard(); return; }
+    if(k==='money'){ const last=(db.navLast||{}).money; setTab(['settle','envelopes'].includes(last)?last:'settle'); return; }
+    setTab(k==='event'?'list':k==='fset'?'admin':k); },renderHome);
 }
-function renderDHome(){
+function renderDHome(){   /* 배송 칸 첫 화면 = 새 배송 · 이어서 작성 · 배송 기록 (양식 고르기 · 칸은 안쪽) */
   const el=$('#p-dhome'); if(!el||!window.dwHome) return;
-  const r=dvCur(), tiles=[];
-  if(r) tiles.push({k:'resume',wide:true,em:'이어서 하기',l:dvTitle(r),s:dvSub(r)});
-  tiles.push({h:'새로 작성'},{k:'dv:goods',l:'단순용품',ic:'box',s:'회사 · 고인 · 진행'},{k:'dv:help',l:'인력지원',ic:'people',s:'관리사 배치'},{k:'dv:veh',l:'인력+차량',ic:'truck',s:'관리사 · 장의차량'},{k:'dv:sub',l:'인력+대체',ic:'swap',s:'관리사 대체'},
-    {k:'log',l:'배송 기록',ic:'list',row:true,s:`${dvList().length}건`});
-  el.innerHTML=window.dwHome.html({mode:'deliv',tiles});
-  window.dwHome.bind(el,k=>{ if(k.startsWith('dv:')) dvNew(k.slice(3)); else if(k==='resume') setTab('deliv'); else if(k==='log'){ setTab('deliv'); dvOpen(); } });
+  const r=dvCur(), {mm,dd,wd}=ddInfo(), cards=[{k:'new',l:'새 배송',s:'단순용품 · 인력지원 · 인력+차량 · 인력+대체'}];
+  if(r) cards.push({k:'resume',l:'이어서 작성',st:dvTitle(r),s:dvSub(r)});
+  cards.push({k:'log',l:'배송 기록',st:`${dvList().length}건`,s:'지난 배송 다시 보기'});
+  el.innerHTML=window.dwHome.html({mode:'deliv',sub:`${mm}월 ${dd}일 ${wd(dd)}요일`,cards});
+  window.dwHome.bind(el,k=>{ if(k==='new') dvNew(); else if(k==='resume') setTab('deliv'); else if(k==='log'){ setTab('deliv'); dvOpen(); } },renderDHome);
 }
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }
 function paintTopNav(t){
@@ -5608,6 +5632,7 @@ function paintTopNav(t){
   let items=[], phoneOnly=false;
   const sc=secOf(t);
   if(t==='duty') items=Object.entries(DUTY_TITLES).map(([k,l])=>['duty:'+k,l,k===db.dutyView]);
+  else if(t==='list'||t==='poster'){ items=[['list','행사 목록',t==='list'],['poster','장례일정표',t==='poster']]; phoneOnly=true; }   /* 휴대폰: 행사 묶음 안 세부 화면 (단계 화면은 행사 고르기 상자 아래 단계 줄) */
   const row=$('#tnSubRow'); row.hidden=!items.length; row.classList.toggle('tn-phone-only',phoneOnly);
   $('#tnSub').innerHTML=items.map(([k,l,on])=>`<button type="button" data-tn-sub="${k}"${on?' aria-current="page"':''}>${esc(l)}</button>`).join('');
   $('#tnSubRow').setAttribute('aria-label',t==='duty'?'휴무 · 당직 메뉴':`${sc.l} 메뉴`);
@@ -6062,6 +6087,7 @@ body[data-tab="home"] #newCase,body[data-tab="dhome"] #newCase,body[data-tab="ho
 }
 /* 배송 칸 (넓은 화면): 행사 칸 메뉴 줄은 숨김 — 칸 바꾸기는 위 막대 「행사 · 서식 · 배송」 */
 body[data-mode="deliv"] .tn-main-row{display:none}
+#abSub:empty{display:none}   /* 첫 화면은 앱 이름만 */
 /* 배송 화면 (2026.10.30, 행사와 따로 · 현진시닝 배송 양식 4가지) — 모양은 행사 고르기 칸 · 장례일정표 화면과 같게 */
 #p-deliv>.dv-panel{margin-bottom:2px}
 .dv-trio{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(84px,.7fr);gap:12px;align-items:start}
