@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.30-12">
+<meta name="app-version" content="2026.10.30-13">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1911,7 +1911,7 @@ const DISPATCH_TPL=`{발인날짜}
 {차량경로}
 
 {담당} {담당연락처}`;
-/* 퇴근 양식 (2026.10.20): 오늘 19시 퇴근 + 다음 날 첫 일정(입관 · 발인) 기준 출근. 날짜가 바뀌면 자동으로 바뀜. 설정 → 퇴근 양식(db.offTpl) */
+/* 퇴근 양식 (2026.10.20): 오늘 19시 퇴근 + 다음 날 첫 일정(입관 · 발인) 기준 출근. 날짜가 바뀌면 자동으로 바뀜. 설정 → 퇴근 양식(db.offTpl). 날은 두 자리 「03일」(2026.10.30 사용자) */
 const OFF_TPL=`{장소}
 담당 : {담당}
 {퇴근줄}
@@ -2233,18 +2233,18 @@ function offWork(c){
   try{
     const f=c.f||{}, today=todayYMD(), dep=String(f.depart||'').slice(0,10), t=parseDT(today);
     const ev=[]; if(f.casket) ev.push({k:'입관',v:f.casket}); if(f.depart) ev.push({k:'발인',v:f.depart});
-    ev.forEach(e=>{ const p=parseDT(e.v); if(p) out[e.k==='입관'?'casket':'depart']=`${p.d}일 : ${p.h!=null?hmStr(p.h,p.mi)+' ':''}${e.k}`; });
-    out.day=`${t.d}일`;
+    ev.forEach(e=>{ const p=parseDT(e.v); if(p) out[e.k==='입관'?'casket':'depart']=`${pad(p.d)}일 : ${p.h!=null?hmStr(p.h,p.mi)+' ':''}${e.k}`; });
+    out.day=`${pad(t.d)}일`;
     if(dep&&today>=dep){ out.ended=true; return out; }
     const tm=new Date(t.y,t.mo-1,t.d+1), tmY=ymdOf(tm);
-    out.off=`${t.d}일 : 19시 퇴근`;
+    out.off=`${pad(t.d)}일 : 19시 퇴근`;
     const next=ev.filter(e=>String(e.v).slice(0,10)===tmY).sort((a,b)=>String(a.v).localeCompare(String(b.v)))[0], np=next&&parseDT(next.v);
     let mins=8*60+30;
     if(np&&np.h!=null){ const at=np.h*60+np.mi;
       const hj=String(caseCoName(c)||'').replace(/\s/g,'')==='현진시닝', before=next.k==='입관'?60:(hj?90:60);
       mins=Math.min(at-before, 8*60+30); }   // 늦어도 08시 30분 출근
     mins=(mins+24*60)%(24*60);
-    out.on=`${tm.getDate()}일 : ${hmStr(Math.floor(mins/60),mins%60)} 출근`;
+    out.on=`${pad(tm.getDate())}일 : ${hmStr(Math.floor(mins/60),mins%60)} 출근`;
   }catch(e){}
   return out;
 }
