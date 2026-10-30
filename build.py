@@ -173,7 +173,7 @@ def make_sw(prefix, core):
     encoding='utf-8')
 (FM / 'sw.js').write_text(make_sw('forms-app-', [
     './', './index.html', './funeral.html', './admin.html', './switch.html', './vendor/jspdf.umd.min.js', './assets/poster.pptx',
-    './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
+    './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png', './icons/gukhwa-line.png',   # gukhwa-line = 첫 화면 먹색 머리의 은은한 국화 (2026.10.30)
 ]), encoding='utf-8')
 (FM / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
 # 맨 앞 주소(/)의 서비스워커: 안내 페이지 두 개와 manifest만 맡고, 나머지(forms · jangrye · admin)는 손대지 않음

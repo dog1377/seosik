@@ -1413,8 +1413,11 @@ window.DW_HOME_GO = () => { if (modeOf(S.tab) === 'event') goFuneral('home'); el
    세부 화면은 안쪽 — 들어가면 위쪽 밑줄 탭(주간보고 · 회의록 …) */
 function renderFHome() {
   const el = $('#fhBody'); if (!el || !window.dwHome) return;
-  const d = new Date();
-  el.innerHTML = window.dwHome.html({ mode: 'forms', day: `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`, cards: window.dwHome.cards('forms') });
+  const d = new Date(), M = d.getMonth() + 1, ym = toKey(d).slice(0, 7), wk = toKey(mondayOf(d));
+  const weekDone = [...S.weekly.values()].some((r) => r.weekStart === wk);
+  const nMin = [...S.minutes.values()].filter((r) => String(r.date || '').startsWith(ym)).length, nShip = [...S.ship.values()].filter((e) => String(e.date || '').startsWith(ym)).length;
+  el.innerHTML = window.dwHome.html({ mode: 'forms', day: `${M}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,
+    stats: [['이번 주 주간보고', weekDone ? '작성함' : '작성 전', !weekDone], [`${M}월 회의록`, `${nMin}건`], [`${M}월 탁송`, `${nShip}건`]], cards: window.dwHome.cards('forms') });
   window.dwHome.bind(el, navGo, () => { if (S.tab === 'fhome') renderFHome(); });
 }
 function showTab(t) {
@@ -1428,7 +1431,7 @@ function showTab(t) {
   if (t === 'home') { goFuneral(window.dwPhone && window.dwPhone() ? 'home' : 'list'); return; }   /* 예전 홈 → 행사 칸 행사 목록 (2026.10.29, 마감 · 이번 달은 행사 목록 맨 위) · 휴대폰은 장례업무 첫 화면 (2026.10.30) */
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았습니다. 설정 탭에서 저장을 눌러 주십시오.');
   S.tab = t; document.body.dataset.view = t;
-  document.documentElement.classList.toggle('dw-at-home', t === 'fhome');
+  if (window.dwHome) window.dwHome.at(t === 'fhome'); else document.documentElement.classList.toggle('dw-at-home', t === 'fhome');
   ALL_TABS.forEach((k) => { const el = $('#tab-' + k); if (el) el.hidden = k !== t; });
   const isForm = FORM_TABS.includes(t), grp = isChief() ? '' : grpOf(t);
   $('#formTabs').hidden = !isForm;
@@ -2713,7 +2716,7 @@ async function commitSettings() {
   if (!ok) { S.sd = clone(S.settings); renderSaveBar(); }
 }
 function cancelSettings() { S.sd = null; renderSettings(); toast('저장 전 상태로 되돌렸습니다'); }
-function renderAll() { renderWeeklyList(); renderMinutesList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); }
+function renderAll() { renderWeeklyList(); renderMinutesList(); renderShip(); renderSettings(); if (S.tab === 'review') renderReview(); if (S.tab === 'fhome') renderFHome(); }
 
 /* ================= events ================= */
 function bind() {

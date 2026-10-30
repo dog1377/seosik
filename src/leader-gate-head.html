@@ -120,32 +120,62 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   html:not(.dw-at-home) .dw-home-btn{display:inline-flex}
   html:not(.dw-at-home) #dwOut{display:none!important}
 }
-/* 첫 화면 모양 (2026.10.30 -6): 사용자가 보낸 다른 회사 앱 화면은 「참고만」 — 큰 카드 몇 개 · 세부 기능은 안쪽이라는 짜임만 가져오고,
-   모양은 우리 디자인 A(부고장) 그대로: 흰 종이 · 먹색 가는 선 · 명조 이름 · 모서리 6px · 그림자 없음 · 바탕 · 위 막대 그대로.
-   (-5 에서 참고 화면을 그대로 따라 한 어두운 바탕 · 색 줄 · 엇갈림 · 인사말은 사용자 「참고만 하라 했지 똑같이 만들라고 했냐」로 없앰 — 다시 넣지 말 것) */
-.dwh{display:grid;gap:14px}
-.dwh-top{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;margin-top:2px}
-.dwh-top .dwh-day{font-family:var(--serif,"Noto Serif KR",serif);font-size:19px;font-weight:700;color:var(--ink,#1c1d1f)}
-.dwh-top .dwh-dd{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--muted,#5a5e63)}
-.dwh-top .dwh-dd b{font-family:var(--serif,"Noto Serif KR",serif);font-size:18px;font-weight:700;color:var(--ink,#1c1d1f);padding:0 8px;border:3px double var(--ink,#1c1d1f);border-radius:2px;line-height:1.45;font-variant-numeric:tabular-nums}
-.dwh-modes{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--ink,#1c1d1f);border-radius:6px;overflow:hidden;background:var(--surface,#fff)}
-.dwh-modes button{min-height:52px;border:0;background:transparent;color:var(--ink,#1c1d1f);font:inherit;font-size:18px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.dwh-modes button+button{border-left:1px solid var(--ink,#1c1d1f)}
-.dwh-modes button[aria-pressed="true"]{background:var(--ink,#1c1d1f);color:var(--surface,#fff);font-weight:700}
-.dwh-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.dwh-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:148px;padding:16px 16px 40px;box-sizing:border-box;border:1px solid var(--line,#d6d7d4);border-radius:6px;background:var(--surface,#fff);color:var(--ink,#1c1d1f);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0}
-.dwh-card:last-child:nth-child(odd){grid-column:1/-1;min-height:112px}   /* 홀수면 마지막 카드는 한 줄 전체 */
-.dwh .dwh-card .dwh-ic{width:28px;height:28px;margin-bottom:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.dwh-card b{font-family:var(--serif,"Noto Serif KR",serif);font-size:22px;line-height:1.3;font-weight:700;word-break:keep-all}
-.dwh-card .dwh-st{font-size:14.5px;font-weight:700;line-height:1.4;color:var(--ink-2,#3d4044);word-break:keep-all}
-.dwh-card .dwh-st.warn{color:var(--warn,#9a3b1e)}
-.dwh-card .dwh-in{font-size:13px;line-height:1.45;color:var(--muted,#5a5e63);word-break:keep-all}
-.dwh .dwh-card>.dwh-go{position:absolute;right:12px;bottom:12px;width:22px;height:22px;fill:none;stroke:var(--muted,#5a5e63);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.dwh-card:focus-visible,.dwh-modes button:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px}
-@media (hover:hover){.dwh-card:hover{border-color:var(--ink,#1c1d1f)}}
+/* 첫 화면 (2026.10.30 -7, 사용자 「아까 보낸 사진처럼, 진짜 기업에서 쓸 만한 디자인으로 · 스킬 다 뒤져서라도 예쁘게」 — 단 -5 처럼 똑같이 베끼지 않음)
+   짜임: 먹색 머리(위 막대와 이어짐, 오른쪽에 회사 국화를 은은하게) — 이름 · 오늘 · 마감 · 칸 바꾸기 / 그 아래로 걸친 요약 카드(숫자 3개) / 업무 카드(첫 카드는 한 줄 전체).
+   대담함은 머리 한 곳에만(국화 · 국화 금색), 나머지는 흰 종이 카드 · 국화 금색 그림 칸 · 차분하게. 세부 기능은 카드 안쪽. */
+.dwh{--dwh-night:#1d1e20;--dwh-gold:#d4b26a;--dwh-tile:#f2ebdc;--dwh-tile-ic:#8c6a1f;--dwh-card:var(--surface,#fff);
+  --dwh-ring:0 0 0 1px rgba(28,29,31,.06),0 1px 2px rgba(28,29,31,.05),0 6px 16px rgba(28,29,31,.05);display:block}
+.dwh-hero{position:relative;overflow:hidden;padding:24px 20px 60px;border-radius:18px;background:radial-gradient(240px 240px at 88% 34%,rgba(212,178,106,.13),rgba(212,178,106,0) 70%),var(--dwh-night);color:#fff;isolation:isolate}
+.dwh-hero::after{content:"";position:absolute;z-index:-1;right:-62px;top:-26px;width:264px;height:264px;background:url(icons/gukhwa-line.png) center/contain no-repeat;opacity:.3;-webkit-mask-image:linear-gradient(100deg,transparent 8%,#000 52%);mask-image:linear-gradient(100deg,transparent 8%,#000 52%);pointer-events:none}   /* 회사 국화 선 그림 (앱 아이콘에서 따낸 윤곽선, 왼쪽으로 갈수록 흐리게) */
+.dwh-name{margin:0;font-family:var(--serif,"Noto Serif KR",serif);font-size:28px;line-height:1.3;font-weight:700;letter-spacing:-.01em;color:#fff;word-break:keep-all;text-wrap:balance;max-width:16em}
+.dwh-date{margin:8px 0 0;display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;font-size:14.5px;color:rgba(255,255,255,.74)}
+.dwh-dd{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid rgba(212,178,106,.55);border-radius:6px;color:#ecd9ad;font-size:13px;font-weight:600}
+.dwh-dd b{font-family:var(--serif,"Noto Serif KR",serif);font-size:15px;color:#fff;font-variant-numeric:tabular-nums}
+.dwh-modes{margin-top:20px;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;padding:4px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.07)}
+.dwh-modes button{min-height:44px;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.8);font:inherit;font-size:16px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s ease,color .15s ease}
+.dwh-modes button[aria-pressed="true"]{background:#fff;color:#1c1d1f;font-weight:700}
+.dwh-stats{position:relative;z-index:1;margin:-38px 8px 0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border-radius:14px;background:var(--dwh-card);box-shadow:var(--dwh-ring)}
+.dwh-stats>div{padding:13px 12px 12px;min-width:0}
+.dwh-stats>div+div{border-left:1px solid var(--line,#d6d7d4)}
+.dwh-stats dt{font-size:12.5px;color:var(--muted,#5a5e63);white-space:nowrap}
+.dwh-stats dd{margin:3px 0 0;font-size:19px;font-weight:700;line-height:1.25;color:var(--ink,#1c1d1f);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.dwh-stats dd.warn{color:var(--warn,#9a3b1e)}
+.dwh-cards{margin-top:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dwh-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:132px;padding:16px;box-sizing:border-box;border:0;border-radius:16px;background:var(--dwh-card);box-shadow:var(--dwh-ring);color:var(--ink,#1c1d1f);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0;transition:transform .12s ease}
+.dwh-tile{display:grid;place-items:center;flex:none;width:42px;height:42px;margin-bottom:12px;border-radius:12px;background:var(--dwh-tile);color:var(--dwh-tile-ic)}
+.dwh .dwh-tile svg{width:22px;height:22px;stroke-width:1.9}
+.dwh-card b{font-size:17.5px;line-height:1.3;font-weight:700;word-break:keep-all}
+.dwh-card .dwh-in{font-size:12.5px;line-height:1.45;color:var(--muted,#5a5e63);word-break:keep-all;text-wrap:pretty}
+.dwh-pill{display:inline-block;margin:2px 0 3px;padding:2px 8px;border-radius:6px;background:var(--accent-soft,#ececea);color:var(--ink-2,#3d4044);font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.dwh-pill.warn{background:var(--warn-soft,#f7e6de);color:var(--warn,#9a3b1e)}
+.dwh .dwh-card>.dwh-go{position:absolute;right:14px;top:27px;width:18px;height:18px;stroke:var(--muted,#5a5e63);stroke-width:2.2;opacity:.75}
+.dwh-card.wide{grid-column:1/-1;flex-direction:row;align-items:center;gap:14px;min-height:88px;padding-right:44px}
+.dwh-card.wide .dwh-tile{margin:0;width:48px;height:48px;border-radius:13px}
+.dwh .dwh-card.wide .dwh-tile svg{width:24px;height:24px}
+.dwh-card.wide .dwh-txt{display:grid;gap:2px;min-width:0}
+.dwh-card.wide b{font-size:19px}
+.dwh .dwh-card.wide>.dwh-go{top:50%;margin-top:-9px}
+.dwh-card .dwh-txt{display:contents}
 .dwh-card:active{transform:scale(.98)}
-@media (prefers-reduced-motion:reduce){.dwh-card:active{transform:none}}
-@media (min-width:700px){.dwh-modes{display:none}.dwh-cards{grid-template-columns:repeat(3,minmax(0,1fr))}.dwh-card:last-child:nth-child(odd){grid-column:auto;min-height:148px}}   /* 넓은 화면은 위 막대에 칸 바꾸기가 있음 */
+.dwh-card:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px}
+.dwh-modes button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media (hover:hover){.dwh-card:hover{box-shadow:0 0 0 1px rgba(140,106,31,.45),0 1px 2px rgba(28,29,31,.05),0 6px 16px rgba(28,29,31,.06)}}
+@media (prefers-reduced-motion:reduce){.dwh-card{transition:none}.dwh-card:active{transform:none}}
+:root[data-theme="dark"] .dwh{--dwh-night:#1f2022;--dwh-tile:#2b2519;--dwh-tile-ic:#d4b26a;--dwh-ring:0 0 0 1px rgba(255,255,255,.07)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dwh{--dwh-night:#1f2022;--dwh-tile:#2b2519;--dwh-tile-ic:#d4b26a;--dwh-ring:0 0 0 1px rgba(255,255,255,.07)}}
+/* 휴대폰: 먹색 머리를 화면 끝까지 · 위 막대와 이어지게 (위 막대도 먹색 · 흰 글씨 · 국화 표시) */
+@media (max-width:699px){
+  .dwh-hero{margin:0 -16px;border-radius:0}
+  html.dw-at-home .wrap{padding-top:0!important}
+  html.dw-at-home header.appbar{background:#1d1e20!important;border-bottom-color:transparent!important;box-shadow:none!important}
+  :root[data-theme="dark"].dw-at-home header.appbar{background:#1f2022!important}
+  html.dw-at-home header.appbar .ab-title b,html.dw-at-home header.appbar .brand{display:inline-flex;align-items:center;gap:9px;color:#fff!important;font-family:var(--serif,"Noto Serif KR",serif)}
+  html.dw-at-home header.appbar .ab-title b::before,html.dw-at-home header.appbar .brand::before{content:"";flex:none;width:26px;height:26px;border-radius:7px;background:#000 url(icons/gukhwa-192.png) center/112% no-repeat;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+  html.dw-at-home header.appbar button,html.dw-at-home header.appbar .local{background:transparent!important;border-color:rgba(255,255,255,.28)!important;color:#fff!important}
+  html.dw-at-home .topnav{background:transparent;border:0}
+}
+@media (max-width:699px) and (prefers-color-scheme:dark){ :root:not([data-theme="light"]).dw-at-home header.appbar{background:#1f2022!important} }
+@media (min-width:700px){.dwh-modes{display:none}.dwh-hero{padding-bottom:58px}.dwh-cards{grid-template-columns:repeat(3,minmax(0,1fr))}.dwh-card.wide{grid-column:auto;flex-direction:column;align-items:flex-start;min-height:132px;padding-right:16px}.dwh-card.wide .dwh-tile{margin-bottom:12px;width:42px;height:42px}.dwh .dwh-card.wide>.dwh-go{top:27px;margin-top:0}}   /* 넓은 화면은 위 막대에 칸 바꾸기가 있음 */
 </style>
 <script>
 /* 화면 밝기: 자동(휴대폰 설정 따라) · 밝게 · 어둡게. <html data-theme> 로 색을 바꿈 (각 화면 CSS가 data-theme 를 앎). 같은 기기 모든 화면 · 휴무 화면(iframe)에 같이 적용 */
@@ -234,13 +264,21 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   };
   /* 휴대폰 첫 화면 (2026.10.30) — 장례업무(행사 · 배송 칸) · 서식 칸이 같이 씀.
      dwHome.cards(칸) = 그 칸 큰 묶음(dwNav 휴대폰 메뉴와 같음, 그림 · 안에 든 것),
-     dwHome.html({mode, day(오늘), dd([앞 글, 두 줄 테두리 숫자]), cards:[{k, l(이름), ic(그림), s(안에 든 것), st(상태), warn}]}) → 첫 화면 글,
+     dwHome.html({mode, day(오늘), dd([앞 글, 숫자]), stats:[[이름, 값, 주의?]], cards:[{k, l(이름), ic(그림), s(안에 든 것), st(상태), warn}]}) → 첫 화면 글, dwHome.at(첫 화면?) → 표시 · 위쪽 줄 색,
      dwHome.bind(el, go, redraw) → 카드 누르면 go(k), 맨 위 칸 바꾸기는 dwMode.go(칸), 권한이 바뀌면 redraw */
   var ML = { event: '행사', forms: '서식', deliv: '배송' };
   var INFO = { event: ['행사', '목록 · 입력 · 보고서 · 일정표'], money: ['정산', '정산 · 수당 · 봉투정리'], duty: ['휴무 · 당직', '달력 · 현황 · 직원'], board: ['게시판', '파트 게시판 · 자료실'], fset: ['설정', '양식 · 정산 기준 · 내 계정'],
     report: ['보고', '주간보고 · 회의록 · 후기보고 · 상담서'], shipg: ['탁송 · 물품', '탁송 · 물품 장부'], company: ['회사 서류', '공지 · 발령 · 증명서'], settings: ['설정', '결재란 · 서명 · 파트원'],
     gather: ['취합', '파트장 보고 모아 보기'], forms: ['서식', '주간보고 · 회의록 · 후기보고 · 탁송'], docs: ['자료실', '회사 기본 서류'] };
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function who() {   /* 머리 이름: 내 정보 창 → 장례업무 내 정보 → 로그인 정보, 직급이 없으면 파트장 · 총괄실장 */
+    var v = null;
+    try { if (window.dwMe && window.dwMe.vals) v = window.dwMe.vals(); } catch (e) {}
+    try { if ((!v || !v.name) && window.dwMeLocal) { var L = window.dwMeLocal(); if (L && L.name) v = { name: L.name, rank: L.rank }; } } catch (e) {}
+    try { if (!v || !v.name) { var st = JSON.parse(localStorage.getItem('dw-sb-auth') || 'null'), u = st && (st.user || (st.currentSession && st.currentSession.user)), n = u && u.user_metadata && u.user_metadata.name; if (n) v = { name: n, rank: (v && v.rank) || '' }; } } catch (e) {}
+    v = v || {}; var r = role(), rank = String(v.rank || '').trim() || (r === 'leader' ? '파트장' : r === 'chief' ? '총괄실장' : '');
+    return String(v.name || '').trim() ? String(v.name).trim() + (rank ? ' ' + rank : '') + '님' : '';
+  }
   window.dwPhone = function () { return !!(window.matchMedia && matchMedia('(max-width:699px)').matches); };
   window.dwHome = {
     modes: function () { var r = role(); return r === 'chief' ? [] : r === 'leader' ? ['event', 'forms', 'deliv'] : ['event', 'deliv']; },
@@ -249,14 +287,26 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
       return window.dwNav.items(mode, false).map(function (x) { var i = INFO[x[0]] || [x[1], '']; return { k: x[0], l: i[0], ic: x[2], s: chief && x[0] === 'settings' ? '결재란 · 서명' : i[1] }; });
     },
     html: function (o) {
-      var ms = this.modes(), out = '<div class="dwh"><div class="dwh-top"><span class="dwh-day">' + esc(o.day || '') + '</span>' + (o.dd ? '<span class="dwh-dd">' + esc(o.dd[0]) + ' <b>' + esc(o.dd[1]) + '</b></span>' : '') + '</div>';
+      var ms = this.modes(), nm = who(), cards = o.cards || [];
+      var out = '<div class="dwh"><section class="dwh-hero"><h1 class="dwh-name">' + esc(nm || 'DW장례업무') + '</h1>'
+        + '<p class="dwh-date"><span>' + esc(o.day || '') + '</span>' + (o.dd ? '<span class="dwh-dd">' + esc(o.dd[0]) + ' <b>' + esc(o.dd[1]) + '</b></span>' : '') + '</p>';
       if (ms.length > 1) out += '<div class="dwh-modes" role="group" aria-label="칸 바꾸기">' + ms.map(function (m) { return '<button type="button" data-dwh-mode="' + m + '" aria-pressed="' + (m === o.mode) + '">' + ML[m] + '</button>'; }).join('') + '</div>';
-      out += '<div class="dwh-cards">' + (o.cards || []).map(function (c) {
-        var ic = (IC[c.ic] || '').replace('class="ui-icon"', 'class="ui-icon dwh-ic"');
-        return '<button type="button" class="dwh-card" data-dwh="' + esc(c.k) + '">' + ic + '<b>' + esc(c.l) + '</b>'
-          + (c.st ? '<span class="dwh-st' + (c.warn ? ' warn' : '') + '">' + esc(c.st) + '</span>' : '') + (c.s ? '<span class="dwh-in">' + esc(c.s) + '</span>' : '') + IC.right.replace('class="ui-icon"', 'class="ui-icon dwh-go"') + '</button>';
+      out += '</section>';
+      if (o.stats && o.stats.length) out += '<dl class="dwh-stats">' + o.stats.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd' + (x[2] ? ' class="warn"' : '') + '>' + esc(x[1]) + '</dd></div>'; }).join('') + '</dl>';
+      out += '<div class="dwh-cards">' + cards.map(function (c, i) {
+        var wide = i === 0 || (i === cards.length - 1 && (cards.length - 1) % 2 === 1);   /* 첫 카드 · 짝이 안 맞는 마지막 카드는 한 줄 전체 */
+        return '<button type="button" class="dwh-card' + (wide ? ' wide' : '') + '" data-dwh="' + esc(c.k) + '"><span class="dwh-tile" aria-hidden="true">' + (IC[c.ic] || '') + '</span><span class="dwh-txt"><b>' + esc(c.l) + '</b>'
+          + (c.st ? '<span class="dwh-pill' + (c.warn ? ' warn' : '') + '">' + esc(c.st) + '</span>' : '') + (c.s ? '<span class="dwh-in">' + esc(c.s) + '</span>' : '') + '</span>' + IC.right.replace('class="ui-icon"', 'class="ui-icon dwh-go"') + '</button>';
       }).join('') + '</div></div>';
       return out;
+    },
+    /* 첫 화면에 있음 표시(html.dw-at-home) + 휴대폰 위쪽 줄 색(theme-color)을 먹색 머리에 맞춤 */
+    at: function (on) {
+      document.documentElement.classList.toggle('dw-at-home', !!on);
+      try {
+        if (on && window.dwPhone()) document.querySelectorAll('meta[name="theme-color"]').forEach(function (t) { if (t.dataset.dwC == null) { t.dataset.dwC = t.getAttribute('content') || ''; t.dataset.dwM = t.getAttribute('media') || ''; } t.setAttribute('content', '#1d1e20'); t.removeAttribute('media'); });
+        else if (window.dwTheme) window.dwTheme.sync();
+      } catch (e) {}
     },
     bind: function (el, go, redraw) {
       if (!el || el.__dwh) return; el.__dwh = true;
@@ -264,7 +314,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
         var m = e.target.closest('[data-dwh-mode]'); if (m) { if (m.getAttribute('aria-pressed') !== 'true' && window.dwMode) window.dwMode.go(m.getAttribute('data-dwh-mode')); return; }
         var b = e.target.closest('[data-dwh]'); if (b) go(b.getAttribute('data-dwh'));
       });
-      if (redraw) window.addEventListener('dw-role', function () { if (!el.hidden && !el.closest('[hidden]')) redraw(); });
+      if (redraw) ['dw-role', 'dw-me', 'dw-name'].forEach(function (ev) { window.addEventListener(ev, function () { if (!el.hidden && !el.closest('[hidden]')) redraw(); }); });
     }
   };
 })();

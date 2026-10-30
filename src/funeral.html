@@ -5114,7 +5114,7 @@ function setTab(t,sub){
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on', b.dataset.go===(t==='duty'?'duty:'+db.dutyView:t==='admin'?'admin:'+db.adminView:t)));
   ALL_TABS.forEach(k=>{ const el=$('#p-'+k); if(el) el.hidden=t!==k; });
   if(!HOME_TABS.includes(t)){ const sc=secOf(t); if(!db.navLast||typeof db.navLast!=='object') db.navLast={}; db.navLast[sc.k]=t; }
-  document.documentElement.classList.toggle('dw-at-home',HOME_TABS.includes(t)); document.body.dataset.mode=modeOfTab(t);
+  if(window.dwHome) window.dwHome.at(HOME_TABS.includes(t)); else document.documentElement.classList.toggle('dw-at-home',HOME_TABS.includes(t)); document.body.dataset.mode=modeOfTab(t);
   if(t==='home') renderHome();
   if(t==='dhome') renderDHome();
   if(t==='list') renderList();
@@ -5210,23 +5210,26 @@ window.DW_MODE_GO=to=>{ const ph=!!(window.dwPhone&&window.dwPhone());
   if(to==='event'){ const last=(db.navLast||{}).event; setTab(ph?'home':(secOf(last).k==='event'&&ALL_TABS.includes(last)&&!HOME_TABS.includes(last)?last:'list')); return true; }
   return false; };
 window.DW_HOME_GO=()=>{ setTab(modeOfTab(db.tab)==='deliv'?'dhome':'home'); return true; };
-function renderHome(){   /* 행사 칸 첫 화면 = 행사 · 정산 · 휴무 · 당직 · 게시판 · 설정 (세부 화면은 안쪽: 행사 목록 · 장례일정표 밑줄 탭, 1~5 단계 줄) */
+function renderHome(){   /* 행사 칸 첫 화면 = 요약(이번 달 행사 · 미정산 · 봉투) + 행사 · 정산 · 휴무 · 당직 · 게시판 · 설정 (세부 화면은 안쪽: 행사 목록 · 장례일정표 밑줄 탭, 1~5 단계 줄) */
   const el=$('#p-home'); if(!el||!window.dwHome) return;
   const {mm,dd,wd,dday}=ddInfo(), ym=seoulToday().slice(0,7), used=carryUse();
   let open=0, minus=0; db.cases.forEach(c=>{ const k=settleStatus(c,used).k; if(k==='open'||k==='changed') open++; else if(k==='minus') minus++; });
-  const n=db.cases.filter(c=>caseMonth(c)===ym).length;
-  const st={event:{st:`${mm}월 ${n}건`},money:open||minus?{st:[open&&`미정산 ${open}건`,minus&&`마이너스 ${minus}건`].filter(Boolean).join(' · '),warn:true}:{st:'미정산 없음'}};
-  el.innerHTML=window.dwHome.html({mode:'event',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,dd:[`${mm}월 마감`,dday],cards:window.dwHome.cards('event').map(c=>Object.assign(c,st[c.k]||{}))});
+  const n=db.cases.filter(c=>caseMonth(c)===ym).length; let env=0; try{ env=envelopeSummary(ym).all.total; }catch(e){}
+  const st={money:minus?{st:`마이너스 ${minus}건`,warn:true}:{}};
+  el.innerHTML=window.dwHome.html({mode:'event',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,dd:[`${mm}월 마감`,dday],
+    stats:[[`${mm}월 행사`,`${n}건`],['미정산',`${open}건`,open>0],[`${mm}월 봉투`,wonStr(env)||'0원']],
+    cards:window.dwHome.cards('event').map(c=>Object.assign(c,st[c.k]||{}))});
   window.dwHome.bind(el,k=>{ if(k==='board'){ goBoard(); return; }
     if(k==='money'){ const last=(db.navLast||{}).money; setTab(['settle','envelopes'].includes(last)?last:'settle'); return; }
     setTab(k==='event'?'list':k==='fset'?'admin':k); },renderHome);
 }
-function renderDHome(){   /* 배송 칸 첫 화면 = 새 배송 · 이어서 작성 · 배송 기록 (양식 고르기 · 칸은 안쪽) */
+function renderDHome(){   /* 배송 칸 첫 화면 = 요약 + 새 배송 · 이어서 작성 · 배송 기록 (양식 고르기 · 칸은 안쪽) */
   const el=$('#p-dhome'); if(!el||!window.dwHome) return;
-  const r=dvCur(), {mm,dd,wd}=ddInfo(), cards=[{k:'new',l:'새 배송',ic:'plus',s:'단순용품 · 인력지원 · 인력+차량 · 인력+대체'}];
+  const r=dvCur(), {mm,dd,wd}=ddInfo(), ym=seoulToday().slice(0,7), all=dvList(), mon=all.filter(x=>{ const t=new Date((x.created||0)+9*3600*1000); return t.toISOString().slice(0,7)===ym; }).length;
+  const cards=[{k:'new',l:'새 배송',ic:'plus',s:'단순용품 · 인력지원 · 인력+차량 · 인력+대체'}];
   if(r) cards.push({k:'resume',l:'이어서 작성',ic:'input',st:dvTitle(r),s:dvSub(r)});
-  cards.push({k:'log',l:'배송 기록',ic:'list',st:`${dvList().length}건`,s:'지난 배송 다시 보기'});
-  el.innerHTML=window.dwHome.html({mode:'deliv',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,cards});
+  cards.push({k:'log',l:'배송 기록',ic:'list',s:'지난 배송 다시 보기'});
+  el.innerHTML=window.dwHome.html({mode:'deliv',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,stats:[[`${mm}월 배송`,`${mon}건`],['전체 기록',`${all.length}건`]],cards});
   window.dwHome.bind(el,k=>{ if(k==='new') dvNew(); else if(k==='resume') setTab('deliv'); else if(k==='log'){ setTab('deliv'); dvOpen(); } },renderDHome);
 }
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }
