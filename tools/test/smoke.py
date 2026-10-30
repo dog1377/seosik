@@ -137,9 +137,9 @@ def main():
                 if not p.evaluate("!!(document.getElementById('dwHomeBtn')||{}).offsetParent"):
                     problems.append(f'{tag}: 행사 입력 화면에 「‹ 홈」 버튼이 안 보임')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
-                got = p.evaluate("[db.tab, document.querySelectorAll('#p-home .dwh-card').length, document.querySelectorAll('#p-home .dwh-modes button').length, !!(document.getElementById('dwHomeBtn')||{}).offsetParent, /\\S님$/.test(document.querySelector('#p-home .dwh-hi').textContent.trim())]")
-                if got != ['home', 5, 3, False, True]:
-                    problems.append(f'{tag}: 행사 칸 첫 화면이 다름 [탭, 카드 수, 칸 바꾸기 수, 홈 버튼 보임, 인사말 이름] = {got}')
+                got = p.evaluate("[db.tab, document.querySelectorAll('#p-home .dwh-card').length, document.querySelectorAll('#p-home .dwh-modes button').length, !!(document.getElementById('dwHomeBtn')||{}).offsetParent]")
+                if got != ['home', 5, 3, False]:
+                    problems.append(f'{tag}: 행사 칸 첫 화면이 다름 [탭, 카드 수, 칸 바꾸기 수, 홈 버튼 보임] = {got}')
                 p.locator('#p-home [data-dwh="event"]').click(); p.wait_for_timeout(300)
                 if p.evaluate("[db.tab, !document.getElementById('tnSubRow').hidden]") != ['list', True]:
                     problems.append(f'{tag}: 첫 화면 「행사」 카드 → 행사 목록(안쪽 밑줄 탭)이 아님')

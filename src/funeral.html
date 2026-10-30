@@ -5216,17 +5216,17 @@ function renderHome(){   /* 행사 칸 첫 화면 = 행사 · 정산 · 휴무 �
   let open=0, minus=0; db.cases.forEach(c=>{ const k=settleStatus(c,used).k; if(k==='open'||k==='changed') open++; else if(k==='minus') minus++; });
   const n=db.cases.filter(c=>caseMonth(c)===ym).length;
   const st={event:{st:`${mm}월 ${n}건`},money:open||minus?{st:[open&&`미정산 ${open}건`,minus&&`마이너스 ${minus}건`].filter(Boolean).join(' · '),warn:true}:{st:'미정산 없음'}};
-  el.innerHTML=window.dwHome.html({mode:'event',sub:`${mm}월 ${dd}일 ${wd(dd)}요일`,badge:[`${mm}월 마감`,dday],cards:window.dwHome.cards('event').map(c=>Object.assign(c,st[c.k]||{}))});
+  el.innerHTML=window.dwHome.html({mode:'event',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,dd:[`${mm}월 마감`,dday],cards:window.dwHome.cards('event').map(c=>Object.assign(c,st[c.k]||{}))});
   window.dwHome.bind(el,k=>{ if(k==='board'){ goBoard(); return; }
     if(k==='money'){ const last=(db.navLast||{}).money; setTab(['settle','envelopes'].includes(last)?last:'settle'); return; }
     setTab(k==='event'?'list':k==='fset'?'admin':k); },renderHome);
 }
 function renderDHome(){   /* 배송 칸 첫 화면 = 새 배송 · 이어서 작성 · 배송 기록 (양식 고르기 · 칸은 안쪽) */
   const el=$('#p-dhome'); if(!el||!window.dwHome) return;
-  const r=dvCur(), {mm,dd,wd}=ddInfo(), cards=[{k:'new',l:'새 배송',s:'단순용품 · 인력지원 · 인력+차량 · 인력+대체'}];
-  if(r) cards.push({k:'resume',l:'이어서 작성',st:dvTitle(r),s:dvSub(r)});
-  cards.push({k:'log',l:'배송 기록',st:`${dvList().length}건`,s:'지난 배송 다시 보기'});
-  el.innerHTML=window.dwHome.html({mode:'deliv',sub:`${mm}월 ${dd}일 ${wd(dd)}요일`,cards});
+  const r=dvCur(), {mm,dd,wd}=ddInfo(), cards=[{k:'new',l:'새 배송',ic:'plus',s:'단순용품 · 인력지원 · 인력+차량 · 인력+대체'}];
+  if(r) cards.push({k:'resume',l:'이어서 작성',ic:'input',st:dvTitle(r),s:dvSub(r)});
+  cards.push({k:'log',l:'배송 기록',ic:'list',st:`${dvList().length}건`,s:'지난 배송 다시 보기'});
+  el.innerHTML=window.dwHome.html({mode:'deliv',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,cards});
   window.dwHome.bind(el,k=>{ if(k==='new') dvNew(); else if(k==='resume') setTab('deliv'); else if(k==='log'){ setTab('deliv'); dvOpen(); } },renderDHome);
 }
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }

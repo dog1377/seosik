@@ -1409,12 +1409,12 @@ window.DW_MODE_GO = (m) => { const ph = !!(window.dwPhone && window.dwPhone());
   if (m === 'event') goFuneral(ph ? 'home' : 'sec-event'); else if (m === 'deliv') goFuneral(ph ? 'dhome' : 'deliv'); else showTab(ph ? 'fhome' : 'forms'); return true; };
 /* 「‹ 홈」(휴대폰, leader-gate.html): 행사 칸 화면(게시판 · 자료실)은 장례업무 첫 화면, 서식 칸은 서식 첫 화면 */
 window.DW_HOME_GO = () => { if (modeOf(S.tab) === 'event') goFuneral('home'); else showTab('fhome'); return true; };
-/* 서식 칸 첫 화면 (2026.10.30, 참고 화면 모양): 파트장 = 보고 · 탁송 · 물품 · 회사 서류 · 설정, 총괄실장 = 취합 · 서식 · 회사 서류 · 자료실 · 설정 (dwNav 휴대폰 메뉴와 같음)
+/* 서식 칸 첫 화면 (2026.10.30): 파트장 = 보고 · 탁송 · 물품 · 회사 서류 · 설정, 총괄실장 = 취합 · 서식 · 회사 서류 · 자료실 · 설정 (dwNav 휴대폰 메뉴와 같음)
    세부 화면은 안쪽 — 들어가면 위쪽 밑줄 탭(주간보고 · 회의록 …) */
 function renderFHome() {
   const el = $('#fhBody'); if (!el || !window.dwHome) return;
   const d = new Date();
-  el.innerHTML = window.dwHome.html({ mode: 'forms', sub: `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`, cards: window.dwHome.cards('forms') });
+  el.innerHTML = window.dwHome.html({ mode: 'forms', day: `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`, cards: window.dwHome.cards('forms') });
   window.dwHome.bind(el, navGo, () => { if (S.tab === 'fhome') renderFHome(); });
 }
 function showTab(t) {
