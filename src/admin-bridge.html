@@ -1,5 +1,5 @@
 <!-- DW장례업무 안의 「회사 서류」(예전 DW관리, forms/admin.html)에만 붙는 부분 — 서식 칸 (2026.10.29 행사 칸 · 서식 칸 나눔)
-     예전 「홈」 버튼은 없앰 → 파트장은 위 막대 「행사 | 서식」, 아래 메뉴(태블릿 · PC 는 위 메뉴 줄) = 서식 칸 메뉴 (leader-gate-head.html window.dwNav) -->
+     태블릿 · PC 는 위 메뉴 줄 = 서식 칸 메뉴 (leader-gate-head.html window.dwNav), 휴대폰은 위 막대 「‹ 홈」 → 서식 칸 첫 화면 (2026.10.30) -->
 <style id="co-bridge">
 .appbar-in{justify-content:flex-start}
 .appbar-in .local{margin-left:auto}
@@ -13,7 +13,13 @@
     try { Promise.all([typeof saveDocNow === 'function' ? saveDocNow() : 0, typeof saveStaffNow === 'function' ? saveStaffNow() : 0]).then(go, go); } catch (e) { go(); }
   }
   window.DW_MODE = 'forms';
-  window.DW_MODE_GO = function (to) { if (to !== 'event') return false; leave('funeral.html'); return true; };
+  window.DW_MODE_GO = function (to) {
+    var ph = !!(window.dwPhone && window.dwPhone());
+    if (to === 'event') { leave('funeral.html#' + (ph ? 'home' : 'sec-event')); return true; }
+    if (to === 'deliv') { leave('funeral.html#' + (ph ? 'dhome' : 'deliv')); return true; }
+    return false;
+  };
+  window.DW_HOME_GO = function () { leave('./#fhome'); return true; };   /* 휴대폰 「‹ 홈」 → 서식 칸 첫 화면 (2026.10.30) */
   function paintNav() {
     var el = document.getElementById('navIn'); if (!el || !window.dwNav) return;
     el.innerHTML = window.dwNav.html(window.dwNav.items('forms', false), 'company');

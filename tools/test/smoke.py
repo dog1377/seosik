@@ -95,6 +95,7 @@ def main():
         p.goto(BASE + 'forms/funeral.html'); login(p, 'seo', 'pw1111'); p.wait_for_function(READY, timeout=15000)
         p.evaluate(SEED); p.wait_for_timeout(1500)
         n0 = p.evaluate(NCASES)
+        p.evaluate('DW_HOME_GO()')   # 휴대폰: 로그아웃 버튼은 첫 화면에만 (2026.10.30)
         p.click('#dwOut'); p.click('.dwc-ok'); p.wait_for_selector('#gtId', timeout=10000)
         p.click('#gtSwap'); p.fill('#gtId', 'newbie'); p.fill('#gtPw', 'pw3333'); p.fill('#gtPw2', 'pw3333'); p.click('#gtGo')
         p.wait_for_function(READY, timeout=15000); p.wait_for_timeout(1500)
@@ -102,6 +103,7 @@ def main():
             problems.append('계정: 새로 가입한 계정에 이 기기의 다른 사람 기록이 보임')
         if [k for k in srv.ROWS if k[0] == 'uid-newbie' and k[2] == 'case']:
             problems.append('계정: 새로 가입한 계정으로 다른 사람 기록이 올라감')
+        p.evaluate('DW_HOME_GO()')
         p.click('#dwOut'); p.click('.dwc-ok'); login(p, 'seo', 'pw1111'); p.wait_for_function(READY, timeout=15000); p.wait_for_timeout(800)
         if not n0 or p.evaluate(NCASES) != n0 or p.evaluate("localStorage.getItem('dw-owner')") != seo:
             problems.append('계정: 원래 계정으로 다시 들어왔는데 이 기기 기록이 돌아오지 않음')
@@ -113,7 +115,7 @@ def main():
             ctx, p = page(w, h, sc)
             p.goto(BASE + 'forms/#board'); login(p, 'seo', 'pw1111')
             p.wait_for_function("typeof showTab==='function' && typeof S!=='undefined'", timeout=15000)
-            for t in ['board', 'docs', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings']:
+            for t in ['board', 'docs', 'fhome', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings']:
                 p.evaluate(f"showTab('{t}')"); p.wait_for_timeout(500); look(p, f'forms_{t}_{tag}')
                 want = 'event' if t in ('board', 'docs') else 'forms'
                 got = p.evaluate("[document.body.dataset.mode, (document.querySelector('#dwMode [aria-pressed=\"true\"]')||{getAttribute:()=>''}).getAttribute('data-dwmode')]")
@@ -127,9 +129,25 @@ def main():
             # 장례업무 (같은 기기 · 로그인 유지)
             p.goto(BASE + 'forms/funeral.html'); p.wait_for_function("typeof setTab==='function'", timeout=15000)
             p.evaluate(SEED)
-            if w < 700 and p.evaluate("document.querySelectorAll('#mobileNav button').length") != 5:
-                problems.append(f'{tag}: 장례업무 아래 메뉴가 5칸(행사 · 정산 · 휴무 · 게시판 · 설정)이 아님')
-            for t in ['list', 'input', 'out', 'poster', 'deliv', 'settle', 'envelopes', 'duty', 'admin']:
+            # 휴대폰 첫 화면 (2026.10.30): 아래 메뉴 없음 · 큰 칸 바둑판 · 「‹ 홈」은 첫 화면이 아닐 때만
+            if p.evaluate("!!document.getElementById('mobileNav').offsetParent"):
+                problems.append(f'{tag}: 장례업무 아래 메뉴가 보임 (2026.10.30 에 없앰)')
+            if w < 700:
+                p.evaluate("setTab('input')")
+                if not p.evaluate("!!(document.getElementById('dwHomeBtn')||{}).offsetParent"):
+                    problems.append(f'{tag}: 행사 입력 화면에 「‹ 홈」 버튼이 안 보임')
+                p.click('#dwHomeBtn'); p.wait_for_timeout(300)
+                got = p.evaluate("[db.tab, document.querySelectorAll('#p-home .dwh-tile').length, document.querySelectorAll('#p-home .dwh-modes button').length, !!(document.getElementById('dwHomeBtn')||{}).offsetParent]")
+                if got != ['home', 9, 3, False]:
+                    problems.append(f'{tag}: 행사 칸 첫 화면이 다름 [탭, 칸 수, 칸 바꾸기 수, 홈 버튼 보임] = {got}')
+                p.locator('#p-home [data-dwh-mode="deliv"]').click(); p.wait_for_timeout(300)
+                if p.evaluate("[db.tab, document.body.dataset.mode]") != ['dhome', 'deliv']:
+                    problems.append(f'{tag}: 배송 칸 첫 화면으로 안 바뀜')
+                p.locator('#p-dhome [data-dwh="dv:sub"]').click(); p.wait_for_timeout(300)
+                if p.evaluate("[db.tab, (dvCur()||{}).kind]") != ['deliv', 'sub']:
+                    problems.append(f'{tag}: 배송 칸 「인력+대체」 칸을 눌렀는데 새 배송이 안 됨')
+                p.evaluate("db.ships=[]; db.shipCur=null; save()")
+            for t in ['home', 'dhome', 'list', 'input', 'out', 'poster', 'deliv', 'settle', 'envelopes', 'duty', 'admin']:
                 if t == 'deliv':   # 배송 (2026.10.30): 인력+대체 한 건을 넣고 양식 줄 확인
                     p.evaluate("db.ships=[{id:'t1',kind:'sub',co:'삼성SDS',place:'부산대동 VIP실',mgr:[{id:'m1',date:'2026-10-13',sh:'10',sm:'00',eh:'20',em:'00',n:'1'}],veh:{type:'리무진',km:'200',burial:'김해추모',depart:'2026-10-14T06:30',co:'한맥장의차'},subs:[{id:'s1',n:'4',what:'veh'},{id:'s2',n:'3',what:'mourn',m:'5',w:'1'}],updated:1}]; db.shipCur='t1'")
                 p.evaluate(f"setTab('{t}')"); look(p, f'funeral_{t}_{tag}')
@@ -150,8 +168,10 @@ def main():
             p.wait_for_function("typeof setTab==='function' && !document.documentElement.classList.contains('dw-gated')", timeout=15000); look(p, f'member_list_{tag}')
             if 'funeral.html' not in p.url:
                 problems.append(f'member {tag}: 앱을 열었는데 행사 목록이 아님')
-            if p.evaluate("!!(document.getElementById('dwMode')||{}).offsetParent"):
-                problems.append(f'member {tag}: 직원에게 행사 · 서식 바꾸기가 보임')
+            if p.evaluate("!!(document.querySelector('#dwMode [data-dwmode=\"forms\"]')||{}).offsetParent || !!(document.querySelector('.dwh-modes [data-dwh-mode=\"forms\"]')||{}).offsetParent"):
+                problems.append(f'member {tag}: 직원에게 「서식」 칸 바꾸기가 보임')
+            if w < 700 and p.evaluate('db.tab') != 'home':
+                problems.append(f'member {tag}: 휴대폰에서 앱을 열었는데 행사 칸 첫 화면이 아님')
             p.goto(BASE + 'forms/#board'); p.wait_for_function("typeof showTab==='function' && typeof S!=='undefined' && S.tab==='board'", timeout=15000); look(p, f'member_board_{tag}')
             p.goto(BASE + 'forms/admin.html'); p.wait_for_timeout(1500)
             if 'admin.html' in p.url:
@@ -161,11 +181,14 @@ def main():
             ctx, p = page(w, h, sc)
             p.goto(BASE + 'forms/'); login(p, 'boss', 'pw5555')
             try:
-                p.wait_for_function("typeof S!=='undefined' && S.tab==='gather'", timeout=15000)
+                p.wait_for_function("typeof S!=='undefined' && (S.tab==='gather' || S.tab==='fhome')", timeout=15000)
             except Exception:
                 pass
-            if p.evaluate("typeof S!=='undefined' ? S.tab : ''") != 'gather':
-                problems.append(f'chief {tag}: 첫 화면이 취합이 아님')
+            first = 'fhome' if w < 700 else 'gather'   # 휴대폰은 서식 첫 화면 바둑판 (2026.10.30)
+            if p.evaluate("typeof S!=='undefined' ? S.tab : ''") != first:
+                problems.append(f'chief {tag}: 첫 화면이 {first} 가 아님')
+            if w < 700:
+                look(p, f'chief_fhome_{tag}'); p.evaluate("showTab('gather')"); p.wait_for_timeout(500)
             for v in ['weekly', 'minutes', 'review', 'ship']:
                 p.click(f"#gtTabs [data-gv='{v}']"); p.wait_for_timeout(500); look(p, f'chief_{v}_{tag}')
             p.evaluate("showTab('docs')"); p.wait_for_timeout(500); look(p, f'chief_docs_{tag}')

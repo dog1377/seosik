@@ -621,6 +621,9 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
     <button type="button" data-btab="docs">자료실</button>
   </nav>
 
+  <!-- ===== 서식 칸 첫 화면 (2026.10.30, 휴대폰): 큰 칸 바둑판 — leader-gate-head.html window.dwHome ===== -->
+  <section class="tab" id="tab-fhome" hidden aria-label="서식 첫 화면"><div id="fhBody"></div></section>
+
   <!-- ===== 파트 게시판 (2026.10.23-5) ===== -->
   <section class="tab" id="tab-board" hidden>
     <div class="tab-head">
@@ -1402,7 +1405,22 @@ function navGo(k) {
   if (href.indexOf('funeral.html') === 0) goFuneral(href.split('#')[1] || '');
 }
 window.DW_MODE = () => modeOf(S.tab);
-window.DW_MODE_GO = (m) => { if (m === 'event') goFuneral(); else showTab('forms'); return true; };
+window.DW_MODE_GO = (m) => { const ph = !!(window.dwPhone && window.dwPhone());
+  if (m === 'event') goFuneral(ph ? 'home' : 'sec-event'); else if (m === 'deliv') goFuneral(ph ? 'dhome' : 'deliv'); else showTab(ph ? 'fhome' : 'forms'); return true; };
+/* 「‹ 홈」(휴대폰, leader-gate.html): 행사 칸 화면(게시판 · 자료실)은 장례업무 첫 화면, 서식 칸은 서식 첫 화면 */
+window.DW_HOME_GO = () => { if (modeOf(S.tab) === 'event') goFuneral('home'); else showTab('fhome'); return true; };
+/* 서식 칸 첫 화면 (2026.10.30 사용자 「모바일 화면 ATM 큰 글씨처럼 큰 바둑판 배열 · 원하는 기능으로만 바로」) — 총괄실장은 총괄실장 메뉴 */
+function renderFHome() {
+  const el = $('#fhBody'); if (!el || !window.dwHome) return;
+  const d = new Date(), T = (k, l, ic, sub, pri) => ({ k, l, ic, s: sub, pri });
+  const tiles = isChief()
+    ? [T('gather', '취합', 'gather', '파트장 보고 모아 보기', true), T('weekly', '주간보고', 'doc', '파트원 주간 보고서'), T('minutes', '회의록', 'minutes', '회의 안건 · 내용'), T('review', '후기보고', 'review', '출상일별 일일보고'),
+      T('ship', '탁송', 'truck', '용품 · 근조기 탁송'), T('company', '회사 서류', 'brief', '공지 · 발령 · 증명서'), T('docs', '자료실', 'folder', '회사 기본 서류'), T('settings', '설정', 'set', '결재란 · 서명')]
+    : [T('weekly', '주간보고', 'doc', '파트원 주간 보고서'), T('minutes', '회의록', 'minutes', '회의 안건 · 내용'), T('review', '후기보고', 'review', '출상일별 일일보고'), T('consult', '상담서', 'consult', '장례 상담서 인쇄'),
+      T('ship', '탁송', 'truck', '용품 · 근조기 탁송'), T('stock', '물품', 'box', '수령 · 불출 장부'), T('company', '회사 서류', 'brief', '공지 · 발령 · 증명서'), T('settings', '설정', 'set', '결재란 · 서명 · 파트원')];
+  el.innerHTML = window.dwHome.html({ mode: 'forms', top: `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`, tiles });
+  window.dwHome.bind(el, (k) => { if (k === 'company') goCompany(); else showTab(k); });
+}
 function showTab(t) {
   if (t === 'forms') t = lastFormTab();
   if (t === 'report' || t === 'shipg') t = grpLast(t);
@@ -1411,9 +1429,10 @@ function showTab(t) {
   if (isChief() && STAFF_TABS.includes(t)) t = 'gather';   /* 총괄실장: 홈 · 게시판 대신 취합 */
   if (!isChief() && t === 'gather') t = 'home';
   if (isChief() && (t === 'stock' || t === 'consult')) t = 'gather';   /* 물품 장부 · 상담서는 파트장만 */
-  if (t === 'home') { goFuneral('list'); return; }   /* 예전 홈 → 행사 칸 행사 목록 (2026.10.29, 마감 · 이번 달은 행사 목록 맨 위) */
+  if (t === 'home') { goFuneral(window.dwPhone && window.dwPhone() ? 'home' : 'list'); return; }   /* 예전 홈 → 행사 칸 행사 목록 (2026.10.29, 마감 · 이번 달은 행사 목록 맨 위) · 휴대폰은 장례업무 첫 화면 (2026.10.30) */
   if (S.tab === 'settings' && t !== 'settings' && S.sd) toast('설정을 아직 저장하지 않았습니다. 설정 탭에서 저장을 눌러 주십시오.');
   S.tab = t; document.body.dataset.view = t;
+  document.documentElement.classList.toggle('dw-at-home', t === 'fhome');
   ALL_TABS.forEach((k) => { const el = $('#tab-' + k); if (el) el.hidden = k !== t; });
   const isForm = FORM_TABS.includes(t), grp = isChief() ? '' : grpOf(t);
   $('#formTabs').hidden = !isForm;
@@ -1431,6 +1450,7 @@ function showTab(t) {
   if (t === 'gather') gatherOpen(false);
   if (t === 'stock') stockOpen();
   if (t === 'consult') consultOpen();
+  if (t === 'fhome') renderFHome();
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
 async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
@@ -2987,8 +3007,8 @@ function bindPwa() {
    게시판 · 파트: 수파베이스 서버 함수(tools/supabase-part.sql)로만 읽고 씀 → window.dwAcct.rpc (leader-gate.html).
    파트장은 파트원의 장례일정 · 봉투를 보기만 함(dw_member_records). 직원 계정(html.dw-member)은 서식 · 설정이 안 보임. */
 const FORM_TABS = ['weekly', 'minutes', 'review', 'ship', 'stock', 'consult'];   /* consult = 장례 상담서 (2026.10.28-3, 파트장만) */   /* stock = 물품 수령 · 불출 (2026.10.27, 파트장만 — 총괄실장은 안 봄) */
-const ADMIN_TABS = FORM_TABS.concat(['settings']);
-const ALL_TABS = ['home', 'gather'].concat(FORM_TABS, ['board', 'docs', 'settings']);   /* docs = 자료실 (2026.10.28) */
+const ADMIN_TABS = FORM_TABS.concat(['settings', 'fhome']);   /* fhome = 서식 칸 첫 화면 (2026.10.30, 휴대폰) — 직원은 못 엶 */
+const ALL_TABS = ['home', 'gather', 'fhome'].concat(FORM_TABS, ['board', 'docs', 'settings']);   /* docs = 자료실 (2026.10.28) */
 const STAFF_TABS = ['home', 'board'];   /* 총괄실장은 안 씀 */
 const isMember = () => document.documentElement.classList.contains('dw-member');
 const isChief = () => document.documentElement.classList.contains('dw-chief');   /* 총괄실장 (2026.10.26) */
@@ -4913,11 +4933,14 @@ async function init() {
   let tab = 'home';
   try { tab = sessionStorage.getItem('mf.tabS') || 'home'; } catch (e) { /* ignore */ }
   const fromHash = (location.hash || '').replace('#', '');
+  let landed = true;   /* dw-landed: 이 창에서 첫 화면을 이미 보여 줌 (funeral.html 과 같이 씀, 로그인 · 로그아웃하면 지움) */
+  if (!document.documentElement.classList.contains('dw-gated')) { try { landed = !!sessionStorage.getItem('dw-landed'); sessionStorage.setItem('dw-landed', '1'); } catch (e) { /* ignore */ } }
   if (ALL_TABS.includes(fromHash) || ['forms', 'report', 'shipg'].includes(fromHash)) {
-    tab = fromHash;
+    landed = true; tab = fromHash;
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
   }
   if (!ALL_TABS.includes(tab) && !['forms', 'report', 'shipg'].includes(tab)) tab = 'home';
+  if (!landed && isChief() && window.dwPhone && window.dwPhone()) tab = 'fhome';   /* 총괄실장 휴대폰: 앱을 열면 · 로그인하면 서식 첫 화면 (2026.10.30) */
   renderAll();
   showTab(tab);
   const ok = await Store.open();

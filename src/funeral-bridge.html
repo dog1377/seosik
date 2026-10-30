@@ -1,5 +1,5 @@
 <!-- DW장례업무 안의 장례업무(= 「행사」 칸)에만 붙는 부분 (2026.10.29 행사 칸 · 서식 칸 나눔)
-     예전 「홈」 버튼과 왼쪽 메뉴 안 서식 바로가기는 없앰 → 파트장은 위 막대 「행사 | 서식」(leader-gate.html), 게시판은 아래 메뉴 「게시판」 -->
+     예전 「홈」 버튼과 왼쪽 메뉴 안 서식 바로가기는 없앰 → 칸 바꾸기는 leader-gate.html, 휴대폰은 첫 화면 바둑판(2026.10.30) -->
 <style id="mf-bridge">
 .ab-title{min-width:0}
 .ab-title b,.ab-title small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
@@ -8,14 +8,6 @@
 (function () {
   'use strict';
   try { localStorage.setItem('mf.lastApp', 'funeral'); } catch (e) { /* ignore */ }
-  window.DW_MODE = 'event';
-  /* 「서식」으로 바꾸기: 지금 기록을 저장한 뒤 서식 칸(마지막에 본 서식) */
-  window.DW_MODE_GO = function (to) {
-    if (to !== 'forms') return false;
-    try { if (typeof save === 'function') save(); } catch (e) { /* ignore */ }
-    try { localStorage.setItem('mf.lastApp', 'forms'); } catch (e) { /* ignore */ }
-    location.replace('./#forms');
-    return true;
-  };
+  /* 칸 바꾸기(window.DW_MODE · DW_MODE_GO) · 「‹ 홈」(DW_HOME_GO)은 2026.10.30 부터 funeral.html 안에 (배송 칸 · 첫 화면을 알아야 해서) */
 })();
 </script>
