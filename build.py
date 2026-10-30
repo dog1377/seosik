@@ -41,6 +41,7 @@ GATE_BODY = (ROOT / 'src' / 'leader-gate.html').read_text(encoding='utf-8')
 SYNC_KIT = (ROOT / 'src' / 'sync-kit.html').read_text(encoding='utf-8')
 # 확인 창 · 되돌리기 (세 화면 공통)
 CONFIRM_KIT = (ROOT / 'src' / 'confirm-kit.html').read_text(encoding='utf-8')
+THEME3 = (ROOT / 'src' / 'dw-theme3.html').read_text(encoding='utf-8')   # 디자인 3안 (2026.10.30): 세 화면 맨 끝에 — 색 · 글꼴 · 모서리 · 주 버튼
 
 
 def lock_html(cfg):
@@ -79,6 +80,7 @@ html = f"""<!doctype html>
 {CONFIRM_KIT}
 {GATE_BODY}
 {SYNC_KIT}
+{THEME3}
 </body>
 </html>
 """
@@ -169,11 +171,11 @@ def make_sw(prefix, core):
 
 # 서식함 안의 장례업무
 (FM / 'funeral.html').write_text(
-    make_funeral('DW장례업무', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), CONFIRM_KIT, GATE_BODY], share_title='DW장례업무', page_title='DW장례업무', manifest_href='../manifest.webmanifest', head_extra='<script>window.DW_STAFF_ONLY = true;</script>\n' + GATE_HEAD),   # 장례업무: 총괄실장은 안 씀 → 취합으로
+    make_funeral('DW장례업무', [(ROOT / 'src' / 'funeral-bridge.html').read_text(encoding='utf-8'), CONFIRM_KIT, GATE_BODY, THEME3], share_title='DW장례업무', page_title='DW장례업무', manifest_href='../manifest.webmanifest', head_extra='<script>window.DW_STAFF_ONLY = true;</script>\n' + GATE_HEAD),   # 장례업무: 총괄실장은 안 씀 → 취합으로
     encoding='utf-8')
 (FM / 'sw.js').write_text(make_sw('forms-app-', [
     './', './index.html', './funeral.html', './admin.html', './switch.html', './vendor/jspdf.umd.min.js', './assets/poster.pptx',
-    './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png', './icons/gukhwa-line.png',   # gukhwa-line = 첫 화면 먹색 머리의 은은한 국화 (2026.10.30)
+    './icons/gukhwa-192.png', './icons/gukhwa-512.png', './icons/gukhwa-apple-180.png',
 ]), encoding='utf-8')
 (FM / 'version.json').write_text(json.dumps({'version': version}) + '\n', encoding='utf-8')
 # 맨 앞 주소(/)의 서비스워커: 안내 페이지 두 개와 manifest만 맡고, 나머지(forms · jangrye · admin)는 손대지 않음
@@ -246,6 +248,7 @@ admin_html = f"""<!doctype html>
 {CONFIRM_KIT}
 {GATE_BODY}
 {SYNC_KIT}
+{THEME3}
 </body>
 </html>
 """

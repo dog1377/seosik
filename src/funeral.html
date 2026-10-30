@@ -3289,7 +3289,7 @@ function renderList(){
     </div></div>`;
   h+=`<dl class="lv-sum"><div><dt>행사</dt><dd>${sum.n}건</dd></div><div><dt>미정산</dt><dd class="${sum.open?'hot':''}">${sum.open}건${sum.open?` · ${esc(wonStr(sum.openWon)||'0원')}`:''}</dd></div><div><dt>마이너스</dt><dd class="${sum.minus?'warn':''}">${sum.minus?'− ':''}${sum.minus}건</dd></div><div><dt>봉투 (본부장 · 실장)</dt><dd>${esc(wonStr(sum.part)||'0원')} · ${esc(wonStr(sum.mgr)||'0원')}</dd></div></dl>`;
   if(!rows.length){
-    h+=`<div class="lv-empty"><p>${db.cases.length?'조건에 맞는 행사가 없습니다.':'아직 행사가 없습니다. 위 「새 행사」로 시작하십시오.'}</p>${db.cases.length&&(LV.month||LV.co||LV.st||LV.q)?'<button class="btn" type="button" data-lv-reset>모든 행사 보기</button>':''}</div>`;
+    h+=`<div class="lv-empty"><p>${db.cases.length?'조건에 맞는 행사가 없습니다.':'아직 행사가 없습니다. 「새 행사」로 시작하십시오.'}</p>${db.cases.length&&(LV.month||LV.co||LV.st||LV.q)?'<button class="btn" type="button" data-lv-reset>모든 행사 보기</button>':''}</div>`;
   } else {
     const stCell=r=>{ const st=r.st, tag=`<span class="lv-st st-${st.k}">${st.k==='minus'?'− ':st.k==='sent'?'✓ ':''}${esc(st.t)}</span>`;
       return tag+((st.k==='open'||st.k==='changed')?`<button class="btn sm lv-sent" type="button" data-sent="on" data-case="${esc(r.c.id)}">보냄</button>`:st.k==='sent'?`<small class="lv-at">${esc(sentDay(st.at))}</small>`
@@ -3307,12 +3307,14 @@ function renderList(){
       +`<div class="lv-tr lv-tf" role="row"><span role="cell" class="lv-no">합계</span><span role="cell" class="lv-day"></span><span role="cell" class="lv-what">${sum.n}건</span><span role="cell" class="lv-stc">${sum.sent?`보냄 ${sum.sent}건`:''}</span><span role="cell" class="num lv-send"></span><span class="lv-envs"><span role="cell" class="num lv-env" data-k="본부장">${esc(wonStr(sum.part)||'0원')}</span><span role="cell" class="num lv-env" data-k="실장">${esc(wonStr(sum.mgr)||'0원')}</span></span></div></div>
       <p class="note">줄을 누르면 그 행사를 엽니다. 「보냄」은 정산 카톡을 보낸 뒤 눌러 두십시오.</p>`;
   }
+  h+=`<div class="dw-cta lv-cta"><button type="button" class="dw-cta-btn" data-lv-new>${uiIcon('plus')}새 행사</button></div>`;   /* 휴대폰: 화면 아래 큰 주 버튼 (시안 3안) */
   el.innerHTML=h;
   if(has){ const q=$('#lvQ'); q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
 }
 $('#p-list').addEventListener('input',e=>{ if(e.target.id==='lvQ'){ LV.q=e.target.value; clearTimeout(renderList._t); renderList._t=setTimeout(renderList,180); } });
 $('#p-list').addEventListener('change',e=>{ const k=e.target.dataset.lv; if(!k) return; LV[k]=e.target.value; listSave(); renderList(); });
 $('#p-list').addEventListener('click',e=>{
+  if(e.target.closest('[data-lv-new]')){ openPicker('new'); return; }
   if(e.target.closest('[data-lv-reset]')){ LV.month=''; LV.co=''; LV.st=''; LV.q=''; listSave(); renderList(); return; }
   const o=e.target.closest('[data-lv-open]'); if(!o) return;
   const c=db.cases.find(x=>x.id===o.dataset.lvOpen); if(!c) return;
@@ -5210,26 +5212,37 @@ window.DW_MODE_GO=to=>{ const ph=!!(window.dwPhone&&window.dwPhone());
   if(to==='event'){ const last=(db.navLast||{}).event; setTab(ph?'home':(secOf(last).k==='event'&&ALL_TABS.includes(last)&&!HOME_TABS.includes(last)?last:'list')); return true; }
   return false; };
 window.DW_HOME_GO=()=>{ setTab(modeOfTab(db.tab)==='deliv'?'dhome':'home'); return true; };
-function renderHome(){   /* 행사 칸 첫 화면 = 요약(이번 달 행사 · 미정산 · 봉투) + 행사 · 정산 · 휴무 · 당직 · 게시판 · 설정 (세부 화면은 안쪽: 행사 목록 · 장례일정표 밑줄 탭, 1~5 단계 줄) */
+let homeT={};   /* 첫 화면 할 일이 가리키는 행사 (누를 때 씀) */
+function renderHome(){   /* 행사 칸 첫 화면 (시안 3안): 할 일(정산 카톡 보내기 전 · 마이너스 정리 · 이어서 하기) + 마감 한 줄 + 업무 목록 + 아래 「새 행사」 */
   const el=$('#p-home'); if(!el||!window.dwHome) return;
-  const {mm,dd,wd,dday}=ddInfo(), ym=seoulToday().slice(0,7), used=carryUse();
-  let open=0, minus=0; db.cases.forEach(c=>{ const k=settleStatus(c,used).k; if(k==='open'||k==='changed') open++; else if(k==='minus') minus++; });
+  const {mm,left}=ddInfo(), ym=seoulToday().slice(0,7), used=carryUse();
+  const opens=[], minus=[]; db.cases.forEach(c=>{ const st=settleStatus(c,used); if(st.k==='open'||st.k==='changed') opens.push([c,st]); else if(st.k==='minus') minus.push([c,st]); });
+  const cur=db.cases.length?curCase():null, si=cur?STEP_KEYS.findIndex(k=>!stepDone(cur,k)):-1, todo=[];
+  homeT={open:opens.map(x=>x[0].id),openSt:opens.some(x=>x[1].k==='changed')?'todo':'open',minus:minus.map(x=>x[0].id),cur:cur&&si>=0?STEP_KEYS[si]:''};
+  const more=n=>n>1?` 외 ${n-1}건`:'';
+  if(opens.length){ const [c,st]=opens[0]; todo.push({k:'t-open',l:`정산 카톡 보내기 전 ${opens.length}건`,s:`${caseTitle(c)} · ${wonStr(st.won)||'0원'}${more(opens.length)}`,ic:'settle',tone:'ink'}); }
+  if(minus.length){ const [c,st]=minus[0]; todo.push({k:'t-minus',l:`마이너스 정리 ${minus.length}건`,s:`${caseTitle(c)} · ${wonStr(st.won)}${more(minus.length)}`,ic:'settle',tone:'warn',warn:true}); }
+  if(cur&&si>=0&&!(si>=3&&(homeT.open.includes(cur.id)||homeT.minus.includes(cur.id)))) todo.push({k:'t-cur',l:caseTitle(cur),s:`이어서 하기 · ${si+1}단계 ${STEPS[si][2]}`,ic:'input'});
   const n=db.cases.filter(c=>caseMonth(c)===ym).length; let env=0; try{ env=envelopeSummary(ym).all.total; }catch(e){}
-  const st={money:minus?{st:`마이너스 ${minus}건`,warn:true}:{}};
-  el.innerHTML=window.dwHome.html({mode:'event',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,dd:[`${mm}월 마감`,dday],
-    stats:[[`${mm}월 행사`,`${n}건`],['미정산',`${open}건`,open>0],[`${mm}월 봉투`,wonStr(env)||'0원']],
-    cards:window.dwHome.cards('event').map(c=>Object.assign(c,st[c.k]||{}))});
-  window.dwHome.bind(el,k=>{ if(k==='board'){ goBoard(); return; }
+  el.innerHTML=window.dwHome.html({mode:'event',title:todo.length?`할 일이 ${todo.length}건 있습니다`:'지금은 할 일이 없습니다',todo,
+    line:(left===0?`오늘이 <b>${mm}월 마감일</b>입니다`:`${mm}월 마감까지 <b>${left}일</b>`)+` · 이번 달 봉투 ${esc(wonStr(env)||'0원')}`,
+    cards:window.dwHome.cards('event').map(c=>c.k==='event'?Object.assign(c,{s:`${mm}월 ${n}건 · 목록 · 입력 · 보고서`}):c),cta:{k:'new',l:'새 행사',plus:true}});
+  window.dwHome.bind(el,k=>{
+    if(k==='new'){ openPicker('new'); return; }
+    if(k==='t-open'||k==='t-minus'){ const ids=k==='t-open'?homeT.open:homeT.minus;   /* 한 건이면 그 행사 정산, 여러 건이면 행사 목록(그 상태만) */
+      if(ids.length===1&&db.cases.some(c=>c.id===ids[0])){ db.cur=ids[0]; save(); renderCaseSel(); setTab('settle'); }
+      else { LV.month=''; LV.st=k==='t-open'?homeT.openSt:'minus'; LV.q=''; listSave(); setTab('list'); } return; }
+    if(k==='t-cur'){ setTab(homeT.cur||'input'); return; }
+    if(k==='board'){ goBoard(); return; }
     if(k==='money'){ const last=(db.navLast||{}).money; setTab(['settle','envelopes'].includes(last)?last:'settle'); return; }
     setTab(k==='event'?'list':k==='fset'?'admin':k); },renderHome);
 }
-function renderDHome(){   /* 배송 칸 첫 화면 = 요약 + 새 배송 · 이어서 작성 · 배송 기록 (양식 고르기 · 칸은 안쪽) */
+function renderDHome(){   /* 배송 칸 첫 화면 (시안 3안): 이어서 작성 + 배송 기록 + 아래 「새 배송」 (양식 고르기 · 칸은 배송 화면 안) */
   const el=$('#p-dhome'); if(!el||!window.dwHome) return;
-  const r=dvCur(), {mm,dd,wd}=ddInfo(), ym=seoulToday().slice(0,7), all=dvList(), mon=all.filter(x=>{ const t=new Date((x.created||0)+9*3600*1000); return t.toISOString().slice(0,7)===ym; }).length;
-  const cards=[{k:'new',l:'새 배송',ic:'plus',s:'단순용품 · 인력지원 · 인력+차량 · 인력+대체'}];
-  if(r) cards.push({k:'resume',l:'이어서 작성',ic:'input',st:dvTitle(r),s:dvSub(r)});
-  cards.push({k:'log',l:'배송 기록',ic:'list',s:'지난 배송 다시 보기'});
-  el.innerHTML=window.dwHome.html({mode:'deliv',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,stats:[[`${mm}월 배송`,`${mon}건`],['전체 기록',`${all.length}건`]],cards});
+  const r=dvCur(), {mm}=ddInfo(), ym=seoulToday().slice(0,7), all=dvList(), mon=all.filter(x=>new Date((x.created||0)+9*3600*1000).toISOString().slice(0,7)===ym).length;
+  const todo=r?[{k:'resume',l:dvTitle(r),s:`이어서 작성 · ${dvSub(r)}`,ic:'input',tone:'ink'}]:[];
+  el.innerHTML=window.dwHome.html({mode:'deliv',title:r?'작성 중인 배송이 있습니다':`${mm}월 배송은 ${mon}건입니다`,todo,line:`${mm}월 배송 ${mon}건 · 전체 기록 ${all.length}건`,
+    cards:[{k:'log',l:'배송 기록',ic:'list',s:'지난 배송 다시 보기 · 복사'}],cta:{k:'new',l:'새 배송',plus:true}});
   window.dwHome.bind(el,k=>{ if(k==='new') dvNew(); else if(k==='resume') setTab('deliv'); else if(k==='log'){ setTab('deliv'); dvOpen(); } },renderDHome);
 }
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }

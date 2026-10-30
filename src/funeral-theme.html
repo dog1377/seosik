@@ -399,6 +399,18 @@ body[data-tab="home"] #newCase,body[data-tab="dhome"] #newCase,body[data-tab="ho
 /* 배송 칸 (넓은 화면): 행사 칸 메뉴 줄은 숨김 — 칸 바꾸기는 위 막대 「행사 · 서식 · 배송」 */
 body[data-mode="deliv"] .tn-main-row{display:none}
 #abSub:empty{display:none}   /* 첫 화면은 앱 이름만 */
+/* 시안 3안 (2026.10.30): 중요한 일 하나는 화면 아래 큰 주 버튼 — 행사 목록 「새 행사」(위 막대 「새 행사」는 휴대폰 목록에서 숨김), 행사 입력 「이전 · 다음」은 아래에 붙음.
+   설정 · 장례일정표 화면에는 「새 행사」가 할 일이 아니라서 위 막대에서 뺌 */
+body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
+@media (min-width:700px){ .lv-cta{display:none} }
+@media (max-width:699px){
+  body[data-tab="list"] #newCase{display:none}
+  #p-list{padding-bottom:96px}
+  body[data-tab="input"] #groupFooter{position:sticky;bottom:0;z-index:6;display:grid;grid-template-columns:1fr 2fr;gap:10px;margin:10px -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
+  body[data-tab="input"] #groupFooter p{display:none}
+  body[data-tab="input"] #groupFooter .btn{min-height:54px;font-size:16px;padding:0 12px}
+  body[data-tab="input"] #groupFooter .btn.primary{font-size:16px}
+}
 /* 배송 화면 (2026.10.30, 행사와 따로 · 현진시닝 배송 양식 4가지) — 모양은 행사 고르기 칸 · 장례일정표 화면과 같게 */
 #p-deliv>.dv-panel{margin-bottom:2px}
 .dv-trio{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(84px,.7fr);gap:12px;align-items:start}

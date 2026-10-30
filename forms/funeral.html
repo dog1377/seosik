@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.30-7">
+<meta name="app-version" content="2026.10.30-8">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -132,62 +132,35 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   html:not(.dw-at-home) .dw-home-btn{display:inline-flex}
   html:not(.dw-at-home) #dwOut{display:none!important}
 }
-/* 첫 화면 (2026.10.30 -7, 사용자 「아까 보낸 사진처럼, 진짜 기업에서 쓸 만한 디자인으로 · 스킬 다 뒤져서라도 예쁘게」 — 단 -5 처럼 똑같이 베끼지 않음)
-   짜임: 먹색 머리(위 막대와 이어짐, 오른쪽에 회사 국화를 은은하게) — 이름 · 오늘 · 마감 · 칸 바꾸기 / 그 아래로 걸친 요약 카드(숫자 3개) / 업무 카드(첫 카드는 한 줄 전체).
-   대담함은 머리 한 곳에만(국화 · 국화 금색), 나머지는 흰 종이 카드 · 국화 금색 그림 칸 · 차분하게. 세부 기능은 카드 안쪽. */
-.dwh{--dwh-night:#1d1e20;--dwh-gold:#d4b26a;--dwh-tile:#f2ebdc;--dwh-tile-ic:#8c6a1f;--dwh-card:var(--surface,#fff);
-  --dwh-ring:0 0 0 1px rgba(28,29,31,.06),0 1px 2px rgba(28,29,31,.05),0 6px 16px rgba(28,29,31,.05);display:block}
-.dwh-hero{position:relative;overflow:hidden;padding:24px 20px 60px;border-radius:18px;background:radial-gradient(240px 240px at 88% 34%,rgba(212,178,106,.13),rgba(212,178,106,0) 70%),var(--dwh-night);color:#fff;isolation:isolate}
-.dwh-hero::after{content:"";position:absolute;z-index:-1;right:-62px;top:-26px;width:264px;height:264px;background:url(icons/gukhwa-line.png) center/contain no-repeat;opacity:.3;-webkit-mask-image:linear-gradient(100deg,transparent 8%,#000 52%);mask-image:linear-gradient(100deg,transparent 8%,#000 52%);pointer-events:none}   /* 회사 국화 선 그림 (앱 아이콘에서 따낸 윤곽선, 왼쪽으로 갈수록 흐리게) */
-.dwh-name{margin:0;font-family:var(--serif,"Noto Serif KR",serif);font-size:28px;line-height:1.3;font-weight:700;letter-spacing:-.01em;color:#fff;word-break:keep-all;text-wrap:balance;max-width:16em}
-.dwh-date{margin:8px 0 0;display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;font-size:14.5px;color:rgba(255,255,255,.74)}
-.dwh-dd{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid rgba(212,178,106,.55);border-radius:6px;color:#ecd9ad;font-size:13px;font-weight:600}
-.dwh-dd b{font-family:var(--serif,"Noto Serif KR",serif);font-size:15px;color:#fff;font-variant-numeric:tabular-nums}
-.dwh-modes{margin-top:20px;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;padding:4px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.07)}
-.dwh-modes button{min-height:44px;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.8);font:inherit;font-size:16px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s ease,color .15s ease}
-.dwh-modes button[aria-pressed="true"]{background:#fff;color:#1c1d1f;font-weight:700}
-.dwh-stats{position:relative;z-index:1;margin:-38px 8px 0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border-radius:14px;background:var(--dwh-card);box-shadow:var(--dwh-ring)}
-.dwh-stats>div{padding:13px 12px 12px;min-width:0}
-.dwh-stats>div+div{border-left:1px solid var(--line,#d6d7d4)}
-.dwh-stats dt{font-size:12.5px;color:var(--muted,#5a5e63);white-space:nowrap}
-.dwh-stats dd{margin:3px 0 0;font-size:19px;font-weight:700;line-height:1.25;color:var(--ink,#1c1d1f);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.dwh-stats dd.warn{color:var(--warn,#9a3b1e)}
-.dwh-cards{margin-top:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.dwh-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:132px;padding:16px;box-sizing:border-box;border:0;border-radius:16px;background:var(--dwh-card);box-shadow:var(--dwh-ring);color:var(--ink,#1c1d1f);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0;transition:transform .12s ease}
-.dwh-tile{display:grid;place-items:center;flex:none;width:42px;height:42px;margin-bottom:12px;border-radius:12px;background:var(--dwh-tile);color:var(--dwh-tile-ic)}
-.dwh .dwh-tile svg{width:22px;height:22px;stroke-width:1.9}
-.dwh-card b{font-size:17.5px;line-height:1.3;font-weight:700;word-break:keep-all}
-.dwh-card .dwh-in{font-size:12.5px;line-height:1.45;color:var(--muted,#5a5e63);word-break:keep-all;text-wrap:pretty}
-.dwh-pill{display:inline-block;margin:2px 0 3px;padding:2px 8px;border-radius:6px;background:var(--accent-soft,#ececea);color:var(--ink-2,#3d4044);font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
-.dwh-pill.warn{background:var(--warn-soft,#f7e6de);color:var(--warn,#9a3b1e)}
-.dwh .dwh-card>.dwh-go{position:absolute;right:14px;top:27px;width:18px;height:18px;stroke:var(--muted,#5a5e63);stroke-width:2.2;opacity:.75}
-.dwh-card.wide{grid-column:1/-1;flex-direction:row;align-items:center;gap:14px;min-height:88px;padding-right:44px}
-.dwh-card.wide .dwh-tile{margin:0;width:48px;height:48px;border-radius:13px}
-.dwh .dwh-card.wide .dwh-tile svg{width:24px;height:24px}
-.dwh-card.wide .dwh-txt{display:grid;gap:2px;min-width:0}
-.dwh-card.wide b{font-size:19px}
-.dwh .dwh-card.wide>.dwh-go{top:50%;margin-top:-9px}
-.dwh-card .dwh-txt{display:contents}
-.dwh-card:active{transform:scale(.98)}
-.dwh-card:focus-visible{outline:2px solid var(--ink,#1c1d1f);outline-offset:2px}
-.dwh-modes button:focus-visible{outline:2px solid #fff;outline-offset:2px}
-@media (hover:hover){.dwh-card:hover{box-shadow:0 0 0 1px rgba(140,106,31,.45),0 1px 2px rgba(28,29,31,.05),0 6px 16px rgba(28,29,31,.06)}}
-@media (prefers-reduced-motion:reduce){.dwh-card{transition:none}.dwh-card:active{transform:none}}
-:root[data-theme="dark"] .dwh{--dwh-night:#1f2022;--dwh-tile:#2b2519;--dwh-tile-ic:#d4b26a;--dwh-ring:0 0 0 1px rgba(255,255,255,.07)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dwh{--dwh-night:#1f2022;--dwh-tile:#2b2519;--dwh-tile-ic:#d4b26a;--dwh-ring:0 0 0 1px rgba(255,255,255,.07)}}
-/* 휴대폰: 먹색 머리를 화면 끝까지 · 위 막대와 이어지게 (위 막대도 먹색 · 흰 글씨 · 국화 표시) */
-@media (max-width:699px){
-  .dwh-hero{margin:0 -16px;border-radius:0}
-  html.dw-at-home .wrap{padding-top:0!important}
-  html.dw-at-home header.appbar{background:#1d1e20!important;border-bottom-color:transparent!important;box-shadow:none!important}
-  :root[data-theme="dark"].dw-at-home header.appbar{background:#1f2022!important}
-  html.dw-at-home header.appbar .ab-title b,html.dw-at-home header.appbar .brand{display:inline-flex;align-items:center;gap:9px;color:#fff!important;font-family:var(--serif,"Noto Serif KR",serif)}
-  html.dw-at-home header.appbar .ab-title b::before,html.dw-at-home header.appbar .brand::before{content:"";flex:none;width:26px;height:26px;border-radius:7px;background:#000 url(icons/gukhwa-192.png) center/112% no-repeat;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
-  html.dw-at-home header.appbar button,html.dw-at-home header.appbar .local{background:transparent!important;border-color:rgba(255,255,255,.28)!important;color:#fff!important}
-  html.dw-at-home .topnav{background:transparent;border:0}
-}
-@media (max-width:699px) and (prefers-color-scheme:dark){ :root:not([data-theme="light"]).dw-at-home header.appbar{background:#1f2022!important} }
-@media (min-width:700px){.dwh-modes{display:none}.dwh-hero{padding-bottom:58px}.dwh-cards{grid-template-columns:repeat(3,minmax(0,1fr))}.dwh-card.wide{grid-column:auto;flex-direction:column;align-items:flex-start;min-height:132px;padding-right:16px}.dwh-card.wide .dwh-tile{margin-bottom:12px;width:42px;height:42px}.dwh .dwh-card.wide>.dwh-go{top:27px;margin-top:0}}   /* 넓은 화면은 위 막대에 칸 바꾸기가 있음 */
+/* 첫 화면 (2026.10.30 -8, 사용자가 고른 시안 3안 「큰 글씨 · 한 화면 한 일」 + 「글씨체 조금 더 차분하게」 — 색 · 글꼴 · 아래 고정 큰 버튼 .dw-cta 는 src/dw-theme3.html)
+   위에서부터: 이름 · 「할 일이 N건 있습니다」 → 할 일 상자(누르면 바로 그 일) → 마감 · 이번 달 한 줄 → 칸 바꾸기 → 업무 목록(큰 줄) → 화면 아래 큰 주 버튼.
+   -5 의 흐린 사진 바탕 · 색 줄 · 엇갈린 카드 · 「좋은 하루입니다」, -7 의 먹색 머리 · 국화 그림은 없앰 — 다시 넣지 말 것 */
+.dwh{display:grid;gap:14px;max-width:720px;padding:6px 0 96px}
+.dwh-hi{margin:4px 4px 2px;font-size:24px;line-height:1.42;font-weight:700;letter-spacing:-.02em;color:var(--ink,#191b1f);word-break:keep-all;text-wrap:balance}
+.dwh-hi span{display:block;margin-bottom:2px;font-size:17px;font-weight:600;letter-spacing:-.01em;color:var(--ink-2,#4e5258)}
+.dwh-box{border-radius:18px;background:var(--surface,#fff);overflow:hidden}
+.dwh-row{display:flex;align-items:center;gap:14px;width:100%;min-height:66px;padding:11px 16px;box-sizing:border-box;border:0;background:transparent;color:var(--ink,#191b1f);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .12s ease}
+.dwh-row:active{background:var(--accent-soft,#eef0f3)}
+.dwh-row:focus-visible{outline:2px solid var(--ink,#191b1f);outline-offset:-2px;border-radius:18px}
+.dwh-ic{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--gold-soft,#f5efe2);color:var(--bronze,#8c6a1f)}
+.dwh-ic.ink{background:var(--accent-soft,#eef0f3);color:var(--ink,#191b1f)}
+.dwh-ic.warn{background:var(--warn-soft,#fbeae4);color:var(--warn,#a43c1c)}
+.dwh .dwh-ic svg{width:21px;height:21px;stroke-width:1.9}
+.dwh-t{flex:1;min-width:0;display:grid;gap:1px}
+.dwh-t b{font-size:16.5px;font-weight:600;line-height:1.4;word-break:keep-all}
+.dwh-t small{font-size:13.5px;line-height:1.4;color:var(--muted,#6b7178);word-break:keep-all}
+.dwh-t small.warn{color:var(--warn,#a43c1c)}
+.dwh .dwh-go{width:18px;height:18px;flex:none;stroke:var(--muted,#6b7178);stroke-width:2.2;opacity:.75}
+.dwh-line{margin:-4px 6px 0;font-size:13.5px;color:var(--muted,#6b7178);word-break:keep-all}
+.dwh-line b{color:var(--bronze,#8c6a1f);font-weight:700;font-variant-numeric:tabular-nums}
+.dwh-modes{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--line,#e5e8eb)}
+.dwh-modes button{height:42px;border:0;border-radius:10px;background:transparent;color:var(--muted,#6b7178);font:inherit;font-size:15.5px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s ease,color .15s ease}
+.dwh-modes button[aria-pressed="true"]{background:var(--surface,#fff);color:var(--ink,#191b1f);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.dwh-modes button:focus-visible{outline:2px solid var(--ink,#191b1f);outline-offset:2px}
+.dwh-menu .dwh-row{min-height:64px}
+.dwh-menu .dwh-t b{font-size:17px}
+@media (prefers-reduced-motion:reduce){.dwh-row,.dwh-modes button{transition:none}}
+@media (min-width:700px){.dwh-modes{display:none}.dwh{padding-bottom:24px}}   /* 넓은 화면은 위 막대에 칸 바꾸기가 있음 */
 </style>
 <script>
 /* 화면 밝기: 자동(휴대폰 설정 따라) · 밝게 · 어둡게. <html data-theme> 로 색을 바꿈 (각 화면 CSS가 data-theme 를 앎). 같은 기기 모든 화면 · 휴무 화면(iframe)에 같이 적용 */
@@ -276,7 +249,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   };
   /* 휴대폰 첫 화면 (2026.10.30) — 장례업무(행사 · 배송 칸) · 서식 칸이 같이 씀.
      dwHome.cards(칸) = 그 칸 큰 묶음(dwNav 휴대폰 메뉴와 같음, 그림 · 안에 든 것),
-     dwHome.html({mode, day(오늘), dd([앞 글, 숫자]), stats:[[이름, 값, 주의?]], cards:[{k, l(이름), ic(그림), s(안에 든 것), st(상태), warn}]}) → 첫 화면 글, dwHome.at(첫 화면?) → 표시 · 위쪽 줄 색,
+     dwHome.html({mode, title(「할 일이 N건 있습니다」), todo:[{k, l, s, ic, tone:'ink'|'warn', warn}], line(한 줄 · 글자 그대로 넣음), cards:[{k, l, ic, s}], cta:{k, l, plus}}) → 첫 화면 글, dwHome.at(첫 화면?),
      dwHome.bind(el, go, redraw) → 카드 누르면 go(k), 맨 위 칸 바꾸기는 dwMode.go(칸), 권한이 바뀌면 redraw */
   var ML = { event: '행사', forms: '서식', deliv: '배송' };
   var INFO = { event: ['행사', '목록 · 입력 · 보고서 · 일정표'], money: ['정산', '정산 · 수당 · 봉투정리'], duty: ['휴무 · 당직', '달력 · 현황 · 직원'], board: ['게시판', '파트 게시판 · 자료실'], fset: ['설정', '양식 · 정산 기준 · 내 계정'],
@@ -299,27 +272,21 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
       return window.dwNav.items(mode, false).map(function (x) { var i = INFO[x[0]] || [x[1], '']; return { k: x[0], l: i[0], ic: x[2], s: chief && x[0] === 'settings' ? '결재란 · 서명' : i[1] }; });
     },
     html: function (o) {
-      var ms = this.modes(), nm = who(), cards = o.cards || [];
-      var out = '<div class="dwh"><section class="dwh-hero"><h1 class="dwh-name">' + esc(nm || 'DW장례업무') + '</h1>'
-        + '<p class="dwh-date"><span>' + esc(o.day || '') + '</span>' + (o.dd ? '<span class="dwh-dd">' + esc(o.dd[0]) + ' <b>' + esc(o.dd[1]) + '</b></span>' : '') + '</p>';
+      var ms = this.modes(), nm = who(), todo = o.todo || [];
+      var row = function (c, go) {
+        return '<button type="button" class="dwh-row" data-dwh="' + esc(c.k) + '"><span class="dwh-ic' + (c.tone ? ' ' + c.tone : '') + '" aria-hidden="true">' + (IC[c.ic] || '') + '</span><span class="dwh-t"><b>' + esc(c.l) + '</b>'
+          + (c.s ? '<small' + (c.warn ? ' class="warn"' : '') + '>' + esc(c.s) + '</small>' : '') + '</span>' + IC.right.replace('class="ui-icon"', 'class="ui-icon dwh-go"') + '</button>';
+      };
+      var out = '<div class="dwh"><h1 class="dwh-hi">' + (nm ? '<span>' + esc(nm) + ',</span>' : '') + esc(o.title || '') + '</h1>';
+      if (todo.length) out += '<div class="dwh-box" role="group" aria-label="할 일">' + todo.map(row).join('') + '</div>';
+      if (o.line) out += '<p class="dwh-line">' + o.line + '</p>';
       if (ms.length > 1) out += '<div class="dwh-modes" role="group" aria-label="칸 바꾸기">' + ms.map(function (m) { return '<button type="button" data-dwh-mode="' + m + '" aria-pressed="' + (m === o.mode) + '">' + ML[m] + '</button>'; }).join('') + '</div>';
-      out += '</section>';
-      if (o.stats && o.stats.length) out += '<dl class="dwh-stats">' + o.stats.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd' + (x[2] ? ' class="warn"' : '') + '>' + esc(x[1]) + '</dd></div>'; }).join('') + '</dl>';
-      out += '<div class="dwh-cards">' + cards.map(function (c, i) {
-        var wide = i === 0 || (i === cards.length - 1 && (cards.length - 1) % 2 === 1);   /* 첫 카드 · 짝이 안 맞는 마지막 카드는 한 줄 전체 */
-        return '<button type="button" class="dwh-card' + (wide ? ' wide' : '') + '" data-dwh="' + esc(c.k) + '"><span class="dwh-tile" aria-hidden="true">' + (IC[c.ic] || '') + '</span><span class="dwh-txt"><b>' + esc(c.l) + '</b>'
-          + (c.st ? '<span class="dwh-pill' + (c.warn ? ' warn' : '') + '">' + esc(c.st) + '</span>' : '') + (c.s ? '<span class="dwh-in">' + esc(c.s) + '</span>' : '') + '</span>' + IC.right.replace('class="ui-icon"', 'class="ui-icon dwh-go"') + '</button>';
-      }).join('') + '</div></div>';
-      return out;
+      out += '<nav class="dwh-box dwh-menu" aria-label="업무">' + (o.cards || []).map(row).join('') + '</nav>';
+      if (o.cta) out += '<div class="dw-cta"><button type="button" class="dw-cta-btn" data-dwh="' + esc(o.cta.k) + '">' + (o.cta.plus ? IC.plus : '') + esc(o.cta.l) + '</button></div>';
+      return out + '</div>';
     },
-    /* 첫 화면에 있음 표시(html.dw-at-home) + 휴대폰 위쪽 줄 색(theme-color)을 먹색 머리에 맞춤 */
-    at: function (on) {
-      document.documentElement.classList.toggle('dw-at-home', !!on);
-      try {
-        if (on && window.dwPhone()) document.querySelectorAll('meta[name="theme-color"]').forEach(function (t) { if (t.dataset.dwC == null) { t.dataset.dwC = t.getAttribute('content') || ''; t.dataset.dwM = t.getAttribute('media') || ''; } t.setAttribute('content', '#1d1e20'); t.removeAttribute('media'); });
-        else if (window.dwTheme) window.dwTheme.sync();
-      } catch (e) {}
-    },
+    /* 첫 화면에 있음 표시(html.dw-at-home — 휴대폰 「‹ 홈」 · 로그아웃 버튼이 이걸 봄) */
+    at: function (on) { document.documentElement.classList.toggle('dw-at-home', !!on); },
     bind: function (el, go, redraw) {
       if (!el || el.__dwh) return; el.__dwh = true;
       el.addEventListener('click', function (e) {
@@ -3703,7 +3670,7 @@ function renderList(){
     </div></div>`;
   h+=`<dl class="lv-sum"><div><dt>행사</dt><dd>${sum.n}건</dd></div><div><dt>미정산</dt><dd class="${sum.open?'hot':''}">${sum.open}건${sum.open?` · ${esc(wonStr(sum.openWon)||'0원')}`:''}</dd></div><div><dt>마이너스</dt><dd class="${sum.minus?'warn':''}">${sum.minus?'− ':''}${sum.minus}건</dd></div><div><dt>봉투 (본부장 · 실장)</dt><dd>${esc(wonStr(sum.part)||'0원')} · ${esc(wonStr(sum.mgr)||'0원')}</dd></div></dl>`;
   if(!rows.length){
-    h+=`<div class="lv-empty"><p>${db.cases.length?'조건에 맞는 행사가 없습니다.':'아직 행사가 없습니다. 위 「새 행사」로 시작하십시오.'}</p>${db.cases.length&&(LV.month||LV.co||LV.st||LV.q)?'<button class="btn" type="button" data-lv-reset>모든 행사 보기</button>':''}</div>`;
+    h+=`<div class="lv-empty"><p>${db.cases.length?'조건에 맞는 행사가 없습니다.':'아직 행사가 없습니다. 「새 행사」로 시작하십시오.'}</p>${db.cases.length&&(LV.month||LV.co||LV.st||LV.q)?'<button class="btn" type="button" data-lv-reset>모든 행사 보기</button>':''}</div>`;
   } else {
     const stCell=r=>{ const st=r.st, tag=`<span class="lv-st st-${st.k}">${st.k==='minus'?'− ':st.k==='sent'?'✓ ':''}${esc(st.t)}</span>`;
       return tag+((st.k==='open'||st.k==='changed')?`<button class="btn sm lv-sent" type="button" data-sent="on" data-case="${esc(r.c.id)}">보냄</button>`:st.k==='sent'?`<small class="lv-at">${esc(sentDay(st.at))}</small>`
@@ -3721,12 +3688,14 @@ function renderList(){
       +`<div class="lv-tr lv-tf" role="row"><span role="cell" class="lv-no">합계</span><span role="cell" class="lv-day"></span><span role="cell" class="lv-what">${sum.n}건</span><span role="cell" class="lv-stc">${sum.sent?`보냄 ${sum.sent}건`:''}</span><span role="cell" class="num lv-send"></span><span class="lv-envs"><span role="cell" class="num lv-env" data-k="본부장">${esc(wonStr(sum.part)||'0원')}</span><span role="cell" class="num lv-env" data-k="실장">${esc(wonStr(sum.mgr)||'0원')}</span></span></div></div>
       <p class="note">줄을 누르면 그 행사를 엽니다. 「보냄」은 정산 카톡을 보낸 뒤 눌러 두십시오.</p>`;
   }
+  h+=`<div class="dw-cta lv-cta"><button type="button" class="dw-cta-btn" data-lv-new>${uiIcon('plus')}새 행사</button></div>`;   /* 휴대폰: 화면 아래 큰 주 버튼 (시안 3안) */
   el.innerHTML=h;
   if(has){ const q=$('#lvQ'); q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
 }
 $('#p-list').addEventListener('input',e=>{ if(e.target.id==='lvQ'){ LV.q=e.target.value; clearTimeout(renderList._t); renderList._t=setTimeout(renderList,180); } });
 $('#p-list').addEventListener('change',e=>{ const k=e.target.dataset.lv; if(!k) return; LV[k]=e.target.value; listSave(); renderList(); });
 $('#p-list').addEventListener('click',e=>{
+  if(e.target.closest('[data-lv-new]')){ openPicker('new'); return; }
   if(e.target.closest('[data-lv-reset]')){ LV.month=''; LV.co=''; LV.st=''; LV.q=''; listSave(); renderList(); return; }
   const o=e.target.closest('[data-lv-open]'); if(!o) return;
   const c=db.cases.find(x=>x.id===o.dataset.lvOpen); if(!c) return;
@@ -5624,26 +5593,37 @@ window.DW_MODE_GO=to=>{ const ph=!!(window.dwPhone&&window.dwPhone());
   if(to==='event'){ const last=(db.navLast||{}).event; setTab(ph?'home':(secOf(last).k==='event'&&ALL_TABS.includes(last)&&!HOME_TABS.includes(last)?last:'list')); return true; }
   return false; };
 window.DW_HOME_GO=()=>{ setTab(modeOfTab(db.tab)==='deliv'?'dhome':'home'); return true; };
-function renderHome(){   /* 행사 칸 첫 화면 = 요약(이번 달 행사 · 미정산 · 봉투) + 행사 · 정산 · 휴무 · 당직 · 게시판 · 설정 (세부 화면은 안쪽: 행사 목록 · 장례일정표 밑줄 탭, 1~5 단계 줄) */
+let homeT={};   /* 첫 화면 할 일이 가리키는 행사 (누를 때 씀) */
+function renderHome(){   /* 행사 칸 첫 화면 (시안 3안): 할 일(정산 카톡 보내기 전 · 마이너스 정리 · 이어서 하기) + 마감 한 줄 + 업무 목록 + 아래 「새 행사」 */
   const el=$('#p-home'); if(!el||!window.dwHome) return;
-  const {mm,dd,wd,dday}=ddInfo(), ym=seoulToday().slice(0,7), used=carryUse();
-  let open=0, minus=0; db.cases.forEach(c=>{ const k=settleStatus(c,used).k; if(k==='open'||k==='changed') open++; else if(k==='minus') minus++; });
+  const {mm,left}=ddInfo(), ym=seoulToday().slice(0,7), used=carryUse();
+  const opens=[], minus=[]; db.cases.forEach(c=>{ const st=settleStatus(c,used); if(st.k==='open'||st.k==='changed') opens.push([c,st]); else if(st.k==='minus') minus.push([c,st]); });
+  const cur=db.cases.length?curCase():null, si=cur?STEP_KEYS.findIndex(k=>!stepDone(cur,k)):-1, todo=[];
+  homeT={open:opens.map(x=>x[0].id),openSt:opens.some(x=>x[1].k==='changed')?'todo':'open',minus:minus.map(x=>x[0].id),cur:cur&&si>=0?STEP_KEYS[si]:''};
+  const more=n=>n>1?` 외 ${n-1}건`:'';
+  if(opens.length){ const [c,st]=opens[0]; todo.push({k:'t-open',l:`정산 카톡 보내기 전 ${opens.length}건`,s:`${caseTitle(c)} · ${wonStr(st.won)||'0원'}${more(opens.length)}`,ic:'settle',tone:'ink'}); }
+  if(minus.length){ const [c,st]=minus[0]; todo.push({k:'t-minus',l:`마이너스 정리 ${minus.length}건`,s:`${caseTitle(c)} · ${wonStr(st.won)}${more(minus.length)}`,ic:'settle',tone:'warn',warn:true}); }
+  if(cur&&si>=0&&!(si>=3&&(homeT.open.includes(cur.id)||homeT.minus.includes(cur.id)))) todo.push({k:'t-cur',l:caseTitle(cur),s:`이어서 하기 · ${si+1}단계 ${STEPS[si][2]}`,ic:'input'});
   const n=db.cases.filter(c=>caseMonth(c)===ym).length; let env=0; try{ env=envelopeSummary(ym).all.total; }catch(e){}
-  const st={money:minus?{st:`마이너스 ${minus}건`,warn:true}:{}};
-  el.innerHTML=window.dwHome.html({mode:'event',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,dd:[`${mm}월 마감`,dday],
-    stats:[[`${mm}월 행사`,`${n}건`],['미정산',`${open}건`,open>0],[`${mm}월 봉투`,wonStr(env)||'0원']],
-    cards:window.dwHome.cards('event').map(c=>Object.assign(c,st[c.k]||{}))});
-  window.dwHome.bind(el,k=>{ if(k==='board'){ goBoard(); return; }
+  el.innerHTML=window.dwHome.html({mode:'event',title:todo.length?`할 일이 ${todo.length}건 있습니다`:'지금은 할 일이 없습니다',todo,
+    line:(left===0?`오늘이 <b>${mm}월 마감일</b>입니다`:`${mm}월 마감까지 <b>${left}일</b>`)+` · 이번 달 봉투 ${esc(wonStr(env)||'0원')}`,
+    cards:window.dwHome.cards('event').map(c=>c.k==='event'?Object.assign(c,{s:`${mm}월 ${n}건 · 목록 · 입력 · 보고서`}):c),cta:{k:'new',l:'새 행사',plus:true}});
+  window.dwHome.bind(el,k=>{
+    if(k==='new'){ openPicker('new'); return; }
+    if(k==='t-open'||k==='t-minus'){ const ids=k==='t-open'?homeT.open:homeT.minus;   /* 한 건이면 그 행사 정산, 여러 건이면 행사 목록(그 상태만) */
+      if(ids.length===1&&db.cases.some(c=>c.id===ids[0])){ db.cur=ids[0]; save(); renderCaseSel(); setTab('settle'); }
+      else { LV.month=''; LV.st=k==='t-open'?homeT.openSt:'minus'; LV.q=''; listSave(); setTab('list'); } return; }
+    if(k==='t-cur'){ setTab(homeT.cur||'input'); return; }
+    if(k==='board'){ goBoard(); return; }
     if(k==='money'){ const last=(db.navLast||{}).money; setTab(['settle','envelopes'].includes(last)?last:'settle'); return; }
     setTab(k==='event'?'list':k==='fset'?'admin':k); },renderHome);
 }
-function renderDHome(){   /* 배송 칸 첫 화면 = 요약 + 새 배송 · 이어서 작성 · 배송 기록 (양식 고르기 · 칸은 안쪽) */
+function renderDHome(){   /* 배송 칸 첫 화면 (시안 3안): 이어서 작성 + 배송 기록 + 아래 「새 배송」 (양식 고르기 · 칸은 배송 화면 안) */
   const el=$('#p-dhome'); if(!el||!window.dwHome) return;
-  const r=dvCur(), {mm,dd,wd}=ddInfo(), ym=seoulToday().slice(0,7), all=dvList(), mon=all.filter(x=>{ const t=new Date((x.created||0)+9*3600*1000); return t.toISOString().slice(0,7)===ym; }).length;
-  const cards=[{k:'new',l:'새 배송',ic:'plus',s:'단순용품 · 인력지원 · 인력+차량 · 인력+대체'}];
-  if(r) cards.push({k:'resume',l:'이어서 작성',ic:'input',st:dvTitle(r),s:dvSub(r)});
-  cards.push({k:'log',l:'배송 기록',ic:'list',s:'지난 배송 다시 보기'});
-  el.innerHTML=window.dwHome.html({mode:'deliv',day:`${mm}월 ${dd}일 ${wd(dd)}요일`,stats:[[`${mm}월 배송`,`${mon}건`],['전체 기록',`${all.length}건`]],cards});
+  const r=dvCur(), {mm}=ddInfo(), ym=seoulToday().slice(0,7), all=dvList(), mon=all.filter(x=>new Date((x.created||0)+9*3600*1000).toISOString().slice(0,7)===ym).length;
+  const todo=r?[{k:'resume',l:dvTitle(r),s:`이어서 작성 · ${dvSub(r)}`,ic:'input',tone:'ink'}]:[];
+  el.innerHTML=window.dwHome.html({mode:'deliv',title:r?'작성 중인 배송이 있습니다':`${mm}월 배송은 ${mon}건입니다`,todo,line:`${mm}월 배송 ${mon}건 · 전체 기록 ${all.length}건`,
+    cards:[{k:'log',l:'배송 기록',ic:'list',s:'지난 배송 다시 보기 · 복사'}],cta:{k:'new',l:'새 배송',plus:true}});
   window.dwHome.bind(el,k=>{ if(k==='new') dvNew(); else if(k==='resume') setTab('deliv'); else if(k==='log'){ setTab('deliv'); dvOpen(); } },renderDHome);
 }
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }
@@ -6110,6 +6090,18 @@ body[data-tab="home"] #newCase,body[data-tab="dhome"] #newCase,body[data-tab="ho
 /* 배송 칸 (넓은 화면): 행사 칸 메뉴 줄은 숨김 — 칸 바꾸기는 위 막대 「행사 · 서식 · 배송」 */
 body[data-mode="deliv"] .tn-main-row{display:none}
 #abSub:empty{display:none}   /* 첫 화면은 앱 이름만 */
+/* 시안 3안 (2026.10.30): 중요한 일 하나는 화면 아래 큰 주 버튼 — 행사 목록 「새 행사」(위 막대 「새 행사」는 휴대폰 목록에서 숨김), 행사 입력 「이전 · 다음」은 아래에 붙음.
+   설정 · 장례일정표 화면에는 「새 행사」가 할 일이 아니라서 위 막대에서 뺌 */
+body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
+@media (min-width:700px){ .lv-cta{display:none} }
+@media (max-width:699px){
+  body[data-tab="list"] #newCase{display:none}
+  #p-list{padding-bottom:96px}
+  body[data-tab="input"] #groupFooter{position:sticky;bottom:0;z-index:6;display:grid;grid-template-columns:1fr 2fr;gap:10px;margin:10px -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
+  body[data-tab="input"] #groupFooter p{display:none}
+  body[data-tab="input"] #groupFooter .btn{min-height:54px;font-size:16px;padding:0 12px}
+  body[data-tab="input"] #groupFooter .btn.primary{font-size:16px}
+}
 /* 배송 화면 (2026.10.30, 행사와 따로 · 현진시닝 배송 양식 4가지) — 모양은 행사 고르기 칸 · 장례일정표 화면과 같게 */
 #p-deliv>.dv-panel{margin-bottom:2px}
 .dv-trio{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(84px,.7fr);gap:12px;align-items:start}
@@ -6753,6 +6745,62 @@ body[data-mode="deliv"] .tn-main-row{display:none}
   window.addEventListener('online', verify);
 })();
 </script>
+<!-- 디자인 3안 「큰 글씨 · 한 화면 한 일」 (2026.10.30 사용자가 시안 3안을 고름 + 「글씨체도 조금 더 차분하게」)
+     세 화면(장례업무 · 서식 첫 화면 · 회사 서류)의 맨 마지막에 build.py 가 넣음 → 색 · 글꼴 · 모서리 · 주 버튼을 여기 한 곳에서 덮어씀.
+     - 바탕은 밝은 회색, 상자는 흰 카드(모서리 16px), 버튼 · 칸 12px, 주 버튼은 먹색 · 굵게 · 크게(중요한 것은 화면 아래 고정 큰 버튼 .dw-cta)
+     - 글꼴은 Pretendard 하나 — 예전 명조 제목도 Pretendard(600~700)로, 글자 간격 살짝 좁게 → 차분하게
+     - 색 이름은 세 화면이 쓰는 이름을 모두 덮음(--surface-2 = --field, --line-2 = --edge, --gold = --bronze, --font-display = --serif) -->
+<style id="dw-theme3">
+:root{
+  --bg:#f2f4f6; --surface:#ffffff; --field:#f7f8fa; --surface-2:#f7f8fa; --ink:#191b1f; --ink-2:#4e5258; --muted:#6b7178;
+  --line:#e5e8eb; --edge:#a8aeb5; --line-2:#a8aeb5; --ph:#767b82; --accent:#191b1f; --accent-ink:#ffffff; --accent-soft:#eef0f3;
+  --bronze:#8c6a1f; --gold:#8c6a1f; --gold-soft:#f5efe2; --warn:#a43c1c; --warn-soft:#fbeae4; --toast-bg:#191b1f; --toast-ink:#ffffff;
+  --serif:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  --font-display:var(--serif);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#101113; --surface:#1b1d20; --field:#16181b; --surface-2:#16181b; --ink:#eceef0; --ink-2:#c5c9ce; --muted:#9ba1a8;
+    --line:#2a2d32; --edge:#4c525a; --line-2:#4c525a; --ph:#8b9198; --accent:#eceef0; --accent-ink:#101113; --accent-soft:#25282c;
+    --bronze:#d4b26a; --gold:#d4b26a; --gold-soft:#2e2719; --warn:#eea488; --warn-soft:#3a2219; --toast-bg:#eceef0; --toast-ink:#101113;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#101113; --surface:#1b1d20; --field:#16181b; --surface-2:#16181b; --ink:#eceef0; --ink-2:#c5c9ce; --muted:#9ba1a8;
+  --line:#2a2d32; --edge:#4c525a; --line-2:#4c525a; --ph:#8b9198; --accent:#eceef0; --accent-ink:#101113; --accent-soft:#25282c;
+  --bronze:#d4b26a; --gold:#d4b26a; --gold-soft:#2e2719; --warn:#eea488; --warn-soft:#3a2219; --toast-bg:#eceef0; --toast-ink:#101113;
+}
+html body{background:var(--bg);letter-spacing:-.003em}
+/* 글자: 제목은 Pretendard 굵게, 크기는 한 단계 차분하게 */
+html body .ab-title b,html body .brand{font-size:17px;font-weight:700;letter-spacing:-.01em}
+html body .page-intro h1,html body .tab-head h1{font-size:22px;font-weight:700;letter-spacing:-.015em}
+html body .sec-head h2,html body .card h2,html body .out-head h2{font-weight:700;letter-spacing:-.01em}
+html body .wz-card .wz-q{font-weight:700;letter-spacing:-.02em}
+html body .wz-total b,html body .cp-t,html body .w-label,html body .bd-title b,html body .ps-h h2{font-weight:700;letter-spacing:-.01em}
+/* 위 막대: 흰 바탕 · 옅은 선 */
+html body header.appbar{background:var(--surface);border-bottom:1px solid var(--line);box-shadow:none}
+/* 모서리: 상자 16px · 버튼과 칸 12px · 칸 안 작은 버튼 · 표시 8~10px · 주 버튼 14px · 아래에서 올라오는 창 20px (앞의 「모서리 통일」 규칙보다 이기게 :root body 를 붙임) */
+:root body .sec,:root body .out,:root body .case-panel,:root body .case-steps,:root body .co-card,:root body .wz-card,:root body .wz-review,:root body .case-pick,:root body .lv-dd,:root body .lv-table,:root body .settle-guide,:root body .calc,:root body .sum,:root body .px-pv,:root body .sz-box,:root body .env-stat,:root body .env-prev,:root body .env-event,:root body .env-lock,:root body .env-form,:root body .acc,:root body .set-cards button,:root body .card,:root body .w-card,:root body .st-card,:root body .type-card,:root body .d-card,:root body .r-card,:root body .install-card,:root body .banner,:root body .stat,:root body .boxed{border-radius:16px}
+:root body .btn,:root body .btn.sm,:root body .btn.link,:root body #newCase,:root body #saveNow,:root body .input,:root body .seg,:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea,:root body .icon-btn,:root body .cp-go,:root body .text-out,:root body .wz-choice button,:root body .chip,:root body .group-tabs,:root body .sub-fold,:root body .missing,:root body .co-symbol,:root body .cm-nav,:root body .rp{border-radius:12px}
+:root body .seg button,:root body .group-tabs button,:root body .ph button,:root body .acc-b button,:root body .tp-grid button,:root body .csheet-list button,:root body .burial-seg button,:root body .missing button,:root body .ch-btn,:root body .check,:root body .lv-st,:root body .tag,:root body .pt-step,:root body .item .tog{border-radius:9px}
+:root body .wz-amt .input{border-radius:0}
+:root body .btn.primary{border-radius:14px;font-weight:700}
+:root body .csheet{border-radius:20px 20px 0 0}
+:root body .sheet{border-radius:20px}
+@media (min-width:700px){ :root body .csheet{border-radius:20px} }
+:root body .toast{border-radius:12px}
+/* 화면 아래 고정 큰 주 버튼 (휴대폰) — 새 행사 · 새 배송 · 주간보고 등 그 화면에서 가장 중요한 일 하나 */
+.dw-cta{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to bottom,transparent,var(--bg) 32%);pointer-events:none}
+.dw-cta-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:560px;height:56px;margin:0 auto;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:17px;font-weight:700;letter-spacing:-.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+.dw-cta-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.dw-cta-btn:active{transform:scale(.98)}
+.dw-cta-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.dw-cta-btn{transition:none}.dw-cta-btn:active{transform:none}}
+@media (min-width:700px){ .dw-cta{position:static;padding:18px 0 0;background:none}.dw-cta-btn{max-width:340px;margin:0} }
+@media (max-width:699px){ html.dw-at-home body .toast,html body[data-tab="list"] .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))} }   /* 알림이 아래 큰 버튼을 가리지 않게 */
+</style>
 
 </body>
 </html>

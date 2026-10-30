@@ -1411,14 +1411,16 @@ window.DW_MODE_GO = (m) => { const ph = !!(window.dwPhone && window.dwPhone());
 window.DW_HOME_GO = () => { if (modeOf(S.tab) === 'event') goFuneral('home'); else showTab('fhome'); return true; };
 /* 서식 칸 첫 화면 (2026.10.30): 파트장 = 보고 · 탁송 · 물품 · 회사 서류 · 설정, 총괄실장 = 취합 · 서식 · 회사 서류 · 자료실 · 설정 (dwNav 휴대폰 메뉴와 같음)
    세부 화면은 안쪽 — 들어가면 위쪽 밑줄 탭(주간보고 · 회의록 …) */
-function renderFHome() {
+function renderFHome() {   /* 서식 칸 첫 화면 (시안 3안): 할 일(이번 주 주간보고) + 이번 달 한 줄 + 업무 목록 + 아래 큰 주 버튼 */
   const el = $('#fhBody'); if (!el || !window.dwHome) return;
-  const d = new Date(), M = d.getMonth() + 1, ym = toKey(d).slice(0, 7), wk = toKey(mondayOf(d));
+  const d = new Date(), M = d.getMonth() + 1, ym = toKey(d).slice(0, 7), wk = toKey(mondayOf(d)), wl = weekInfo(fromKey(wk)).label;
   const weekDone = [...S.weekly.values()].some((r) => r.weekStart === wk);
   const nMin = [...S.minutes.values()].filter((r) => String(r.date || '').startsWith(ym)).length, nShip = [...S.ship.values()].filter((e) => String(e.date || '').startsWith(ym)).length;
-  el.innerHTML = window.dwHome.html({ mode: 'forms', day: `${M}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,
-    stats: [['이번 주 주간보고', weekDone ? '작성함' : '작성 전', !weekDone], [`${M}월 회의록`, `${nMin}건`], [`${M}월 탁송`, `${nShip}건`]], cards: window.dwHome.cards('forms') });
-  window.dwHome.bind(el, navGo, () => { if (S.tab === 'fhome') renderFHome(); });
+  const todo = !isChief() && !weekDone ? [{ k: 'week', l: '이번 주 주간보고 작성 전', s: `${wl} · 파트원 특이사항 · 조치사항`, ic: 'doc', tone: 'ink' }] : [];
+  el.innerHTML = window.dwHome.html({ mode: 'forms', title: todo.length ? `할 일이 ${todo.length}건 있습니다` : '오늘 쓸 서식을 고르십시오', todo,
+    line: `${M}월 회의록 ${nMin}건 · 탁송 ${nShip}건`, cards: window.dwHome.cards('forms'),
+    cta: isChief() ? { k: 'gather', l: '보고 취합 보기' } : { k: 'week', l: `이번 주 주간보고 ${weekDone ? '열기' : '작성'}` } });
+  window.dwHome.bind(el, (k) => { if (k === 'week') { showTab('weekly'); $('#newWeekly').click(); return; } navGo(k); }, () => { if (S.tab === 'fhome') renderFHome(); });
 }
 function showTab(t) {
   if (t === 'forms') t = lastFormTab();

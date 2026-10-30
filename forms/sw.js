@@ -1,5 +1,5 @@
 /* Service worker for 관리자 서식함. Generated into sw.js by build.py; edit this template. */
-const VERSION = '2026.10.30-7';
+const VERSION = '2026.10.30-8';
 const PREFIX = 'forms-app-';
 const CACHE = PREFIX + VERSION;
 const FONT_CACHE = 'seosik-fonts-v1';
@@ -13,8 +13,7 @@ const CORE = [
   "./assets/poster.pptx",
   "./icons/gukhwa-192.png",
   "./icons/gukhwa-512.png",
-  "./icons/gukhwa-apple-180.png",
-  "./icons/gukhwa-line.png"
+  "./icons/gukhwa-apple-180.png"
 ];
 
 self.addEventListener('install', (event) => {
