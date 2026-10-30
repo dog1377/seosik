@@ -65,7 +65,7 @@ self.addEventListener('fetch', (event) => {
     if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
     event.respondWith(networkFirst(req));
   } else if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com' ||
-             (url.hostname === 'cdn.jsdelivr.net' && url.pathname.startsWith('/npm/pretendard@'))) {
+             (url.hostname === 'cdn.jsdelivr.net' && (url.pathname.startsWith('/npm/pretendard@') || url.pathname.startsWith('/npm/wanted-sans@')))) {
     event.respondWith(staleWhileRevalidate(req));
   }
 });

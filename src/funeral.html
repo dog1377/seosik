@@ -3532,7 +3532,8 @@ function szModel(){
   return SZM={xfs,cells,cover,c1,r1,c2,r2,X0,Y0,W:x,H:y,colL};
 }
 function szDraw(cv,V,scale=2){
-  const M=szModel(), pd=18, fam=getComputedStyle(document.body).fontFamily||'sans-serif', W=M.W+pd*2, H=M.H+pd*2;
+  const M=szModel(), pd=18, fam=PR_SANS,   /* 일정표 그림 글꼴은 앱 글꼴과 상관없이 Pretendard (2026.10.30) */
+    W=M.W+pd*2, H=M.H+pd*2;
   cv.width=Math.round(W*scale); cv.height=Math.round(H*scale);
   const g=cv.getContext('2d'); g.setTransform(scale,0,0,scale,0,0); g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.translate(pd,pd);
   const box=(c,r)=>{ const m=M.cover[M.colL(c)+r], a=m?m.c1:c, b=m?m.r1:r, cc=Math.min(m?m.c2:c,M.c2), d=Math.min(m?m.r2:r,M.r2); return {x:M.X0[a],y:M.Y0[b],w:M.X0[cc+1]-M.X0[a],h:M.Y0[d+1]-M.Y0[b]}; };

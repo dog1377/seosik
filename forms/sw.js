@@ -1,5 +1,5 @@
 /* Service worker for 관리자 서식함. Generated into sw.js by build.py; edit this template. */
-const VERSION = '2026.10.30-9';
+const VERSION = '2026.10.30-10';
 const PREFIX = 'forms-app-';
 const CACHE = PREFIX + VERSION;
 const FONT_CACHE = 'seosik-fonts-v1';
@@ -76,7 +76,7 @@ self.addEventListener('fetch', (event) => {
     if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
     event.respondWith(networkFirst(req));
   } else if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com' ||
-             (url.hostname === 'cdn.jsdelivr.net' && url.pathname.startsWith('/npm/pretendard@'))) {
+             (url.hostname === 'cdn.jsdelivr.net' && (url.pathname.startsWith('/npm/pretendard@') || url.pathname.startsWith('/npm/wanted-sans@')))) {
     event.respondWith(staleWhileRevalidate(req));
   }
 });
