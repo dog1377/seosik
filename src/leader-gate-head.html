@@ -222,7 +222,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   /* [열쇠, 이름, 그림, 주소] — 주소는 forms/ 기준 */
   var NAV = {
     event: [['event', '행사', 'list', 'funeral.html#sec-event'], ['money', '정산', 'settle', 'funeral.html#sec-money'], ['duty', '휴무', 'duty', 'funeral.html#duty'], ['board', '게시판', 'board', './#board'], ['fset', '설정', 'set', 'funeral.html#admin']],
-    eventWide: [['list', '행사 목록', 'list', 'funeral.html#list'], ['input', '입력', 'input', 'funeral.html#input', 1], ['out', '보고서', 'out', 'funeral.html#out', 2], ['sched', '일정표', 'sched', 'funeral.html#sched', 3], ['settle', '정산', 'settle', 'funeral.html#settle', 4], ['envelopes', '봉투', 'envelopes', 'funeral.html#envelopes', 5], ['poster', '장례일정표', 'poster', 'funeral.html#poster'], ['duty', '휴무 · 당직', 'duty', 'funeral.html#duty'], ['board', '게시판', 'board', './#board'], ['fset', '설정', 'set', 'funeral.html#admin']],
+    eventWide: [['list', '행사 목록', 'list', 'funeral.html#list'], ['input', '입력', 'input', 'funeral.html#input', 1], ['out', '양식', 'out', 'funeral.html#out', 2], ['sched', '보고서', 'sched', 'funeral.html#sched', 3], ['settle', '정산', 'settle', 'funeral.html#settle', 4], ['envelopes', '봉투', 'envelopes', 'funeral.html#envelopes', 5], ['poster', '장례일정표', 'poster', 'funeral.html#poster'], ['duty', '휴무 · 당직', 'duty', 'funeral.html#duty'], ['board', '게시판', 'board', './#board'], ['fset', '설정', 'set', 'funeral.html#admin']],
     forms: [['report', '보고', 'doc', './#report'], ['shipg', '탁송 · 물품', 'box', './#shipg'], ['company', '회사 서류', 'brief', 'admin.html'], ['settings', '설정', 'set', './#settings']],
     chief: [['gather', '취합', 'gather', './#gather'], ['forms', '서식', 'doc', './#forms'], ['company', '회사 서류', 'brief', 'admin.html'], ['docs', '자료실', 'folder', './#docs'], ['settings', '설정', 'set', './#settings']]
   };
@@ -241,7 +241,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
      dwHome.html({mode, title(「할 일이 N건 있습니다」), todo:[{k, l, s, ic, tone:'ink'|'warn', warn}], line(한 줄 · 글자 그대로 넣음), cards:[{k, l, ic, s}], cta:{k, l, plus}}) → 첫 화면 글, dwHome.at(첫 화면?),
      dwHome.bind(el, go, redraw) → 카드 누르면 go(k), 맨 위 칸 바꾸기는 dwMode.go(칸), 권한이 바뀌면 redraw */
   var ML = { event: '행사', forms: '서식', deliv: '배송' };
-  var INFO = { event: ['행사', '목록 · 입력 · 보고서 · 일정표'], money: ['정산', '정산 · 수당 · 봉투정리'], duty: ['휴무 · 당직', '달력 · 현황 · 직원'], board: ['게시판', '파트 게시판 · 자료실'], fset: ['설정', '양식 · 정산 기준 · 내 계정'],
+  var INFO = { event: ['행사', '목록 · 입력 · 양식 · 보고서'], money: ['정산', '정산 · 수당 · 봉투정리'], duty: ['휴무 · 당직', '달력 · 현황 · 직원'], board: ['게시판', '파트 게시판 · 자료실'], fset: ['설정', '양식 · 정산 기준 · 내 계정'],
     report: ['보고', '주간보고 · 회의록 · 후기보고 · 상담서'], shipg: ['탁송 · 물품', '탁송 · 물품 장부'], company: ['회사 서류', '공지 · 발령 · 증명서'], settings: ['설정', '결재란 · 서명 · 파트원'],
     gather: ['취합', '파트장 보고 모아 보기'], forms: ['서식', '주간보고 · 회의록 · 후기보고 · 탁송'], docs: ['자료실', '회사 기본 서류'] };
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
