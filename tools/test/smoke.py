@@ -167,6 +167,9 @@ def main():
                     want = '회사명 : 현진시닝\n업체명 : 삼성SDS\n부산대동 VIP실\n13일 : 10시-20시 1명\n관리사 배치완료.\n\n관리사 3명 대체\n남상복 5세트 여상복 1벌 제공\n\n리무진 부산영락\n' + car + '\n\n장의버스 200km 부산영락-부산추모-장례식장\n' + car
                     if got != want:
                         problems.append(f'{tag}: 배송 버스 리무진 양식이 다름: {got!r}')
+                    p.evaluate("db.ships[0].veh.burial='부산추모-장례식장'; renderDeliv()")   # 장례식장을 직접 적으면 한 번만
+                    if p.evaluate("document.getElementById('dvText').value") != want:
+                        problems.append(f'{tag}: 배송 장례식장이 두 번 들어감')
                     if p.evaluate("document.getElementById('dvCremWrap').hidden || !!document.querySelector('[data-dv-car-add]')"):
                         problems.append(f'{tag}: 배송 화장장 칸이 안 보이거나 「차량 추가」가 두 번 됨')
                     p.evaluate("db.ships=[]; db.shipCur=null; save()")

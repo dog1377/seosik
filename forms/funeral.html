@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.30-11">
+<meta name="app-version" content="2026.10.30-12">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -2166,11 +2166,13 @@ const CREM_FULL={'부산':'부산영락','마산':'마산화장','창원':'창�
 const cremDispName=f=>{ const n=String(cremReportLabel(f)||'').trim(); return CREM_FULL[n.replace(/\s/g,'')]||n; };
 function cremWithRound(f){ if(isBurial(f)) return ''; const n=cremDispName(f); return [n, f.cremRound?`(${pad(f.cremRound)}회차)`:''].filter(Boolean).join(' '); }
 function cremOrHagwan(f){ if(isBurial(f)){ const hs=hagwanStr(f); return hs?`하관 : ${hs}`:'하관 : '; } return `화장 : ${cremWithRound(f)}`; }
-function autoRoute(f){   /* 화장장 - 장지 - 장례식장 (같은 이름이 이어지면 하나만) */
-  const strip=s=>String(s||'').replace(/\s|\(.*?\)/g,''), b1=String(f.burial1||'').trim(), b2=String(f.burial2||'').trim();
-  const stops=[isBurial(f)?'':cremDispName(f), ...(b1||b2?[b1,b2]:String(f.burial||'').split('-'))].map(s=>String(s||'').replace(/\s*\([^)]*\)\s*/g,'').trim()).filter(Boolean);   // (평장) 같은 괄호는 뺌
-  const out=[]; stops.forEach(s=>{ if(!out.length||strip(out[out.length-1])!==strip(s)) out.push(s); });
-  return out.length?[...out,'장례식장'].join('-'):'';
+/* 경로 잇기: (평장) 같은 괄호는 빼고 · 같은 이름이 이어지면 하나만 · 끝에 「장례식장」 자동 — 직접 적었으면 한 번만 (2026.10.30 사용자: 「장례식장은 자동으로 붙게 하되, 직접 입력하면 한 번만」) */
+function routeJoin(stops){ const strip=s=>String(s||'').replace(/\s|\(.*?\)/g,''), out=[];
+  stops.map(s=>String(s||'').replace(/\s*\([^)]*\)\s*/g,'').trim()).filter(Boolean).forEach(s=>{ if(!out.length||strip(out[out.length-1])!==strip(s)) out.push(s); });
+  if(!out.length) return ''; if(!out.some(s=>/장례식장/.test(s))) out.push('장례식장'); return out.join('-'); }
+function autoRoute(f){   /* 화장장 - 장지 - 장례식장 */
+  const b1=String(f.burial1||'').trim(), b2=String(f.burial2||'').trim();
+  return routeJoin([isBurial(f)?'':cremDispName(f), ...(b1||b2?[b1,b2]:String(f.burial||'').split('-'))]);
 }
 /* 리무진은 1차 장지(화장장)까지만 (2026.10.28 사용자): 「자택경유-부산영락-부산추모-장례식장」 → 「자택경유-부산영락」 */
 function limoRoute(f,full){
@@ -4185,9 +4187,7 @@ function dvMgrLines(r){ let last='';
    리무진 = 「리무진 부산영락」(화장장까지), 장의버스 = 「장의버스 200km 부산영락-부산추모-장례식장」(운행 거리는 버스 줄), 배차 · 발인 · 배차완료 줄은 차마다. 한 대면 예전 그대로 */
 const dvCremName=v=>{ const n=gimhaeShort(String(v||'').trim()); return CREM_FULL[n.replace(/\s/g,'')]||n; };
 const dvSplitOn=r=>vehSplit((r.veh||{}).type).length>1;
-function dvRoute(crem,bur){ const strip=x=>String(x||'').replace(/\s|\(.*?\)/g,''), out=[];
-  [crem,...String(bur||'').split('-')].map(x=>gimhaeShort(String(x||'').replace(/\s*\([^)]*\)\s*/g,'').trim())).filter(Boolean).forEach(x=>{ if(!out.length||strip(out[out.length-1])!==strip(x)) out.push(x); });
-  return out.length?[...out,'장례식장'].join('-'):''; }
+const dvRoute=(crem,bur)=>routeJoin([crem,...String(bur||'').split('-')].map(gimhaeShort));   /* 화장장-장지-장례식장 (routeJoin) */
 function dvVehBlocks(r){ const v=r.veh||{}; if(!['type','km','crem','burial','disp','depart','co'].some(k=>String(v[k]||'').trim())) return [];
   const k0=String(v.km||'').trim(), km=k0&&(/^\d+(\.\d+)?$/.test(k0)?k0+'km':k0.replace(/KM/g,'km')), bur=String(v.burial||'').trim(), co=String(v.co||'').trim(), disp=dispatchDT({dispatchAt:v.disp||'',depart:v.depart||''});
   const tail=[disp&&`${dayTime(disp)} 배차`, v.depart&&`${dayTime(v.depart)} 발인`, `차량배차완료${co?`(${co})`:''}`].filter(Boolean), vt=vehSplit(v.type);
