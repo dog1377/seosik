@@ -160,6 +160,15 @@ def main():
                     want = '회사명 : 현진시닝\n업체명 : 삼성SDS\n부산대동 VIP실\n13일 : 10시-20시 1명\n관리사 배치완료.\n\n관리사 4명 대체\n리무진 200km 장지(김해추모)\n14일 06시 배차\n14일 06시 30분 발인\n차량배차완료(한맥장의차)\n\n관리사 3명 대체\n남상복 5세트 여상복 1벌 제공'
                     if got != want:
                         problems.append(f'{tag}: 배송 양식이 다름: {got!r}')
+                    # 「버스 리무진」 = 리무진(화장장까지) · 장의버스 따로, 「차량 추가」 = 대체 줄 없이 차량만 (2026.10.30)
+                    p.evaluate("db.ships[0].veh={type:'버스 리무진',km:'200',crem:'부산',burial:'부산추모(평장)',depart:'2026-10-14T06:30',co:'한맥장의차'}; db.ships[0].subs=[{id:'s2',n:'3',what:'mourn',m:'5',w:'1'},{id:'s3',what:'car'}]; renderDeliv()")
+                    got = p.evaluate("document.getElementById('dvText').value")
+                    car = '14일 06시 배차\n14일 06시 30분 발인\n차량배차완료(한맥장의차)'
+                    want = '회사명 : 현진시닝\n업체명 : 삼성SDS\n부산대동 VIP실\n13일 : 10시-20시 1명\n관리사 배치완료.\n\n관리사 3명 대체\n남상복 5세트 여상복 1벌 제공\n\n리무진 부산영락\n' + car + '\n\n장의버스 200km 부산영락-부산추모-장례식장\n' + car
+                    if got != want:
+                        problems.append(f'{tag}: 배송 버스 리무진 양식이 다름: {got!r}')
+                    if p.evaluate("document.getElementById('dvCremWrap').hidden || !!document.querySelector('[data-dv-car-add]')"):
+                        problems.append(f'{tag}: 배송 화장장 칸이 안 보이거나 「차량 추가」가 두 번 됨')
                     p.evaluate("db.ships=[]; db.shipCur=null; save()")
             # 회사 서류
             p.goto(BASE + 'forms/admin.html'); p.wait_for_function("typeof showTab==='function'", timeout=15000)

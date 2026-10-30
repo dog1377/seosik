@@ -3782,11 +3782,12 @@ function renderPoster(){
    고른 답: 행사와 따로 「배송」 화면 · 「진행 : 개인장의 / 담당 :」 = 장례 진행한 곳과 그쪽 담당자 · 줄 모양은 한 가지로 맞춤.
    양식 4가지 = 단순용품(기본 정보) · 인력지원(관리사 배치) · 인력+차량(관리사 배치 + 장의차량) · 인력+대체(관리사 배치 + 「관리사 N명 대체」 → 장의차량 / 상복 / 직접 입력).
    기록 db.ships = [{id, kind:'goods'|'help'|'veh'|'sub', co(고객사), place(빈소), custName, custTel, name(고인), mourn(상 구분), age, staffOrg, staff, prog(진행), progStaff(진행 담당),
-     mgr:[{id,date,sh,sm,eh,em,n}], veh:{type,km,burial,disp,depart,co}, subs:[{id,n,what:'veh'|'mourn'|'text',m,w,text}], created, updated}]
+     mgr:[{id,date,sh,sm,eh,em,n}], veh:{type,km,crem,burial,disp,depart,co}, subs:[{id,n,what:'veh'|'mourn'|'text'|'car',m,w,text}], created, updated}]
+   (2026.10.30 더함 — 이전 작업 없음: veh.crem = 화장장(「버스 리무진」일 때 리무진 목적지), subs what 'car' = 「차량 추가」(관리사 대체 없이 장의차량 줄만))
    내 계정 설정(state:settings)에 같이 저장(SB_SET_KEYS 'ships', switch.html 도 같게). 행사 목록 · 정산 · 봉투와 섞이지 않음. 지금 고른 것 db.shipCur(이 기기). */
 const DV_HQ='현진시닝', DV_IND='           ';
 const DV_KINDS=[['goods','단순용품'],['help','인력지원'],['veh','인력+차량'],['sub','인력+대체']];
-const DV_NOTE={goods:'회사 · 직원 · 전화 · 고인 · 빈소 · 담당 · 진행 줄이 나갑니다.',help:'관리사 배치(날짜별 시간 · 인원)가 나갑니다.',veh:'관리사 배치 뒤에 장의차량(차종 · 거리 · 장지 · 배차 · 발인)이 나갑니다.',sub:'관리사 배치 뒤에 「관리사 N명 대체」와 대체한 내용이 나갑니다.'};
+const DV_NOTE={goods:'회사 · 직원 · 전화 · 고인 · 빈소 · 담당 · 진행 줄이 나갑니다.',help:'관리사 배치(날짜별 시간 · 인원)가 나갑니다.',veh:'관리사 배치 뒤에 장의차량(차종 · 거리 · 장지 · 배차 · 발인)이 나갑니다.',sub:'관리사 배치 뒤에 「관리사 N명 대체」와 대체한 내용이 나갑니다. 「차량 추가」는 대체 없이 장의차량 줄만 나갑니다.'};
 const DV_PROG=['개인장의','예다함','장례식장'];
 const dvKindL=k=>(DV_KINDS.find(x=>x[0]===k)||DV_KINDS[0])[1];
 function dvList(){ if(!Array.isArray(db.ships)) db.ships=[]; return db.ships; }
@@ -3798,10 +3799,23 @@ const dvT=(hh,mm)=>hh?`${hh}시${mm&&mm!=='00'?' '+mm+'분':''}`:'';
 function dvMgrLines(r){ let last='';
   return (r.mgr||[]).filter(m=>m&&m.date).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(m=>{ const p=parseDT(m.date), span=[dvT(m.sh,m.sm),dvT(m.eh,m.em)].filter(Boolean).join('-');
     const body=[span,String(m.n||'').trim()&&String(m.n).trim()+'명'].filter(Boolean).join(' '), head=last===m.date?DV_IND:`${pad(p.d)}일 : `; last=m.date; return (head+body).trimEnd(); }); }
-function dvVehLines(r){ const v=r.veh||{}; if(!['type','km','burial','disp','depart','co'].some(k=>String(v[k]||'').trim())) return []; const km=String(v.km||'').trim(), bur=String(v.burial||'').trim(), co=String(v.co||'').trim(), disp=dispatchDT({dispatchAt:v.disp||'',depart:v.depart||''});
-  const first=[String(v.type||'').trim(), km&&(/^\d+(\.\d+)?$/.test(km)?km+'km':km.replace(/KM/g,'km')), bur&&`장지(${bur})`].filter(Boolean).join(' ');
-  return [first, disp&&`${dayTime(disp)} 배차`, v.depart&&`${dayTime(v.depart)} 발인`, `차량배차완료${co?`(${co})`:''}`].filter(Boolean); }
+/* 장의차량 줄. 차종이 「버스 리무진」처럼 두 대 이상이면 차마다 따로 (2026.10.30 사용자: 「버스 리무진 붙이면 안 됨, 리무진은 화장장까지만」 → 고른 답: 리무진 먼저 · 차마다 따로)
+   리무진 = 「리무진 부산영락」(화장장까지), 장의버스 = 「장의버스 200km 부산영락-부산추모-장례식장」(운행 거리는 버스 줄), 배차 · 발인 · 배차완료 줄은 차마다. 한 대면 예전 그대로 */
+const dvCremName=v=>{ const n=gimhaeShort(String(v||'').trim()); return CREM_FULL[n.replace(/\s/g,'')]||n; };
+const dvSplitOn=r=>vehSplit((r.veh||{}).type).length>1;
+function dvRoute(crem,bur){ const strip=x=>String(x||'').replace(/\s|\(.*?\)/g,''), out=[];
+  [crem,...String(bur||'').split('-')].map(x=>gimhaeShort(String(x||'').replace(/\s*\([^)]*\)\s*/g,'').trim())).filter(Boolean).forEach(x=>{ if(!out.length||strip(out[out.length-1])!==strip(x)) out.push(x); });
+  return out.length?[...out,'장례식장'].join('-'):''; }
+function dvVehBlocks(r){ const v=r.veh||{}; if(!['type','km','crem','burial','disp','depart','co'].some(k=>String(v[k]||'').trim())) return [];
+  const k0=String(v.km||'').trim(), km=k0&&(/^\d+(\.\d+)?$/.test(k0)?k0+'km':k0.replace(/KM/g,'km')), bur=String(v.burial||'').trim(), co=String(v.co||'').trim(), disp=dispatchDT({dispatchAt:v.disp||'',depart:v.depart||''});
+  const tail=[disp&&`${dayTime(disp)} 배차`, v.depart&&`${dayTime(v.depart)} 발인`, `차량배차완료${co?`(${co})`:''}`].filter(Boolean), vt=vehSplit(v.type);
+  if(vt.length<2) return [[[String(v.type||'').trim(), km, bur&&`장지(${bur})`].filter(Boolean).join(' '), ...tail]];
+  const crem=dvCremName(v.crem), route=dvRoute(crem,bur), limo=x=>/리무진/.test(x);
+  return [...vt.filter(limo),...vt.filter(x=>!limo(x))].map(x=>[[x==='버스'?'장의버스':x, limo(x)?'':km, limo(x)?crem:route].filter(Boolean).join(' '), ...tail]);
+}
+const dvVehLines=r=>dvVehBlocks(r).flatMap((b,i)=>i?['',...b]:b);   /* 차가 여러 대면 사이에 빈 줄 */
 function dvSubLines(sb,r){ const n=String(sb.n||'').trim(), head=`관리사 ${n?n+'명 ':''}대체`;
+  if(sb.what==='car') return dvVehLines(r);   /* 차량 추가: 「관리사 N명 대체」 없이 장의차량 줄만 */
   if((sb.what||'veh')==='veh') return [head,...dvVehLines(r)];
   if(sb.what==='mourn'){ const m=String(sb.m||'').trim(), w=String(sb.w||'').trim(), t=[m&&`남상복 ${cntText(m,'세트')}`,w&&`여상복 ${cntText(w,'벌')}`].filter(Boolean).join(' '); return [head,...(t?[t+' 제공']:[])]; }
   return [head,...String(sb.text||'').split('\n').map(x=>x.trim()).filter(Boolean)]; }
@@ -3813,7 +3827,7 @@ function dvText(r){
   const blocks=[[`회사명 : ${DV_HQ}`,`업체명 : ${g('co')}`,...(g('place')?[g('place')]:[]),...dvMgrLines(r),'관리사 배치완료.']];
   if(r.kind==='veh') blocks.push(dvVehLines(r));
   if(r.kind==='sub') (r.subs||[]).forEach(sb=>blocks.push(dvSubLines(sb,r)));
-  return blocks.map(b=>b.map(l=>l.trimEnd()).join('\n')).join('\n\n');
+  return blocks.filter(b=>b.length).map(b=>b.map(l=>l.trimEnd()).join('\n')).join('\n\n');
 }
 function dvDay(r){ const m=(r.mgr||[]).map(x=>x.date).filter(Boolean).sort()[0], d=m||String((r.veh||{}).depart||'').slice(0,10), p=parseDT(d); if(p) return `${p.mo}월 ${pad(p.d)}일`; const t=new Date(r.created||Date.now()); return `${t.getMonth()+1}월 ${pad(t.getDate())}일`; }
 const dvTitle=r=>[String(r.co||'').trim(), String(r.name||'').trim()&&`故 ${String(r.name).trim()}`].filter(Boolean).join(' · ')||'새 배송';
@@ -3830,19 +3844,22 @@ function dvMgrHtml(r){
 }
 function dvSubHtml(r){
   const rows=(r.subs||[]).map(sb=>{ const w=sb.what||'veh';
+    if(w==='car') return `<div class="mg dv-sub"><div class="dv-sub-top"><span>장의차량 지원</span><button class="x" type="button" data-dvs-del="${sb.id}" aria-label="이 차량 삭제">✕</button></div>
+      <p class="note">관리사 대체 없이 아래 「장의차량」 칸의 내용만 들어갑니다.</p></div>`;
     return `<div class="mg dv-sub"><div class="dv-sub-top"><span>관리사</span><div class="suffix"><input class="input" data-dvs="${sb.id}" data-dvsf="n" inputmode="numeric" value="${esc(sb.n||'')}" aria-label="대체한 관리사 인원"><span>명</span></div><span>대체</span>
         <button class="x" type="button" data-dvs-del="${sb.id}" aria-label="이 대체 삭제">✕</button></div>
       <div class="seg" role="group" aria-label="무엇으로 대체">${[['veh','장의차량'],['mourn','상복'],['text','직접 입력']].map(([v,l])=>`<button type="button" data-dvs-what="${sb.id}" data-v="${v}" aria-pressed="${w===v}">${l}</button>`).join('')}</div>
       ${w==='mourn'?`<div class="pair"><label class="f">남상복<div class="suffix"><input class="input" data-dvs="${sb.id}" data-dvsf="m" value="${esc(sb.m||'')}" inputmode="numeric" autocomplete="off"><span>세트</span></div></label><label class="f">여상복<div class="suffix"><input class="input" data-dvs="${sb.id}" data-dvsf="w" value="${esc(sb.w||'')}" inputmode="numeric" autocomplete="off"><span>벌</span></div></label></div>`
         :w==='text'?`<textarea class="input" data-dvs="${sb.id}" data-dvsf="text" rows="2" placeholder="예: 헌화 30송이 제공" aria-label="대체 내용">${esc(sb.text||'')}</textarea>`
         :`<p class="note">아래 「장의차량」 칸의 내용이 들어갑니다.</p>`}</div>`; }).join('');
-  return `<div class="stack dv-rows">${rows}</div><div class="row"><button class="btn sm" type="button" data-dv-sub-add>+ 대체 추가</button></div>`;
+  const hasCar=(r.subs||[]).some(sb=>sb.what==='car');
+  return `<div class="stack dv-rows">${rows}</div><div class="row"><button class="btn sm" type="button" data-dv-sub-add>+ 대체 추가</button>${hasCar?'':'<button class="btn sm" type="button" data-dv-car-add>+ 차량 추가</button>'}</div>`;
 }
 function renderDeliv(){
   const el=$('#p-deliv'); if(!el) return; const list=dvList(); let r=dvCur();
   if(!r&&list.length){ r=[...list].sort((a,b)=>(b.updated||0)-(a.updated||0))[0]; db.shipCur=r.id; }
   if(!r){ el.innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>배송</h2></div><p class="note">현진시닝 단순용품 · 인력지원 · 인력+차량 · 인력+대체 양식을 만듭니다. 행사 기록 · 정산과는 따로 저장됩니다.</p><div class="row"><button class="btn primary" type="button" data-dv-new>새 배송 시작</button></div></div>`; return; }
-  const k=r.kind||'goods', v=r.veh||{}, needVeh=k==='veh'||(k==='sub'&&(r.subs||[]).some(sb=>(sb.what||'veh')==='veh'));
+  const k=r.kind||'goods', v=r.veh||{}, needVeh=k==='veh'||(k==='sub'&&(r.subs||[]).some(sb=>['veh','car'].includes(sb.what||'veh')));
   el.innerHTML=`<div class="case-panel dv-panel"><button type="button" class="case-pick" id="dvPick" aria-haspopup="dialog" aria-controls="dvBg"><span class="cp-main"><b class="cp-t" id="dvT"></b><span class="cp-s" id="dvS"></span></span><span class="cp-go">변경${CHEV}</span></button></div>
   <div class="px-page"><div class="px-form stack">
     <div class="sec"><div class="sec-head"><h2>양식</h2></div><div class="fields"><div class="seg dv-kinds" role="group" aria-label="배송 양식">${DV_KINDS.map(([id,l])=>`<button type="button" data-dv-kind="${id}" aria-pressed="${id===k}">${l}</button>`).join('')}</div><p class="note">${DV_NOTE[k]}</p></div></div>
@@ -3854,9 +3871,11 @@ function renderDeliv(){
       <div class="pair"><div class="f-wrap"><span class="field-label">진행</span>${chooser({scope:'dv',key:'prog',options:DV_PROG,label:'진행'})}</div>${dvIn('progStaff','진행 담당','모르면 비워 두십시오')}</div>`:''}
     </div></div>
     ${k!=='goods'?`<div class="sec"><div class="sec-head"><h2>관리사 배치</h2></div><div class="fields">${dvMgrHtml(r)}</div></div>`:''}
-    ${k==='sub'?`<div class="sec"><div class="sec-head"><h2>대체</h2></div><div class="fields">${dvSubHtml(r)}</div></div>`:''}
+    ${k==='sub'?`<div class="sec"><div class="sec-head"><h2>대체 · 차량</h2></div><div class="fields">${dvSubHtml(r)}</div></div>`:''}
     ${needVeh?`<div class="sec"><div class="sec-head"><h2>장의차량</h2></div><div class="fields">
       <div class="pair"><div class="f-wrap"><span class="field-label">차종</span>${chooser({scope:'dv',key:'veh.type',options:db.lists.vehTypes||[],label:'차종'})}</div>${dvSuf('veh.km','운행 거리','km','예: 200')}</div>
+      <div class="f-wrap" id="dvCremWrap"${dvSplitOn(r)?'':' hidden'}><span class="field-label">화장장</span>${chooser({scope:'dv',key:'veh.crem',options:db.lists.crems||[],label:'화장장'})}
+        <p class="note">리무진은 화장장까지, 장의버스는 화장장-장지-장례식장으로 따로 나갑니다. 운행 거리는 장의버스 줄에 붙습니다.</p></div>
       ${dvIn('veh.burial','장지','예: 울산하늘')}
       <div class="f-wrap"><label class="f">발인</label>${dtCtl('dvDepart',v.depart||'','발인')}</div>
       <div class="f-wrap"><label class="f">배차 <span class="lbl-sub">비우면 발인 30분 전</span></label>${dtCtl('dvDisp',v.disp||'','배차')}</div>
@@ -3867,7 +3886,7 @@ function renderDeliv(){
     <textarea class="text-out" id="dvText" rows="14" aria-label="배송 양식"></textarea></div></div></div>`;
   dvPaint();
 }
-function dvPaint(){ const r=dvCur(); if(!r) return; const t=$('#dvT'), s2=$('#dvS'), ta=$('#dvText'); if(t) t.textContent=dvTitle(r); if(s2) s2.textContent=dvSub(r); if(ta&&document.activeElement!==ta) ta.value=dvText(r); }
+function dvPaint(){ const r=dvCur(); if(!r) return; const t=$('#dvT'), s2=$('#dvS'), ta=$('#dvText'), cw=$('#dvCremWrap'); if(t) t.textContent=dvTitle(r); if(s2) s2.textContent=dvSub(r); if(ta&&document.activeElement!==ta) ta.value=dvText(r); if(cw) cw.hidden=!dvSplitOn(r); }
 function dvTouched(){ const r=dvCur(); if(r) r.updated=Date.now(); markUnsaved(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),400); dvPaint(); }
 const dvId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function dvNew(){
@@ -3909,10 +3928,11 @@ $('#p-deliv').addEventListener('click',e=>{
   const r=dvCur(); if(e.target.closest('#dvPick')){ dvOpen(); return; } if(!r) return;
   const kb=e.target.closest('[data-dv-kind]'); if(kb){ if(r.kind!==kb.dataset.dvKind){ r.kind=kb.dataset.dvKind; if(r.kind==='sub'&&!(r.subs||[]).length) r.subs=[{id:dvId('s'),n:'',what:'veh'}]; if(r.kind!=='goods'&&!(r.mgr||[]).length) r.mgr=[{id:dvId('m'),date:'',n:''}]; dvTouched(); renderDeliv(); } return; }
   if(e.target.closest('[data-dv-mgr-add]')){ if(!r.mgr) r.mgr=[]; r.mgr.push({id:dvId('m'),date:'',n:''}); dvTouched(); renderDeliv(); return; }
-  if(e.target.closest('[data-dv-sub-add]')){ if(!r.subs) r.subs=[]; r.subs.push({id:dvId('s'),n:'',what:r.subs.some(x=>(x.what||'veh')==='veh')?'mourn':'veh'}); dvTouched(); renderDeliv(); return; }
+  if(e.target.closest('[data-dv-sub-add]')){ if(!r.subs) r.subs=[]; r.subs.push({id:dvId('s'),n:'',what:r.subs.some(x=>['veh','car'].includes(x.what||'veh'))?'mourn':'veh'}); dvTouched(); renderDeliv(); return; }
+  if(e.target.closest('[data-dv-car-add]')){ if(!r.subs) r.subs=[]; if(!r.subs.some(x=>x.what==='car')) r.subs.push({id:dvId('s'),what:'car'}); dvTouched(); renderDeliv(); return; }
   const md=e.target.closest('[data-dvm-del]'), sd=e.target.closest('[data-dvs-del]');
   if(md||sd){ const key=md?'mgr':'subs', id=md?md.dataset.dvmDel:sd.dataset.dvsDel, arr=r[key]||[], i=arr.findIndex(x=>x.id===id); if(i<0) return; const gone=arr[i]; r[key]=arr.filter(x=>x.id!==id); dvTouched(); renderDeliv();
-    if(window.dwUndo) window.dwUndo(`${md?'관리사 배치':'대체'} 한 줄을 삭제했습니다`,()=>{ const a=r[key]||(r[key]=[]); if(a.some(x=>x.id===gone.id)) return; a.splice(Math.min(i,a.length),0,gone); dvTouched(); if(db.tab==='deliv'&&dvCur()===r) renderDeliv(); }); return; }
+    if(window.dwUndo) window.dwUndo(`${md?'관리사 배치':gone.what==='car'?'장의차량 지원':'대체'} 한 줄을 삭제했습니다`,()=>{ const a=r[key]||(r[key]=[]); if(a.some(x=>x.id===gone.id)) return; a.splice(Math.min(i,a.length),0,gone); dvTouched(); if(db.tab==='deliv'&&dvCur()===r) renderDeliv(); }); return; }
   const sw=e.target.closest('[data-dvs-what]'); if(sw){ const sb=(r.subs||[]).find(x=>x.id===sw.dataset.dvsWhat); if(sb&&sb.what!==sw.dataset.v){ sb.what=sw.dataset.v; dvTouched(); renderDeliv(); } return; }
   if(e.target.closest('[data-dv-copy]')){ copyFrom($('#dvText'),'배송 양식을 복사했습니다'); return; }
 });

@@ -225,12 +225,14 @@
   - 돈 계산 · 저장 키 · 서버 SQL 바뀐 것 없음. `smoke.py` 첫 화면 점검은 업무 줄(`.dwh-menu .dwh-row`) 5개.
 - **배송**(2026.10.30-3, 사용자: 「배송 탭 만들어서 배송 양식도 만들어 줘 (현진시닝)」 + 예시 4가지 · 「니가 한번 분석해 봐」 → 고른 답: **행사와 따로 「배송」 화면** · 「진행 : 개인장의 / 담당 :」 = **장례 진행한 곳과 그쪽 담당자** · **줄 모양 한 가지로 맞추기**).
   - 화면 `deliv`(`#p-deliv`, `renderDeliv`, 행사 칸 메뉴: 넓은 화면 위 메뉴 줄 장례일정표 다음 「배송」 · 휴대폰은 행사 목록 · 장례일정표 · 배송 위쪽 밑줄 탭, 게시판 화면 위 메뉴 `dwNav` eventWide 도 같게, 주소 `funeral.html#deliv`). 모양은 장례일정표(`.px-page` 왼쪽 입력 · 오른쪽 양식) + 행사 고르기 칸(`.case-pick` · 선택 창 `#dvBg` = `.csheet` · `.cp-row`).
-  - 기록 **`db.ships`**(새 칸, `funeral-band-v2` 안) = `[{id, kind:'goods'|'help'|'veh'|'sub', co(고객사), place(빈소), custName, custTel, name(고인), mourn(상 구분), age, staffOrg, staff, prog(진행), progStaff(진행 담당), mgr:[{id,date,sh,sm,eh,em,n}], veh:{type,km,burial,disp,depart,co}, subs:[{id,n,what:'veh'|'mourn'|'text',m,w,text}], created, updated}]`. **내 계정 설정(`state:settings`)에 같이 저장**: `SB_SET_KEYS` 에 `ships`(`src/switch.html` 같은 목록도). 지금 고른 것 `db.shipCur`(이 기기만). 행사 목록 · 정산 · 봉투와 섞이지 않음.
+  - 기록 **`db.ships`**(새 칸, `funeral-band-v2` 안) = `[{id, kind:'goods'|'help'|'veh'|'sub', co(고객사), place(빈소), custName, custTel, name(고인), mourn(상 구분), age, staffOrg, staff, prog(진행), progStaff(진행 담당), mgr:[{id,date,sh,sm,eh,em,n}], veh:{type,km,crem,burial,disp,depart,co}, subs:[{id,n,what:'veh'|'mourn'|'text'|'car',m,w,text}], created, updated}]`. **내 계정 설정(`state:settings`)에 같이 저장**: `SB_SET_KEYS` 에 `ships`(`src/switch.html` 같은 목록도). 지금 고른 것 `db.shipCur`(이 기기만). 행사 목록 · 정산 · 봉투와 섞이지 않음.
   - 양식 4가지(`dvText`, 회사명은 `DV_HQ`='현진시닝' 고정):
     - 단순용품 = 회사 · 직원(님) · 전화 · 고인(상 구분 나이세) · 빈소 · 담당(소속 담당) · 진행 · 담당(진행 담당) — 빈 줄도 「담당 :」처럼 늘 나감.
     - 인력지원 = 회사명 · 업체명 · 빈소 · 관리사 배치(`dvMgrLines`: 날짜순, 같은 날 둘째 줄부터 날짜 없이 공백 11칸 들여 씀 「30일 : 12시-22시 1명」) · 「관리사 배치완료.」
     - 인력+차량 = 인력지원 + 빈 줄 + 장의차량(`dvVehLines`: 「리무진 200km 장지(울산하늘)」 · 「30일 07시 배차」(비우면 발인 30분 전 `dispatchDT`) · 「30일 07시 30분 발인」 · 「차량배차완료(한맥장의차)」, 차량 칸이 다 비면 안 나감).
     - 인력+대체 = 인력지원 + 대체마다 빈 줄 + 「관리사 N명 대체」 + 장의차량 줄 / 「남상복 5세트 여상복 1벌 제공」 / 직접 입력 줄.
+    - **「버스 리무진」 = 차마다 따로**(2026.10.30-11, 사용자: 「버스 리무진 붙이면 안 됨, 리무진은 화장장까지만」 → 고른 답: **리무진 먼저 · 차마다 따로**, 인력+차량 · 인력+대체 공통 `dvVehBlocks` · `dvVehLines`): 차종이 두 대 이상(`vehSplit`)이면 장의차량 칸에 **화장장**(`veh.crem`, 선택 목록 「화장장」 `db.lists.crems`, 「부산」 → 「부산영락」 `dvCremName`) 칸이 나타나고(`#dvCremWrap`, `dvSplitOn`), 양식은 「리무진 부산영락」 블록 → 빈 줄 → 「장의버스 200km 부산영락-부산추모-장례식장」 블록(`dvRoute` = 화장장-장지-장례식장, 괄호 뺌 · 같은 이름 하나로, 「버스」는 「장의버스」로, 운행 거리는 리무진 아닌 차 줄에만), 배차 · 발인 · 차량배차완료 줄은 차마다. 한 대면 예전 그대로(「리무진 200km 장지(울산하늘)」).
+    - **「차량 추가」**(같은 날, 「대체 추가 옆에 차량 추가 · 차량만 지원 나오는 회사」): 인력+대체 「대체 · 차량」 칸에 「+ 차량 추가」 → `subs` 에 `{what:'car'}`(하나만, 있으면 버튼 숨김) = 「관리사 N명 대체」 없이 장의차량 줄만. 비어 있는 블록은 양식에서 뺌.
   - 칸 고르기(차종 · 장의차 업체 · 진행)는 선택 칸(`chooser`) `scope:'dv'`(`dvGet` · `dvSet`, 점 경로 `veh.type`). 관리사 시간은 시간 고르기(`tpCtl`), 배차 · 발인은 `dtCtl('dvDisp'|'dvDepart')`. 삭제는 확인 창 + 되돌리기.
   - `smoke.py`: 배송 화면을 화면마다 열고 인력+대체 예시 양식 줄이 그대로인지 확인.
 - **행사 고르기 · 다른 팀장 행사에서 뺀 마이너스**(2026.10.30-2, 사용자: 「행사 드롭다운으로 행사번호랑 내역 나오는 게 가독성이 안 좋고, 모바일에서는 지금 행사 표시 글씨가 잘림」 · 「마이너스 정산도 다른 팀장 행사에서 뺐다고 표기해서 정리할 수 있게」).
