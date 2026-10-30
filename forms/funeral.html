@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.30-8">
+<meta name="app-version" content="2026.10.30-9">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1365,6 +1365,7 @@ body.split #p-sched .sz-pv-done{display:none}
 @media (min-width:560px){.sz-goods{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .sz-g{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted);text-align:center}
 .sz-g .input{min-height:46px;padding:6px 4px;text-align:center;font-size:16px}
+.sz-g.sz-gt{grid-column:span 2}   /* 관 · 수의: 한글이 들어가니 두 칸 너비 */
 .sz-hrows{display:grid;gap:8px}
 .sz-hrow{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr);gap:6px}
 .sz-hrow .input{min-height:46px;padding:6px 8px;font-size:16px}
@@ -3847,6 +3848,7 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
 }
 /* ---------- 보고서 입력 (2026.10.22): 일정표 칸을 한 단계씩 묻고 case.sx 에 저장 ----------
    칸 값 = 보고서 입력에서 직접 넣은 값(case.sx) > 행사 입력 · 정산에서 자동으로 만든 값(schedAuto) */
+const SZ_GTEXT=['관','수의'];   /* 장례용품 중 한글로 적는 칸 (2026.10.30 사용자 「관 · 수의 항목은 한글도 같이 타이핑되게」) — 휴대폰에서 숫자 자판 대신 보통 자판 */
 const SZ_GOODS=['관','수의','관보','명정','다라니','습신','꽃종이','소창','알코올','칠성판','장갑','탈지면','한지','목함','꼬깔','양초','접수세트','향','염베'], SZ_GCOL='CDEFGHIJKLMNOPQRSTU';
 const SZ_ITEMS=[['수의',17],['사전상담',18],['영정사진',19],['앰블런스',20],['유골함',21],['헌화',22],['꽃 바구니',23],['생화꽃장식',24],['3단 화환',25],['일회용품',26],['편의용품',27]];
 const SX=c=>{ if(!c.sx||typeof c.sx!=='object') c.sx={}; return c.sx; };
@@ -4370,8 +4372,9 @@ function szScreen(c,st,steps){
     body=`<div class="sz-box">${row('카드',A.E10,String(A.F10||'').replace('결제금액: ',''))}${row('현금',A.E11,String(A.F11||'').replace('결제금액: ',''))}${row('추가',A.E12,A.E12?`${[A.G12&&'카드',A.I12&&'현금'].filter(Boolean).join(' · ')} ${String(A.J12||'').replace('금액: ','')}`:'')}</div>
       ${sIn('rcCardAppr','카드승인 번호','예: 10202012')}${sIn('rcCashNo','현금영수증 번호','예: 010-0000-0000',{tel:1})}
       <button class="btn wz-go wz-go2" type="button" data-sz-settle>정산에서 금액 수정</button>${go()}`; }
-  else if(st.id==='goods'){ sub='앱에 없는 칸이라 여기서만 넣습니다. 숫자 말고 「1.0특」처럼 글도 됩니다.';
-    body=`<div class="sz-goods">${SZ_GOODS.map(g=>`<label class="sz-g"><span>${g==='접수세트'?'접수 세트':g}</span><input class="input" data-sx="goods.${g}" value="${esc(sxGet(c,'goods.'+g))}" inputmode="decimal" autocomplete="off" aria-label="${g} 수량"></label>`).join('')}</div>
+  else if(st.id==='goods'){ sub='앱에 없는 칸이라 여기서만 넣습니다. 숫자 말고 「1.0특」처럼 글도 됩니다. 관 · 수의 칸은 한글 자판이 나옵니다.';
+    body=`<div class="sz-goods">${SZ_GOODS.map(g=>{ const txt=SZ_GTEXT.includes(g);   /* 관 · 수의: 한글로도 적음 (2026.10.30) */
+      return `<label class="sz-g${txt?' sz-gt':''}"><span>${g==='접수세트'?'접수 세트':g}</span><input class="input" data-sx="goods.${g}" value="${esc(sxGet(c,'goods.'+g))}" inputmode="${txt?'text':'decimal'}" autocomplete="off" aria-label="${g}${txt?'':' 수량'}"></label>`; }).join('')}</div>
       <div class="wz-quick"><button class="chip" type="button" data-sz-glast>지난 행사와 같게</button><button class="chip" type="button" data-sz-gclear>모두 삭제</button></div>${go()}`; }
   else if(st.id==='itemPick'){ sub='있었던 품목을 모두 누르십시오. 행사 입력 · 정산에 있는 것은 미리 골라 뒀습니다.';
     body=`<div class="wz-choice wz-co sz-picks">${SZ_ITEMS.map(([n])=>`<button type="button" data-sz-item="${esc(n)}" aria-pressed="${szItemOn(c,n,A)}"><b>${esc(n)}</b></button>`).join('')}</div>${go()}`; }
