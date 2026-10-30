@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.30-1">
+<meta name="app-version" content="2026.10.30-2">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -327,8 +327,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 .top{background:var(--bg);padding-block:12px 12px;display:grid;gap:8px}
 .top h1{margin:0;font-family:var(--serif);font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px}
 .seal{display:inline-grid;place-items:center;width:26px;height:26px;border:1.5px solid var(--ink);border-radius:4px;font-size:14px;line-height:1}
-.case-row{display:flex;gap:8px}
-.case-row select{flex:1;min-width:0}
 .ttl{font-size:12px;color:var(--muted);margin:0}
 
 /* 하단 탭 */
@@ -595,14 +593,7 @@ body[data-tab="out"] #saveNow,body[data-tab="admin"] #saveNow,body.duty-mode #sa
 .page-intro h1{display:block;font-family:var(--sans);font-size:27px;font-weight:700;line-height:1.3;letter-spacing:-.055em;margin:0 0 8px}
 .page-intro p{font-size:13px;color:var(--muted);margin:0;word-break:keep-all}
 .intro-mark{font-size:11px;letter-spacing:.08em;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--edge);padding-bottom:6px}
-.case-panel{padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:var(--surface);display:grid;gap:9px}
-.case-heading{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:600}
-.case-heading .ui-icon{width:15px;height:15px}
-.case-row{align-items:center;gap:12px}
-.case-row .input{min-height:40px;background-color:var(--surface);font-size:16px;font-weight:700;padding:4px 32px 4px 0;border:0;border-radius:4px;box-shadow:none}
-.case-row .input:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
-#delCase{min-height:36px;padding:0 12px;font-size:12px;color:var(--muted);border-color:var(--line);font-weight:500}
-#delCase.armed{color:#fff;background:var(--warn)}
+.case-panel{border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .ttl{font-size:11.5px;line-height:1.6;color:var(--muted);word-break:keep-all}
 .work-tabs{display:flex;border-bottom:1px solid var(--edge);gap:24px;padding:0 2px}
 .work-tabs button{border:0;background:none;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;font-size:14px;font-weight:600;color:var(--muted);padding:0 4px;position:relative;cursor:pointer;white-space:nowrap}
@@ -790,11 +781,6 @@ body.duty-mode .wrap{padding:0}
   .top,.wrap>.top{padding-top:24px;gap:18px;margin-bottom:18px}
   .page-intro h1{font-size:24px;margin-bottom:7px}
   .page-intro p{font-size:12px;line-height:1.65}
-  .intro-mark{display:none}
-  .case-panel{padding:14px 16px;gap:6px}
-  .case-row{gap:8px}
-  .case-row .input{font-size:14px;min-height:36px}
-  #delCase{padding:0 10px;font-size:11px;min-height:32px}
   .ttl{font-size:10.5px}
   .work-tabs{gap:0;justify-content:space-between}
   .work-tabs button{flex:1;font-size:12.5px;gap:6px;min-height:44px;padding:0 6px}
@@ -912,7 +898,6 @@ body[data-tab="envelopes"] .case-panel,body[data-tab="envelopes"] .work-tabs{dis
 @media(max-width:799px){.env-columns{grid-template-columns:minmax(0,1fr)}.env-detail{padding:16px;gap:20px}.env-form{padding:14px}.env-stats{gap:7px}.env-stat{padding:14px 10px}.env-cash{font-size:12px}.env-cash thead th{font-size:11px}.env-event>summary{padding:16px;gap:8px}.env-event>summary b{font-size:13px}.env-total{font-size:13px}}
 </style>
 <style id="month-ui">
-.case-month{display:flex;align-items:center;gap:8px}
 .cm-nav{flex:none;width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer}
 .cm-nav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .cm-nav:disabled{opacity:.35;cursor:default}
@@ -1140,7 +1125,9 @@ body.split[data-tab="input"] #p-out .text-out{resize:none;overflow:hidden}
 .wz-rv-v.minus{color:var(--warn)}
 .wz-rv-v.zero{color:var(--muted);font-weight:500}
 .wz-rv svg{width:18px;height:18px;color:var(--muted)}
-#wzBasic .wb-t{display:grid;gap:2px;min-width:0;padding:8px 0}
+#wzBasic .wb-t,.mo-fold .wb-t{display:grid;gap:2px;min-width:0;padding:8px 0}
+.mo-fold .wb-t small{font-size:12.5px;color:var(--muted);font-weight:400}
+.mo-fold{text-align:left}
 #wzBasicState{font-size:12px;color:var(--muted)}
 #wzBasicState.miss{color:var(--warn)}
 .wz-restart{justify-self:center}
@@ -1385,17 +1372,8 @@ body[data-tab="list"] .case-panel{display:none}
   <header class="top">
     <div class="page-intro"><div><h1 id="pageTitle">장례 일정 작성</h1><p id="pageDesc">행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.</p></div></div>
     <div class="case-panel">
-    <label class="case-heading" for="caseSel"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2"/></svg>행사 기록 · 월별</label>
-    <div class="case-month">
-      <button class="cm-nav" id="cmPrev" type="button" aria-label="이전 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <div class="cm-label"><b id="cmLabel">-</b><span id="cmCount"></span></div>
-      <button class="cm-nav" id="cmNext" type="button" aria-label="다음 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
-    </div>
-    <div class="case-row">
-      <select class="input" id="caseSel" aria-label="작성 중인 건"></select>
-      <button class="btn danger" id="delCase" type="button">삭제</button>
-    </div>
-    <p class="ttl" id="ttlNote"></p>
+      <button type="button" class="case-pick" id="casePick" aria-haspopup="dialog" aria-controls="cpBg"><span class="cp-main"><b class="cp-t" id="cpT">-</b><span class="cp-s" id="cpS"></span></span><span class="cp-go">변경<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></button>
+      <p class="ttl" id="ttlNote"></p>
     </div>
     <nav class="case-steps" id="caseSteps" aria-label="업무 순서"></nav>
     <nav class="work-tabs" aria-label="행사 업무">
@@ -1571,6 +1549,10 @@ body[data-tab="list"] .case-panel{display:none}
   </div>
 </div>
 <div class="csheet-bg" id="chBg" hidden><div class="csheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="chTitle"></b><button class="x" type="button" id="chClose" aria-label="닫기">✕</button></div><div class="csheet-list" id="chList" role="listbox"></div></div></div>
+<div class="csheet-bg" id="cpBg" hidden><div class="csheet cp-sheet" role="dialog" aria-modal="true" aria-labelledby="cpTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="cpTitle">행사 선택</b><button class="x" type="button" id="cpClose" aria-label="닫기">✕</button></div>
+  <div class="cp-month"><button class="cm-nav" id="cmPrev" type="button" aria-label="이전 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button><div class="cm-label"><b id="cmLabel">-</b><span id="cmCount"></span></div><button class="cm-nav" id="cmNext" type="button" aria-label="다음 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button></div>
+  <div class="cp-list" id="cpList" role="listbox" aria-labelledby="cpTitle"></div>
+  <div class="cp-foot"><button class="btn" type="button" data-cp-list>행사 목록 화면</button><button class="btn danger" id="delCase" type="button">이 행사 삭제</button></div></div></div>
 <div class="csheet-bg" id="tpBg" hidden><div class="csheet tp-sheet" role="dialog" aria-modal="true" aria-labelledby="tpTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="tpTitle">시간</b><span class="tp-now" id="tpNow" aria-live="polite"></span><button class="x" type="button" id="tpClose" aria-label="닫기">✕</button></div>
   <div class="tp-body">
     <div class="tp-cap"><span>시</span><small>24시간제</small></div>
@@ -2777,30 +2759,52 @@ function caseLabel(c){
 const CASE_NO_COLL=new Intl.Collator('ko',{numeric:true});
 function caseNoKey(c){ return String((c.f||{}).eventNo||'').trim().replace(/번$/,''); }
 function byCaseNo(list){ return list.map((c,i)=>[c,i]).sort(([a,i],[b,j])=>{ const x=caseNoKey(a), y=caseNoKey(b); if(!x||!y) return (x?0:1)-(y?0:1)||i-j; return CASE_NO_COLL.compare(x,y)||i-j; }).map(([c])=>c); }
+/* ---------- 행사 고르기 (2026.10.30 사용자 「드롭다운으로 행사번호랑 내역이 나오는 게 가독성이 안 좋고, 휴대폰에서는 지금 행사 글씨가 잘림」) ----------
+   예전 드롭다운(select) 대신 두 줄 칸: 「1번 · 故 홍길동」 / 장소 · 업체 · 발인 · 정산 상태 (줄이 넘으면 다음 줄로, 잘리지 않음).
+   누르면 아래에서 올라오는 창(넓은 화면은 가운데 창): 그 달 행사 목록(번호 · 고인 · 장소 · 업체 · 발인 · 정산 상태), 달 넘기기, 행사 목록 화면, 이 행사 삭제 */
+let cpMonth='';
+const caseTitle=(c,noNo)=>{ const f=c.f||{}, no=caseNoKey(c), nm=String(f.name||'').trim(), pl=String(f.place||'').trim();
+  return [!noNo&&no&&`${no}번`, nm?`故 ${nm}`:(pl||'이름 없는 행사')].filter(Boolean).join(' · '); };
+const caseSub=c=>{ const f=c.f||{}, coNm=c.quick&&!c.coPicked?'정산만':caseCoName(c), custCo=coNm.replace(/\s/g,'')==='현진시닝'?String(f.company||'').trim():'', p=parseDT(f.depart), nm=String(f.name||'').trim();
+  return [nm&&String(f.place||'').trim(), [coNm,custCo].filter(Boolean).join(' '), p&&`${p.mo}월\u00a0${pad(p.d)}일\u00a0발인`].filter(Boolean).join(' · '); };
+function caseStShort(c,used){ const st=settleStatus(c,used);
+  return st.k==='none'?{k:'none',t:''}:st.k==='minus'?{k:'minus',t:`마이너스 ${wonStr(st.won)}`}:st.k==='cleared'?{k:'cleared',t:'마이너스 정리됨'}:{k:st.k,t:st.t}; }
 function renderCaseSel(){
   renderTtl();
-  const cur=curCase(), months=caseMonths(), mk=cur?caseMonth(cur):(months[0]?months[0][0]:'');
-  const list=mk?byCaseNo(casesOfMonth(mk)):[], used=carryUse(); let negLeft=0;
-  $('#caseSel').innerHTML=list.length?list.map(c=>{ const d=parseDT(c.f.depart), co=coById(c.companyId), w=settleCalc(c).sendWon, neg=w<0?(used.has(c.id)?' · 마이너스 정리됨':` · 마이너스 ${wonStr(w)}`):'';
-    if(w<0&&!used.has(c.id)) negLeft++;
-    return `<option value="${c.id}" ${cur&&c.id===cur.id?'selected':''}>${esc(caseLabel(c))}${esc(neg)}</option>`; }).join(''):'<option>작성 중인 건 없음</option>';
-  $('#caseSel').disabled=!list.length; $('#delCase').disabled=!list.length;
-  const i=months.findIndex(x=>x[0]===mk);
-  $('#cmLabel').textContent=mk?monthLabel(mk):'행사 없음';
-  $('#cmCount').textContent=mk?`${list.length}건${negLeft?` · 마이너스 ${negLeft}건 남음`:''}${months.length>1?` · ${months.length}개월 보관 중`:''}`:'';
-  $('#cmCount').classList.toggle('warn',negLeft>0);
-  $('#cmPrev').disabled=i<0||i>=months.length-1; $('#cmNext').disabled=i<=0;
+  const c=curCase(), b=$('#casePick');
+  if(c){ const st=caseStShort(c,carryUse()); $('#cpT').textContent=caseTitle(c); $('#cpS').innerHTML=esc(caseSub(c))+(st.t?`<em class="cp-st st-${st.k}">${esc(st.t)}</em>`:''); }
+  else { $('#cpT').textContent='작성 중인 행사가 없습니다'; $('#cpS').textContent=db.cases.length?'눌러서 행사를 선택하십시오.':'위 「새 행사」로 시작하십시오.'; }
+  b.disabled=!db.cases.length;
+  b.setAttribute('aria-label',c?`지금 행사: ${caseTitle(c)}, ${caseSub(c)}. 눌러서 다른 행사 선택`:'행사 선택');
+  if(!$('#cpBg').hidden) cpRender();
   renderKeep();
 }
-function goMonth(dir){
-  const cur=curCase(), months=caseMonths().map(x=>x[0]); if(!months.length) return;
-  const i=months.indexOf(cur?caseMonth(cur):months[0]), j=i+(dir<0?1:-1);
-  if(j<0||j>=months.length) return;
-  const pick=casesOfMonth(months[j])[0]; if(!pick) return;
-  db.cur=pick.id; save(); dirty=true; renderAll();
+function cpRender(){
+  const months=caseMonths().map(x=>x[0]); if(!months.includes(cpMonth)) cpMonth=months[0]||'';
+  const list=cpMonth?byCaseNo(casesOfMonth(cpMonth)):[], used=carryUse(), i=months.indexOf(cpMonth); let neg=0;
+  $('#cpList').innerHTML=list.length?list.map(c=>{ const st=caseStShort(c,used), no=caseNoKey(c); if(st.k==='minus') neg++;
+    return `<button type="button" role="option" class="cp-row" data-cp="${esc(c.id)}" aria-selected="${c.id===db.cur}"><span class="cp-no">${no?esc(no)+'번':'–'}</span><span class="cp-rm"><b>${esc(caseTitle(c,true))}</b><small>${esc(caseSub(c))}</small></span><span class="cp-st2 st-${st.k}">${esc(st.t)}</span></button>`; }).join('')
+    :'<p class="note cp-empty">이 달에는 행사가 없습니다.</p>';
+  $('#cmLabel').textContent=cpMonth?monthLabel(cpMonth):'행사 없음';
+  $('#cmCount').textContent=cpMonth?`${list.length}건${neg?` · 마이너스 ${neg}건 남음`:''}`:'';
+  $('#cmCount').classList.toggle('warn',neg>0);
+  $('#cmPrev').disabled=i<0||i>=months.length-1; $('#cmNext').disabled=i<=0;
+  $('#delCase').disabled=!curCase();
 }
-$('#cmPrev').onclick=()=>goMonth(-1);
-$('#cmNext').onclick=()=>goMonth(1);
+function cpOpen(){
+  if(!db.cases.length) return; const c=curCase(); cpMonth=c?caseMonth(c):''; cpRender();
+  const bg=$('#cpBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show'));
+  setTimeout(()=>{ const sel=$('#cpList [aria-selected="true"]'); (sel||$('#cpClose')).focus(); if(sel) sel.scrollIntoView({block:'nearest'}); },60);
+}
+function cpClose(back){ const bg=$('#cpBg'); if(bg.hidden) return; bg.classList.remove('show'); setTimeout(()=>{ bg.hidden=true; },200); if(back!==false) $('#casePick').focus(); }
+$('#casePick').onclick=cpOpen;
+$('#cpClose').onclick=()=>cpClose();
+$('#cpBg').addEventListener('click',e=>{ if(e.target.id==='cpBg') cpClose(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#cpBg').hidden) cpClose(); });
+$('#cmPrev').onclick=()=>{ const m=caseMonths().map(x=>x[0]), i=m.indexOf(cpMonth); if(i>=0&&i<m.length-1){ cpMonth=m[i+1]; cpRender(); } };
+$('#cmNext').onclick=()=>{ const m=caseMonths().map(x=>x[0]), i=m.indexOf(cpMonth); if(i>0){ cpMonth=m[i-1]; cpRender(); } };
+$('#cpList').addEventListener('click',e=>{ const b=e.target.closest('[data-cp]'); if(!b) return; cpClose(); if(b.dataset.cp===db.cur) return; db.cur=b.dataset.cp; save(); dirty=true; renderAll(); });
+document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[data-cp-list]')){ cpClose(false); setTab('list'); } });
 
 /* ---------- 행사 기록 정리 (2026.10.28-21: 백업 파일 · 휴대폰 자동 백업 · 구글 드라이브 클라우드는 없앰 → 저장은 내 계정 자동 저장 하나) ---------- */
 function renderKeep(){
@@ -3013,7 +3017,6 @@ $('#keepDelMonth').onclick=()=>{
 };
 $('#saveNow').onclick=()=>saveNow();
 $('#newCase').onclick=()=>db.tab==='envelopes'?newManualEnvelope():db.tab==='settle'?startQuickSettle():openPicker('new');
-$('#caseSel').onchange=e=>{ db.cur=e.target.value; save(); dirty=true; renderAll(); };
 /* 한 줄 지우기 (제공 항목 · 공제 · 관리사 · 추가내역 · 실장 몫): 바로 지우고 「되돌리기」 (2026.10.24) */
 function delRow(obj,key,id,rerender,what){
   const arr=obj[key]||[], i=arr.findIndex(x=>x.id===id); if(i<0) return;
@@ -3026,7 +3029,7 @@ function arm(btn,label,fn,o){
   if(!btn.classList.contains('armed')){ btn.classList.add('armed'); btn.dataset.label=btn.textContent; btn.textContent=label; clearTimeout(btn._t); btn._t=setTimeout(()=>{ btn.classList.remove('armed'); btn.textContent=btn.dataset.label; },3000); return; }
   clearTimeout(btn._t); btn.classList.remove('armed'); btn.textContent=btn.dataset.label; fn();
 }
-$('#delCase').onclick=()=>{ const c=curCase(); if(c) delCaseAsk(c); };
+$('#delCase').onclick=()=>{ const c=curCase(); if(!c) return; cpClose(false); delCaseAsk(c); };
 /* 행사 지우기: 확인 창 → 지우고 「되돌리기」 (봉투 기록은 그대로 남음) */
 function delCaseAsk(c,after){
   arm($('#delCase'),'행사 삭제',()=>{
@@ -3453,9 +3456,12 @@ function caseTag(c){
   return `${m}월 ${who} 행사`.replace(/\s+/g,' ');
 }
 function carryUse(){ const m=new Map(); db.cases.forEach(t=>((t.s&&t.s.carry)||[]).forEach(r=>{ if(!m.has(r.from)) m.set(r.from,t); })); return m; }
+/* 마이너스를 다른 팀장 행사에서 뺀 경우 (2026.10.30 사용자 「다른 팀장 행사에서 뺐다고도 표기해서 정리할 수 있게」):
+   마이너스 행사 기록 c.s.minusOut = {who: 뺀 팀장, event: 그 행사(선택), at: 표시한 때}. 돈 계산은 그대로 — 상태만 「정리됨」 */
+function minusOutOf(c){ const o=c&&c.s&&c.s.minusOut; return o&&String(o.who||'').trim()?o:null; }
 function deficits(){
   const used=carryUse();
-  return db.cases.map(c=>{ const w=settleCalc(c).sendWon; return w<0?{c,won:w,tag:caseTag(c),used:used.get(c.id)||null}:null; }).filter(Boolean)
+  return db.cases.map(c=>{ const w=settleCalc(c).sendWon; if(w>=0) return null; const by=used.get(c.id)||null, out=by?null:minusOutOf(c); return {c,won:w,tag:caseTag(c),used:by,out,done:!!(by||out)}; }).filter(Boolean)
     .sort((a,b)=>caseSortKey(a.c)<caseSortKey(b.c)?-1:1);
 }
 /* ---------- 정산 상태 · 행사 목록 (2026.10.24, 사용자 「전문적인 ERP처럼」: 행사 목록 표 · 정산 상태 관리) ----------
@@ -3464,7 +3470,7 @@ function deficits(){
 function settleStatus(c,used){
   if(!envelopeHasSettlement(c)) return {k:'none',t:'입력 전',won:0};
   const w=settleCalc(c).sendWon;
-  if(w<0) return (used||carryUse()).get(c.id)?{k:'cleared',t:'정리됨',won:w}:{k:'minus',t:'마이너스',won:w};
+  if(w<0){ const by=(used||carryUse()).get(c.id)||null, out=by?null:minusOutOf(c); return by||out?{k:'cleared',t:'정리됨',won:w,by,out}:{k:'minus',t:'마이너스',won:w}; }
   const s=c.s||{};
   if(s.sentAt) return Number(s.sentWon)===w||s.sentWon==null?{k:'sent',t:'보냄',won:w,at:s.sentAt}:{k:'changed',t:'보낸 뒤 바뀜',won:w,at:s.sentAt,was:Number(s.sentWon)};
   return {k:'open',t:'미정산',won:w};
@@ -3479,11 +3485,35 @@ function setSent(c,on){
   if(on&&window.dwUndo) window.dwUndo('보냄으로 표시했습니다',()=>setSent(c,false)); else toast(on?'보냄으로 표시했습니다':'보냄 표시를 삭제했습니다');
 }
 const sentDay=iso=>{ const t=new Date(iso); return isNaN(t)?'':`${t.getMonth()+1}월 ${pad(t.getDate())}일`; };
+/* 다른 팀장 행사에서 뺀 마이너스: 적는 칸(접어 둠) · 적은 뒤 표시 */
+function minusOutForm(){
+  return `<details class="sub-fold mo-fold"><summary><div class="wb-t"><b>다른 팀장 행사에서 뺀 경우</b><small>뺀 팀장을 적으면 「정리됨」으로 표시합니다</small></div><span>입력</span></summary>
+    <div class="fields"><label class="f">팀장 이름<input class="input" data-mo="who" placeholder="예: 김철수 팀장" autocomplete="off"></label>
+    <label class="f">그 행사 (선택 사항)<input class="input" data-mo="event" placeholder="예: 10월 5번 김해복음" autocomplete="off"></label>
+    <button class="btn" type="button" data-mo-save>정리됨으로 표시</button></div></details>`;
+}
+const minusOutDone=o=>`<div class="wz-sent on"><span>✓ ${esc(o.who)} 행사에서 뺐습니다${o.event?` (${esc(o.event)})`:''}${o.at?` · ${esc(sentDay(o.at))}`:''}</span><button class="btn sm" type="button" data-mo-off>표시 취소</button></div>`;
+function setMinusOut(c,v){
+  const s=S(c), was=s.minusOut||null; if(v) s.minusOut=v; else delete s.minusOut;
+  c.updated=Date.now(); save(); dirty=true;
+  if(db.tab==='settle') renderSettle(); else if(db.tab==='list') renderList();
+  renderCaseSel(); paintSteps();
+  if(v&&window.dwUndo) window.dwUndo('정리됨으로 표시했습니다',()=>setMinusOut(c,was)); else toast(v?'정리됨으로 표시했습니다':'「정리됨」 표시를 취소했습니다');
+}
+document.addEventListener('click',e=>{
+  const sv=e.target.closest&&e.target.closest('[data-mo-save]');
+  if(sv){ const c=curCase(); if(!c) return; const box=sv.closest('.mo-fold'), w=box.querySelector('[data-mo="who"]'), who=String(w.value||'').trim(), ev=String(box.querySelector('[data-mo="event"]').value||'').trim();
+    if(!who){ toast('뺀 팀장 이름을 입력하십시오'); w.focus(); return; }
+    setMinusOut(c,{who,event:ev,at:new Date().toISOString()}); return; }
+  const off=e.target.closest&&e.target.closest('[data-mo-off]');
+  if(off){ const c=curCase(); if(!c) return; arm(off,'표시 취소',()=>setMinusOut(c,null),{title:'「정리됨」 표시를 취소하시겠습니까?',body:'이 행사가 다시 「마이너스」로 표시됩니다.',ok:'표시 취소',danger:false}); }
+});
 /* 정산 확인 화면: 정산 카톡 복사 아래 「보냄」 줄 */
 function sentRow(c){
   const st=settleStatus(c);
   if(st.k==='none') return '';
-  if(st.k==='minus'||st.k==='cleared') return `<p class="wz-sent-note">${st.k==='minus'?'마이너스 행사입니다. 수익이 충분한 다른 행사 정산에서 빼 주십시오.':'다른 행사 정산에서 뺀 마이너스입니다.'}</p>`;
+  if(st.k==='minus') return `<p class="wz-sent-note">마이너스 행사입니다. 수익이 충분한 다른 행사 정산에서 빼 주십시오.</p>${minusOutForm()}`;
+  if(st.k==='cleared') return st.out?minusOutDone(st.out):`<div class="wz-sent on"><span>✓ ${esc(caseTag(st.by))} 정산에서 뺐습니다</span></div>`;
   if(st.k==='sent'||st.k==='changed') return `<div class="wz-sent on${st.k==='changed'?' warn':''}"><span>✓ ${sentDay(st.at)} 보냄${st.k==='changed'?` · 보낸 뒤 금액이 바뀌었습니다(보낼 때 ${wonStr(st.was)||'0원'})`:''}</span><button class="btn sm" type="button" data-sent="${st.k==='changed'?'on':'off'}">${st.k==='changed'?'지금 금액으로 다시 표시':'보냄 취소'}</button></div>`;
   return `<button class="btn wz-sent-btn" type="button" data-sent="on">정산 카톡 보냈습니다 · 보냄 표시</button>`;
 }
@@ -3535,7 +3565,8 @@ function renderList(){
     h+=`<div class="lv-empty"><p>${db.cases.length?'조건에 맞는 행사가 없습니다.':'아직 행사가 없습니다. 위 「새 행사」로 시작하십시오.'}</p>${db.cases.length&&(LV.month||LV.co||LV.st||LV.q)?'<button class="btn" type="button" data-lv-reset>모든 행사 보기</button>':''}</div>`;
   } else {
     const stCell=r=>{ const st=r.st, tag=`<span class="lv-st st-${st.k}">${st.k==='minus'?'− ':st.k==='sent'?'✓ ':''}${esc(st.t)}</span>`;
-      return tag+((st.k==='open'||st.k==='changed')?`<button class="btn sm lv-sent" type="button" data-sent="on" data-case="${esc(r.c.id)}">보냄</button>`:st.k==='sent'?`<small class="lv-at">${esc(sentDay(st.at))}</small>`:''); };
+      return tag+((st.k==='open'||st.k==='changed')?`<button class="btn sm lv-sent" type="button" data-sent="on" data-case="${esc(r.c.id)}">보냄</button>`:st.k==='sent'?`<small class="lv-at">${esc(sentDay(st.at))}</small>`
+        :st.k==='cleared'?`<small class="lv-at">${esc(st.out?st.out.who+' 행사':caseTag(st.by))}</small>`:''); };
     h+=`<div class="lv-table" role="table" aria-label="행사 목록"><div class="lv-tr lv-th" role="row"><span role="columnheader">번호</span><span role="columnheader">발인</span><span role="columnheader">행사</span><span role="columnheader">정산 상태</span><span role="columnheader" class="num">보내는금액</span><span role="columnheader" class="num">봉투 본부장</span><span role="columnheader" class="num">봉투 실장</span></div>`
       +rows.map(r=>{ const f=r.c.f||{}, no=String(f.eventNo||'').trim().replace(/번$/,''), co=r.c.quick&&!r.c.coPicked?'정산만':caseCoName(r.c), nm=String(f.name||'').trim();
         const what=[String(f.place||'').trim(),co,nm&&`故 ${nm}`].filter(Boolean).join(' · ')||'이름 없는 행사';
@@ -4265,7 +4296,7 @@ const exData=c=>(S(c).extras||[]).some(x=>String(x.text||'').trim()||String(x.am
 const exYes=c=>exData(c)||S(c).extraAsk==='yes';
 const miData=c=>(S(c).minus||[]).some(x=>String(x.memo||'').trim()||String(x.amt||'').trim());
 const miYes=c=>miData(c)||S(c).mgrAsk==='yes';
-const openDefs=c=>deficits().filter(x=>!x.used && x.c.id!==c.id);
+const openDefs=c=>deficits().filter(x=>!x.done && x.c.id!==c.id);
 // 행사 입력 없이 정산만 하는 행사(c.quick): 처음에 행사번호 · 장소 · 발인일과 카톡 윗부분(도우미 · 차량 · 상복 · 장지)을 물음
 const quickOn=c=>!!(c&&c.quick);
 // 질문 하나 = 화면 하나. when이 있으면 해당될 때만 물음
@@ -4647,17 +4678,17 @@ const depDay=c=>{ const p=parseDT((c.f||{}).depart); return p?`발인 ${p.mo}/${
 const caseWho=c=>{ const f=c.f||{}; return [String(f.place||'').trim(), f.name?'故 '+String(f.name).trim():''].filter(Boolean).join(' · '); };
 function renderDef(c,d){
   const list=deficits(), mine=list.find(x=>x.c.id===c.id), mk=caseMonth(c), M=Number(mk.slice(5,7));
-  const open=list.filter(x=>!x.used && x.c.id!==c.id), carry=d.s.carry||[];
+  const open=list.filter(x=>!x.done && x.c.id!==c.id), carry=d.s.carry||[];
   const monthList=list.filter(x=>caseMonth(x.c)===mk);
-  const openSum=open.reduce((a,x)=>a+x.won,0)+(mine&&!mine.used?mine.won:0);
+  const openSum=open.reduce((a,x)=>a+x.won,0)+(mine&&!mine.done?mine.won:0);
   const dc=$('#chDef'); if(dc){ dc.className='s-chip'+(openSum?' minus':''); dc.textContent=openSum?`남은 ${wonStr(openSum)}`:''; }
-  const al=$('#defAlert'); if(al){ const n=open.length+(mine&&!mine.used?1:0);
+  const al=$('#defAlert'); if(al){ const n=open.length+(mine&&!mine.done?1:0);
     al.innerHTML=n?`<button type="button" class="def-alert" data-go-def><b>아직 안 뺀 마이너스 ${n}건 · ${esc(wonStr(openSum))}</b><span>수익이 충분한 행사 정산에서 빼십시오 ›</span></button>`:''; }
   const body=$('#defBody'); if(!body) return;
   const h=[];
   if(mine){
     h.push(`<div class="def-me"><b>이 행사는 보내는금액이 ${esc(wonStr(mine.won))}입니다.</b>
-      ${mine.used?`<span>${esc(caseTag(mine.used))} 정산에서 뺐습니다.</span>`:`<span>수익이 충분한 다른 행사 정산에서 빼십시오. 그 정산 카톡에 <b>${esc(mine.tag)} ${esc(wonStr(mine.won))}</b>로 들어갑니다.</span>`}
+      ${mine.used?`<span>${esc(caseTag(mine.used))} 정산에서 뺐습니다.</span>`:mine.out?minusOutDone(mine.out):`<span>수익이 충분한 다른 행사 정산에서 빼십시오. 그 정산 카톡에 <b>${esc(mine.tag)} ${esc(wonStr(mine.won))}</b>로 들어갑니다.</span>${minusOutForm()}`}
       ${String(c.f.eventNo||'').trim()?'':`<label class="f">행사번호 <span class="lbl-sub">넣으면 "${M}월N번행사"로 표시</span><div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value=""><span>번</span></div></label>`}</div>`);
   }
   h.push(`<h3 class="def-h">이 정산에서 빼는 마이너스</h3>`);
@@ -4671,7 +4702,7 @@ function renderDef(c,d){
       <div class="def-sub"><span>${esc(caseWho(x.c))}${depDay(x.c)?' · '+depDay(x.c):''}</span><button class="btn sm primary" type="button" data-carry-add="${x.c.id}">이 정산에서 빼기</button></div></div>`).join('')
     :'<p class="note">남은 마이너스가 없습니다.</p>');
   h.push(`<h3 class="def-h">${M}월 마이너스 행사</h3>`);
-  h.push(monthList.length?`<div class="def-month">${monthList.map(x=>`<div><span>${esc(x.tag)}${x.c.id===c.id?' (지금 행사)':''}</span><b>${esc(wonStr(x.won))}</b><em class="${x.used?'done':'left'}">${x.used?esc(caseTag(x.used))+'에서 뺌':'남음'}</em></div>`).join('')}</div>`
+  h.push(monthList.length?`<div class="def-month">${monthList.map(x=>`<div><span>${esc(x.tag)}${x.c.id===c.id?' (지금 행사)':''}</span><b>${esc(wonStr(x.won))}</b><em class="${x.done?'done':'left'}">${x.used?esc(caseTag(x.used))+'에서 뺌':x.out?esc(x.out.who)+' 행사에서 뺌':'남음'}</em></div>`).join('')}</div>`
     :`<p class="note">${M}월에는 마이너스 난 행사가 없습니다.</p>`);
   body.innerHTML=h.join('');
 }
@@ -5493,19 +5524,6 @@ label.f>.field-label{color:var(--muted)}
    화면 제목은 맨 위 막대에 이미 있고, 입력 · 보고서 · 정산은 아래 메뉴에 있어서 겹치는 것만 숨김 */
 @media (max-width:699px){
   .page-intro,.work-tabs{display:none}
-  .case-heading{display:none}
-  /* 행사 기록 상자: 한 줄로 (‹ 달 · 건수 / 행사 이름 ▾ › 삭제) */
-  .case-panel{display:grid;grid-template-columns:36px minmax(0,1fr) 36px auto;grid-template-areas:"prev lab next del" "prev sel next del";column-gap:8px;row-gap:0;align-items:center;padding:8px 10px}
-  .case-panel .case-month,.case-panel .case-row{display:contents}
-  #cmPrev{grid-area:prev} #cmNext{grid-area:next}
-  .cm-nav{width:36px;height:36px}
-  .case-panel .cm-label{grid-area:lab;display:flex;align-items:baseline;gap:6px;text-align:left;line-height:1.3;min-width:0}
-  .case-panel .cm-label b{font-size:12px;font-weight:600;color:var(--muted)}
-  .case-panel .cm-label span{font-size:12px}
-  .case-panel #caseSel{grid-area:sel;min-height:30px;font-size:15px;padding:0 24px 0 0;background-position:right 2px center}
-  .case-panel #delCase{grid-area:del;min-height:36px;padding:0 10px;font-size:12.5px}
-  .case-panel #ttlNote{grid-column:1/-1}
-  #ttlNote:not(.warn){display:none}
   body[data-tab="admin"] .top{display:none}
   .im-row{justify-content:space-between;margin-top:8px}
   .im-row .input-progress{display:inline;font-size:12.5px}
@@ -5526,10 +5544,7 @@ body .sn-foot,body .env-badge,body #ttlNote,body .out-head h2 small,body .sec-he
   body .appbar button,body #newCase,body #saveNow{min-height:44px}
   body #menuBtn,body #snClose,body #wzBack,body #szBack{min-width:44px;min-height:44px}
   body .chip,body .cnt-quick .chip,body .crem-picks .chip,body .ph button{min-height:44px}
-  body .case-panel{grid-template-columns:44px minmax(0,1fr) 44px auto}
   body .cm-nav{width:44px;height:44px}
-  body .case-panel #delCase{min-height:44px;min-width:46px}
-  body .case-panel #caseSel{min-height:44px;font-size:16px}
   body .btn,body .btn.sm,body .co-card .btn,body .out-head .btn{min-height:44px}
   body .co-card .btn,body .out-head .btn{font-size:13px}
   body .group-tabs button{min-height:44px;font-size:12.5px}
@@ -5712,20 +5727,39 @@ body .mobile-nav.mn-sec button{font-size:12.5px;gap:4px}
   .case-steps button[aria-current="page"]::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;background:var(--ink)}
   .case-steps button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
 }
-/* 넓은 화면: 행사 고르기 상자를 한 줄로 (‹ 달 · 건수 › | 행사 이름 ▾ | 삭제) */
-@media (min-width:700px){
-  .case-heading{display:none}
-  .case-panel{grid-template-columns:40px auto 40px minmax(0,1fr) auto;grid-template-areas:"prev lab next sel del";column-gap:12px;row-gap:4px;align-items:center;padding:10px 14px}
-  .case-panel .case-month,.case-panel .case-row{display:contents}
-  #cmPrev{grid-area:prev} #cmNext{grid-area:next}
-  .case-panel .cm-label{grid-area:lab;display:flex;align-items:baseline;gap:6px;text-align:left;white-space:nowrap}
-  .case-panel .cm-label b{font-size:14px}
-  .case-panel #caseSel{grid-area:sel;min-height:44px;border-left:1px solid var(--line);border-radius:0;padding-left:16px;font-family:var(--serif);font-size:17px}
-  .case-panel #delCase{grid-area:del;min-height:40px}
-  .case-panel #ttlNote{grid-column:1/-1}
-  #ttlNote:not(.warn){display:none}
-  .page-intro h1{display:flex;align-items:center;gap:12px}
-}
+/* 행사 고르기 (2026.10.30): 두 줄 칸(「1번 · 故 홍길동」 / 장소 · 업체 · 발인 · 정산 상태) + 누르면 올라오는 행사 선택 창 */
+.case-pick{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:12px 14px 12px 16px;border:0;border-radius:inherit;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.case-pick:disabled{cursor:default}
+.case-pick:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.cp-main{flex:1;min-width:0;display:grid;gap:3px}
+.cp-t{font-family:var(--serif);font-size:18px;font-weight:700;line-height:1.35;word-break:keep-all;overflow-wrap:anywhere}
+.cp-s{font-size:13px;line-height:1.5;color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
+.cp-st{font-style:normal;font-weight:600;color:var(--ink-2)}
+.cp-st::before{content:" · ";font-weight:400;color:var(--muted)}
+.cp-st.st-minus,.cp-st2.st-minus{color:var(--warn)}
+.cp-go{flex:none;display:inline-flex;align-items:center;gap:3px;min-height:36px;padding:0 8px 0 10px;border:1px solid var(--line);border-radius:4px;font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.cp-go svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.case-pick:disabled .cp-go{display:none}
+@media (hover:hover){ .case-pick:not(:disabled):hover .cp-go{border-color:var(--ink);color:var(--ink)} }
+.case-panel #ttlNote{margin:0;padding:0 16px 12px}
+#ttlNote:not(.warn){display:none}
+.cp-sheet .cp-month{display:flex;align-items:center;gap:8px;padding:0 16px 12px;border-bottom:1px solid var(--line)}
+.cp-list{overflow:auto;padding:6px 10px;display:grid;gap:2px}
+.cp-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;column-gap:10px;width:100%;min-height:60px;padding:10px 10px;border:0;border-radius:4px;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.cp-row+.cp-row{border-top:1px solid var(--line);border-radius:0}
+.cp-no{font-size:14px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.cp-rm{min-width:0;display:grid;gap:2px}
+.cp-rm b{font-size:16px;font-weight:700;line-height:1.35;word-break:keep-all;overflow-wrap:anywhere}
+.cp-rm small{font-size:12.5px;line-height:1.45;color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
+.cp-st2{font-size:12.5px;font-weight:600;color:var(--ink-2);text-align:right;max-width:9em;word-break:keep-all}
+.cp-row[aria-selected="true"]{background:var(--accent-soft);outline:2px solid var(--ink);outline-offset:-2px;border-radius:4px}
+.cp-row[aria-selected="true"]+.cp-row{border-top-color:transparent}
+@media (hover:hover){ .cp-row:not([aria-selected="true"]):hover{background:var(--field)} }
+.cp-row:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.cp-empty{padding:16px 6px}
+.cp-foot{display:flex;justify-content:space-between;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.cp-foot .btn{min-height:44px}
+@media (min-width:700px){ .page-intro h1{display:flex;align-items:center;gap:12px} }
 .pt-step{flex:none;display:inline-flex;align-items:center;min-height:26px;padding:0 9px;border:1px solid var(--ink);border-radius:4px;font-family:var(--sans);font-size:13px;font-weight:700;color:var(--ink);letter-spacing:0}
 /* 단계 화면 끝 「다음 단계」 */
 .step-next{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-top:12px;padding-top:16px;border-top:1px solid var(--ink)}

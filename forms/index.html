@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.30-1";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.30-2";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <script>
@@ -3458,7 +3458,7 @@ function fuStatusFn(cases, envs) {
   return (c) => {
     if (!fuHasSettle(c)) return { k: 'none', t: '입력 전' };
     const w = fuSendOf(byCase[c.id]), s = c.s || {};
-    if (w != null && w < 0) return carried.has(c.id) ? { k: 'cleared', t: '정리됨', won: w } : { k: 'minus', t: '마이너스', won: w };
+    if (w != null && w < 0) return carried.has(c.id) || (s.minusOut && String(s.minusOut.who || '').trim()) ? { k: 'cleared', t: '정리됨', won: w } : { k: 'minus', t: '마이너스', won: w };   /* 다른 팀장 행사에서 뺀 마이너스 c.s.minusOut (2026.10.30) */
     if (s.sentAt) return s.sentWon != null && w != null && Number(s.sentWon) !== w ? { k: 'changed', t: '보낸 뒤 바뀜', won: w } : { k: 'sent', t: '보냄', won: w };
     return { k: 'open', t: '미정산', won: w };
   };
