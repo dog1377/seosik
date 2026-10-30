@@ -391,7 +391,16 @@ body.split[data-tab="input"] #outNext{display:none}
 .pr-acts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 @media (max-width:560px){ .pr-acts{grid-template-columns:repeat(2,minmax(0,1fr))} }
 /* 장례일정표 화면 (2026.10.28-5, 행사와 따로 입력) */
-body[data-tab="poster"] .case-panel{display:none}
+body[data-tab="poster"] .case-panel,body[data-tab="deliv"] .top>.case-panel{display:none}
+/* 배송 화면 (2026.10.30, 행사와 따로 · 현진시닝 배송 양식 4가지) — 모양은 행사 고르기 칸 · 장례일정표 화면과 같게 */
+#p-deliv>.dv-panel{margin-bottom:2px}
+.dv-trio{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(84px,.7fr);gap:12px;align-items:start}
+.dv-rows{gap:8px}
+.dv-sub-top{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.dv-sub-top .suffix{width:96px}
+.dv-sub-top .x{margin-left:auto}
+.dv-kinds button{white-space:nowrap}
+@media (max-width:420px){ .dv-trio{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} .dv-trio>:first-child{grid-column:1/-1} .dv-kinds button{font-size:12.5px;padding:0 4px} }
 .px-page{display:grid;gap:16px;min-width:0}
 .px-page>*{min-width:0}
 @media (min-width:1000px){ .px-page{grid-template-columns:minmax(0,1fr) minmax(340px,440px);gap:24px;align-items:start} .px-side{position:sticky;top:calc(var(--ab-h) + var(--tn-h,0px) + 16px + env(safe-area-inset-top,0px))}

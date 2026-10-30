@@ -67,7 +67,7 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
   function lsKeys() { var out = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && mine(k)) out.push(k); } return out; }
   function note(j) { localStorage.setItem(SWK, JSON.stringify(j)); }
   /* ---------- 내 계정(서버)에 다 올라갔는지 ---------- */
-  var SB_SET_KEYS = ['companies', 'lists', 'crems', 'defaultItems', 'settleRules', 'me', 'dispatchTpl', 'offTpl', 'envelopeSkipped'];   /* 장례업무 sbSettings 와 같게 */
+  var SB_SET_KEYS = ['companies', 'lists', 'crems', 'defaultItems', 'settleRules', 'me', 'dispatchTpl', 'offTpl', 'envelopeSkipped', 'ships'];   /* 장례업무 sbSettings 와 같게 */
   function fnv(s) { var h = 0x811c9dc5; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(36) + '.' + s.length; }
   function jget(k) { try { return JSON.parse(g(k) || 'null'); } catch (e) { return null; } }
   function funeralClean(from) {
