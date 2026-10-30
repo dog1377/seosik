@@ -532,15 +532,6 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
 .cs-pages img{display:block;width:100%;max-width:620px;height:auto;background:#fff;border:1px solid var(--line);cursor:zoom-in}
 .cs-pages.zoom img{max-width:none;cursor:zoom-out}
 @media (min-width:1000px){#tab-consult{width:100%;max-width:760px;margin-inline:auto}}
-#ckPrint{display:none}
-@media print{
-  body.ck-print>*:not(#ckPrint){display:none!important}
-  body.ck-print{padding:0!important;margin:0!important;background:#fff!important}
-  body.ck-print #ckPrint{display:block!important}
-  #ckPrint img{display:block;width:100%;height:auto;break-after:page;page-break-after:always}
-  #ckPrint img:last-child{break-after:auto;page-break-after:auto}
-}
-@page{margin:8mm}
 @media (max-width:420px){#formTabs button{padding:0 4px;font-size:13.5px}}
 @media (max-width:370px){#formTabs button{padding:0 2px;font-size:12.5px}}
 /* 위쪽 메뉴 (2026.10.28 사용자 「메뉴 선택을 위쪽으로 다 올려서」): 태블릿 · PC 는 메뉴 줄이 위 막대 바로 아래 */
@@ -4203,12 +4194,7 @@ async function consultPdf(btn) {
 async function consultPrint() {
   try { await consultBuild(); } catch (e) { /* 아래에서 안내 */ }
   if (!CK.urls.length) { toast('양식을 만드는 중입니다. 잠시 후 다시 눌러 주십시오.'); return; }
-  let box = $('#ckPrint'); if (!box) { box = document.createElement('div'); box.id = 'ckPrint'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
-  box.innerHTML = CK.urls.map((u) => `<img src="${u}" alt="">`).join('');
-  await Promise.all([...box.querySelectorAll('img')].map((im) => (im.decode ? im.decode().catch(() => {}) : null)));
-  const done = () => { document.body.classList.remove('ck-print'); window.removeEventListener('afterprint', done); };
-  document.body.classList.add('ck-print'); window.addEventListener('afterprint', done);
-  setTimeout(() => { try { window.print(); } catch (e) { done(); toast('인쇄창을 열지 못했습니다. 「PDF 다운로드」를 이용하십시오.'); } }, 60);
+  if (!(await window.dwPrintImages(CK.urls))) toast('인쇄창을 열지 못했습니다. 「PDF 다운로드」를 이용하십시오.');   /* 공통 인쇄(leader-gate-head): A4 딱 두 장, 머리글 · 바닥글 없음 */
 }
 function bindConsult() {
   const tab = $('#tab-consult'); if (!tab) return;

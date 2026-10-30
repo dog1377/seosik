@@ -427,13 +427,4 @@ body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
   .px-side .px-pv canvas{width:auto;height:auto;max-width:100%;max-height:calc(100dvh - var(--ab-h) - var(--tn-h,0px) - 300px - env(safe-area-inset-top,0px));min-height:300px} }
 .px-from{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--field);font-size:14px;color:var(--ink-2)}
 .px-fixed{padding:12px 14px;border:1px dashed var(--edge);border-radius:4px;background:var(--field);font-weight:600;color:var(--ink);word-break:keep-all;overflow-wrap:break-word}
-#prBox{display:none}
-@media print{
-  body.pr-on>*:not(#prBox){display:none!important}
-  body.pr-on{padding:0!important;margin:0!important;background:#fff!important}
-  body.pr-on #prBox{display:block!important}
-  #prBox img{display:block;width:100%;height:auto;break-after:page;page-break-after:always}
-  #prBox img:last-child{break-after:auto;page-break-after:auto}
-}
-@page{margin:8mm}
 </style>

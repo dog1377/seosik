@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.31-2">
+<meta name="app-version" content="2026.10.31-3">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -386,6 +386,40 @@ window.dwMobile = function () {
     } else root.classList.add('dw-gated');
   } catch (e) { root.classList.add('dw-gated'); }
 })();
+</script>
+<!-- 그림만 인쇄 (장례 상담서 · 장례일정표 공통, 2026.10.31 사용자 「인쇄 누르니 쪽 번호 · 홈페이지 주소가 찍히고, 2 · 4쪽이 빈 페이지 → 딱 두 장으로」)
+     - @page 여백 0 → 브라우저가 머리글 · 바닥글(주소 · 쪽 번호 · 날짜)을 찍을 자리가 없음. 종이는 A4. 여백은 그림 안에 이미 있음
+     - 그림 한 장 = 한 쪽 칸(A4 보다 1mm 낮게 + 종이 높이를 넘지 않게) → 넘쳐서 생기던 빈 쪽 없음
+     - 쓰는 곳: 서식 상담서 consultPrint(그림 안에 여백이 있어 그대로) · 장례업무 prPrint(장례일정표 — 배경이 종이 끝까지라 pad 8mm, 예전 여백과 같게)
+       → window.dwPrintImages(그림 주소들, {pad}) -->
+<style id="dw-print">
+#dwPrint{display:none}
+@page{size:A4 portrait;margin:0}
+@media print{
+  html.dw-printing,html.dw-printing body{margin:0!important;padding:0!important;min-height:0!important;height:auto!important;background:#fff!important}
+  html.dw-printing body>*:not(#dwPrint){display:none!important}
+  html.dw-printing #dwPrint{display:block!important}
+  #dwPrint .dwp{box-sizing:border-box;width:100%;height:296mm;max-height:calc(100vh - 2mm);overflow:hidden;break-inside:avoid;break-after:page;page-break-after:always}
+  #dwPrint .dwp:last-child{break-after:auto;page-break-after:auto}
+  #dwPrint img{display:block;width:100%;height:100%;object-fit:contain;object-position:center top}
+}
+</style>
+<script>
+window.dwPrintImages = function (urls, o) {   /* 인쇄창을 열면 true, 못 열면 false. o.pad = 종이 가장자리 여백(예: '8mm') */
+  return new Promise(function (res) {
+    var box = document.getElementById('dwPrint');
+    if (!box) { box = document.createElement('div'); box.id = 'dwPrint'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
+    var pad = (o && o.pad) ? ' style="padding:' + o.pad + '"' : '';
+    box.innerHTML = urls.map(function (u) { return '<div class="dwp"' + pad + '><img src="' + u + '" alt=""></div>'; }).join('');
+    var imgs = Array.prototype.slice.call(box.querySelectorAll('img'));
+    Promise.all(imgs.map(function (im) { return im.decode ? im.decode().catch(function () {}) : null; })).then(function () {
+      var root = document.documentElement;
+      var done = function () { root.classList.remove('dw-printing'); window.removeEventListener('afterprint', done); };
+      root.classList.add('dw-printing'); window.addEventListener('afterprint', done);
+      setTimeout(function () { try { window.print(); res(true); } catch (e) { done(); res(false); } }, 60);
+    });
+  });
+};
 </script>
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
@@ -4011,12 +4045,7 @@ async function prPdf(canvases){   /* A4 세로, 한 장에 그림 하나 (여백
 }
 const prBlob=(cv,type='image/png')=>new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('blob')),type,.92));
 async function prPrint(canvases){   /* 화면 대신 그림만 인쇄 (A4, 휴대폰은 인쇄창 → 프린터 또는 PDF) */
-  let box=$('#prBox'); if(!box){ box=document.createElement('div'); box.id='prBox'; box.setAttribute('aria-hidden','true'); document.body.appendChild(box); }
-  box.innerHTML=''; canvases.forEach(cv=>{ const im=new Image(); im.alt=''; im.src=cv.toDataURL('image/png'); box.appendChild(im); });
-  await Promise.all([...box.querySelectorAll('img')].map(im=>im.decode?im.decode().catch(()=>{}):null));
-  const done=()=>{ document.body.classList.remove('pr-on'); window.removeEventListener('afterprint',done); };
-  document.body.classList.add('pr-on'); window.addEventListener('afterprint',done);
-  setTimeout(()=>{ try{ window.print(); }catch(e){ done(); toast('인쇄창을 열지 못했습니다 · PDF 저장을 이용하십시오'); } },60);
+  if(!(await window.dwPrintImages(canvases.map(cv=>cv.toDataURL('image/png')),{pad:'8mm'}))) toast('인쇄창을 열지 못했습니다 · PDF 저장을 이용하십시오');   /* 공통 인쇄(leader-gate-head): A4 한 장씩, 머리글 · 바닥글 없음 */
 }
 const prSafe=v=>String(v||'').replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'').slice(0,30);
 /* 압축 없는 zip 읽기 (assets/poster.pptx 는 tools/poster_pptx.py 가 압축 없이 묶음) */
@@ -6143,15 +6172,6 @@ body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
   .px-side .px-pv canvas{width:auto;height:auto;max-width:100%;max-height:calc(100dvh - var(--ab-h) - var(--tn-h,0px) - 300px - env(safe-area-inset-top,0px));min-height:300px} }
 .px-from{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--field);font-size:14px;color:var(--ink-2)}
 .px-fixed{padding:12px 14px;border:1px dashed var(--edge);border-radius:4px;background:var(--field);font-weight:600;color:var(--ink);word-break:keep-all;overflow-wrap:break-word}
-#prBox{display:none}
-@media print{
-  body.pr-on>*:not(#prBox){display:none!important}
-  body.pr-on{padding:0!important;margin:0!important;background:#fff!important}
-  body.pr-on #prBox{display:block!important}
-  #prBox img{display:block;width:100%;height:auto;break-after:page;page-break-after:always}
-  #prBox img:last-child{break-after:auto;page-break-after:auto}
-}
-@page{margin:8mm}
 </style>
 <!-- DW장례업무 안의 장례업무(= 「행사」 칸)에만 붙는 부분 (2026.10.29 행사 칸 · 서식 칸 나눔)
      예전 「홈」 버튼과 왼쪽 메뉴 안 서식 바로가기는 없앰 → 칸 바꾸기는 leader-gate.html, 휴대폰은 첫 화면 바둑판(2026.10.30) -->

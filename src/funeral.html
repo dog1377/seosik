@@ -3629,12 +3629,7 @@ async function prPdf(canvases){   /* A4 세로, 한 장에 그림 하나 (여백
 }
 const prBlob=(cv,type='image/png')=>new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('blob')),type,.92));
 async function prPrint(canvases){   /* 화면 대신 그림만 인쇄 (A4, 휴대폰은 인쇄창 → 프린터 또는 PDF) */
-  let box=$('#prBox'); if(!box){ box=document.createElement('div'); box.id='prBox'; box.setAttribute('aria-hidden','true'); document.body.appendChild(box); }
-  box.innerHTML=''; canvases.forEach(cv=>{ const im=new Image(); im.alt=''; im.src=cv.toDataURL('image/png'); box.appendChild(im); });
-  await Promise.all([...box.querySelectorAll('img')].map(im=>im.decode?im.decode().catch(()=>{}):null));
-  const done=()=>{ document.body.classList.remove('pr-on'); window.removeEventListener('afterprint',done); };
-  document.body.classList.add('pr-on'); window.addEventListener('afterprint',done);
-  setTimeout(()=>{ try{ window.print(); }catch(e){ done(); toast('인쇄창을 열지 못했습니다 · PDF 저장을 이용하십시오'); } },60);
+  if(!(await window.dwPrintImages(canvases.map(cv=>cv.toDataURL('image/png')),{pad:'8mm'}))) toast('인쇄창을 열지 못했습니다 · PDF 저장을 이용하십시오');   /* 공통 인쇄(leader-gate-head): A4 한 장씩, 머리글 · 바닥글 없음 */
 }
 const prSafe=v=>String(v||'').replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'').slice(0,30);
 /* 압축 없는 zip 읽기 (assets/poster.pptx 는 tools/poster_pptx.py 가 압축 없이 묶음) */

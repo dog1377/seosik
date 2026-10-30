@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.31-2"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.31-3"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <title>회사 서류 · DW장례업무</title>
@@ -794,6 +794,40 @@ window.dwMobile = function () {
     } else root.classList.add('dw-gated');
   } catch (e) { root.classList.add('dw-gated'); }
 })();
+</script>
+<!-- 그림만 인쇄 (장례 상담서 · 장례일정표 공통, 2026.10.31 사용자 「인쇄 누르니 쪽 번호 · 홈페이지 주소가 찍히고, 2 · 4쪽이 빈 페이지 → 딱 두 장으로」)
+     - @page 여백 0 → 브라우저가 머리글 · 바닥글(주소 · 쪽 번호 · 날짜)을 찍을 자리가 없음. 종이는 A4. 여백은 그림 안에 이미 있음
+     - 그림 한 장 = 한 쪽 칸(A4 보다 1mm 낮게 + 종이 높이를 넘지 않게) → 넘쳐서 생기던 빈 쪽 없음
+     - 쓰는 곳: 서식 상담서 consultPrint(그림 안에 여백이 있어 그대로) · 장례업무 prPrint(장례일정표 — 배경이 종이 끝까지라 pad 8mm, 예전 여백과 같게)
+       → window.dwPrintImages(그림 주소들, {pad}) -->
+<style id="dw-print">
+#dwPrint{display:none}
+@page{size:A4 portrait;margin:0}
+@media print{
+  html.dw-printing,html.dw-printing body{margin:0!important;padding:0!important;min-height:0!important;height:auto!important;background:#fff!important}
+  html.dw-printing body>*:not(#dwPrint){display:none!important}
+  html.dw-printing #dwPrint{display:block!important}
+  #dwPrint .dwp{box-sizing:border-box;width:100%;height:296mm;max-height:calc(100vh - 2mm);overflow:hidden;break-inside:avoid;break-after:page;page-break-after:always}
+  #dwPrint .dwp:last-child{break-after:auto;page-break-after:auto}
+  #dwPrint img{display:block;width:100%;height:100%;object-fit:contain;object-position:center top}
+}
+</style>
+<script>
+window.dwPrintImages = function (urls, o) {   /* 인쇄창을 열면 true, 못 열면 false. o.pad = 종이 가장자리 여백(예: '8mm') */
+  return new Promise(function (res) {
+    var box = document.getElementById('dwPrint');
+    if (!box) { box = document.createElement('div'); box.id = 'dwPrint'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
+    var pad = (o && o.pad) ? ' style="padding:' + o.pad + '"' : '';
+    box.innerHTML = urls.map(function (u) { return '<div class="dwp"' + pad + '><img src="' + u + '" alt=""></div>'; }).join('');
+    var imgs = Array.prototype.slice.call(box.querySelectorAll('img'));
+    Promise.all(imgs.map(function (im) { return im.decode ? im.decode().catch(function () {}) : null; })).then(function () {
+      var root = document.documentElement;
+      var done = function () { root.classList.remove('dw-printing'); window.removeEventListener('afterprint', done); };
+      root.classList.add('dw-printing'); window.addEventListener('afterprint', done);
+      setTimeout(function () { try { window.print(); res(true); } catch (e) { done(); res(false); } }, 60);
+    });
+  });
+};
 </script>
 
 </head>
