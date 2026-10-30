@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.31-1";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.10.31-2";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <script>
@@ -4419,13 +4419,14 @@ function bindStock() {
    2쪽: 담당자 확인사항(사망진단서 · 검사지휘서 · 화장 예약 …) · 유가족 확인사항 · 기타 전달 사항 · 서명
    (2026.10.28-4) 흐린 예시 글자 전부 없앰 · 임종 · 입관 · 화장/하관 · 발인의 월 일 시 분은 진하게(ckDT) ·
    제공 내역 = 고정 8줄(장례지도사 · 입관지도사 · 장의차량 · 도우미 · 관/입관용품 · 상복 남/여 벌 · 입관생화장식 · 헌화) + 빈 2줄 ·
-   인수인계 칸 없앰 · 유가족 확인사항: 사망신고 1개월 · 안심상속 줄 없앰, 추가 비용에 유골함, 운구 인력 4~6명 줄 더함 */
+   인수인계 칸 없앰 · 유가족 확인사항: 사망신고 1개월 · 안심상속 줄 없앰, 추가 비용에 유골함, 운구 인력 4~6명 줄 더함
+   (2026.10.31) 1쪽을 2안 「세 칸 용품 목록」으로 다시 짬 — 아래 ckPage1 설명. 2쪽은 그대로 */
 const CK = { W: 1240, H: 1754, M: 70, ink: '#1c1d1f', mute: '#6a6e73', lab: '#efefec', hint: '#9a9d9a', pdf: null, pngs: [], urls: [], busy: null };
 const CK_SANS = '"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif';
 const CK_SERIF = '"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif';
 async function ckFonts() {
   if (!document.fonts || !document.fonts.load) return;
-  const t = '시간구분성명접객유가족전량제단지원금공제카드결제빈소송이일차유가족인적회사명도로비만원이상경우청구합니다직접수령후기사님께전달금전요구시담당자연락즉시조치불편한점운행외다른없실물예배미사성당경유꽃손자조카①②③④※운구력친지중정해주세요전량생화헌화장의량입관지도사담당자장례상담서인수인계유가족확인사항고인인적성함주민등록번호주소본관종교직분병명사망원인장소회원상주업체명소속회사관계연락처배우자아들딸며느리사위손주일정임종빈소입관발인화장하관장법매장수목장봉안해양장회차장지차상품금액지원기납입잔액제공내역번호항목내용수량비고특이담당지도사설명동의합니다년월일시분인대표진단서검사지휘화장예약하늘정보시스템날짜제물제사여부준비유골함종류각인용품관수의배차버스리무진출발시간경유지자택종교시설도우미인원근무상복남여벌반납안내영정사진원본받음제작꽃장식참관생화교회성당사찰연락부고문자게시표시일시인계자인수자넉넉히받아두세요보험은행상속정리에쓰입니다신고안날부터개월안에구읍면사무소나주민센터에서합니다때안심원스톱서비스재산한번에조회를같이신청할수있습니다식장사용료안치식대와따로정산될추가비용시간차량거리등을미리안내받았습니다날준비물위패서류계약서귀중품유품을했습니다기타전달위내용';
+  const t = '시간구분성명접객유가족전량제단지원금공제카드결제빈소송이일차유가족인적회사명도로비만원이상경우청구합니다직접수령후기사님께전달금전요구시담당자연락즉시조치불편한점운행외다른없실물예배미사성당경유꽃손자조카①②③④※운구력친지중정해주세요전량생화헌화장의량입관지도사담당자장례상담서인수인계유가족확인사항고인인적성함주민등록번호주소본관종교직분병명사망원인장소회원상주업체명소속회사관계연락처배우자아들딸며느리사위손주일정임종빈소입관발인화장하관장법매장수목장봉안해양장회차장지차상품금액지원기납입잔액제공내역번호항목내용수량비고특이담당지도사설명동의합니다년월일시분인대표진단서검사지휘화장예약하늘정보시스템날짜제물제사여부준비유골함종류각인용품관수의배차버스리무진출발시간경유지자택종교시설도우미인원근무상복남여벌반납안내영정사진원본받음제작꽃장식참관생화교회성당사찰연락부고문자게시표시일시인계자인수자넉넉히받아두세요보험은행상속정리에쓰입니다신고안날부터개월안에구읍면사무소나주민센터에서합니다때안심원스톱서비스재산한번에조회를같이신청할수있습니다식장사용료안치식대와따로정산될추가비용시간차량거리등을미리안내받았습니다날준비물위패서류계약서귀중품유품을했습니다기타전달위내용건격과곽광굴규급끼되됩듣라루마막멧바방백베별삼석알염올저증초충취칠코탈트판폐포필향현혼';
   const jobs = [400, 500, 600, 700].map((w) => document.fonts.load(`${w} 40px "Pretendard Variable"`, t + '0123456789()·-~,.:「」').catch(() => {}));
   jobs.push(document.fonts.load('700 40px "Noto Serif KR"', '장례상담서인수인계유가족확인사항·').catch(() => {}));
   await Promise.race([Promise.all(jobs), new Promise((r) => setTimeout(r, 3000))]);
@@ -4466,111 +4467,135 @@ function ckHead(g, title, right, sub) {
   g.fillStyle = CK.ink; g.fillRect(M, ry, R - M, 3); g.fillRect(M, ry + 6, R - M, 1);
   return ry + 26;
 }
-const CK_DT = '      월      일      시      분';
-/* 1쪽 (2026.10.28-6 사용자 13가지): 맨 위 상담일(쓸 자리 넓게) · 제목 옆 장례식장, 그 밑 빈소 / 유가족 인적사항 · 회사명 한 칸 /
-   장례 일정 = 왼쪽 위에서 아래로 임종 · 입관 · 발인 · 화장 · 하관, 오른쪽 장법(화장 · 매장) · 화장장 · 회차 · 1차 장지 · 2차 장지 /
-   제공 내역 = 장례지도사 · 입관지도사 한 칸 · 도우미 명 · 시간 + 1일차 · 2일차(높은 칸) · 관 / 입관용품 따로 · 헌화 (   송이), 내용 · 수량 칸은 좁게 · 비고 넓게 */
+/* 1쪽 (2026.10.31 2안 「세 칸 용품 목록」) — 사용자가 보낸 다른 회사 「장례일정표」의 장점을 섞음:
+   「기존 상담서 디자인 · 글씨체는 유지, 장점만 스며들게」 → 「용품 리스트가 다 들어가야 된다더라」 → 「금액 정산에 회사명 빼 줘」 → 「2안」 →
+   「제공 내역에 장의차량 말고 버스랑 리무진 각각」. 모양(명조 제목 · 회색 이름 칸 · 두 줄 선 · ■ 소제목)은 그대로, 한 장에 들어가게 간격만 좁힘.
+   위에서부터: 머리(상담일자 · 장례식장 · 빈소) / 고인(성별 · 나이 더함) / 유가족(유족 관계 한 줄) / 장례 일정(두 칸씩, 장법 · 기간 __일장) /
+   용품 · 제공 내역(받은 양식의 용품 순서 그대로 세 칸 × 12줄: 품명 · 내용 · 수량 · 추가 금액, 「제공」 · 「필요량 제공」은 미리 찍음) /
+   차량 경로(버스 · 리무진 따로) / 접객도우미(그대로) / 특이사항 | 금액 정산(나란히, 회사명 없음) / 정산 · 취소 안내 한 줄 / 동의 · 날짜 · 서명 한 줄 */
+const CK_GOODS = [
+  ['관'], ['수의'], ['도포 · 원삼', 'q'], ['명정', 'q'], ['관보', 'f'], ['가재(결관바)', 'f'], ['한지', 'f'], ['다라니경', 'f'], ['운아', 'f'], ['폐백', 'f'], ['베개', 'f'], ['습신(꽃신)', 'f'],
+  ['염베', ['u', '필']], ['장멧베', 'f'], ['충곽(보공석)', 'need'], ['알코올', 'f'], ['탈지면', 'f'], ['향', 'f'], ['혼백함', 'f'], ['양초(대)', 'f'], ['칠성판', 'f'], ['굴건제복', ['u', '벌']], ['삼베치마저고리', ['u', '벌']], ['복조끼', ['u', '벌']],
+  ['삼베두루막', ['u', '벌']], ['광목치마저고리', ['u', '벌']], ['꽃바구니'], ['헌화', 'fl'], ['입관꽃장식'], ['유골함'], ['양복대여', 'mw'], ['제단장식'], ['운구이송'], ['버스', ['u', 'km']], ['리무진', ['u', 'km']], ['장례 · 입관지도사', 'f'],
+];
+const CK_NOTE = '※ 위 금액은 입관 후 정산합니다.      ※ 상담 후 장례 진행이 취소되면 취소 비용(                          원)이 청구됩니다.';
+const CK_FOOT1 = 132;   /* 1쪽 아래 동의 · 날짜 · 서명 자리 */
+function ckThin(g, x1, y1, x2, y2) { g.strokeStyle = '#b9bab6'; g.lineWidth = 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); }
+function ckBold(g, x, y, w) { g.fillStyle = CK.ink; g.fillRect(x, y - 1, w, 2); }
+/* 표 한 줄 (ckRow + 단위 · 체크 · 앞 글): cells = [{w, lab} | {w, dt} | {w, checks, unit} | {w, pre} | {w, unit}] */
+function ckCells(g, x, y, h, cells) {
+  let cx = x;
+  cells.forEach((c) => { const my = y + h / 2;
+    if (c.lab != null && String(c.lab).includes('\n') && h < 38) {   /* 낮은 줄의 두 줄 이름은 작게 */
+      ckBox(g, cx, y, c.w, h, CK.lab); const L2 = String(c.lab).split('\n');
+      L2.forEach((l, i) => ckT(g, l, cx + c.w / 2, my + (i - (L2.length - 1) / 2) * 15, { px: 14.5, w: 600, align: 'center', maxW: c.w - 12 })); }
+    else if (c.lab != null) ckRow(g, cx, y, h, [{ w: c.w, lab: c.lab }]);
+    else {
+      ckBox(g, cx, y, c.w, h);
+      if (c.dt) ckDT(g, cx, y, c.w, h);
+      if (c.checks) ckChecks(g, cx + 12, my, c.checks, c.w - 24 - (c.unit ? 70 : 0));
+      if (c.pre) ckT(g, c.pre, cx + 14, my, { px: 19, w: 700 });
+      if (c.unit) ckT(g, c.unit, cx + c.w - 14, my, { px: 19, w: 700, align: 'right' });
+    }
+    cx += c.w; });
+  return y + h;
+}
+function ckSec1(g, y, title, x) { x = x ?? CK.M; ckT(g, '■', x, y + 13, { px: 15, w: 700 }); ckT(g, title, x + 22, y + 13, { px: 21, w: 700 }); return y + 28; }   /* 1쪽 소제목 (높이 28) */
+function ckLined(g, x, y, w, h, gap = 40) { ckBox(g, x, y, w, h); g.strokeStyle = '#d6d7d4'; g.lineWidth = 1; for (let ly = y + gap; ly < y + h - 10; ly += gap) { g.beginPath(); g.moveTo(x + 12, ly + 0.5); g.lineTo(x + w - 12, ly + 0.5); g.stroke(); } }
+/* 용품 칸 내용: f 제공 · need 필요량 제공 · q ☐규격품 ☐고급품 · fl ( 송이) · mw 남 세트 | 여 벌 · ['u', 단위] */
+function ckGoodCell(g, x, y, w, h, c) {
+  const my = y + h / 2, B = { px: 17, w: 700 };
+  if (!c) return;
+  if (c === 'f') ckT(g, '제공', x + w / 2, my, { ...B, align: 'center' });
+  else if (c === 'need') ckT(g, '필요량 제공', x + w / 2, my, { ...B, align: 'center', maxW: w - 12 });
+  else if (c === 'q') ckChecks(g, x + 10, my, ['규격품', '고급품'], w - 20);
+  else if (c === 'fl') { ckT(g, '(', x + 12, my, B); ckT(g, '송이)', x + w - 12, my, { ...B, align: 'right' }); }
+  else if (c === 'mw') { const hw = w / 2; ckThin(g, x + hw + 0.5, y + 6, x + hw + 0.5, y + h - 6); ckT(g, '남', x + 10, my, B); ckT(g, '세트', x + hw - 10, my, { ...B, align: 'right' }); ckT(g, '여', x + hw + 10, my, B); ckT(g, '벌', x + w - 10, my, { ...B, align: 'right' }); }
+  else if (Array.isArray(c) && c[0] === 'u') ckT(g, c[1], x + w - 12, my, { ...B, align: 'right' });
+}
+/* 용품 목록 표: 세 칸 × 줄, 칸마다 품명 · 내용 · 수량 · 추가 금액(「원」) */
+function ckGoods(g, X, y, W, list, per) {
+  const k = Math.ceil(list.length / per), CWc = W / k, hh = 30, rh = 32, IW = 118, AW = 84, cw = CWc - IW - AW;
+  for (let ci = 0; ci < k; ci++) { let x = X + CWc * ci;
+    [['품명', IW], ['내용 · 수량', cw], ['추가 금액', AW]].forEach(([t, w]) => { ckBox(g, x, y, w, hh, CK.lab); ckT(g, t, x + w / 2, y + hh / 2, { px: 17, w: 700, align: 'center', maxW: w - 8 }); x += w; }); }
+  const y0 = y + hh; ckBold(g, X, y0, W);
+  for (let ci = 0; ci < k; ci++) { const x0 = X + CWc * ci;
+    for (let i = 0; i < per; i++) { const row = list[ci * per + i], yy = y0 + rh * i, name = row && row[0]; let x = x0;
+      ckBox(g, x, yy, IW, rh, name ? CK.lab : null); if (name) ckT(g, name, x + IW / 2, yy + rh / 2, { px: 17, w: 600, align: 'center', maxW: IW - 12 }); x += IW;
+      ckBox(g, x, yy, cw, rh); ckGoodCell(g, x, yy, cw, rh, row && row[1]); x += cw;
+      ckBox(g, x, yy, AW, rh); ckT(g, '원', x + AW - 10, yy + rh / 2, { px: 16, w: 700, align: 'right' }); }
+    if (ci) { g.fillStyle = CK.ink; g.fillRect(x0 - 1, y, 2, hh + rh * per); } }
+  return y0 + rh * per;
+}
+/* 접객도우미: 명 · 시간 + 1~3일차 (날마다 3줄 「__시 ~ __시 | __명」, 2026.10.28-18 그대로) */
+function ckHelp(g, X, y, CW, C0, HC, th, tw) {
+  const n = 3, h = th + tw * n, DW = (CW - C0 - HC) / 3, TP = Math.round(DW * 0.71), S = { px: 18, w: 700 }, B = { px: 19, w: 700 };
+  ckBold(g, X, y, CW);
+  ckBox(g, X, y, C0, h, CK.lab); ckT(g, '접객도우미', X + C0 / 2, y + h / 2, { px: 19, w: 600, align: 'center' });
+  { const x = X + C0; ckBox(g, x, y, HC, h); ckThin(g, x + 10, y + h / 2 + 0.5, x + HC - 10, y + h / 2 + 0.5);
+    ckT(g, '명', x + HC - 16, y + h / 4, { ...B, align: 'right' }); ckT(g, '시간', x + HC - 16, y + h * 3 / 4, { ...B, align: 'right' }); }
+  ['1일차', '2일차', '3일차'].forEach((t, i) => { const bx = X + C0 + HC + DW * i, c = bx + TP / 2;
+    ckBox(g, bx, y, DW, th, CK.lab); ckT(g, t, bx + DW / 2, y + th / 2, { px: 18, w: 700, align: 'center' });
+    for (let j = 0; j < n; j++) { const ty = y + th + tw * j, ly = ty + tw / 2; ckBox(g, bx, ty, DW, tw);
+      ckT(g, '시', c - 14, ly, { ...S, align: 'right' }); ckT(g, '~', c, ly, { ...S, align: 'center' }); ckT(g, '시', bx + TP - 10, ly, { ...S, align: 'right' });
+      ckThin(g, bx + TP + 0.5, ty + 7, bx + TP + 0.5, ty + tw - 7); ckT(g, '명', bx + DW - 12, ly, { ...S, align: 'right' }); } });
+  return y + h;
+}
 function ckPage1() {
-  const [cv, g] = ckNew(), M = CK.M, X = M, R = CK.W - M, CW = CK.W - 2 * M, L = 120, H = 40;
-  const uline = (x1, x2, y) => { g.fillStyle = CK.ink; g.fillRect(x1, y + 16, x2 - x1, 1.3); };
-  /* 머리 */
-  { const y = 54, gap = 100; let x = R;   /* 상담일자 :  20 ___ 년 ___ 월 ___ 일 (오른쪽 맞춤, 칸 넓게 · 2026.10.28-13 「상담일자」 · 「20」 붙임) */
+  const [cv, g] = ckNew(), M = CK.M, X = M, R = CK.W - M, CW = CK.W - 2 * M, L = 120, H = 36;
+  const uline = (x1, x2, y) => { g.fillStyle = CK.ink; g.fillRect(x1, y + 15, x2 - x1, 1.3); };
+  /* 머리: 상담일자(오른쪽 위) · 제목 · 옆에 장례식장 · 빈소 (2026.10.28-6 · -13 짜임 그대로, 위아래만 좁게) */
+  { const y = 44, gap = 100; let x = R;
     ['일', '월'].forEach((u) => { ckT(g, u, x, y, { px: 20, w: 600, align: 'right' }); x -= 22 + gap; });
-    ckT(g, '년', x, y, { px: 20, w: 600, align: 'right' }); x -= 22 + 64;   /* 연도 뒤 두 자리 쓸 자리 */
+    ckT(g, '년', x, y, { px: 20, w: 600, align: 'right' }); x -= 22 + 64;
     ckT(g, '20', x, y, { px: 20, w: 600, align: 'right' }); x -= 24 + 22;
     ckT(g, '상담일자 :', x, y, { px: 20, w: 700, align: 'right' }); }
-  ckT(g, '장례 상담서', M, 112, { px: 46, w: 700, fam: CK_SERIF });
-  { const x0 = 430, lx = x0 + 104;   /* 제목 옆 장례식장, 그 밑 빈소 */
-    [['장례식장', 100], ['빈소', 140]].forEach(([k, y]) => { ckT(g, k, x0, y, { px: 20, w: 700 }); ckT(g, ':', lx - 14, y, { px: 20, w: 700 }); uline(lx, lx + (R - lx) / 2, y); }); }   /* (2026.10.28-7) 밑줄은 절반 길이 */
-  g.fillStyle = CK.ink; g.fillRect(M, 172, R - M, 3); g.fillRect(M, 178, R - M, 1);
-  let y = 192;
-  const r = (cells, h = H) => { y = ckRow(g, X, y, h, cells); };
-  /* (2026.10.28-9 사용자 「쓸데없이 칸이 너무 길다 · 불필요한 공간이 많다」) 짧게 적는 칸은 한 줄에 셋씩 · 회원 · 상주는 작은 표 · 장법 칸 좁게 · 상품 · 금액 두 줄 */
-  const tri = (a, b, c, h) => r([{ w: L, lab: a }, { w: 250 }, { w: 130, lab: b }, { w: 250 }, { w: 100, lab: c }, { w: CW - L - 730 }], h);
-  y = ckSec(g, y, '고인 인적사항');
-  tri('성함', '주민등록번호', '본관');
-  r([{ w: L, lab: '주소' }, { w: CW - L }]);
-  tri('종교 · 직분', '병명 ·\n사망 원인', '사망 장소');
-  y += 4; y = ckSec(g, y, '유가족 인적사항');
-  { const C = [L, 320, 240, CW - L - 560], hh = 34; let cx = X;   /* (2026.10.28-10) 회사명은 상품 · 금액 맨 위로 */
-    ['구분', '성명', '관계', '연락처'].forEach((t, i) => { ckBox(g, cx, y, C[i], hh, CK.lab); ckT(g, t, cx + C[i] / 2, y + hh / 2, { px: 18, w: 700, align: 'center' }); cx += C[i]; }); y += hh;
-    ['회원', '상주'].forEach((k) => r([{ w: C[0], lab: k }, { w: C[1] }, { w: C[2] }, { w: C[3] }])); }
-  { const P = (CW - L) / 3, l2 = 90, rows = [['배우자', '아들', '딸'], ['며느리', '사위', '손주']], hh = 36, y0 = y;
-    ckBox(g, X, y0, L, hh * 2, CK.lab); ckT(g, '유족 관계', X + L / 2, y0 + hh, { px: 19, w: 600, align: 'center' });
-    rows.forEach((row, ri) => { let cx = X + L; row.forEach((k) => { ckBox(g, cx, y0 + ri * hh, l2, hh, CK.lab); ckT(g, k, cx + l2 / 2, y0 + ri * hh + hh / 2, { px: 18, w: 600, align: 'center' }); ckBox(g, cx + l2, y0 + ri * hh, P - l2, hh); cx += P; }); });
-    y = y0 + hh * 2; }
-  y += 4; y = ckSec(g, y, '장례 일정');
-  { const DV = 360, RL = 130, RV = CW - L - DV - RL;
-    r([{ w: L, lab: '임종' }, { w: DV, dt: true }, { w: RL, lab: '장법' }, { w: RV, checks: ['화장', '매장'] }]);
-    r([{ w: L, lab: '입관' }, { w: DV, dt: true }, { w: RL, lab: '화장장 · 회차' }, { w: RV }]);
-    r([{ w: L, lab: '발인' }, { w: DV, dt: true }, { w: RL, lab: '1차 장지' }, { w: RV }]);
-    r([{ w: L, lab: '화장 · 하관' }, { w: DV, dt: true }, { w: RL, lab: '2차 장지' }, { w: RV }]); }
-  y += 4; y = ckSec(g, y, '상품 · 금액');
-  /* (2026.10.28-15 사용자 「잔액 칸이 너무 작잖아」) 잔액은 윗줄 상품 금액과 같은 자리 · 같은 너비(250)
-     (2026.10.28-16 사용자 「특이사항을 조금 줄이고 상품 · 금액 칸을 좀 늘려 줘 · 제단지원금이 계속 거슬려」)
-     두 줄 모두 같은 칸 나눔(윗줄 회사명 · 상품명 · 상품 금액 / 아랫줄 회사지원 · 기납입금 · 제단지원금 · 잔액), 줄 높이 50 · 64.
-     제단지원금 칸은 위에 금액 쓸 자리, 가는 줄 아래 ☐금액공제 ☐카드결제. 늘어난 만큼 특이사항이 줄어듦
-     (2026.10.28-17 사용자 「그냥 제단지원금은 아예 없애 줘」) 아랫줄 = 회사지원 · 기납입금(넓게) · 잔액(상품 금액 바로 아래), 두 줄 높이 50 */
-  tri('회사명', '상품명', '상품 금액', 50);
-  r([{ w: L, lab: '회사지원 ·\n기납입금' }, { w: 630 }, { w: 100, lab: '잔액' }, { w: CW - L - 730 }], 50);
-  y += 4; y = ckSec(g, y, '제공 내역');
-  { /* (2026.10.28-7) 체크 칸 없앰 · 글씨는 모두 가운데(도우미 날짜별 시간 칸만 왼쪽) · 도우미 비고 = 1일차 2줄 + 2일차 2줄 */
-    /* (2026.10.28-11 사용자 「비고도 너무 길어 · 조금 더 깔끔하게」) 표를 좌우 두 쪽으로 나눠 비고를 짧게:
-       왼쪽 장례지도사 · 입관지도사 / 장의차량 / 접객도우미 / 관 / 입관용품, 오른쪽 유가족 상복 / 입관생화장식 / 헌화 / 빈 2줄.
-       접객도우미 날짜별 시간은 표 아래 한 줄(「1일차」 · 「2일차」 두 줄 합친 칸 + 옆 두 칸). 정해진 항목 이름은 회색, 빈 줄은 흰색
-       (2026.10.28-12 사용자 「도우미랑 도우미 시간은 같이 붙여 놔야 보기 편하지 · 1일차 2일차 3일차 만들고 안에 N시 ~ N시」)
-       접객도우미는 좌우 표에서 빼서 표 맨 아래 전체 너비 한 덩어리: 접객도우미 | __명 | __시간 | 1일차 · 2일차 · 3일차(위 회색 머리, 아래 「__시 ~ __시」).
-       좌우 표 = 왼쪽 장례지도사 · 입관지도사 / 장의차량 / 관 / 입관용품 / 빈 줄, 오른쪽 유가족 상복 / 입관생화장식 / 헌화 / 빈 2줄
-       (2026.10.28-14 사용자 「제공내역 비고칸 아예 삭제」) 쪽마다 제공 항목 230 · 내용 · 수량 320 두 칸만 */
-    const HW = CW / 2, C = [230, HW - 230], hh = 36, rh = 44; let cx = X;
-    for (let side = 0; side < 2; side++) ['제공 항목', '내용 · 수량'].forEach((t, i) => { ckBox(g, cx, y, C[i], hh, CK.lab); ckT(g, t, cx + C[i] / 2, y + hh / 2, { px: 18, w: 700, align: 'center' }); cx += C[i]; });
-    y += hh; g.fillStyle = CK.ink; g.fillRect(X, y - 1, CW, 2);   /* 머리줄 아래 진한 선 */
-    const B = { px: 19, w: 700 };
-    const halves = (x, w, top, h, parts) => { const hw = w / parts.length, my = top + h / 2;
-      parts.forEach(([a, b], i) => { const hx = x + hw * i;
-        if (i) { g.strokeStyle = '#b9bab6'; g.lineWidth = 1; g.beginPath(); g.moveTo(hx + 0.5, top + 7); g.lineTo(hx + 0.5, top + h - 7); g.stroke(); }
-        if (a) ckT(g, a, hx + 14, my, B); ckT(g, b, hx + hw - 14, my, { ...B, align: 'right' }); }); };
-    const sides = [
-      [['장례지도사 · 입관지도사', 'fix'], ['장의차량 (버스 / 리무진)'], ['관'], ['입관용품', 'all'], ['']],
-      [['유가족 상복', 'mw'], ['입관생화장식'], ['헌화', 'flower'], [''], ['']],
-    ];
-    const y0 = y;
-    sides.forEach((list, side) => { let yy = y0;
-      list.forEach(([k, how]) => { let x = X + HW * side; const my = yy + rh / 2;
-        ckBox(g, x, yy, C[0], rh, k ? CK.lab : null); if (k) ckT(g, k, x + C[0] / 2, my, { px: 19, w: 600, align: 'center', maxW: C[0] - 20 }); x += C[0];
-        ckBox(g, x, yy, C[1], rh); const c = x + C[1] / 2;
-        if (how === 'fix') ckT(g, '제공', c, my, { ...B, align: 'center' });
-        if (how === 'all') ckT(g, '전량 제공', c, my, { ...B, align: 'center' });
-        if (how === 'mw') halves(x, C[1], yy, rh, [['남', '벌'], ['여', '벌']]);
-        if (how === 'help') halves(x, C[1], yy, rh, [['', '명'], ['', '시간']]);
-        if (how === 'flower') halves(x, C[1], yy, rh, [['(', '송이)']]);
-        yy += rh; }); });
-    y = y0 + rh * 5;
-    g.fillStyle = CK.ink; g.fillRect(X + HW - 1, y0 - hh, 2, hh + rh * 5);   /* 좌우 사이 진한 선 */
-    /* 접객도우미: 인원 · 시간 + 바로 옆 날짜별 시간 (2026.10.28-13 날마다 2줄)
-       (2026.10.28-18 사용자 「도우미 시간대마다 N명 적을 수 있게 · 1~3일차 3줄씩」) 날마다 3줄, 줄마다 「__시 ~ __시 | __명」.
-       날짜 칸을 넓히려고 명 · 시간 칸은 150 으로 줄이고 위아래로(위 __명, 아래 __시간) */
-    { const th = 34, tw = 36, n = 3, h = th + tw * n, HC = 150, DW = (CW - C[0] - HC) / 3, TP = Math.round(DW * 0.71), S = { px: 18, w: 700 };
-      const thin = (x1, y1, x2, y2) => { g.strokeStyle = '#b9bab6'; g.lineWidth = 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); };
-      g.fillStyle = CK.ink; g.fillRect(X, y - 1, CW, 2);
-      ckBox(g, X, y, C[0], h, CK.lab); ckT(g, '접객도우미', X + C[0] / 2, y + h / 2, { px: 19, w: 600, align: 'center' });
-      { const x = X + C[0]; ckBox(g, x, y, HC, h); thin(x + 10, y + h / 2 + 0.5, x + HC - 10, y + h / 2 + 0.5);
-        ckT(g, '명', x + HC - 16, y + h / 4, { ...B, align: 'right' }); ckT(g, '시간', x + HC - 16, y + h * 3 / 4, { ...B, align: 'right' }); }
-      ['1일차', '2일차', '3일차'].forEach((t, i) => { const bx = X + C[0] + HC + DW * i, c = bx + TP / 2;
-        ckBox(g, bx, y, DW, th, CK.lab); ckT(g, t, bx + DW / 2, y + th / 2, { px: 18, w: 700, align: 'center' });
-        for (let k = 0; k < n; k++) { const ty = y + th + tw * k, ly = ty + tw / 2; ckBox(g, bx, ty, DW, tw);
-          ckT(g, '시', c - 14, ly, { ...S, align: 'right' }); ckT(g, '~', c, ly, { ...S, align: 'center' }); ckT(g, '시', bx + TP - 10, ly, { ...S, align: 'right' });
-          thin(bx + TP + 0.5, ty + 7, bx + TP + 0.5, ty + tw - 7); ckT(g, '명', bx + DW - 12, ly, { ...S, align: 'right' }); } });
-      y += h; } }
-  y += 4; y = ckSec(g, y, '특이사항');
-  { const h = Math.max(80, CK.H - y - 184); ckBox(g, X, y, CW, h);
-    g.strokeStyle = '#d6d7d4'; g.lineWidth = 1; for (let ly = y + 44; ly < y + h - 10; ly += 44) { g.beginPath(); g.moveTo(X + 12, ly + 0.5); g.lineTo(X + CW - 12, ly + 0.5); g.stroke(); }   /* (2026.10.28-11) 쓰기 쉽게 가는 줄 */
-    y += h; }
-  y += 28; ckT(g, '담당 장례지도사에게 금액과 제공 내역 등 충분한 설명을 듣고 장례 진행에 동의합니다.', CK.W / 2, y, { px: 21, w: 700, align: 'center', maxW: CW });
-  y += 40; ckT(g, '20      년      월      일', CK.W - M, y, { px: 20, w: 500, align: 'right' });
-  y += 44;
-  const sig = (k, x) => { ckT(g, k, x, y, { px: 21, w: 700 }); g.font = `700 21px ${CK_SANS}`; const lw = g.measureText(k).width; ckT(g, ':', x + lw + 10, y, { px: 21, w: 700 }); g.fillStyle = CK.ink; g.fillRect(x + lw + 28, y + 18, 210, 1.3); ckT(g, '(인)', x + lw + 250, y, { px: 19 }); };
-  sig('장례지도사', M + 40); sig('유가족 대표', CK.W / 2 + 20);
+  ckT(g, '장례 상담서', M, 98, { px: 44, w: 700, fam: CK_SERIF });
+  { const x0 = 430, lx = x0 + 104;
+    [['장례식장', 86], ['빈소', 122]].forEach(([k, y]) => { ckT(g, k, x0, y, { px: 20, w: 700 }); ckT(g, ':', lx - 14, y, { px: 20, w: 700 }); uline(lx, lx + (R - lx) / 2, y); }); }
+  g.fillStyle = CK.ink; g.fillRect(M, 152, R - M, 3); g.fillRect(M, 158, R - M, 1);
+  let y = 168;
+  const r = (cells, h = H) => { y = ckCells(g, X, y, h, cells); };
+  const W3 = (CW - 3 * L) / 3, W2 = (CW - 2 * L) / 2;
+  const three = (a, b, c, o = {}, h = H) => r([{ w: L, lab: a }, { w: W3, ...(o.a || {}) }, { w: L, lab: b }, { w: W3, ...(o.b || {}) }, { w: L, lab: c }, { w: W3, ...(o.c || {}) }], h);
+  const two = (a, b, o = {}) => r([{ w: L, lab: a }, { w: W2, ...(o.a || {}) }, { w: L, lab: b }, { w: W2, ...(o.b || {}) }]);
+  y = ckSec1(g, y, '고인 인적사항');
+  three('성함', '성별 · 나이', '주민등록번호', { b: { checks: ['남', '여'], unit: '세' } });
+  r([{ w: L, lab: '주소' }, { w: CW - 2 * L - W3 }, { w: L, lab: '본관' }, { w: W3 }]);
+  three('종교 · 직분', '병명 ·\n사망 원인', '사망 장소', {}, 40);
+  y += 4; y = ckSec1(g, y, '유가족 인적사항');
+  three('회원', '관계', '연락처');
+  three('상주', '관계', '연락처');
+  { const ks = ['배우자', '아들', '딸', '며느리', '사위', '손주'], P = (CW - L) / ks.length, l2 = 76;   /* 유족 관계 한 줄 */
+    ckBox(g, X, y, L, H, CK.lab); ckT(g, '유족 관계', X + L / 2, y + H / 2, { px: 19, w: 600, align: 'center', maxW: L - 14 });
+    let cx = X + L; ks.forEach((k) => { ckBox(g, cx, y, l2, H, CK.lab); ckT(g, k, cx + l2 / 2, y + H / 2, { px: 18, w: 600, align: 'center' }); ckBox(g, cx + l2, y, P - l2, H); ckT(g, '명', cx + P - 12, y + H / 2, { px: 17, w: 600, color: CK.mute, align: 'right' }); cx += P; });
+    y += H; }
+  y += 4; y = ckSec1(g, y, '장례 일정');
+  two('임종', '입관', { a: { dt: true }, b: { dt: true } });
+  two('발인', '화장 · 하관', { a: { dt: true }, b: { dt: true } });
+  two('장법 · 기간', '화장장 · 회차', { a: { checks: ['화장', '매장'], unit: '일장' } });
+  two('1차 장지', '2차 장지');
+  y += 4; y = ckSec1(g, y, '용품 · 제공 내역');
+  y = ckGoods(g, X, y, CW, CK_GOODS, 12);
+  { const half = (CW - 160) / 2; ckBold(g, X, y, CW); y = ckCells(g, X, y, 34, [{ w: 160, lab: '차량 경로' }, { w: half, pre: '버스 :' }, { w: half, pre: '리무진 :' }]); }   /* 리무진은 화장장까지 */
+  y = ckHelp(g, X, y, CW, 160, 130, 30, 32);
+  /* 아래 나란히: 왼쪽 특이사항 · 오른쪽 금액 정산 (결제 금액은 위아래 굵은 선) */
+  y += 4;
+  const GAP = 24, RW = 470, LW = CW - RW - GAP, RX = X + LW + GAP, RL = 120;
+  ckSec1(g, y, '특이사항'); ckSec1(g, y, '금액 정산', RX); y += 28;
+  const rows = [['상품명'], ['상품 금액', '원'], ['회사지원 ·\n기납입금', '원'], ['추가 비용', '원'], ['결제 금액', '원', true], ['결제 방법', 'chk'], ['현금영수증']];
+  const rh = Math.min(40, Math.floor((CK.H - y - CK_FOOT1 - 30) / rows.length)), boxH = rh * rows.length;
+  let ry = y;
+  rows.forEach(([k, u, strong]) => { if (strong) ckBold(g, RX, ry, RW);
+    ry = ckCells(g, RX, ry, rh, [{ w: RL, lab: k }, u === 'chk' ? { w: RW - RL, checks: ['현금', '카드'] } : { w: RW - RL, unit: u || '' }]);
+    if (strong) ckBold(g, RX, ry, RW); });
+  ckLined(g, X, y, LW, boxH, 40);
+  y += boxH + 20; ckT(g, CK_NOTE, M, y, { px: 17, w: 600, maxW: CW }); y += 10;
+  /* 동의 한 줄 + 날짜 · 서명 한 줄 */
+  y += 26; ckT(g, '담당 장례지도사에게 금액과 제공 내역 등 충분한 설명을 듣고 장례 진행에 동의합니다.', CK.W / 2, y, { px: 20, w: 700, align: 'center', maxW: CW });
+  y += 46; ckT(g, '20      년      월      일', M, y, { px: 20, w: 500 });
+  const sig = (k, x) => { ckT(g, k, x, y, { px: 20, w: 700 }); g.font = `700 20px ${CK_SANS}`; const lw = g.measureText(k).width; ckT(g, ':', x + lw + 8, y, { px: 20, w: 700 }); g.fillStyle = CK.ink; g.fillRect(x + lw + 24, y + 16, 170, 1.3); ckT(g, '(인)', x + lw + 200, y, { px: 18 }); };
+  sig('장례지도사', M + 300); sig('유가족 대표', M + 690);
   ckPageNo(g, 1, 2);
   return cv;
 }
