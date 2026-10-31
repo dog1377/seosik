@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.31-8">
+<meta name="app-version" content="2026.11.01-1">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1929,6 +1929,33 @@ const DAEHAN_REPORT=`장소 : {장소}
 장례담당자 : {담당팀장}
 연락처 : {담당연락처}`;
 const DAEHAN_ID='daehan';
+/* SJ산림조합상조 회사 보고 양식 (2026.11.01, 사용자가 보낸 회사 보고 양식 그대로 · 「바른의전」 「수의: 제공」은 양식 글) */
+const SJ_REPORT=`[SJ산림조합상조]상담결과보고
+※회원: {고객명} ({상구분})
+※연락처: {고객연락처}
+※고인: {고인이름} ({나이성별})
+※상주: {상주명}
+※연락처: {상주연락처}
+※식장: {장소}
+※상품: {상품}
+※종교: {종교}
+※접수: {접수:kr}
+※통화: {통화:kr}
+※출발: {출발:kr}
+※도착: {도착:kr}
+※상담: {상담:kr}
+※입관: {입관:kr}
+※발인: {발인:kr}
+※이송: {이송}
+※장법: {장법}
+※1차장지 : {1차장지}
+※2차장지 : {2차장지}
+※수의: 제공
+※수의대체 : {수의대체}
+※지도사: 바른의전 {담당}
+             ( {담당연락처})
+※특이사항: {특이사항}`;
+const SJ_ID='sjsanlim', SJ_NAME='SJ산림조합상조';
 /* 배차 양식 「회사 :」 줄에 쓰는 이름 (2026.10.28): 업체 양식의 「배차 양식 회사명」(co.dispName), 한 번도 안 정했으면 아래 기본값, 없으면 업체명 */
 const DISP_CO_DEFAULT={'대한선진(국향)':'대한항공노동조합'};
 const coKey=v=>String(v||'').replace(/\s/g,'');
@@ -2163,6 +2190,12 @@ if(!db.vDaehan){   /* 대한선진(국향) 업체 추가 (2026.10.27) */
   else if(!(has.reports||[]).length) has.reports=[{id:uid(),name:'회사 양식',body:DAEHAN_REPORT}];
   db.vDaehan=true;
 }
+if(!db.vSJ){   /* SJ산림조합상조 업체 추가 (2026.11.01) — 업체 번호 고정, 같은 이름이 있으면 양식이 비었을 때만 넣음 */
+  const has=db.companies.find(x=>x.id===SJ_ID||coKey(x.name)===SJ_NAME);
+  if(!has) db.companies.push({id:SJ_ID,name:SJ_NAME,band:GEN_BAND,reports:[{id:uid(),name:'회사 보고 양식',body:SJ_REPORT}],items:BAND_ITEMS.slice(),deduct:[],labels:{customer:'회원명',staff:'지도사'}});
+  else if(!(has.reports||[]).length) has.reports=[{id:uid(),name:'회사 보고 양식',body:SJ_REPORT}];
+  db.vSJ=true;
+}
 if(!db.vGoiEnd){ const goi=db.companies.find(x=>isGoi(x)); if(goi){ if(!goi.reports) goi.reports=[]; if(!goi.reports.some(r=>r.name==='장례 종료 보고')) goi.reports.push({id:uid(),name:'장례 종료 보고',body:GOI_END_REPORT}); } db.vGoiEnd=true; }
 function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
@@ -2315,7 +2348,7 @@ function vals(c){
     '상구분':g('mourn'), '소속':g('staffOrg'), '상품약칭':g('productShort')||g('product'), '도우미이름':f.helperNone?'미사용':g('helper'), '행사번호':g('eventNo'),
     '접수월일':(p=>p?`${pad(p.mo)}/${pad(p.d)}`:'')(parseDT(f.recv||f.death)),
     '관리사배치':mgrRows(c).map(m=>m.line).join('\n'),
-    '도착':dayTime(f.arrive), '발생':dayTime(f.death), '접수':dayTime(f.recv||f.death), '본관':g('origin'),
+    '도착':dayTime(f.arrive), '통화':dayTime(f.callAt), '출발':dayTime(f.leaveAt), '상담':dayTime(f.consultAt), '이송':g('transport'), '나이성별':[g('age')?g('age')+'세':'',genderShort(g('gender'))].filter(Boolean).join('/'), '발생':dayTime(f.death), '접수':dayTime(f.recv||f.death), '본관':g('origin'),
     '사망사유':g('cause'), '제단지원':g('altarSup'), '할인권사용':g('coupon'), '회원증회수':g('cardBack'), '확인서대체':g('certSub'),
     '계열사':g('affiliate'), '직급':g('rank'), '주소':g('addr'), '장법':g('method'),
     '대체공제':(c.deductions||[]).filter(d=>d.text.trim()).map((d,i)=>`${i+1}. ${d.text.trim()}`).join('\n'),
@@ -2331,9 +2364,10 @@ function daysSpan(f){   /* 08월08일 ~08월10일 (3일장) — 임종(없으면
   const n=Math.round((new Date(b.y,b.mo-1,b.d)-new Date(a.y,a.mo-1,a.d))/86400000)+1;
   return `${md(a)} ~${md(b)}${n>0?` (${n}일장)`:''}`;
 }
+function genderShort(gd){ gd=String(gd||'').trim(); return /^남/.test(gd)?'남':/^여/.test(gd)?'여':gd; }   /* 남자 → 남 */
 function deceasedShort(f){   /* 김영진(남,70세) */
   const name=String(f.name||'').trim(), gd=String(f.gender||'').trim(), age=String(f.age||'').trim();
-  const g=/^남/.test(gd)?'남':/^여/.test(gd)?'여':gd, inner=[g,age?age+'세':''].filter(Boolean).join(',');
+  const g=genderShort(gd), inner=[g,age?age+'세':''].filter(Boolean).join(',');
   return name+(inner?`(${inner})`:'');
 }
 function methodPlace(f){   /* 화장(김해추모) · 매장 */
@@ -2351,8 +2385,8 @@ function staffRank(v){   /* 최준영 → 최준영팀장 · 이기현 과장 �
 function parseItems(v){ const out=[]; String(v||'').split('\n').forEach(l=>{ if(!l.trim()) return; if(/^\s/.test(l)&&out.length) out[out.length-1]+='\n'+l.trim(); else out.push(l.trim()); }); return out; }
 function itemLines(t){ return String(t||'').split('\n').map(l=>l.trim()).filter(Boolean); }
 const PH_KEYS=Object.keys(vals({f:{},items:[],deductions:[],companyId:ETC}));
-// 날짜 형식: {접수:dot} 2026.09.15. 08:00 · {접수:short} 26-09-25 15:20 · {접수:iso} 2026-09-24 02:35 · {접수:day} 16일 13시 · {접수:long} 09월 16일 13시 00분 · {접수:md} 09월 16일 13:00
-function dtRaw(c){ const f=c.f||{}; return {'접수':f.recv||f.death,'도착':f.arrive,'임종':f.death,'발생':f.death,'입관':f.casket,'발인':f.depart,'화장':!isBurial(f)&&f.cremDate?(f.cremDate+(f.cremTime?'T'+f.cremTime:'')):'','하관':isBurial(f)&&f.hagwanDate?(f.hagwanDate+(f.hagwanFrom?'T'+f.hagwanFrom+':00':'')):''}; }
+// 날짜 형식: {접수:kr} 10월31일 14시30분 · {접수:dot} 2026.09.15. 08:00 · {접수:short} 26-09-25 15:20 · {접수:iso} 2026-09-24 02:35 · {접수:day} 16일 13시 · {접수:long} 09월 16일 13시 00분 · {접수:md} 09월 16일 13:00
+function dtRaw(c){ const f=c.f||{}; return {'접수':f.recv||f.death,'통화':f.callAt,'출발':f.leaveAt,'상담':f.consultAt,'도착':f.arrive,'임종':f.death,'발생':f.death,'입관':f.casket,'발인':f.depart,'화장':!isBurial(f)&&f.cremDate?(f.cremDate+(f.cremTime?'T'+f.cremTime:'')):'','하관':isBurial(f)&&f.hagwanDate?(f.hagwanDate+(f.hagwanFrom?'T'+f.hagwanFrom+':00':'')):''}; }
 function fmtAs(v,fm){
   const p=parseDT(v); if(!p) return ''; const Y=p.y, YY=String(p.y).slice(2), M=pad(p.mo), D=pad(p.d), t=p.h==null?'':` ${pad(p.h)}:${pad(p.mi)}`;
   if(fm==='dot') return `${Y}.${M}.${D}.${t}`;
@@ -2360,6 +2394,7 @@ function fmtAs(v,fm){
   if(fm==='iso') return `${Y}-${M}-${D}${t}`;
   if(fm==='long') return longDT(v);
   if(fm==='md') return `${M}월 ${D}일${t}`;   /* 08월 09일 11:00 */
+  if(fm==='kr') return `${M}월${D}일${p.h==null?'':` ${pad(p.h)}시${pad(p.mi)}분`}`;   /* 10월31일 14시30분 (SJ산림조합상조) */
   return dayTime(v);
 }
 function fillTpl(body,c,over){
@@ -2462,14 +2497,14 @@ document.addEventListener('click',e=>{
 // [키, 라벨, 종류, 옵션]
 const F=(k,l,t='text',o)=>({k,l,t,o});
 const SECTIONS=[
-  {t:'장례', key:'sched', rows:[[F('place','장소 · 빈소 (예: 동래봉생 2호)')],[F('recv','접수','datetime-local')],[F('arrive','도착','datetime-local')],[F('death','임종','datetime-local')],[F('casket','입관','datetime-local')],[F('depart','발인','datetime-local')]]},
+  {t:'장례', key:'sched', rows:[[F('place','장소 · 빈소 (예: 동래봉생 2호)')],[F('recv','접수','datetime-local')],[F('callAt','통화','datetime-local')],[F('leaveAt','출발','datetime-local')],[F('arrive','도착','datetime-local')],[F('consultAt','상담','datetime-local')],[F('death','임종','datetime-local')],[F('casket','입관','datetime-local')],[F('depart','발인','datetime-local')]]},
   {t:'고객 · 회원', key:'cust', rows:[[F('affiliate','계열사 (예: 농협은행 다대포지점)')],[F('rank','직급')],[F('company','회사명 (고객 소속)')],[F('customer','고객 · 회원명'),F('custRel','관계')],[F('custTel','연락처','tel')]]},
   {t:'고인', key:'name', rows:[[F('eventNo','행사번호','num','번')],[F('name','고인명'),F('mourn','상 구분 (예: 장인상)')],[F('gender','성별','select',['','남자','여자']),F('age','나이','num','세')],[F('origin','본관'),F('religion','종교','select',['','유교','무교','불교','기독교','천주교','기타'])],[F('cause','사망 사유','pick','causes')],[F('addr','주소')]]},
   {t:'상주', rows:[[F('chief','상주명'),F('chiefRel','관계')],[F('chiefTel','연락처','tel')]]},
   {t:'장지', rows:[[F('method','장법','select',['','화장','매장','수목장'])],[F('burial1','1차 장지'),F('burial2','2차 장지')],[F('burial','장지 (밴드 표기)')]]},
   {t:'상품 · 금액', rows:[[F('product','상품','prod')],[F('altarSup','제단지원 (예: 100만원 공제)')],[F('productShort','상품 약칭 (보고용, 비우면 상품)','combo','productShorts')],[F('support','회사지원','money'),F('paid','납입','money')],[F('balance','잔액','money'),F('collect','수금액','money')],[F('extraAmt','추가금','money'),F('totalAmt','총수금액','money')]]},
   {t:'담당', rows:[[F('staffOrg','소속 (예: 부산본부)')],[F('staff','담당 · 팀장'),F('staffTel','연락처','tel')],[F('note','특이사항','textarea')]]},
-  {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','cnt','세트'),F('mournW','상복 여','cnt','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('dispatchAt','배차','datetime-local'),F('route','운행 경로 (예: 부산영락-부산추모-장례식장)')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('provNote','특이사항 (번호 없는 메모)')]]},
+  {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','cnt','세트'),F('mournW','상복 여','cnt','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('dispatchAt','배차','datetime-local'),F('route','운행 경로 (예: 부산영락-부산추모-장례식장)')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('transport','이송','select',['','제공','미제공'])],[F('provNote','특이사항 (번호 없는 메모)')]]},
   {t:'확인 사항', rows:[[F('coupon','할인권 사용','select',['','O','X']),F('cardBack','회원증 회수','select',['','O','X'])],[F('certSub','확인서 대체')],[F('preJoin','사전 가입 할인 (비우면 없음)'),F('certDone','이행완료확인서','select',['','하단 첨부','미가입'])]]},
   {t:'도우미 시간대', key:'mgr', rows:[]},
   {t:'공제 · 추가 항목', key:'deduct', rows:[]},
@@ -2480,15 +2515,15 @@ const FIELD_PH={place:['장소'],recv:['접수일시','접수'],death:['임종',
   company:['회사명'],customer:['고객명'],custRel:['관계'],custTel:['고객연락처'],name:['고인명','고인이름'],gender:['고인명','성별'],age:['고인명','나이'],origin:['고인명','본관'],religion:['종교'],
   chief:['상주명'],chiefRel:['상주관계'],chiefTel:['상주연락처'],burial1:['1차장지','장지'],burial2:['2차장지','장지'],burial:['장지'],product:['상품'],
   support:['회사지원'],paid:['납입'],balance:['잔액'],collect:['수금액'],extraAmt:['추가금'],totalAmt:['총수금액'],staff:['담당'],staffTel:['담당연락처'],note:['특이사항'],
-  helper:['도우미','도우미이름'],helperHours:['도우미'],mourning:['상복'],vehicle:['차량'],mournM:['상복'],mournW:['상복'],mournBrand:['상복'],vehType:['차량'],vehCo:['차량'],dispatchAt:['배차'],route:['운행경로','차량경로'],preJoin:['사전가입할인'],certDone:['이행완료확인서'],altar:['제단공제'],shroud:['수의대체'],provNote:['제공특이사항'],
+  helper:['도우미','도우미이름'],helperHours:['도우미'],mourning:['상복'],vehicle:['차량'],mournM:['상복'],mournW:['상복'],mournBrand:['상복'],vehType:['차량'],vehCo:['차량'],dispatchAt:['배차'],route:['운행경로','차량경로'],preJoin:['사전가입할인'],certDone:['이행완료확인서'],altar:['제단공제'],shroud:['수의대체'],provNote:['제공특이사항'],callAt:['통화'],leaveAt:['출발'],consultAt:['상담'],transport:['이송'],
   mourn:['상구분'],staffOrg:['소속'],productShort:['상품약칭'],eventNo:['행사번호'],
   arrive:['도착'],cause:['사망사유'],addr:['주소'],method:['장법'],altarSup:['제단지원'],coupon:['할인권사용'],cardBack:['회원증회수'],certSub:['확인서대체'],affiliate:['계열사'],rank:['직급']};
 const ALWAYS=['eventNo','place','death','casket','depart','name','chief'];   // 부고에 필요한 칸은 항상
 function usedPH(co){ const s=new Set([...[co.band,...activeReports(co).map(r=>r.body),db.dispatchTpl||DISPATCH_TPL].join('\n').matchAll(/\{([^}]+)\}/g)].map(m=>m[1].split(':')[0])); if(s.has('화장하관')){ s.add('화장'); s.add('하관'); } if(s.has('화장장회차')) s.add('화장'); if(s.has('차량경로')){ s.add('차량'); s.add('운행경로'); } if(s.has('발인날짜')) s.add('발인');
-  if(s.has('장례기간')){ s.add('임종'); s.add('발인'); } if(s.has('고인성별나이')){ s.add('고인이름'); s.add('성별'); s.add('나이'); } if(s.has('장법화장장')){ s.add('장법'); s.add('화장장'); } if(s.has('담당팀장')) s.add('담당');
+  if(s.has('장례기간')){ s.add('임종'); s.add('발인'); } if(s.has('고인성별나이')){ s.add('고인이름'); s.add('성별'); s.add('나이'); } if(s.has('나이성별')){ s.add('성별'); s.add('나이'); } if(s.has('장법화장장')){ s.add('장법'); s.add('화장장'); } if(s.has('담당팀장')) s.add('담당');
   return s; }
 function visible(k,used){ return ALWAYS.includes(k) || (FIELD_PH[k]||[]).some(p=>used.has(p)); }
-const REQUIRED={place:'장소',death:'임종',depart:'발인',customer:'고객 · 회원명',name:'고인명',chief:'상주명',staff:'담당',cremDate:'화장 날짜',hagwanDate:'하관 날짜'};
+const REQUIRED={place:'장소',death:'임종',depart:'발인',customer:'고객 · 회원명',name:'고인명',chief:'상주명',staff:'담당',cremDate:'화장 날짜',hagwanDate:'하관 날짜',transport:'이송'};   /* 이송: SJ산림조합상조 양식 「반드시 작성」 (양식에 {이송}이 있을 때만) */
 
 const HOURS=Array.from({length:24},(_,i)=>pad(i)), MINS=['00','10','20','30','40','50'];
 /* ---------- 시간 선택: 24시간제 · 10분 단위 · 누르면 바로 들어감 (완료 버튼 없음) ----------
@@ -2735,7 +2770,7 @@ function renderInput(){
   SECTIONS.forEach(s=>{
     const filled=k=>String(c.f[k]??'').trim()!=='';
     const sameOn=k=>!!c.f.sameChief&&Object.entries(SAME_MAP).some(([ck,uk])=>uk===k&&visible(ck,used));   /* 상주 = 회원이면 상주 칸이 회원 칸에서 채워짐 */
-    const rows=s.rows.map(r=>r.filter(fd=>(fd.k==='recv'?isGoi(co):visible(fd.k,used))||filled(fd.k)||sameOn(fd.k))).filter(r=>r.length);   // 접수는 고이장례연구소만 (이미 넣은 값은 항상 보임)
+    const rows=s.rows.map(r=>r.filter(fd=>(fd.k==='recv'?(isGoi(co)||coKey(co.name)===SJ_NAME):visible(fd.k,used))||filled(fd.k)||sameOn(fd.k))).filter(r=>r.length);   // 접수는 고이장례연구소 · SJ산림조합상조만 (이미 넣은 값은 항상 보임)
     const extra = s.key==='mgr'?true /* 도우미 시간대: 모든 업체 (일정표 도우미 칸에 들어감, 2026.10.31) */ : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')||(c.deductions||[]).some(d=>String(d.text||'').trim())) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')||['cremName','cremDate','cremTime','hagwanDate'].some(filled)) : false;
     if(!rows.length && !extra) return;
     const sectionKey=s.key||s.rows[0][0].k, meta=SECTION_UI[sectionKey]||{group:'basic',title:s.t};
