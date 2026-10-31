@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.31-6">
+<meta name="app-version" content="2026.10.31-7">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1404,6 +1404,9 @@ body.split #p-sched .sz-pv-done{display:none}
 .sz-hrows{display:grid;gap:8px}
 .sz-hrow{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr);gap:6px}
 .sz-hrow .input{min-height:46px;padding:6px 8px;font-size:16px}
+.sz-hrow select.input{padding-left:6px;padding-right:20px;background-position:right 6px center;background-size:10px}
+.sz-hrow select.input:invalid{color:var(--ph)}
+.sz-hrow select.input option{color:var(--ink)}
 .sz-hhead{font-size:12.5px;font-weight:600;color:var(--muted)}
 .sz-box{display:grid;gap:8px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:var(--field)}
 .sz-pr{display:flex;justify-content:space-between;gap:12px;font-size:15px}
@@ -2311,8 +2314,7 @@ function vals(c){
     '제공항목':(c.items||[]).filter(it=>it.on&&it.text.trim()).map((it,i)=>`${i+1}.${itemLines(it.text).join('\n')}`).join('\n'),
     '상구분':g('mourn'), '소속':g('staffOrg'), '상품약칭':g('productShort')||g('product'), '도우미이름':f.helperNone?'미사용':g('helper'), '행사번호':g('eventNo'),
     '접수월일':(p=>p?`${pad(p.mo)}/${pad(p.d)}`:'')(parseDT(f.recv||f.death)),
-    '관리사배치':(c.mgr||[]).filter(m=>m.date).map(m=>{ const p=parseDT(m.date), t=(hh,mm)=>hh?`${hh}시${mm&&mm!=='00'?' '+mm+'분':''}`:'';
-      const span=[t(m.sh,m.sm),t(m.eh,m.em)].filter(Boolean).join('-'); return `${pad(p.d)}일 : ${span}${m.n?' '+m.n+'명':''}`.trim(); }).join('\n'),
+    '관리사배치':mgrRows(c).map(m=>m.line).join('\n'),
     '도착':dayTime(f.arrive), '발생':dayTime(f.death), '접수':dayTime(f.recv||f.death), '본관':g('origin'),
     '사망사유':g('cause'), '제단지원':g('altarSup'), '할인권사용':g('coupon'), '회원증회수':g('cardBack'), '확인서대체':g('certSub'),
     '계열사':g('affiliate'), '직급':g('rank'), '주소':g('addr'), '장법':g('method'),
@@ -2384,7 +2386,7 @@ const SECTION_UI={
   name:{group:'basic',title:'고인 정보'},chief:{group:'basic',title:'상주 정보'},
   method:{group:'schedule',title:'장지 안내'},product:{group:'service',title:'상품 · 금액'},
   staffOrg:{group:'staff',title:'담당자 정보'},prov:{group:'service',title:'제공내역'},
-  coupon:{group:'service',title:'확인 사항'},mgr:{group:'staff',title:'관리사 배치'},
+  coupon:{group:'service',title:'확인 사항'},mgr:{group:'staff',title:'도우미 시간대'},
   deduct:{group:'service',title:'공제 · 추가 항목'},crem:{group:'schedule',title:'화장 · 매장'}
 };
 function applyInputGroup(scroll=false,dir=''){
@@ -2469,7 +2471,7 @@ const SECTIONS=[
   {t:'담당', rows:[[F('staffOrg','소속 (예: 부산본부)')],[F('staff','담당 · 팀장'),F('staffTel','연락처','tel')],[F('note','특이사항','textarea')]]},
   {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','cnt','세트'),F('mournW','상복 여','cnt','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('dispatchAt','배차','datetime-local'),F('route','운행 경로 (예: 부산영락-부산추모-장례식장)')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('provNote','특이사항 (번호 없는 메모)')]]},
   {t:'확인 사항', rows:[[F('coupon','할인권 사용','select',['','O','X']),F('cardBack','회원증 회수','select',['','O','X'])],[F('certSub','확인서 대체')],[F('preJoin','사전 가입 할인 (비우면 없음)'),F('certDone','이행완료확인서','select',['','하단 첨부','미가입'])]]},
-  {t:'관리사 배치', key:'mgr', rows:[]},
+  {t:'도우미 시간대', key:'mgr', rows:[]},
   {t:'공제 · 추가 항목', key:'deduct', rows:[]},
   {t:'화장', key:'crem', rows:[]},
 ];
@@ -2701,11 +2703,19 @@ function mgrHtml(c){
     <div class="mg-top"><input class="input" type="date" data-mg="${m.id}" data-mgf="date" value="${esc(m.date||'')}" aria-label="날짜">
       <div class="suffix"><input class="input" data-mg="${m.id}" data-mgf="n" inputmode="numeric" value="${esc(m.n||'')}" aria-label="인원"><span>명</span></div>
       <button class="x" type="button" data-mgdel="${m.id}" aria-label="삭제">✕</button></div>
-    <div class="mg-time">${tpCtl({mode:'hm',h:m.sh||'',m:m.sm||'',hAttr:`data-mg="${m.id}" data-mgf="sh"`,mAttr:`data-mg="${m.id}" data-mgf="sm"`,label:'관리사 시작 시간',ph:'시작'})}<span>~</span>${tpCtl({mode:'hm',h:m.eh||'',m:m.em||'',hAttr:`data-mg="${m.id}" data-mgf="eh"`,mAttr:`data-mg="${m.id}" data-mgf="em"`,label:'관리사 끝 시간',ph:'끝'})}</div>
+    <div class="mg-time">${tpCtl({mode:'hm',h:m.sh||'',m:m.sm||'',hAttr:`data-mg="${m.id}" data-mgf="sh"`,mAttr:`data-mg="${m.id}" data-mgf="sm"`,label:'도우미 시작 시간',ph:'시작'})}<span>~</span>${tpCtl({mode:'hm',h:m.eh||'',m:m.em||'',hAttr:`data-mg="${m.id}" data-mgf="eh"`,mAttr:`data-mg="${m.id}" data-mgf="em"`,label:'도우미 끝 시간',ph:'끝'})}</div>
   </div>`).join('');
   return `<div class="stack" style="gap:8px">${rows}</div>
     <div class="row"><button class="btn sm" type="button" data-act="mgrFill">행사 기간으로 채우기</button><button class="btn sm" type="button" data-act="mgrAdd">+ 날짜 추가</button></div>
-    <p class="note">날짜별로 관리사(도우미) 근무 시간과 인원을 입력하십시오. 예: 27일 : 12시-22시 2명</p>`;
+    <p class="note">날짜별로 도우미(관리사) 근무 시간과 인원을 입력하십시오. 예: 27일 : 12시-22시 2명 · 행사 보고서(일정표) 도우미 칸에도 자동으로 들어갑니다 (3줄까지, 넘치는 줄은 비고).</p>`;
+}
+/* 도우미 시간대(c.mgr) → 날짜 · 시간순 한 줄씩. 「관리사배치」 양식과 일정표 도우미 칸(36~38줄)이 같이 씀 (2026.10.31) */
+function mgrHm(hh,mm){ return hh?`${hh}시${mm&&mm!=='00'?' '+mm+'분':''}`:''; }
+function mgrRows(c){
+  const key=m=>`${m.date}T${m.sh||'99'}${m.sm||'00'}`;
+  return (c.mgr||[]).filter(m=>m.date&&parseDT(m.date)).slice().sort((a,b)=>key(a).localeCompare(key(b))).map(m=>{
+    const d=`${pad(parseDT(m.date).d)}일`, s=mgrHm(m.sh,m.sm), e=mgrHm(m.eh,m.em);
+    return {d,s,e,n:m.n?`${m.n}명`:'',line:`${d} : ${[s,e].filter(Boolean).join('-')}${m.n?' '+m.n+'명':''}`.trim()}; });
 }
 function deductHtml(c){
   const co=coById(c.companyId), have=new Set((c.deductions||[]).map(d=>d.text.trim()));
@@ -2726,7 +2736,7 @@ function renderInput(){
     const filled=k=>String(c.f[k]??'').trim()!=='';
     const sameOn=k=>!!c.f.sameChief&&Object.entries(SAME_MAP).some(([ck,uk])=>uk===k&&visible(ck,used));   /* 상주 = 회원이면 상주 칸이 회원 칸에서 채워짐 */
     const rows=s.rows.map(r=>r.filter(fd=>(fd.k==='recv'?isGoi(co):visible(fd.k,used))||filled(fd.k)||sameOn(fd.k))).filter(r=>r.length);   // 접수는 고이장례연구소만 (이미 넣은 값은 항상 보임)
-    const extra = s.key==='mgr'?(used.has('관리사배치')||(c.mgr||[]).length>0) : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')||(c.deductions||[]).some(d=>String(d.text||'').trim())) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')||['cremName','cremDate','cremTime','hagwanDate'].some(filled)) : false;
+    const extra = s.key==='mgr'?true /* 도우미 시간대: 모든 업체 (일정표 도우미 칸에 들어감, 2026.10.31) */ : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')||(c.deductions||[]).some(d=>String(d.text||'').trim())) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')||['cremName','cremDate','cremTime','hagwanDate'].some(filled)) : false;
     if(!rows.length && !extra) return;
     const sectionKey=s.key||s.rows[0][0].k, meta=SECTION_UI[sectionKey]||{group:'basic',title:s.t};
     h+=`<div class="sec" data-section="${sectionKey}" data-group="${meta.group}" data-title="${esc(meta.title)}" ${meta.group===inputGroup?'':'hidden'}><div class="sec-head"><h2>${meta.title}</h2>${s.key==='sched'?'<button class="btn link" type="button" data-act="threeDay">3일장 자동 입력</button>':''}</div><div class="fields">`;
@@ -2828,7 +2838,7 @@ $('#p-input').addEventListener('click',e=>{
   if(b.dataset.dddel){ delRow(c,'deductions',b.dataset.dddel,renderInput,'공제'); return; }
   if(b.dataset.ddadd){ c.deductions.push({id:uid(),text:b.dataset.ddadd}); touched(); renderInput(); return; }
   if(!c.mgr) c.mgr=[];
-  if(b.dataset.mgdel){ delRow(c,'mgr',b.dataset.mgdel,renderInput,'관리사 배치'); return; }
+  if(b.dataset.mgdel){ delRow(c,'mgr',b.dataset.mgdel,renderInput,'도우미 시간대'); return; }
   if(a==='mgrAdd'){ const last=c.mgr[c.mgr.length-1]; const next=last&&last.date?addDaysAt(last.date,1,0,0).slice(0,10):((c.f.recv||c.f.death||'').slice(0,10)); c.mgr.push({id:uid(),date:next,sh:last?last.sh:'',sm:last?last.sm:'',eh:last?last.eh:'',em:last?last.em:'',n:last?last.n:'2'}); touched(); renderInput(); return; }
   if(a==='mgrFill'){
     const s=(c.f.recv||c.f.death||'').slice(0,10), e=(c.f.depart||'').slice(0,10);
@@ -3878,7 +3888,8 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
     set('C32',vt[0]||''); set('E32',co); set('F32',rtOf(vt[0])); if(dt) set('Q32','배차 '+schedDT(dt));
     if(vt.length>1){ const v2=vt.slice(1).join(' '); set('C33',v2); set('E33',co); set('F33',rtOf(v2)); if(dt) set('Q33','배차 '+schedDT(dt)); } }
   // 도우미
-  if(!f.helperNone){ set('C35',f.helper); if(String(f.helperHours||'').trim()) add('N35',`총 ${String(f.helperHours).trim()}시간`); }
+  if(!f.helperNone){ set('C35',f.helper); if(String(f.helperHours||'').trim()) add('N35',`총 ${String(f.helperHours).trim()}시간`);
+    const mr=mgrRows(c); mr.slice(0,3).forEach((m,i)=>{ set('F'+(36+i),m.d); set('H'+(36+i),m.s); set('J'+(36+i),m.e); set('L'+(36+i),m.n); }); mr.slice(3).forEach(m=>add('N35',m.line)); }   /* 행사 입력 「도우미 시간대」 */
   // 추가내역: 맞는 줄의 비고로, 나머지는 맨 아래 특이사항
   const MAP=[[/남상복/,'K29'],[/여상복/,'K30'],[/도우미/,'N35'],[/수의/,'L17'],[/사전\s*상담/,'L18'],[/영정/,'L19'],[/앰블|엠블|구급/,'L20'],[/헌화/,'L22'],[/바구니/,'L23'],[/화환/,'L25'],[/일회용/,'L26'],[/편의/,'L27'],[/버스|리무진|장의차|운구차|차량/,'Q33']];
   const rest=[];
@@ -4456,11 +4467,11 @@ function szScreen(c,st,steps){
   else if(st.id==='veh2'){ const on=x.veh2On; body=choice('x:veh2On',[['yes','있음'],['no','없음']],on||'');
     if(on==='yes') body+=xIn('veh2.type','구분 (차종)','예: 리무진')+xIn('veh2.co','업체','예: 한국')+xIn('veh2.dest','목적지','예: 장례식장-함안하늘')+xIn('veh2.km','실제 주행거리','예: 20km')+xIn('veh2.note','비고',ph(A.Q33,''))+go(); }
   else if(st.id==='help') body=ch('팀장명',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})+`<label class="f">총 시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" placeholder="예: 30" autocomplete="off"><span>시간</span></div></label>`+go();
-  else if(st.id==='helpRows'){ const days=szDays(c), H=Array.from({length:24},(_,k)=>pad(k));
-    const sel=(p,opts,lab)=>`<select class="input" data-sx="${p}" aria-label="${lab}"><option value=""></option>${opts.map(o=>`<option value="${o.v}"${sxGet(c,p)===o.v?' selected':''}>${esc(o.l)}</option>`).join('')}</select>`;
-    sub='모르는 줄은 비워 두십시오. 날짜는 접수일부터 발인일까지 고릅니다.';
-    body=`<div class="sz-hrows"><div class="sz-hrow sz-hhead"><span>날짜</span><span>시작</span><span>종료</span><span>인원</span></div>${[0,1,2].map(k=>`<div class="sz-hrow">${days.length?sel(`help.${k}.d`,days,`${k+1}번째 날짜`):`<input class="input" data-sx="help.${k}.d" value="${esc(sxGet(c,`help.${k}.d`))}" inputmode="numeric" placeholder="일" aria-label="${k+1}번째 날짜">`}${sel(`help.${k}.s`,H.map(h=>({v:h,l:h+'시'})),`${k+1}번째 시작`)}${sel(`help.${k}.e`,H.map(h=>({v:h,l:h+'시'})),`${k+1}번째 종료`)}<input class="input" data-sx="help.${k}.n" value="${esc(sxGet(c,`help.${k}.n`))}" inputmode="numeric" placeholder="명" aria-label="${k+1}번째 인원"></div>`).join('')}</div>`
-      +xIn('helpNote','비고',ph(A.N35,''))+go(); }
+  else if(st.id==='helpRows'){ const days=szDays(c), H=Array.from({length:24},(_,k)=>pad(k)), au=(col,k)=>String(A[col+(36+k)]||'');
+    const sel=(p,opts,lab,auto)=>`<select class="input" data-sx="${p}" aria-label="${lab}"${auto?' required':''}><option value="">${esc(String(auto||'').replace(/시 (\d+)분$/,':$1'))}</option>${opts.map(o=>`<option value="${o.v}"${sxGet(c,p)===o.v?' selected':''}>${esc(o.l)}</option>`).join('')}</select>`;
+    sub=mgrRows(c).length?'행사 입력 「도우미 시간대」에 넣은 시간이 흐린 글자로 들어가 있습니다. 다르게 쓰려면 고르십시오.':'모르는 줄은 비워 두십시오. 날짜는 접수일부터 발인일까지 고릅니다.';
+    body=`<div class="sz-hrows"><div class="sz-hrow sz-hhead"><span>날짜</span><span>시작</span><span>종료</span><span>인원</span></div>${[0,1,2].map(k=>`<div class="sz-hrow">${days.length?sel(`help.${k}.d`,days,`${k+1}번째 날짜`,au('F',k)):`<input class="input" data-sx="help.${k}.d" value="${esc(sxGet(c,`help.${k}.d`))}" inputmode="numeric" placeholder="${esc(au('F',k)||'일')}" aria-label="${k+1}번째 날짜">`}${sel(`help.${k}.s`,H.map(h=>({v:h,l:h+'시'})),`${k+1}번째 시작`,au('H',k))}${sel(`help.${k}.e`,H.map(h=>({v:h,l:h+'시'})),`${k+1}번째 종료`,au('J',k))}<input class="input" data-sx="help.${k}.n" value="${esc(sxGet(c,`help.${k}.n`))}" inputmode="numeric" placeholder="${esc(au('L',k)||'명')}" aria-label="${k+1}번째 인원"></div>`).join('')}</div>`
+      +xIn('helpNote','비고',ph(A.N35,''))+`<button class="btn wz-go wz-go2" type="button" data-sz-mgr>행사 입력에서 수정</button>`+go(); }
   else if(st.id==='memo'){ const au=A.__notes||[]; sub='여기에 쓴 줄은 맨 아래 특이사항에 더해집니다.';
     body=(au.length?`<div class="sz-box sz-auto"><span>자동으로 들어가는 내용</span>${au.map(t=>`<p>${esc(t)}</p>`).join('')}</div>`:'')+`<label class="f">더 적을 내용<textarea class="input" data-sx="memo" rows="4" placeholder="줄마다 한 줄씩 들어갑니다">${esc(x.memo||'')}</textarea></label>`+go(); }
   else if(st.id==='done'){ sub='미리보기를 누르면 크게 보입니다. 고칠 곳은 아래 줄을 누르십시오.';
@@ -4552,6 +4563,7 @@ $('#p-sched').addEventListener('click',e=>{
   if(b.hasAttribute('data-sz-gclear')){ SX(c).goods={}; touched(); szGo('goods','next'); return; }
   if(b.dataset.szSave){ szSave(c,b.dataset.szSave); return; }
   if(b.hasAttribute('data-sz-settle')){ setTab('settle'); return; }
+  if(b.hasAttribute('data-sz-mgr')){ inputGroup='staff'; inputSection='mgr'; setTab('input'); return; }
   if(b.hasAttribute('data-sz-zoom')) b.classList.toggle('zoom');
 });
 function rcCoPick(c,all){
