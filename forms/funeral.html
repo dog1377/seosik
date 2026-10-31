@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.10.31-4">
+<meta name="app-version" content="2026.10.31-5">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -5329,8 +5329,55 @@ function updateEnvelopeSummary(){
   h+='</tbody></table><p class="note">5만원권 금액 '+esc(wonStr(a.fifty*50000)||'0원')+' · 1만원권 금액 '+esc(wonStr(a.ten*10000)||'0원')+'</p>';
   if(a.five||a.one||a.remainder) h+='<p class="env-notice">추가 준비: '+[a.five?'5천원권 '+a.five+'장':'',a.one?'1천원권 '+a.one+'장':'',a.remainder?'잔돈 '+wonStr(a.remainder):''].filter(Boolean).join(' · ')+'</p>';
   if(s.negative) h+='<p class="env-notice">음수 봉투 '+s.negative+'개가 있습니다. 해당 봉투는 출금 장수에서 제외했으니 금액을 확인해 주십시오.</p>';
-  h+='<p class="note">각 봉투에 5만원권을 먼저 넣고 남은 금액을 1만원권으로 채운 뒤, 필요한 장수를 합산합니다.</p><div class="row"><button class="btn" type="button" data-env-action="copySummary">월 합계 복사</button><button class="btn" type="button" data-env-action="copyMonth" '+(s.rows.length?'':'disabled')+'>이달 양식 전체 복사</button></div></div>';
+  h+='<p class="note">각 봉투에 5만원권을 먼저 넣고 남은 금액을 1만원권으로 채운 뒤, 필요한 장수를 합산합니다.</p><div class="row"><button class="btn" type="button" data-env-action="copySummary">월 합계 복사</button><button class="btn" type="button" data-env-action="copyMonth" '+(s.rows.length?'':'disabled')+'>이달 양식 전체 복사</button></div>'
+    +'<div class="row"><button class="btn primary" type="button" data-env-action="printLabels" '+(s.rows.length?'':'disabled')+'>봉투 라벨 인쇄</button></div><p class="note">이 달 봉투를 A4 한 장에 8개씩 인쇄합니다. 점선대로 잘라 봉투에 붙이십시오.</p></div>';
   el.innerHTML=h;
+}
+/* ---------- 봉투 라벨 인쇄 (2026.10.31 사용자 「봉투정리한 거 프린트해서 봉투에 붙일 수 있게」 → 고른 답: A4 에 8개 · 잘라 붙이기 · 내용은 카톡 양식처럼 · 보고 있는 달 전부)
+   A4 세로(1240×1754) 한 장에 2칸 × 4줄 = 봉투 8개, 칸 사이 자르는 점선. 칸마다 envelopeText(카톡 양식) 그대로: 제목 줄(행사번호 · 장소 · 이름 · 직급, 실장 봉투는 「(실장)」) + 식장/제단 · 장지 · 기타 · 합계.
+   순서는 봉투 목록 순서(행사번호), 행사마다 본부장 → 실장, 0원 봉투는 뺌. 인쇄는 공통 window.dwPrintImages (주소 · 쪽 번호 안 찍힘) */
+const LB={W:1240,H:1754,C:2,R:4,pad:46};
+function envLabelItems(month=envelopeMonth){
+  const out=[]; envelopeMonthRows(month).forEach(r=>{ const v=envelopeValues(r); ['part','manager'].forEach(role=>{ if(v[role]) out.push(envelopeText(r,role).split('\n\n')); }); }); return out;
+}
+function envLabelWrap(g,t,maxW){   /* 띄어쓰기에서 줄 바꿈 (한 낱말이 넘치면 글자 단위) */
+  const out=[]; let line='';
+  String(t).split(' ').forEach(w=>{ const tryL=line?line+' '+w:w; if(g.measureText(tryL).width<=maxW){ line=tryL; return; }
+    if(line) out.push(line); line=w; while(g.measureText(line).width>maxW&&line.length>1){ let k=line.length; while(k>1&&g.measureText(line.slice(0,k)).width>maxW) k--; out.push(line.slice(0,k)); line=line.slice(k); } });
+  if(line) out.push(line); return out;
+}
+function envLabelPages(items){
+  const per=LB.C*LB.R, cw=LB.W/LB.C, ch=LB.H/LB.R, pages=[];
+  for(let p=0;p<items.length;p+=per){
+    const cv=document.createElement('canvas'); cv.width=LB.W; cv.height=LB.H; const g=cv.getContext('2d');
+    g.fillStyle='#fff'; g.fillRect(0,0,LB.W,LB.H); g.textBaseline='alphabetic';
+    g.strokeStyle='#9a9d9a'; g.lineWidth=1.5; g.setLineDash([10,8]);   /* 자르는 점선 */
+    for(let i=1;i<LB.C;i++){ g.beginPath(); g.moveTo(cw*i,0); g.lineTo(cw*i,LB.H); g.stroke(); }
+    for(let j=1;j<LB.R;j++){ g.beginPath(); g.moveTo(0,ch*j); g.lineTo(LB.W,ch*j); g.stroke(); }
+    g.setLineDash([]);
+    items.slice(p,p+per).forEach((lines,k)=>{
+      const x0=(k%LB.C)*cw+LB.pad, y0=Math.floor(k/LB.C)*ch+LB.pad, maxW=cw-2*LB.pad, maxH=ch-2*LB.pad;
+      /* 칸에 맞게 글자 크기를 정함(크게 → 넘치면 조금씩 줄임). 제목 · 줄 · 합계(굵게 · 크게) */
+      const plan=z=>{ const T={px:Math.round(29*z),lh:Math.round(38*z)}, L={px:Math.round(28*z),lh:Math.round(36*z),gap:Math.round(12*z)}, S={px:Math.round(34*z),lh:Math.round(44*z)};
+        g.font=`700 ${T.px}px ${PR_SANS}`; const tl=envLabelWrap(g,lines[0],maxW);
+        const rows=lines.slice(1).map((l,i,arr)=>{ const last=i===arr.length-1, st=last?S:L; g.font=`${last?700:500} ${st.px}px ${PR_SANS}`; return {last,st,ws:envLabelWrap(g,l,maxW)}; });
+        const h=tl.length*T.lh+Math.round(30*z)+rows.reduce((a,r)=>a+r.ws.length*r.st.lh+(r.last?0:L.gap),0);
+        return {T,L,tl,rows,h,z}; };
+      let P=plan(1); for(let z=.96;P.h>maxH&&z>=.6;z-=.04) P=plan(z);
+      let y=y0+P.T.px; g.fillStyle='#1c1d1f';
+      g.font=`700 ${P.T.px}px ${PR_SANS}`; P.tl.forEach(l=>{ g.fillText(l,x0,y); y+=P.T.lh; });
+      y+=Math.round(4*P.z); g.fillRect(x0,y-P.T.lh+Math.round(10*P.z),maxW,1.5); y+=Math.round(26*P.z);   /* 제목 아래 가는 선 */
+      P.rows.forEach(r=>{ g.font=`${r.last?700:500} ${r.st.px}px ${PR_SANS}`; r.ws.forEach(w=>{ g.fillText(w,x0,y); y+=r.st.lh; }); y+=r.last?0:P.L.gap; });
+    });
+    pages.push(cv);
+  }
+  return pages;
+}
+async function envLabelPrint(){
+  const items=envLabelItems(); if(!items.length){ toast('인쇄할 봉투가 없습니다'); return; }
+  await prFonts(items.flat().join(''));
+  const pages=envLabelPages(items);
+  if(!(await window.dwPrintImages(pages.map(cv=>cv.toDataURL('image/png'))))) toast('인쇄창을 열지 못했습니다');
 }
 function envelopeMetaField(r,k,label,type='text'){
   return '<label class="f">'+label+'<input class="input" type="'+type+'" data-env-meta="'+k+'" value="'+esc(envelopeMeta(r,k))+'"'+(k==='eventNo'?' inputmode="numeric"':'')+'></label>';
@@ -5419,6 +5466,7 @@ $('#p-envelopes').addEventListener('click',e=>{
   if(action==='current'){openCurrentEnvelope();return;}
   if(action==='new'){newManualEnvelope();return;}
   if(action==='copySummary'){copyEnvelopeText(envelopeSummaryText());return;}
+  if(action==='printLabels'){envLabelPrint();return;}
   if(action==='copyMonth'){copyEnvelopeText(envelopeSummaryText()+'\n\n'+envelopeMonthRows().map(x=>envelopeText(x,'part')+'\n\n'+envelopeText(x,'manager')).join('\n\n──────────\n\n'));return;}
   if(action==='edit'&&r){ envelopeEditId=r.id; envelopeEditSnap=JSON.stringify({edits:r.edits||{},amounts:r.amounts||{},notes:r.notes||{}}); envelopeOpenId=r.id; renderEnvelopes();
     const card=[...document.querySelectorAll('[data-env-id]')].find(el=>el.dataset.envId===r.id); card?.querySelector('[data-env-amount]')?.focus({preventScroll:true}); return; }
