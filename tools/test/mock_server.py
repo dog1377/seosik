@@ -2,6 +2,16 @@
 tools/test/smoke.py 가 씀. 서버 함수를 바꾸면 여기도 같이 바꾼다."""
 import copy, itertools, datetime, uuid
 CNT=itertools.count()
+def case_month(d):
+    """행사 달 = 접수한 달 (2026.10.31, 앱 caseMonth · 서버 dw_member_records 와 같은 계산)"""
+    import re
+    f=d.get('f') or {}; rv=str(f.get('recv') or '')[:7]
+    if re.match(r'^\d{4}-(0[1-9]|1[0-2])$',rv): return rv
+    cr=d.get('created'); dep=str(f.get('depart') or '')[:10]
+    if isinstance(cr,(int,float)) and 1e12<=cr<1e13:
+        cd=(datetime.datetime.utcfromtimestamp(cr/1000)+datetime.timedelta(hours=9)).strftime('%Y-%m-%d')
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$',dep) or cd<=dep: return cd[:7]
+    return next((str(f.get(x)) for x in ['depart','cremDate','hagwanDate','death'] if f.get(x)),'')[:7]
 def now_iso(): return (datetime.datetime(2026,10,23,9)+datetime.timedelta(seconds=next(CNT))).isoformat()+'+00:00'
 class Srv:
     def __init__(s):
@@ -235,7 +245,7 @@ class Srv:
             if not (k in ('case','env') or (k=='state' and i=='settings')): continue
             d=r['data']
             if k=='case':
-                f=d.get('f') or {}; mon=next((str(f.get(x)) for x in ['depart','cremDate','hagwanDate','death','recv'] if f.get(x)),'')[:7]
+                f=d.get('f') or {}; mon=case_month(d)
             elif k=='env':
                 mon=str((d.get('edits') or {}).get('month')) if 'month' in (d.get('edits') or {}) else str((d.get('auto') or {}).get('month') or '')
             else: mon=''

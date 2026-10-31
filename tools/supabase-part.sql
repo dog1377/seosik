@@ -423,7 +423,8 @@ begin
     ) x), '[]'::jsonb));
 end $$;
 
--- 파트장: 파트원의 장례일정 · 봉투 보기 (보기만 · 고치기 안 됨). p_month(예: '2026-10')를 주면 그 달 것만 (발인일 기준, 앱과 같은 계산)
+-- 파트장: 파트원의 장례일정 · 봉투 보기 (보기만 · 고치기 안 됨). p_month(예: '2026-10')를 주면 그 달 것만 (앱과 같은 계산)
+-- (2026.10.31) 행사 달 = 접수한 달: 접수일(f.recv) → 없으면 앱에 만든 날(created, 한국 시간, 발인 전일 때만) → 발인 · 화장 · 하관 · 임종
 create or replace function public.dw_member_records(p_part uuid, p_user uuid default null, p_month text default null)
 returns table (owner uuid, rkind text, rid text, rdata jsonb, rupdated bigint)
 language sql stable security definer set search_path = '' as $$
@@ -431,8 +432,14 @@ language sql stable security definer set search_path = '' as $$
   from (
     select r.*,
       case r.kind
-        when 'case' then left(coalesce(nullif(r.data #>> '{f,depart}', ''), nullif(r.data #>> '{f,cremDate}', ''), nullif(r.data #>> '{f,hagwanDate}', ''),
-                                       nullif(r.data #>> '{f,death}', ''), nullif(r.data #>> '{f,recv}', ''), ''), 7)
+        when 'case' then case
+          when left(coalesce(r.data #>> '{f,recv}', ''), 7) ~ '^[0-9]{4}-(0[1-9]|1[0-2])$' then left(r.data #>> '{f,recv}', 7)
+          when coalesce(r.data ->> 'created', '') ~ '^[0-9]{13}$'
+               and (left(coalesce(r.data #>> '{f,depart}', ''), 10) !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+                    or to_char(to_timestamp((r.data ->> 'created')::bigint / 1000.0) at time zone 'Asia/Seoul', 'YYYY-MM-DD') <= left(r.data #>> '{f,depart}', 10))
+            then to_char(to_timestamp((r.data ->> 'created')::bigint / 1000.0) at time zone 'Asia/Seoul', 'YYYY-MM')
+          else left(coalesce(nullif(r.data #>> '{f,depart}', ''), nullif(r.data #>> '{f,cremDate}', ''), nullif(r.data #>> '{f,hagwanDate}', ''),
+                             nullif(r.data #>> '{f,death}', ''), ''), 7) end
         when 'env' then coalesce(case when (r.data -> 'edits') ? 'month' then r.data #>> '{edits,month}' else r.data #>> '{auto,month}' end, '')
         else '' end as mon
     from public.dw_records r

@@ -3012,10 +3012,14 @@ const SVG_L = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" strok
 /* ---- 장례업무와 같은 계산 (funeral.html 의 caseMonth · envelopeRecordMonth · envelopeValues · envelopeText · caseLabel 을 그대로 옮김, 읽기만) ---- */
 const seoulYMD = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 const MONTH_OK = (m) => /^\d{4}-(0[1-9]|1[0-2])$/.test(String(m || ''));
-function fuCaseMonth(c) {
-  const f = c.f || {}, d = String(f.depart || f.cremDate || f.hagwanDate || f.death || f.recv || '').slice(0, 7);
+function fuCaseMonth(c) {   /* 행사 달 = 접수한 달 (2026.10.31, 장례업무 caseMonth 와 같음): 접수일 → 앱에 만든 날(발인 전일 때만) → 발인 · 화장 · 하관 · 임종 */
+  const f = c.f || {}, rv = String(f.recv || '').slice(0, 7), kst = (ms) => new Date(ms + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  if (MONTH_OK(rv)) return rv;
+  const cr = Number(c.created), dep = String(f.depart || '').slice(0, 10);
+  if (cr >= 1e12 && cr < 1e13) { const cd = kst(cr); if (!/^\d{4}-\d{2}-\d{2}$/.test(dep) || cd <= dep) return cd.slice(0, 7); }
+  const d = String(f.depart || f.cremDate || f.hagwanDate || f.death || '').slice(0, 7);
   if (/^\d{4}-\d{2}$/.test(d)) return d;
-  const t = new Date(c.created || c.updated || Date.now()); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}`;
+  return kst(Number(c.updated) || Date.now()).slice(0, 7);
 }
 function fuEnvMeta(r, k) { return String(r.edits && r.edits[k] !== undefined ? r.edits[k] : (r.auto || {})[k] || ''); }
 function fuEnvMonth(r) { const m = fuEnvMeta(r, 'month'); return MONTH_OK(m) ? m : seoulYMD().slice(0, 7); }
