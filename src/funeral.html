@@ -3499,6 +3499,7 @@ function szItemOn(c,n,A){
 function schedCells(c){
   const A=schedAuto(c), V={...A}, x=SX(c), put=(k,v,num)=>{ v=szT(v); if(v) V[k]=num?szNum(v):v; };
   put('Q3',x.span); put('E9',szWon(x.support)); put('P9',szWon(x.lodging));
+  { const tn=szT(x.topNote).replace(/\s+/g,' '); if(tn) V.A13=`특이사항 : ${tn}`; }   /* 장례용품 위 한 줄 */
   SZ_GOODS.forEach((g,i)=>put(SZ_GCOL[i]+'15',(x.goods||{})[g],true));
   SZ_ITEMS.forEach(([n,row])=>{
     if(!szItemOn(c,n,A)){ ['C','G','K','L'].forEach(k=>delete V[k+row]); return; }
@@ -3962,7 +3963,7 @@ $('#p-poster').addEventListener('click',async e=>{
 });
 document.addEventListener('click',e=>{ const z=e.target.closest('[data-pr-zoom]'); if(z){ z.classList.toggle('zoom'); } });
 /* 한 단계씩 묻기 */
-const SZ_G={info:'기본 정보',pay:'수금 결제',goods:'장례용품',items:'품목',mourn:'상복',veh:'장의차량',help:'도우미',memo:'특이사항',done:'확인'};
+const SZ_G={info:'기본 정보',pay:'수금 결제',note:'특이사항 (장례용품 위)',goods:'장례용품',items:'품목',mourn:'상복',veh:'장의차량',help:'도우미',memo:'특이사항 (맨 아래)',done:'확인'};
 const SZ_BASE=[
   {id:'no',g:'info',q:'행사번호와 장소를 확인해 주십시오'},
   {id:'span',g:'info',q:'행사 진행 기간을 입력하십시오.'},
@@ -3974,6 +3975,7 @@ const SZ_BASE=[
   {id:'burial',g:'info',q:'장지와 상품을 입력하십시오'},
   {id:'money',g:'info',q:'회사 지원 · 납입금 · 숙박료가 있습니까?'},
   {id:'pay',g:'pay',q:'수금 결제를 확인해 주십시오'},
+  {id:'note',g:'note',q:'간단한 특이사항이 있습니까?'},   /* 장례용품 위 「특이사항」 줄(A13) 한 줄 — 2026.10.31 사용자 「장례용품 위 특이사항도 간단하게 입력」 */
   {id:'goods',g:'goods',q:'장례용품(영광) 수량을 입력하십시오'},
   {id:'itemPick',g:'items',q:'어떤 품목이 있었습니까?'},
   {id:'mourn',g:'mourn',q:'상복 내역을 입력하십시오.'},
@@ -4016,6 +4018,8 @@ function szScreen(c,st,steps){
     body=`<div class="sz-box">${row('카드',A.E10,String(A.F10||'').replace('결제금액: ',''))}${row('현금',A.E11,String(A.F11||'').replace('결제금액: ',''))}${row('추가',A.E12,A.E12?`${[A.G12&&'카드',A.I12&&'현금'].filter(Boolean).join(' · ')} ${String(A.J12||'').replace('금액: ','')}`:'')}</div>
       ${sIn('rcCardAppr','카드승인 번호','예: 10202012')}${sIn('rcCashNo','현금영수증 번호','예: 010-0000-0000',{tel:1})}
       <button class="btn wz-go wz-go2" type="button" data-sz-settle>정산에서 금액 수정</button>${go()}`; }
+  else if(st.id==='note'){ sub='일정표 장례용품 바로 위 「특이사항」 줄에 한 줄로 들어갑니다. 없으면 비워 두고 넘어가십시오.';
+    body=xIn('topNote','특이사항','예: 상주 요청으로 입관 30분 늦춤')+go(); }
   else if(st.id==='goods'){ sub='앱에 없는 칸이라 여기서만 넣습니다. 숫자 말고 「1.0특」처럼 글도 됩니다. 관 · 수의 칸은 한글 자판이 나옵니다.';
     body=`<div class="sz-goods">${SZ_GOODS.map(g=>{ const txt=SZ_GTEXT.includes(g);   /* 관 · 수의: 한글로도 적음 (2026.10.30) */
       return `<label class="sz-g${txt?' sz-gt':''}"><span>${g==='접수세트'?'접수 세트':g}</span><input class="input" data-sx="goods.${g}" value="${esc(sxGet(c,'goods.'+g))}" inputmode="${txt?'text':'decimal'}" autocomplete="off" aria-label="${g}${txt?'':' 수량'}"></label>`; }).join('')}</div>
@@ -4057,6 +4061,7 @@ function szReview(c,A){
   const rows=[
     ['info',[V.C3,V.I3,f.name&&'故 '+f.name].filter(Boolean).join(' · ')||'안 넣음'],
     ['pay',[A.F10&&'카드 '+String(A.F10).replace('결제금액: ',''),A.F11&&'현금 '+String(A.F11).replace('결제금액: ',''),A.J12&&'추가 '+String(A.J12).replace('금액: ','')].filter(Boolean).join(' · ')||'정산에 넣은 금액 없음'],
+    ['note',szT(x.topNote)||'없음'],
     ['goods',goods?`${goods}가지 넣음`:'안 넣음'],
     ['items',items.join(' · ')||'없음'],
     ['mourn',[V.J29!=null&&`남 ${V.J29}`,V.J30!=null&&`여 ${V.J30}`,V.D29||V.D30].filter(Boolean).join(' · ')||'없음'],
