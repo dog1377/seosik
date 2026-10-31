@@ -1094,7 +1094,7 @@ body[data-tab="list"] .case-panel{display:none}
   <header class="top">
     <div class="page-intro"><div><h1 id="pageTitle">장례 일정 작성</h1><p id="pageDesc">행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.</p></div></div>
     <div class="case-panel">
-      <button type="button" class="case-pick" id="casePick" aria-haspopup="dialog" aria-controls="cpBg"><span class="cp-main"><b class="cp-t" id="cpT">-</b><span class="cp-s" id="cpS"></span></span><span class="cp-go">변경<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></button>
+      <div class="cp-bar"><button type="button" class="case-pick" id="casePick" aria-haspopup="dialog" aria-controls="cpBg"><span class="cp-main"><b class="cp-t" id="cpT">-</b><span class="cp-s" id="cpS"></span></span><span class="cp-go">변경<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></button><button type="button" class="cp-close" id="caseClose" aria-pressed="false" hidden>종결</button></div>
       <p class="ttl" id="ttlNote"></p>
     </div>
     <nav class="case-steps" id="caseSteps" aria-label="업무 순서"></nav>
@@ -2523,13 +2523,14 @@ function renderCaseSel(){
   b.disabled=!db.cases.length;
   b.setAttribute('aria-label',c?`지금 행사: ${caseTitle(c)}, ${caseSub(c)}. 눌러서 다른 행사 선택`:'행사 선택');
   if(!$('#cpBg').hidden) cpRender();
+  caseCloseBtn();
   renderKeep();
 }
 function cpRender(){
   const months=caseMonths().map(x=>x[0]); if(!months.includes(cpMonth)) cpMonth=months[0]||'';
   const list=cpMonth?byCaseNo(casesOfMonth(cpMonth)):[], used=carryUse(), i=months.indexOf(cpMonth); let neg=0;
   $('#cpList').innerHTML=list.length?list.map(c=>{ const st=caseStShort(c,used), no=caseNoKey(c); if(st.k==='minus') neg++;
-    return `<button type="button" role="option" class="cp-row" data-cp="${esc(c.id)}" aria-selected="${c.id===db.cur}"><span class="cp-no">${no?esc(no)+'번':'–'}</span><span class="cp-rm"><b>${esc(caseTitle(c,true))}</b><small>${esc(caseSub(c))}</small></span><span class="cp-st2 st-${st.k}">${esc(st.t)}</span></button>`; }).join('')
+    return `<button type="button" role="option" class="cp-row" data-cp="${esc(c.id)}" aria-selected="${c.id===db.cur}"><span class="cp-no">${no?esc(no)+'번':'–'}</span><span class="cp-rm"><b>${esc(caseTitle(c,true))}</b><small>${esc(caseSub(c))}${c.closed?' · 종결':''}</small></span><span class="cp-st2 st-${st.k}">${esc(st.t)}</span></button>`; }).join('')
     :'<p class="note cp-empty">이 달에는 행사가 없습니다.</p>';
   $('#cmLabel').textContent=cpMonth?monthLabel(cpMonth):'행사 없음';
   $('#cmCount').textContent=cpMonth?`${list.length}건${neg?` · 마이너스 ${neg}건 남음`:''}`:'';
@@ -2827,7 +2828,7 @@ function renderOut(){
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워집니다. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 입력하십시오. 미리보기를 누르면 크게 보입니다.';
   { const cv=$('#xlCanvas'); szPaint(cv,c); szWhenFonts(()=>{ if(db.tab==='out'||isSplit()) szPaint($('#xlCanvas'),curCase()); }); }
   reports.forEach((r,i)=>{ $('#rep_'+i).value=fillTpl(r.body,c); });
-  const miss=inputMiss(c);
+  const miss=c.closed?[]:inputMiss(c);   /* 종결한 행사는 「비어 있음」을 띄우지 않음 */
   const ml=(k,l)=>String((co.labels||{})[k]||'').replace(/\s*\([^)]*\)\s*$/,'').trim()||l;   /* 업체 칸 이름대로 (대한선진 → 조합원 · 장례담당자) */
   $('#outNext').innerHTML=stepNextHTML('out');
   $('#missing').innerHTML=miss.length?`<span>비어 있음</span>${miss.map(([k,l])=>`<button type="button" data-go="${k}">${esc(ml(k,l))}</button>`).join('')}`:'';
@@ -5263,13 +5264,33 @@ function goBoard(){ try{ save(); }catch(e){} location.replace('./#board'); }
 const STEPS=[['input','입력','행사 입력'],['out','양식','양식 · 복사'],['sched','보고서','행사 보고서'],['settle','정산','정산 · 수당'],['envelopes','봉투','봉투정리']];
 const STEP_KEYS=STEPS.map(x=>x[0]);
 function stepDone(c,k){
-  if(!c) return false; const st=(c.steps&&typeof c.steps==='object')?c.steps:{};
+  if(!c) return false; if(c.closed) return true;   /* 종결한 행사 = 모두 끝냄 */
+  const st=(c.steps&&typeof c.steps==='object')?c.steps:{};
   if(k==='input') return !!String((c.f||{}).place||'').trim() && !inputMiss(c).length;
   if(k==='out'||k==='sched') return !!st[k];
   if(k==='settle'){ const x=settleStatus(c).k; return x==='sent'||x==='cleared'; }
   if(k==='envelopes') return stepDone(c,'settle') && db.envelopes.some(r=>r.sourceCaseId===c.id);
   return false;
 }
+/* ---------- 행사 종결 (2026.10.31 사용자 「중간에 행사 들어가서 뭐 좀 만지면 계속 완료 안 된 것처럼 떠 있음 → 종결 버튼」) ----------
+   c.closed = 종결한 때(ms, 새 칸 · 이전 작업 없음). 종결하면 단계 줄 ①~⑤ 모두 ✓, 첫 화면 「이어서 하기」에서 빠지고, 나중에 고쳐도 종결 그대로.
+   정산이 미정산 · 보낸 뒤 바뀜이면 종결할 때 확인 창을 띄우고 「보냄」도 같이 표시. 마이너스는 그대로(다른 정산에서 빼야 정리됨). 되돌리기 있음 */
+function caseCloseBtn(){ const b=$('#caseClose'), c=curCase(); if(!b) return; b.hidden=!c; if(!c) return; const on=!!c.closed;
+  b.setAttribute('aria-pressed',String(on)); b.textContent=on?'✓ 종결됨':'종결'; b.setAttribute('aria-label',on?'종결한 행사 · 누르면 종결 취소':'행사 종결 · 모든 단계를 끝낸 것으로 표시'); }
+function closedPaint(){ save(); dirty=true; caseCloseBtn(); paintSteps(); try{ renderCaseSel(); }catch(e){} if(db.tab==='settle') renderSettle(); else if(db.tab==='list') renderList(); else if(db.tab==='out') renderOut(); }
+async function setClosed(c,on){
+  const s=S(c), was={closed:c.closed,at:s.sentAt,won:s.sentWon};
+  const back=()=>{ if(was.closed) c.closed=was.closed; else delete c.closed; if(was.at){ s.sentAt=was.at; s.sentWon=was.won; } else { delete s.sentAt; delete s.sentWon; } c.updated=Date.now(); closedPaint(); };
+  if(!on){ delete c.closed; c.updated=Date.now(); closedPaint(); if(window.dwUndo) window.dwUndo('종결을 취소했습니다',back); else toast('종결을 취소했습니다'); return; }
+  const st=settleStatus(c), send=st.k==='open'||st.k==='changed';
+  if(send&&window.dwConfirm&&!(await window.dwConfirm({title:'행사를 종결하시겠습니까?',
+    body:st.k==='changed'?`보낸 뒤 정산 금액이 바뀌었습니다(보낼 때 ${wonStr(st.was)||'0원'}). 종결하면 지금 금액 ${wonStr(st.won)||'0원'}으로 「보냄」 표시합니다.`:`정산이 아직 「미정산」입니다. 종결하면 정산도 「보냄」(${wonStr(st.won)||'0원'})으로 표시합니다.`,
+    ok:'종결',danger:false}))) return;
+  c.closed=Date.now(); if(send){ s.sentAt=new Date().toISOString(); s.sentWon=settleCalc(c).sendWon; } c.updated=Date.now(); closedPaint();
+  const msg=send?'종결하고 정산도 보냄으로 표시했습니다':st.k==='minus'?'종결했습니다 · 마이너스는 다른 정산에서 빼면 정리됩니다':'종결했습니다';
+  if(window.dwUndo) window.dwUndo(msg,back); else toast(msg);
+}
+$('#caseClose').addEventListener('click',()=>{ const c=curCase(); if(c) setClosed(c,!c.closed); });
 function markStep(k,c){ c=c||curCase(); if(!c) return; if(!c.steps||typeof c.steps!=='object') c.steps={}; if(c.steps[k]) return; c.steps[k]=Date.now(); c.updated=Date.now(); save(); dirty=true; paintSteps(); }
 const stepBtns=attr=>STEPS.map(([k,l],i)=>`<button type="button" ${attr}="${k}" data-step="${k}"><i class="st-no" aria-hidden="true">${i+1}</i><span>${l}</span></button>`).join('<span class="st-arrow" aria-hidden="true">›</span>');
 function paintSteps(){

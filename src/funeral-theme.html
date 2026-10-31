@@ -344,6 +344,15 @@ body .mobile-nav{display:none!important}
 .cp-go svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .case-pick:disabled .cp-go{display:none}
 @media (hover:hover){ .case-pick:not(:disabled):hover .cp-go{border-color:var(--ink);color:var(--ink)} }
+/* 행사 종결 (2026.10.31): 「변경」 옆 같은 모양, 종결하면 「✓ 종결됨」 */
+.cp-bar{display:flex;align-items:center}
+.cp-bar .case-pick{flex:1;min-width:0;padding-right:8px}
+.cp-close{position:relative;flex:none;display:inline-flex;align-items:center;min-height:36px;margin-right:14px;padding:0 10px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink-2);font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cp-close[hidden]{display:none}
+.cp-close::before{content:"";position:absolute;inset:-5px -4px}
+.cp-close[aria-pressed="true"]{border-color:var(--ink);background:var(--accent-soft);color:var(--ink)}
+.cp-close:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@media (hover:hover){ .cp-close:hover{border-color:var(--ink);color:var(--ink)} }
 .case-panel #ttlNote{margin:0;padding:0 16px 12px}
 #ttlNote:not(.warn){display:none}
 .cp-sheet .cp-month{display:flex;align-items:center;gap:8px;padding:0 16px 12px;border-bottom:1px solid var(--line)}
