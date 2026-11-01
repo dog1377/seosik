@@ -1030,7 +1030,7 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
       <div class="s-more-add"><button class="btn small" type="button" id="sMoreAdd">+ 같이 보내는 품목 추가</button><span class="muted small-t">같은 곳으로 한 번에 보내는 용품 · 근조기는 한 건으로 묶습니다.</span></div>
       <div class="grid2">
         <label class="field"><span>담당자</span><input id="sManager" type="text" list="dlManagers" autocomplete="off" placeholder="담당자 이름"></label>
-        <label class="field"><span class="field-label">보낸 사람 <span class="opt">선택</span></span><input id="sSender" type="text" list="dlManagers" autocomplete="off" placeholder="비우면 담당자"></label>
+        <label class="field"><span class="field-label">발송인 <span class="opt">선택</span></span><input id="sSender" type="text" list="dlManagers" autocomplete="off" placeholder="비우면 담당자"></label>
       </div>
       <div class="field"><span class="field-label">택배 / 탁송</span>
         <div class="seg choice" data-field="method" role="group" aria-label="택배 또는 탁송">
@@ -1044,7 +1044,7 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
       </div>
       <div class="grid2 s-pre" id="sPreBox" hidden>
         <label class="field"><span>택배비 (선불)</span><input id="sFeeAmt" type="text" inputmode="decimal" autocomplete="off" placeholder="예: 5000"><small class="s-fee-hint" id="sFeeHint" aria-live="polite"></small></label>
-        <label class="field"><span>미리 낸 사람</span><input id="sPayer" type="text" list="dlManagers" autocomplete="off" placeholder="택배비를 먼저 낸 사람"></label>
+        <label class="field"><span>선결제자</span><input id="sPayer" type="text" list="dlManagers" autocomplete="off" placeholder="택배비를 먼저 결제한 사람"></label>
       </div>
       <label class="field"><span class="field-label">배송지 <span class="opt">선택</span></span><input id="sDest" type="text" list="dlDests" autocomplete="off" placeholder="예: ○○병원 장례식장 3호실"></label>
       <div class="field"><span class="field-label">QR코드 이미지 <span class="opt">선택</span></span>
@@ -1758,16 +1758,17 @@ function shipFeeHint() { const el = $('#sFeeHint'); if (!el) return; const v = $
 function shipSubHtml(e) {
   const w = shipFee(e), snd = String(e.sender || '').trim(), pay = e.fee === '선불' ? String(e.payer || '').trim() : '';
   return `<span>${esc(e.manager || '담당자 없음')}</span><span class="chip">${esc(e.method)}</span><span class="chip ${e.fee === '착불' ? 'warn' : ''}">${esc(e.fee)}${w ? ` <b>${esc(fuWon(w))}</b>` : ''}</span>`
-    + (snd && snd !== String(e.manager || '').trim() ? `<span>보냄 ${esc(snd)}</span>` : '') + (pay ? `<span class="s-payer">미리 냄 <b>${esc(pay)}</b></span>` : '') + (e.dest ? `<span>${esc(e.dest)}</span>` : '');
+    + (snd && snd !== String(e.manager || '').trim() ? `<span>발송 ${esc(snd)}</span>` : '') + (pay ? `<span class="s-payer">선결제 <b>${esc(pay)}</b></span>` : '') + (e.dest ? `<span>${esc(e.dest)}</span>` : '');
 }
-/* 선불 택배비 합계 · 미리 낸 사람별 (정산할 때 보라고). 2026.11.01 사용자 「미리 돈 준 사람 표기 잘 · 금액 확 띄게」 → 이름 「미리 낸 사람」, 금액 굵게 */
+/* 선불 택배비 합계 · 선결제자별 (정산할 때 보라고). 2026.11.01 사용자 「미리 돈 준 사람 표기 잘 · 금액 확 띄게」 → 「기업 문서처럼 다듬어」: 이름 「선결제자」, 금액 굵게 */
 function shipFeeBy(items) {
   const pm = new Map(); let tot = 0;
-  items.forEach((e) => { const w = shipFee(e); if (!w) return; tot += w; const k = String(e.payer || '').trim() || '미리 낸 사람 미입력', o = pm.get(k) || { n: 0, w: 0 }; o.n++; o.w += w; pm.set(k, o); });
+  items.forEach((e) => { const w = shipFee(e); if (!w) return; tot += w; const k = String(e.payer || '').trim() || '선결제자 미입력', o = pm.get(k) || { n: 0, w: 0 }; o.n++; o.w += w; pm.set(k, o); });
   return { tot, by: [...pm.entries()].sort((a, b) => b[1].w - a[1].w) };
 }
-function shipFeeLine(items) { const F0 = shipFeeBy(items); return F0.tot ? `선불 택배비 ${fuWon(F0.tot)}  ·  미리 낸 사람별 ` + F0.by.map(([n, o]) => `${n} ${fuWon(o.w)}`).join(' · ') : ''; }
-function shipFeeHtml(items) { const F0 = shipFeeBy(items); return F0.tot ? `선불 택배비 <b class="fee-amt">${esc(fuWon(F0.tot))}</b> · 미리 낸 사람별 ` + F0.by.map(([n, o]) => `${esc(n)} <b class="fee-amt">${esc(fuWon(o.w))}</b>`).join(' · ') : ''; }
+const rpWon = (w) => `${Math.round(w).toLocaleString('ko-KR')}원`;   /* 보고서 금액: 20,000원 (기업 문서처럼 원 단위 그대로) */
+function shipFeeLine(items) { const F0 = shipFeeBy(items); return F0.tot ? `선불 택배비 ${fuWon(F0.tot)}  ·  선결제자별 ` + F0.by.map(([n, o]) => `${n} ${fuWon(o.w)}`).join(' · ') : ''; }
+function shipFeeHtml(items) { const F0 = shipFeeBy(items); return F0.tot ? `선불 택배비 <b class="fee-amt">${esc(fuWon(F0.tot))}</b> · 선결제자별 ` + F0.by.map(([n, o]) => `${esc(n)} <b class="fee-amt">${esc(fuWon(o.w))}</b>`).join(' · ') : ''; }
 function shipStats(items) {
   const c = (f, v) => items.filter((e) => e[f] === v).length;
   const mg = new Map();
@@ -1784,7 +1785,7 @@ function renderShipReport() {
   const tile = (k, v, cls = '') => `<div class="stat ${cls}"><div class="k">${k}</div><div class="v">${v}<small>건</small></div></div>`;
   $('#rptStats').innerHTML = tile('총 건수', st.total, 'hl') + tile('용품', st.goods) + tile('근조기', st.flag)
     + tile('택배', st.parcel, 'sm') + tile('탁송', st.carrier, 'sm') + tile('선불', st.pre, 'sm') + tile('착불', st.cod, 'sm');
-  $('#rptMgr').textContent = st.managers.length ? '담당자별  ' + st.managers.map(([n, c]) => `${n} ${c}건`).join(' · ') : '이 기간에 등록된 건이 없습니다.';
+  $('#rptMgr').textContent = st.managers.length ? '담당자별 처리 건수 : ' + st.managers.map(([n, c]) => `${n} ${c}건`).join(' · ') : '이 기간에 등록된 건이 없습니다.';
   const fl = shipFeeHtml(items); $('#rptFee').hidden = !fl; $('#rptFee').innerHTML = fl;
   $('#rptQr').checked = S.rpt.qr;
   $('#rptList').innerHTML = items.slice().reverse().map(shipRowHtml).join('');
@@ -2117,7 +2118,7 @@ function noteBlock(text) {
   return { h, gapBefore: 12, draw(ctx, y) { drawLines(ctx, lines, RP.M, y, CW, h, 30, 'left', RP.muted, F(400, 21)); } };
 }
 function shipCols(withQr, withPart, withFee) {
-  const c = [['No', 48, 'c'], ['날짜', 106, 'c'], ['구분', 84, 'c'], ['품명', 0, 'c'], ['수량', 62, 'c'], ['담당자', 102, 'c'], ['방법', 74, 'c'], ['운임', withFee ? 140 : 74, 'c'], ['배송지', 0, 'c']];   /* 선불 택배비가 있으면 운임 칸을 넓혀 금액 · 미리 낸 사람도. 글씨는 모두 가운데 (2026.11.01) */
+  const c = [['No', 48, 'c'], ['일자', 106, 'c'], ['구분', 84, 'c'], ['품명', 0, 'c'], ['수량', 62, 'c'], ['담당자', 102, 'c'], ['배송', 74, 'c'], ['운임', withFee ? 150 : 74, 'c'], ['배송지', 0, 'c']];   /* 선불 택배비가 있으면 운임 칸을 넓혀 금액 · 미리 낸 사람도. 글씨는 모두 가운데 (2026.11.01) */
   if (withPart) c.splice(1, 0, ['파트', 104, 'c']);   /* 총괄실장 취합 보고서 */
   if (withQr) c.push(['QR', 150, 'c']);
   const fixed = c.reduce((a, x) => a + x[1], 0), flex = CW - fixed;
@@ -2137,32 +2138,38 @@ function shipHeaderBlock(cols) {
 function shipRowBlock(cols, e, idx, img, header, last) {
   const ctx = mctx(); const pad = 9, lh = 28;
   const fw = shipFee(e), snd = String(e.sender || '').trim(), pay = e.fee === '선불' ? String(e.payer || '').trim() : '';
-  const vals = { No: String(idx + 1), 파트: e._part || '-', 날짜: fmtDay(e.date), 구분: e.kind, 품명: e.name, 수량: String(e.qty), 담당자: e.manager || '-', 방법: e.method, 운임: fw ? `${e.fee}\n${fuWon(fw)}` : e.fee, 배송지: e.dest || '-' };
-  const memo = [snd && snd !== String(e.manager || '').trim() ? `보낸 사람 ${snd}` : '', e.memo].filter(Boolean).join(' · ');   /* 미리 낸 사람은 운임 칸에 */
+  const vals = { No: String(idx + 1), 파트: e._part || '-', 일자: fmtDay(e.date), 구분: e.kind, 품명: e.name, 수량: String(e.qty), 담당자: e.manager || '-', 배송: e.method, 운임: fw ? `${e.fee}\n${fuWon(fw)}` : e.fee, 배송지: e.dest || '-' };
+  /* 품명 아래 작은 줄: 「발송인 : 이름 직급」(한 줄에 안 들어가면 「발송인」 다음 줄에 이름 — 이름과 직급이 갈라지지 않게) · 「비고 : …」. 선결제자는 운임 칸에 */
+  const sendBy = snd && snd !== String(e.manager || '').trim() ? snd : '', memo = !!(sendBy || String(e.memo || '').trim());
+  const memoLines = (w) => { ctx.font = F(400, 17); const out = [];
+    const kv = (k, v) => { const t = `${k} : ${v}`; if (ctx.measureText(t).width <= w) out.push(t); else out.push(k, ...wrapLines(ctx, v, w)); };   /* 한 줄에 안 들어가면 이름표 다음 줄에 내용 */
+    if (sendBy) kv('발송인', sendBy);
+    if (String(e.memo || '').trim()) kv('비고', String(e.memo).trim());
+    return out; };
   /* 같이 보낸 품목(2개 이상): 구분은 종류마다 한 번(근조기 둘이면 「근조기」 하나), 종류가 다르면 구분 · 품명 · 수량 칸에 가로줄을 긋고 나눔 (2026.11.01) */
   const G = shipGroups(e), multi = shipParts(e).length > 1, PC = ['구분', '품명', '수량'], col = (k) => cols.find((cc) => cc.label === k);
   const cells = cols.filter((c) => c.label !== 'QR' && !(multi && PC.includes(c.label))).map((c) => {
     const bold = (c.label === '운임' && e.fee === '착불') || c.label === '구분';
-    if (c.label === '운임' && fw) {   /* 선불: 「선불」 · 금액(크고 굵게) · 미리 낸 사람 */
-      const L = [{ t: e.fee, f: F(400, 19), col: RP.ink, lh: 26 }, { t: fuWon(fw), f: F(700, 27), col: RP.strong, lh: 35 }];
-      if (pay) { ctx.font = F(700, 18); wrapLines(ctx, pay, c.w - pad * 2).forEach((t) => L.push({ t, f: F(700, 18), col: RP.ink, lh: 25 })); L.push({ t: '미리 냄', f: F(400, 15), col: RP.muted, lh: 21 }); }
+    if (c.label === '운임' && fw) {   /* 선불: 「선불」 · 금액(크고 굵게) · 「선결제자」 · 이름 직급(굵게) */
+      const L = [{ t: e.fee, f: F(400, 19), col: RP.ink, lh: 26 }, { t: rpWon(fw), f: F(700, 26), col: RP.strong, lh: 36 }];
+      if (pay) { L.push({ t: '선결제자', f: F(400, 15), col: RP.muted, lh: 24 }); ctx.font = F(700, 18); wrapLines(ctx, pay, c.w - pad * 2).forEach((t) => L.push({ t, f: F(700, 18), col: RP.ink, lh: 25 })); }
       return { c, rich: L, lines: [], hh: L.reduce((a, x) => a + x.lh, 0) };
     }
     ctx.font = F(bold ? 700 : 400, 20);
     const lines = wrapLines(ctx, vals[c.label], c.w - pad * 2);
     let sub = null;
-    if (c.label === '품명' && memo) { ctx.font = F(400, 17); sub = wrapLines(ctx, memo, c.w - pad * 2); }
+    if (c.label === '품명' && memo) sub = memoLines(c.w - pad * 2);
     return { c, lines, sub, bold, hh: lines.length * lh + (sub ? sub.length * 24 + 4 : 0) };
   });
-  const SEP = 22, IG = 4;   /* 종류 사이 줄 위아래 여백 · 같은 종류 품목 사이 */
+  const SEP = 22, IG = 15;   /* 종류 사이 줄 위아래 여백 · 같은 종류 품목 사이(가운데 점선) */
   let msub = null, GL = [];
   if (multi) {
     const cK = col('구분'), cN = col('품명');
-    if (memo) { ctx.font = F(400, 17); msub = wrapLines(ctx, memo, cN.w - pad * 2); }
+    if (memo) msub = memoLines(cN.w - pad * 2);
     GL = G.map((g, gi) => {
       ctx.font = F(700, 20); const kl = wrapLines(ctx, g.kind, cK.w - pad * 2);
       ctx.font = F(400, 20); const its = g.items.map((x) => ({ nl: wrapLines(ctx, x.name, cN.w - pad * 2), q: String(x.qty) }));
-      const itemsH = its.reduce((a, x) => a + x.nl.length * lh, 0) + (its.length - 1) * IG, memoH = msub && gi === G.length - 1 ? 4 + msub.length * 24 : 0;
+      const itemsH = its.reduce((a, x) => a + x.nl.length * lh, 0) + (its.length - 1) * IG, memoH = msub && gi === G.length - 1 ? 6 + msub.length * 24 : 0;
       return { kind: g.kind, kl, its, itemsH, memoH, ch: Math.max(kl.length * lh, itemsH + memoH) };
     });
   }
@@ -2174,7 +2181,7 @@ function shipRowBlock(cols, e, idx, img, header, last) {
     cells.forEach(({ c, lines, sub, bold, hh, rich }) => {
       const top = y + (h - hh) / 2;
       if (rich) { let ry = top; rich.forEach((x) => { drawLines(ctx, [x.t], c.x + pad, ry, c.w - pad * 2, x.lh, x.lh, 'center', x.col, x.f); ry += x.lh; }); return; }
-      const color = c.label === '운임' && e.fee === '착불' ? RP.strong : (c.label === '날짜' || c.label === 'No' ? RP.muted : RP.ink);
+      const color = c.label === '운임' && e.fee === '착불' ? RP.strong : (c.label === '일자' || c.label === 'No' ? RP.muted : RP.ink);
       drawLines(ctx, lines, c.x + pad, top, c.w - pad * 2, lines.length * lh, lh, c.a === 'c' ? 'center' : 'left', color, F(bold ? 700 : 400, 20));
       if (sub) drawLines(ctx, sub, c.x + pad, top + lines.length * lh + 4, c.w - pad * 2, sub.length * 24, 24, c.a === 'c' ? 'center' : 'left', RP.muted, F(400, 17));
     });
@@ -2190,8 +2197,12 @@ function shipRowBlock(cols, e, idx, img, header, last) {
           drawLines(ctx, x.nl, cN.x + pad, iy, cN.w - pad * 2, ih, lh, 'center', RP.ink, F(400, 20));
           drawLines(ctx, [x.q], cQ.x + pad, iy + (ih - lh) / 2, cQ.w - pad * 2, lh, lh, 'center', RP.ink, F(400, 20));
           iy += ih + IG;
+          if (x !== g.its[g.its.length - 1]) {   /* 같은 종류 품목 사이 점선 (품명 · 수량 칸) */
+            const ly = Math.round(iy - IG / 2) + 0.5; ctx.save(); ctx.strokeStyle = RP.thin; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+            ctx.beginPath(); ctx.moveTo(cN.x + 8, ly); ctx.lineTo(cQ.x + cQ.w - 8, ly); ctx.stroke(); ctx.restore();
+          }
         });
-        if (g.memoH) drawLines(ctx, msub, cN.x + pad, iy - IG + 4, cN.w - pad * 2, msub.length * 24, 24, 'center', RP.muted, F(400, 17));
+        if (g.memoH) drawLines(ctx, msub, cN.x + pad, iy - IG + 6, cN.w - pad * 2, msub.length * 24, 24, 'center', RP.muted, F(400, 17));
         cy += area;
         if (gi < GL.length - 1) { hl(ctx, cK.x, cy + SEP / 2, cQ.x + cQ.w - cK.x, 1, RP.thin); cy += SEP; }
       });
@@ -2374,7 +2385,7 @@ function weeklyJob(r, opts = {}) {
 function shipJob(p, items, withQr, opts = {}) {
   const s = opts.settings || S.settings;
   const title = opts.gather ? `탁송·출고 ${p.typeLabel} 취합` : `탁송·출고 ${p.typeLabel} 보고서`;
-  const text = [s.company, s.author, ...approvalsOf(s), ...items.flatMap((e) => [...shipParts(e).flatMap((x) => [x.name, x.kind]), e.manager, e.dest, e.memo, e.method, e.fee, e.sender, e.payer, fuWon(shipFee(e))])].join(' ') + ' 선불 택배비 미리 낸 사람 냄 건수 합계 지불한 사람별 보낸 사람 지불 미입력 원 만원';
+  const text = [s.company, s.author, ...approvalsOf(s), ...items.flatMap((e) => [...shipParts(e).flatMap((x) => [x.name, x.kind]), e.manager, e.dest, e.memo, e.method, e.fee, e.sender, e.payer, fuWon(shipFee(e)), rpWon(shipFee(e))])].join(' ') + ' 선불 택배비 선결제 내역 선결제자 발송인 비고 처리 건수 합계 금액 일자 배송 지불한 사람별 보낸 사람 지불 미입력 원 만원';
   return {
     title, sample: !!opts.sample, text: text + ` ${title} 보고 구분 작성자 보고 기간 작성일 요약 상세 내역 총 건수 용품 근조기 택배 탁송 선불 착불 담당자별 날짜 구분 품명 수량 배송지 방법 운임`,
     fileBase: safeName(`탁송출고_${opts.gather ? '취합_' : ''}${p.typeLabel}_${p.file}`),
@@ -2388,11 +2399,11 @@ function shipJob(p, items, withQr, opts = {}) {
         summaryBlock(st),
       ];
       if (opts.partLine) b.push(noteBlock(opts.partLine));
-      if (st.managers.length) b.push(noteBlock('담당자별  ' + st.managers.map(([n, c]) => `${n} ${c}건`).join('  ·  ')));
-      { const F0 = shipFeeBy(items); if (F0.tot) {   /* 선불 택배비 — 미리 낸 사람별 (금액 굵게) */
-        const fc = tblCols([['미리 낸 사람', 0, 'c'], ['건수', 160, 'c'], ['택배비', 260, 'c']]), rows = F0.by.map(([n, o]) => [n, `${o.n}건`, fuWon(o.w)]);
-        if (rows.length > 1) rows.push(['합계', `${F0.by.reduce((a, [, o]) => a + o.n, 0)}건`, fuWon(F0.tot)]);
-        b.push(sectionBlock('선불 택배비', `합계 ${fuWon(F0.tot)}`), ...tblBlocks(fc, rows, { strong: () => 2 })); } }
+      if (st.managers.length) b.push(noteBlock('담당자별 처리 건수 : ' + st.managers.map(([n, c]) => `${n} ${c}건`).join('  ·  ')));
+      { const F0 = shipFeeBy(items); if (F0.tot) {   /* 택배비 선결제 내역 — 선결제자별 (금액 굵게) */
+        const fc = tblCols([['선결제자', 0, 'c'], ['건수', 160, 'c'], ['금액', 260, 'c']]), rows = F0.by.map(([n, o]) => [n, `${o.n}건`, rpWon(o.w)]);
+        if (rows.length > 1) rows.push(['합계', `${F0.by.reduce((a, [, o]) => a + o.n, 0)}건`, rpWon(F0.tot)]);
+        b.push(sectionBlock('택배비 선결제 내역', `합계 ${rpWon(F0.tot)}`), ...tblBlocks(fc, rows, { strong: () => 2 })); } }
       b.push(sectionBlock('상세 내역', `${items.length}건`));
       const cols = shipCols(withQr, !!opts.withPart, items.some((e) => shipFee(e)));
       const header = shipHeaderBlock(cols);
@@ -4869,7 +4880,7 @@ function gShipCopy(t) {
   if (parts.length) out.push(`파트별: ${parts.map((x) => `${x.part} ${x.n}건`).join(' · ')}`);
   const fl = shipFeeLine(items); if (fl) out.push(fl.replace(/\s{2,}/g, ' '));
   if (items.length) out.push('');
-  items.forEach((e) => { const w = shipFee(e), snd = String(e.sender || '').trim(); out.push(`${fmtDay(e.date)} [${e._part}] ${shipPartsText(e)} · ${[e.method, w ? `${e.fee} ${fuWon(w)}${e.payer ? `(미리 낸 사람 ${e.payer})` : ''}` : e.fee, e.dest, e.manager, snd && snd !== e.manager ? `보냄 ${snd}` : ''].filter(Boolean).join(' · ')}`); });
+  items.forEach((e) => { const w = shipFee(e), snd = String(e.sender || '').trim(); out.push(`${fmtDay(e.date)} [${e._part}] ${shipPartsText(e)} · ${[e.method, w ? `${e.fee} ${fuWon(w)}${e.payer ? `(선결제 ${e.payer})` : ''}` : e.fee, e.dest, e.manager, snd && snd !== e.manager ? `보냄 ${snd}` : ''].filter(Boolean).join(' · ')}`); });
   return out.join('\n');
 }
 function gShipJob(t) {
