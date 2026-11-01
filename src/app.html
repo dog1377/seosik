@@ -1314,6 +1314,7 @@ function openSheet(job) {
   $('#sheetShare').hidden = !share;
   $('#sheetHint').textContent = job.hint || '';
   $('#sheetHint').hidden = !job.hint || !share;
+  if ($('#sheet').hidden && window.dwHist) window.dwHist.push('sheet');
   $('#sheet').hidden = false;
 }
 function closeSheet() { $('#sheet').hidden = true; }
@@ -1383,7 +1384,7 @@ function undoOr(msg, fn) { if (fn && window.dwUndo) window.dwUndo(msg, fn); else
 function autosize(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
 
 /* ================= screens & tabs ================= */
-function openScreen(id) { const el = $('#' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
+function openScreen(id) { const el = $('#' + id); if (el.hidden && window.dwHist) window.dwHist.push('scr:' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
 function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
 /* 행사 칸 · 서식 칸 (2026.10.29) — 서식 칸 아래 메뉴 묶음, 묶음마다 마지막에 본 화면은 mf.grpTab */
 const FORM_GROUPS = { report: ['weekly', 'minutes', 'review', 'consult'], shipg: ['ship', 'stock'] };
@@ -1459,6 +1460,7 @@ function showTab(t) {
   if (t === 'stock') stockOpen();
   if (t === 'consult') consultOpen();
   if (t === 'fhome') renderFHome();
+  if (window.dwHist) window.dwHist.push();   /* 휴대폰 뒤로 (화면을 옮겼을 때만 쌓임) */
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
 async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
@@ -5059,6 +5061,12 @@ async function init() {
   if (!landed && isChief() && window.dwPhone && window.dwPhone()) tab = 'fhome';   /* 총괄실장 휴대폰: 앱을 열면 · 로그인하면 서식 첫 화면 (2026.10.30) */
   renderAll();
   showTab(tab);
+  /* 휴대폰 「뒤로」 (2026.11.01, 공통 dwHist): 화면 = S.tab, 홈 = 서식 첫 화면(휴대폰 · 파트장 · 총괄실장), 이 화면만의 창 = 저장 · 보내기 */
+  window.DW_VIEW = () => S.tab;
+  window.DW_GO = (t) => showTab(t);
+  window.DW_HOMEV = () => (window.dwPhone && window.dwPhone() && !isMember() ? 'fhome' : '');
+  window.DW_CLOSE_TOP = () => { if (!$('#sheet').hidden) { closeSheet(); return true; } return false; };
+  if (window.dwHist) window.dwHist.init();
   const ok = await Store.open();
   $('#storeBanner').hidden = ok;
   if (ok) {

@@ -280,6 +280,7 @@
     var u = acct.user(); if (!u) return;
     if (!ME.el) meBuild();
     ME.from = from || document.activeElement; ME.edited = false;
+    if (window.dwHist) window.dwHist.push('me');   /* 휴대폰 뒤로 = 닫기 */
     meEl('dwMeMail').textContent = u.email || ''; meEl('dwMeUser').value = u.email || '';
     meFill(); meEl('dwMeSave').textContent = '저장'; meMsg('dwMeMsg', ''); meMsg('dwMePwMsg', ''); meMsg('dwMeDelMsg', '');
     ['dwMePw0', 'dwMePw1', 'dwMePw2', 'dwMeDelPw'].forEach(function (id) { meEl(id).value = ''; });

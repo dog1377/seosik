@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.01-11">
+<meta name="app-version" content="2026.11.01-12">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -420,6 +420,56 @@ window.dwPrintImages = function (urls, o) {   /* 인쇄창을 열면 true, 못 �
     });
   });
 };
+</script>
+<!-- 휴대폰 「뒤로」 (2026.11.01 사용자 「핸드폰에서 뒤로 가기 하면 앱이 꺼짐 → 다른 앱처럼 앱 안에서 뒤로」)
+     - 화면을 옮기거나 창(확인 창 · 아래에서 올라오는 창 · 편집 화면)을 열 때 기록을 한 칸 쌓음(dwHist.push — 누를 때만, 손대지 않으면 안 쌓음).
+     - 뒤로 가기(popstate): ① 열린 창을 닫고 ② 앞 화면으로 ③ 바뀔 게 없는 칸(이미 닫은 창)이면 한 칸 더 뒤로.
+     - 홈(휴대폰 첫 화면)으로 갈 때는 쌓지 않고 맨 처음 칸으로 돌아감 → 홈에서 뒤로 = 앱 닫힘(다른 앱처럼).
+     - 화면마다 정함: window.DW_VIEW() 지금 화면 · DW_GO(화면) 그 화면으로(쌓지 않음) · DW_HOMEV() 홈 화면(휴대폰만, 없으면 '') · DW_CLOSE_TOP() 그 화면만의 창 닫기(닫았으면 true).
+       공통으로 닫는 것: 확인 창(.dwc-bg → 취소) · 내 정보 창 · 맨 위 편집 화면(.screen → 그 화면의 「닫기」 .back 을 누름 — 저장 안 한 내용 확인도 그대로).
+     - 페이지가 다 그려진 뒤 dwHist.init() (그 전 이동은 안 쌓음). -->
+<script>
+window.dwHist = (function () {
+  'use strict';
+  var H = window.history, ok = !!(H && H.pushState), ready = false, busy = false, ignore = 0;
+  function st() { var s = ok ? H.state : null; return s && s.dwh ? s : null; }
+  function call(n) { try { return typeof window[n] === 'function' ? window[n]() : ''; } catch (e) { return ''; } }
+  function view() { return String(call('DW_VIEW') || ''); }
+  function homeV() { return String(call('DW_HOMEV') || ''); }
+  function put(fn, d, v, ov) { try { H[fn]({ dwh: 1, d: d, v: v, ov: ov || '' }, ''); } catch (e) {} }
+  function push(ov) {
+    if (!ok || !ready || busy) return;
+    var v = view(), s = st(), d = s ? s.d || 0 : 0;
+    if (!ov) {
+      if (v && v === homeV()) { if (d > 0) { ignore++; try { H.go(-d); } catch (e) { ignore--; } } return; }   /* 홈 = 맨 처음 칸 */
+      if (s && !s.ov && s.v === v) return;   /* 같은 화면 */
+    }
+    put('pushState', d + 1, v, ov);
+  }
+  function closeTop() {
+    var c = document.querySelector('.dwc-bg .dwc-no'); if (c) { c.click(); return true; }
+    var me = document.getElementById('dwMe'); if (me && !me.hidden && window.dwMe) { window.dwMe.close(); return true; }
+    if (call('DW_CLOSE_TOP') === true) return true;
+    var scr = [].slice.call(document.querySelectorAll('.screen')).filter(function (x) { return !x.hidden; }).pop();
+    if (scr) { var b = scr.querySelector('.back'); if (b) { b.click(); return true; } }
+    return false;
+  }
+  function init() {
+    if (!ok || ready) return; ready = true;
+    var v = view(), hv = homeV();
+    if (hv && v && v !== hv) { put('replaceState', 0, hv); put('pushState', 1, v); } else put('replaceState', 0, v);   /* 홈이 아닌 화면으로 열리면 뒤로 = 홈 */
+  }
+  if (ok) window.addEventListener('popstate', function (e) {
+    if (ignore > 0) { ignore--; return; }
+    if (!ready || document.documentElement.classList.contains('dw-gated')) return;
+    var s = e.state && e.state.dwh ? e.state : null;
+    if (closeTop()) return;
+    if (!s) return;
+    if (s.v && s.v !== view() && typeof window.DW_GO === 'function') { busy = true; try { window.DW_GO(s.v); } catch (x) {} busy = false; return; }
+    if ((s.d || 0) > 0) { try { H.back(); } catch (x) {} }   /* 이미 닫은 창 칸 → 한 칸 더 */
+  });
+  return { push: push, init: init };
+})();
 </script>
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
@@ -2559,6 +2609,7 @@ function tpPut(box,h,m,fire){
 }
 let tpBox=null, tpTouch={h:false,m:false}, tpPend='';
 function tpOpen(box){
+  if(window.dwHist) window.dwHist.push('tp');
   tpBox=box; tpTouch={h:false,m:false}; tpPend=''; tpKeys='';
   $('#tpTitle').textContent=box.dataset.tplabel||'시간';
   $('#tpMWrap').hidden=box.dataset.tpmode==='h';
@@ -2647,7 +2698,7 @@ function chRefresh(id,mode){
   if(dir){ dir.hidden=!isDir; if(isDir && mode==='direct'){ dir.value=''; dir.focus(); } }
 }
 function chOpen(id){
-  const cfg=CH[id]; if(!cfg) return; chCur=id; const v=chGet(cfg.scope,cfg.key), isDir=cfg.direct && v && !cfg.options.includes(v);
+  const cfg=CH[id]; if(!cfg) return; if(window.dwHist) window.dwHist.push('ch'); chCur=id; const v=chGet(cfg.scope,cfg.key), isDir=cfg.direct && v && !cfg.options.includes(v);
   $('#chTitle').textContent=cfg.label||'선택';
   $('#chList').innerHTML=cfg.options.map(o=>`<button type="button" role="option" data-chv="${esc(o)}" aria-selected="${o===v}">${esc(cfg.fmt?cfg.fmt(o):o)}</button>`).join('')
     +(cfg.direct?`<button type="button" role="option" class="sub" data-chv="__direct" aria-selected="${!!isDir}">직접입력</button>`:'')
@@ -2901,6 +2952,7 @@ $('#p-input').addEventListener('click',e=>{
 /* ---------- 회사 선택 ---------- */
 let pickMode='new';
 function openPicker(mode){
+  if(window.dwHist) window.dwHist.push('picker');
   pickMode=mode;
   $('#coList').innerHTML=coButtons('data-pick');
   $('#pickTitle').textContent=mode==='change'?'업체 변경':'어느 업체 행사입니까?';
@@ -2996,7 +3048,7 @@ function cpRender(){
   $('#delCase').disabled=!curCase();
 }
 function cpOpen(){
-  if(!db.cases.length) return; const c=curCase(); cpMonth=c?caseMonth(c):''; cpRender();
+  if(!db.cases.length) return; if(window.dwHist) window.dwHist.push('cp'); const c=curCase(); cpMonth=c?caseMonth(c):''; cpRender();
   const bg=$('#cpBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show'));
   setTimeout(()=>{ const sel=$('#cpList [aria-selected="true"]'); (sel||$('#cpClose')).focus(); if(sel) sel.scrollIntoView({block:'nearest'}); },60);
 }
@@ -4396,7 +4448,7 @@ function dvRows(){
     :'<p class="note cp-empty">배송 기록이 없습니다.</p>';
   $('#dvDel').disabled=!dvCur();
 }
-function dvOpen(){ dvRows(); const bg=$('#dvBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show')); setTimeout(()=>{ const sel=$('#dvList [aria-selected="true"]'); (sel||$('#dvClose')).focus(); if(sel) sel.scrollIntoView({block:'nearest'}); },60); }
+function dvOpen(){ if(window.dwHist) window.dwHist.push('dv'); dvRows(); const bg=$('#dvBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show')); setTimeout(()=>{ const sel=$('#dvList [aria-selected="true"]'); (sel||$('#dvClose')).focus(); if(sel) sel.scrollIntoView({block:'nearest'}); },60); }
 function dvClose(back){ const bg=$('#dvBg'); if(!bg||bg.hidden) return; bg.classList.remove('show'); setTimeout(()=>{ bg.hidden=true; },200); if(back!==false){ const b=$('#dvPick'); if(b) b.focus(); } }
 $('#dvClose').onclick=()=>dvClose();
 $('#dvBg').addEventListener('click',e=>{ if(e.target.id==='dvBg') dvClose(); });
@@ -5658,7 +5710,7 @@ function applyAdminView(){ const v=db.adminView=adminViewFix(db.adminView);
   document.querySelectorAll('#setCards [data-set]').forEach(b=>{ if(b.dataset.set===v) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current'); });
   tbScroll($(`#adminTabs [data-av-tab="${v}"]`)); tabsFade($('#adminTabs')); }
 function adminGo(v){   /* 설정 안에서 항목만 바꿈 (고치던 칸은 그대로 · 화면을 다시 그리지 않음) */
-  if(!ADMIN_TITLES[v]||adminViewFix(v)!==v) return; db.adminView=v; save(); applyAdminView(); $('#abTitle').textContent=ADMIN_TITLES[v];
+  if(!ADMIN_TITLES[v]||adminViewFix(v)!==v) return; db.adminView=v; save(); applyAdminView(); $('#abTitle').textContent=ADMIN_TITLES[v]; if(window.dwHist) window.dwHist.push();
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go==='admin:'+v));
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>{ if(b.classList.contains('on')) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   const t=$('#setCards'), ab=($('#appbar')?.getBoundingClientRect().bottom)||0; if(t&&t.getBoundingClientRect().top<ab) window.scrollTo({top:Math.max(0,scrollY+t.getBoundingClientRect().top-ab-8)}); }
@@ -5707,6 +5759,7 @@ function setTab(t,sub){
   if(t==='sched') renderSched();
   if(t==='poster') renderPoster();
   if(t==='deliv') renderDeliv();
+  if(window.dwHist) window.dwHist.push();   /* 휴대폰 뒤로 (화면을 옮겼을 때만 쌓임) */
   if(t==='admin'){ applyAdminView(); renderCompanies(); renderLists(); renderShare(); $('#rAltar').value=rules().altarFixed; $('#rUrn').value=rules().urnShare; $('#rFlower').value=rules().flowerPct; $('#rBurial').value=rules().burialFee; renderMe(); }
   checkSplit(); applySplit();
   updateWorkspace(t);
@@ -5868,7 +5921,7 @@ if(window.ResizeObserver&&$('#topNav')) new ResizeObserver(tnMeasure).observe($(
 let navCloseTimer=null;
 const desktopNav=()=>window.matchMedia('(min-width:1200px)').matches;
 function syncNavAccessibility(){ const nv=$('#sideNav'), open=desktopNav()||nv.classList.contains('show');nv.inert=!open;nv.setAttribute('aria-hidden',String(!open));if(desktopNav())document.body.classList.remove('nav-open'); }
-function openNav(){ const bg=$('#snBg'),nv=$('#sideNav');clearTimeout(navCloseTimer);bg.hidden=false;nv.inert=false;nv.setAttribute('aria-hidden','false');$('#menuBtn').setAttribute('aria-expanded','true');document.body.classList.add('nav-open');requestAnimationFrame(()=>{bg.classList.add('show');nv.classList.add('show');$('#snClose').focus();}); }
+function openNav(){ if(window.dwHist) window.dwHist.push('nav'); const bg=$('#snBg'),nv=$('#sideNav');clearTimeout(navCloseTimer);bg.hidden=false;nv.inert=false;nv.setAttribute('aria-hidden','false');$('#menuBtn').setAttribute('aria-expanded','true');document.body.classList.add('nav-open');requestAnimationFrame(()=>{bg.classList.add('show');nv.classList.add('show');$('#snClose').focus();}); }
 function closeNav(){ const bg=$('#snBg'),nv=$('#sideNav'),wasOpen=nv.classList.contains('show');bg.classList.remove('show');nv.classList.remove('show');$('#menuBtn').setAttribute('aria-expanded','false');document.body.classList.remove('nav-open');syncNavAccessibility();if(wasOpen&&!desktopNav())$('#menuBtn').focus();navCloseTimer=setTimeout(()=>{bg.hidden=true;},220); }
 window.addEventListener('resize',syncNavAccessibility);
 syncNavAccessibility();
@@ -5900,6 +5953,15 @@ renderAll();
   if(!h){ if(fresh&&window.dwPhone&&window.dwPhone()&&!HOME_TABS.includes(db.tab)) window.DW_HOME_GO(); return; }   /* 휴대폰에서 앱을 처음 열면 그 칸 첫 화면 (2026.10.30) */
   if(h.startsWith('sec-')){ const sc=NAV_SEC.find(x=>x.k===h.slice(4)); if(sc){ const last=(db.navLast||{})[sc.k]; h=sc.tabs.some(x=>x[0]===last)?last:sc.tabs[0][0]; } }   /* 게시판 화면 아래 메뉴 「행사」 · 「정산」 → 그 묶음에서 마지막에 본 화면 */
   if(['home','dhome','list','input','out','sched','poster','deliv','settle','envelopes','duty','admin'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
+/* 휴대폰 「뒤로」 (2026.11.01, 공통 dwHist — leader-gate-head.html): 화면 = db.tab(설정은 「admin:항목」), 홈 = 그 칸 첫 화면(휴대폰), 이 화면만의 창 = 시간 · 고르기 · 행사 고르기 · 배송 고르기 · 업체 고르기 · 메뉴 */
+window.DW_VIEW=()=>db.tab==='admin'?'admin:'+db.adminView:db.tab;
+window.DW_GO=v=>{ const [t,sub]=String(v).split(':'); setTab(t,sub); };
+window.DW_HOMEV=()=>window.dwPhone&&window.dwPhone()?(modeOfTab(db.tab)==='deliv'?'dhome':'home'):'';
+window.DW_CLOSE_TOP=()=>{ const on=id=>{ const el=$(id); return !!el&&!el.hidden; };
+  if(on('#tpBg')){ tpClose(); return true; } if(on('#chBg')){ chClose(); return true; } if(on('#cpBg')){ cpClose(false); return true; }
+  if(on('#dvBg')){ dvClose(false); return true; } if(on('#picker')){ closePicker(); return true; }
+  if($('#sideNav')&&$('#sideNav').classList.contains('show')){ closeNav(); return true; } return false; };
+if(window.dwHist) window.dwHist.init();
 $('#sbSyncBtn').onclick=sbSyncNow; $('#sbMeRow').onclick=function(){ if(window.dwMe) window.dwMe.open(this); };
 $('#snFoot').addEventListener('click',e=>{ if(e.target.closest('[data-sbout]')){ e.stopPropagation(); sbLogout(); return; } setTab('admin','keep'); closeNav(); });
 renderSB(); sbBoot();
@@ -6399,6 +6461,7 @@ body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
         + '<div class="dwc-row"><button type="button" class="dwc-no">' + esc(o.cancel || '취소') + '</button>'
         + '<button type="button" class="dwc-ok' + (o.danger === false ? '' : ' danger') + '">' + esc(o.ok || '확인') + '</button></div></div>';
       document.body.appendChild(bg);
+      if (window.dwHist) window.dwHist.push('confirm');   /* 휴대폰 뒤로 = 취소 */
       function done(v) { if (!bg.isConnected) return; var cb = bg.querySelector('.dwc-cb'); if (cb) o.checked = cb.checked; bg.remove(); document.removeEventListener('keydown', key, true); open = null; try { if (back && back.focus && back.isConnected) back.focus({ preventScroll: true }); } catch (e) {} res(v); }
       function key(e) { if (e.key === 'Escape') { e.preventDefault(); done(false); } else if (e.key === 'Tab') { var b = bg.querySelectorAll('button'), f = b[0], l = b[b.length - 1]; if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); } else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); } } }
       bg.addEventListener('click', function (e) { if (e.target === bg) done(false); });
@@ -6702,6 +6765,7 @@ body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
     var u = acct.user(); if (!u) return;
     if (!ME.el) meBuild();
     ME.from = from || document.activeElement; ME.edited = false;
+    if (window.dwHist) window.dwHist.push('me');   /* 휴대폰 뒤로 = 닫기 */
     meEl('dwMeMail').textContent = u.email || ''; meEl('dwMeUser').value = u.email || '';
     meFill(); meEl('dwMeSave').textContent = '저장'; meMsg('dwMeMsg', ''); meMsg('dwMePwMsg', ''); meMsg('dwMeDelMsg', '');
     ['dwMePw0', 'dwMePw1', 'dwMePw2', 'dwMeDelPw'].forEach(function (id) { meEl(id).value = ''; });

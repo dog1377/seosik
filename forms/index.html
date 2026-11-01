@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.01-11";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.01-12";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <script>
@@ -1095,6 +1095,56 @@ window.dwPrintImages = function (urls, o) {   /* 인쇄창을 열면 true, 못 �
   });
 };
 </script>
+<!-- 휴대폰 「뒤로」 (2026.11.01 사용자 「핸드폰에서 뒤로 가기 하면 앱이 꺼짐 → 다른 앱처럼 앱 안에서 뒤로」)
+     - 화면을 옮기거나 창(확인 창 · 아래에서 올라오는 창 · 편집 화면)을 열 때 기록을 한 칸 쌓음(dwHist.push — 누를 때만, 손대지 않으면 안 쌓음).
+     - 뒤로 가기(popstate): ① 열린 창을 닫고 ② 앞 화면으로 ③ 바뀔 게 없는 칸(이미 닫은 창)이면 한 칸 더 뒤로.
+     - 홈(휴대폰 첫 화면)으로 갈 때는 쌓지 않고 맨 처음 칸으로 돌아감 → 홈에서 뒤로 = 앱 닫힘(다른 앱처럼).
+     - 화면마다 정함: window.DW_VIEW() 지금 화면 · DW_GO(화면) 그 화면으로(쌓지 않음) · DW_HOMEV() 홈 화면(휴대폰만, 없으면 '') · DW_CLOSE_TOP() 그 화면만의 창 닫기(닫았으면 true).
+       공통으로 닫는 것: 확인 창(.dwc-bg → 취소) · 내 정보 창 · 맨 위 편집 화면(.screen → 그 화면의 「닫기」 .back 을 누름 — 저장 안 한 내용 확인도 그대로).
+     - 페이지가 다 그려진 뒤 dwHist.init() (그 전 이동은 안 쌓음). -->
+<script>
+window.dwHist = (function () {
+  'use strict';
+  var H = window.history, ok = !!(H && H.pushState), ready = false, busy = false, ignore = 0;
+  function st() { var s = ok ? H.state : null; return s && s.dwh ? s : null; }
+  function call(n) { try { return typeof window[n] === 'function' ? window[n]() : ''; } catch (e) { return ''; } }
+  function view() { return String(call('DW_VIEW') || ''); }
+  function homeV() { return String(call('DW_HOMEV') || ''); }
+  function put(fn, d, v, ov) { try { H[fn]({ dwh: 1, d: d, v: v, ov: ov || '' }, ''); } catch (e) {} }
+  function push(ov) {
+    if (!ok || !ready || busy) return;
+    var v = view(), s = st(), d = s ? s.d || 0 : 0;
+    if (!ov) {
+      if (v && v === homeV()) { if (d > 0) { ignore++; try { H.go(-d); } catch (e) { ignore--; } } return; }   /* 홈 = 맨 처음 칸 */
+      if (s && !s.ov && s.v === v) return;   /* 같은 화면 */
+    }
+    put('pushState', d + 1, v, ov);
+  }
+  function closeTop() {
+    var c = document.querySelector('.dwc-bg .dwc-no'); if (c) { c.click(); return true; }
+    var me = document.getElementById('dwMe'); if (me && !me.hidden && window.dwMe) { window.dwMe.close(); return true; }
+    if (call('DW_CLOSE_TOP') === true) return true;
+    var scr = [].slice.call(document.querySelectorAll('.screen')).filter(function (x) { return !x.hidden; }).pop();
+    if (scr) { var b = scr.querySelector('.back'); if (b) { b.click(); return true; } }
+    return false;
+  }
+  function init() {
+    if (!ok || ready) return; ready = true;
+    var v = view(), hv = homeV();
+    if (hv && v && v !== hv) { put('replaceState', 0, hv); put('pushState', 1, v); } else put('replaceState', 0, v);   /* 홈이 아닌 화면으로 열리면 뒤로 = 홈 */
+  }
+  if (ok) window.addEventListener('popstate', function (e) {
+    if (ignore > 0) { ignore--; return; }
+    if (!ready || document.documentElement.classList.contains('dw-gated')) return;
+    var s = e.state && e.state.dwh ? e.state : null;
+    if (closeTop()) return;
+    if (!s) return;
+    if (s.v && s.v !== view() && typeof window.DW_GO === 'function') { busy = true; try { window.DW_GO(s.v); } catch (x) {} busy = false; return; }
+    if ((s.d || 0) > 0) { try { H.back(); } catch (x) {} }   /* 이미 닫은 창 칸 → 한 칸 더 */
+  });
+  return { push: push, init: init };
+})();
+</script>
 
 </head>
 <body>
@@ -1835,6 +1885,7 @@ function openSheet(job) {
   $('#sheetShare').hidden = !share;
   $('#sheetHint').textContent = job.hint || '';
   $('#sheetHint').hidden = !job.hint || !share;
+  if ($('#sheet').hidden && window.dwHist) window.dwHist.push('sheet');
   $('#sheet').hidden = false;
 }
 function closeSheet() { $('#sheet').hidden = true; }
@@ -1904,7 +1955,7 @@ function undoOr(msg, fn) { if (fn && window.dwUndo) window.dwUndo(msg, fn); else
 function autosize(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
 
 /* ================= screens & tabs ================= */
-function openScreen(id) { const el = $('#' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
+function openScreen(id) { const el = $('#' + id); if (el.hidden && window.dwHist) window.dwHist.push('scr:' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
 function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
 /* 행사 칸 · 서식 칸 (2026.10.29) — 서식 칸 아래 메뉴 묶음, 묶음마다 마지막에 본 화면은 mf.grpTab */
 const FORM_GROUPS = { report: ['weekly', 'minutes', 'review', 'consult'], shipg: ['ship', 'stock'] };
@@ -1980,6 +2031,7 @@ function showTab(t) {
   if (t === 'stock') stockOpen();
   if (t === 'consult') consultOpen();
   if (t === 'fhome') renderFHome();
+  if (window.dwHist) window.dwHist.push();   /* 휴대폰 뒤로 (화면을 옮겼을 때만 쌓임) */
 }
 function approvalsOf(s) { return s.showApproval ? String(s.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []; }
 async function saveSettings() { return Store.put('kv', clone(S.settings), 'settings'); }
@@ -5580,6 +5632,12 @@ async function init() {
   if (!landed && isChief() && window.dwPhone && window.dwPhone()) tab = 'fhome';   /* 총괄실장 휴대폰: 앱을 열면 · 로그인하면 서식 첫 화면 (2026.10.30) */
   renderAll();
   showTab(tab);
+  /* 휴대폰 「뒤로」 (2026.11.01, 공통 dwHist): 화면 = S.tab, 홈 = 서식 첫 화면(휴대폰 · 파트장 · 총괄실장), 이 화면만의 창 = 저장 · 보내기 */
+  window.DW_VIEW = () => S.tab;
+  window.DW_GO = (t) => showTab(t);
+  window.DW_HOMEV = () => (window.dwPhone && window.dwPhone() && !isMember() ? 'fhome' : '');
+  window.DW_CLOSE_TOP = () => { if (!$('#sheet').hidden) { closeSheet(); return true; } return false; };
+  if (window.dwHist) window.dwHist.init();
   const ok = await Store.open();
   $('#storeBanner').hidden = ok;
   if (ok) {
@@ -5647,6 +5705,7 @@ init();
         + '<div class="dwc-row"><button type="button" class="dwc-no">' + esc(o.cancel || '취소') + '</button>'
         + '<button type="button" class="dwc-ok' + (o.danger === false ? '' : ' danger') + '">' + esc(o.ok || '확인') + '</button></div></div>';
       document.body.appendChild(bg);
+      if (window.dwHist) window.dwHist.push('confirm');   /* 휴대폰 뒤로 = 취소 */
       function done(v) { if (!bg.isConnected) return; var cb = bg.querySelector('.dwc-cb'); if (cb) o.checked = cb.checked; bg.remove(); document.removeEventListener('keydown', key, true); open = null; try { if (back && back.focus && back.isConnected) back.focus({ preventScroll: true }); } catch (e) {} res(v); }
       function key(e) { if (e.key === 'Escape') { e.preventDefault(); done(false); } else if (e.key === 'Tab') { var b = bg.querySelectorAll('button'), f = b[0], l = b[b.length - 1]; if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); } else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); } } }
       bg.addEventListener('click', function (e) { if (e.target === bg) done(false); });
@@ -5951,6 +6010,7 @@ init();
     var u = acct.user(); if (!u) return;
     if (!ME.el) meBuild();
     ME.from = from || document.activeElement; ME.edited = false;
+    if (window.dwHist) window.dwHist.push('me');   /* 휴대폰 뒤로 = 닫기 */
     meEl('dwMeMail').textContent = u.email || ''; meEl('dwMeUser').value = u.email || '';
     meFill(); meEl('dwMeSave').textContent = '저장'; meMsg('dwMeMsg', ''); meMsg('dwMePwMsg', ''); meMsg('dwMeDelMsg', '');
     ['dwMePw0', 'dwMePw1', 'dwMePw2', 'dwMeDelPw'].forEach(function (id) { meEl(id).value = ''; });

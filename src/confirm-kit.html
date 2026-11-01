@@ -39,6 +39,7 @@
         + '<div class="dwc-row"><button type="button" class="dwc-no">' + esc(o.cancel || '취소') + '</button>'
         + '<button type="button" class="dwc-ok' + (o.danger === false ? '' : ' danger') + '">' + esc(o.ok || '확인') + '</button></div></div>';
       document.body.appendChild(bg);
+      if (window.dwHist) window.dwHist.push('confirm');   /* 휴대폰 뒤로 = 취소 */
       function done(v) { if (!bg.isConnected) return; var cb = bg.querySelector('.dwc-cb'); if (cb) o.checked = cb.checked; bg.remove(); document.removeEventListener('keydown', key, true); open = null; try { if (back && back.focus && back.isConnected) back.focus({ preventScroll: true }); } catch (e) {} res(v); }
       function key(e) { if (e.key === 'Escape') { e.preventDefault(); done(false); } else if (e.key === 'Tab') { var b = bg.querySelectorAll('button'), f = b[0], l = b[b.length - 1]; if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); } else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); } } }
       bg.addEventListener('click', function (e) { if (e.target === bg) done(false); });

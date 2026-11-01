@@ -603,6 +603,7 @@ function openSheet(job) {
   $('#sheetShare').hidden = !share;
   $('#sheetHint').textContent = job.hint || '';
   $('#sheetHint').hidden = !job.hint || !share;
+  if ($('#sheet').hidden && window.dwHist) window.dwHist.push('sheet');
   $('#sheet').hidden = false;
 }
 function closeSheet() { $('#sheet').hidden = true; }
@@ -1132,7 +1133,7 @@ async function sealFromFile(file) {
 }
 
 /* ================= 화면 · 탭 ================= */
-function openScreen(id) { const el = $('#' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
+function openScreen(id) { const el = $('#' + id); if (el.hidden && window.dwHist) window.dwHist.push('scr:' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
 function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
 function showTab(t) {
   if (S.tab === 'settings' && t !== 'settings' && S.cd) toast('설정을 아직 저장하지 않았습니다. 설정 탭에서 저장을 눌러 주십시오.');
@@ -1143,6 +1144,7 @@ function showTab(t) {
   window.scrollTo(0, 0);
   if (t === 'settings') renderSettings();
   if (t === 'staff') renderStaffList();
+  if (window.dwHist) window.dwHist.push();   /* 휴대폰 뒤로 (화면을 옮겼을 때만 쌓임) */
 }
 const approvalsOf = (co) => (co.showApproval ? String(co.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []);
 function fillDatalists() {
@@ -1335,6 +1337,7 @@ function openPick(onPick) {
   const list = [...S.staff.values()].sort((a, b) => (a.f.status === '퇴사') - (b.f.status === '퇴사') || String(a.f.name || '').localeCompare(String(b.f.name || ''), 'ko'));
   $('#pickList').innerHTML = list.length ? list.map((s) => `<button type="button" data-id="${esc(s.id)}" class="${s.f.status === '퇴사' ? 'left' : ''}"><span>${esc(s.f.name || '(이름 없음)')}</span><small>${esc([s.f.dept, s.f.position].filter(Boolean).join(' · '))}${s.f.status === '퇴사' ? ' · 퇴사' : ''}</small></button>`).join('')
     : '<p class="muted small-t">아직 등록한 직원이 없습니다. 아래 「직원」 탭에서 인사기록카드를 먼저 만들어 주십시오.</p>';
+  if ($('#pickSheet').hidden && window.dwHist) window.dwHist.push('pick');
   $('#pickSheet').hidden = false;
 }
 function closePick() { $('#pickSheet').hidden = true; S.pick = null; }
@@ -2050,6 +2053,11 @@ async function init() {
   try { tab = localStorage.getItem('ca.tab') || 'docs'; } catch (e) { /* ignore */ }
   if (!['docs', 'staff', 'settings'].includes(tab)) tab = 'docs';
   renderAll(); showTab(tab);
+  /* 휴대폰 「뒤로」 (2026.11.01, 공통 dwHist): 화면 = S.tab, 이 화면만의 창 = 직원 고르기 · 저장 · 보내기 */
+  window.DW_VIEW = () => S.tab;
+  window.DW_GO = (t) => showTab(t);
+  window.DW_CLOSE_TOP = () => { if (!$('#pickSheet').hidden) { closePick(); return true; } if (!$('#sheet').hidden) { closeSheet(); return true; } return false; };
+  if (window.dwHist) window.dwHist.init();
   const ok = await Store.open();
   $('#storeBanner').hidden = ok;
   if (ok) {
