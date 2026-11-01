@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.01-2">
+<meta name="app-version" content="2026.11.01-3">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1976,7 +1976,7 @@ const DISPATCH_TPL=`{발인날짜}
 
 {차량경로}
 
-{담당} {담당연락처}`;
+{담당팀장} {담당연락처}`;   /* 업체에 주는 문자라 담당 뒤에 「팀장」 (2026.11.01 사용자) — 서영우 → 서영우팀장 */
 /* 퇴근 양식 (2026.10.20): 오늘 19시 퇴근 + 다음 날 첫 일정(입관 · 발인) 기준 출근. 날짜가 바뀌면 자동으로 바뀜. 설정 → 퇴근 양식(db.offTpl). 날은 두 자리 「03일」(2026.10.30 사용자) */
 const OFF_TPL=`{장소}
 담당 : {담당}
@@ -2191,6 +2191,10 @@ if(!db.vDaehan){   /* 대한선진(국향) 업체 추가 (2026.10.27) */
   if(!has) db.companies.push({id:DAEHAN_ID,name:'대한선진(국향)',band:GEN_BAND,reports:[{id:uid(),name:'회사 양식',body:DAEHAN_REPORT}],items:BAND_ITEMS.slice(),deduct:[],labels:{customer:'조합원',custRel:'관계 (예: 자)',staff:'장례담당자',chiefTel:'상주 연락처'}});
   else if(!(has.reports||[]).length) has.reports=[{id:uid(),name:'회사 양식',body:DAEHAN_REPORT}];
   db.vDaehan=true;
+}
+if(!db.vDispRank){   /* 배차 양식 담당 줄 → 「팀장」 붙임 (2026.11.01). 직접 고친 배차 양식도 그 줄만 바꿈 */
+  if(db.dispatchTpl) db.dispatchTpl=String(db.dispatchTpl).replace(/^\{담당\}(\s*\{담당연락처\})/m,'{담당팀장}$1');
+  db.vDispRank=true;
 }
 if(!db.vSJ){   /* SJ산림조합상조 업체 추가 (2026.11.01) — 업체 번호 고정, 같은 이름이 있으면 양식이 비었을 때만 넣음 */
   const has=db.companies.find(x=>x.id===SJ_ID||coKey(x.name)===SJ_NAME);
