@@ -147,6 +147,15 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 .s-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 12px 12px 14px;color:var(--ink)}
 .s-main{display:flex;align-items:center;gap:8px;min-width:0}
 .s-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.s-main+.s-main{margin-top:5px}
+/* 같이 보내는 품목 (2026.11.01) */
+.s-more{display:grid;gap:10px}
+.s-more:empty{display:none}
+.s-more-item{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)}
+.s-more-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.s-more-h b{font-size:15px}
+.s-more-g{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.s-more-add{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .s-qty{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .s-sub{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--muted)}
 .s-qr{width:52px;height:52px;border-radius:8px;object-fit:cover;border:1px solid var(--line)}
@@ -1012,6 +1021,8 @@ body .st-find input{min-height:48px;padding-left:40px;padding-right:46px}
         <label class="field"><span>수량</span><input id="sQty" type="number" inputmode="numeric" min="1" step="1" value="1"></label>
         <label class="field"><span>탁송날짜</span><input id="sDate" type="date"></label>
       </div>
+      <div class="s-more" id="sMore"></div>
+      <div class="s-more-add"><button class="btn small" type="button" id="sMoreAdd">+ 같이 보내는 품목 추가</button><span class="muted small-t">같은 곳으로 한 번에 보내는 용품 · 근조기는 한 건으로 묶습니다.</span></div>
       <div class="grid2">
         <label class="field"><span>담당자</span><input id="sManager" type="text" list="dlManagers" autocomplete="off" placeholder="담당자 이름"></label>
         <label class="field"><span class="field-label">보낸 사람 <span class="opt">선택</span></span><input id="sSender" type="text" list="dlManagers" autocomplete="off" placeholder="비우면 담당자"></label>
@@ -1676,15 +1687,24 @@ function shiftWeek(days) {
 }
 
 /* ================= 탁송·출고 ================= */
+/* 한 건에 품목 여러 개 (2026.11.01 사용자 「물품이나 근조기 2개 보낼 경우 품목 2개 · 같은 곳으로 한 번에 보낼 때는 한 건으로 합쳐지게」):
+   첫 품목은 예전처럼 e.kind · e.name · e.qty, 같이 보내는 품목은 e.more = [{kind, name, qty}] (새 칸 — 예전 기록은 그대로, 이전 작업 없음).
+   건수(총 · 택배 · 탁송 · 선불 · 착불)는 한 건, 용품 · 근조기 칸은 그 품목이 들어 있는 건 수 */
+function shipParts(e) {
+  const out = [{ kind: e.kind, name: e.name, qty: e.qty }];
+  (Array.isArray(e.more) ? e.more : []).forEach((x) => { if (x && String(x.name || '').trim()) out.push({ kind: x.kind === '근조기' ? '근조기' : '용품', name: String(x.name).trim(), qty: x.qty || 1 }); });
+  return out;
+}
+const shipHas = (e, k) => shipParts(e).some((x) => x.kind === k);
+const shipMainHtml = (e) => shipParts(e).map((x) => `<div class="s-main"><span class="chip ${x.kind === '근조기' ? 'gold' : 'kind'}">${esc(x.kind)}</span><span class="s-name">${esc(x.name)}</span><span class="s-qty">× ${esc(x.qty)}</span></div>`).join('');
 function shipItemsBetween(startKey, endKey) {
   return [...S.ship.values()].filter((e) => e.date >= startKey && e.date <= endKey)
     .sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt - b.createdAt));
 }
 function shipRowHtml(e) {
-  const kindCls = e.kind === '근조기' ? 'gold' : 'kind';
   return `<button class="s-row" type="button" data-id="${esc(e.id)}">
     <div style="min-width:0">
-      <div class="s-main"><span class="chip ${kindCls}">${esc(e.kind)}</span><span class="s-name">${esc(e.name)}</span><span class="s-qty">× ${esc(e.qty)}</span></div>
+      ${shipMainHtml(e)}
       <div class="s-sub">${shipSubHtml(e)}</div>
     </div>
     ${e.qrThumb ? `<img class="s-qr" src="${e.qrThumb}" alt="QR">` : '<span class="s-noqr">QR 없음</span>'}
@@ -1742,7 +1762,7 @@ function shipStats(items) {
   const c = (f, v) => items.filter((e) => e[f] === v).length;
   const mg = new Map();
   items.forEach((e) => { const k = (e.manager || '').trim() || '미지정'; mg.set(k, (mg.get(k) || 0) + 1); });
-  return { total: items.length, goods: c('kind', '용품'), flag: c('kind', '근조기'), parcel: c('method', '택배'), carrier: c('method', '탁송'), pre: c('fee', '선불'), cod: c('fee', '착불'), managers: [...mg.entries()].sort((a, b) => b[1] - a[1]) };
+  return { total: items.length, goods: items.filter((e) => shipHas(e, '용품')).length, flag: items.filter((e) => shipHas(e, '근조기')).length, parcel: c('method', '택배'), carrier: c('method', '탁송'), pre: c('fee', '선불'), cod: c('fee', '착불'), managers: [...mg.entries()].sort((a, b) => b[1] - a[1]) };
 }
 function renderShipReport() {
   $$('#rptType button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === S.rpt.type)));
@@ -1774,7 +1794,9 @@ function uniqueBy(field, filter) {
 }
 function fillDatalists() {
   const opt = (arr) => arr.map((v) => `<option value="${esc(v)}"></option>`).join('');
-  $('#dlNames').innerHTML = opt(uniqueBy('name', (e) => e.kind === S.es.kind));
+  const names = uniqueBy('name', (e) => e.kind === S.es.kind);
+  S.ship.forEach((e) => (Array.isArray(e.more) ? e.more : []).forEach((x) => { const v = String((x && x.name) || '').trim(); if (v && !names.includes(v)) names.push(v); }));
+  $('#dlNames').innerHTML = opt(names.slice(0, 60));
   const mgrs = uniqueBy('manager'); if (S.settings.author && !mgrs.includes(S.settings.author)) mgrs.push(S.settings.author);
   [...uniqueBy('sender'), ...uniqueBy('payer')].forEach((v) => { if (!mgrs.includes(v)) mgrs.push(v); });
   rosterOf().forEach((r) => { if (!mgrs.includes(r.name.trim())) mgrs.push(r.name.trim()); });
@@ -1790,6 +1812,7 @@ function openShip(id, carry) {
     sender: (carry && carry.sender) || '', feeAmt: '', payer: (carry && carry.payer) || '',   /* 보낸 사람 · 선불 택배비 · 지불한 사람 (2026.10.26-5) */
     qr: null, qrThumb: null, createdAt: Date.now(), updatedAt: Date.now(),
   };
+  S.es.more = Array.isArray(S.es.more) ? S.es.more.map((x) => ({ ...x })) : [];
   S.esImg = null; S.esImgRemoved = false;
   $('#sTitle').textContent = ex ? '탁송·출고 수정' : '탁송·출고 등록';
   $('#sName').value = S.es.name; $('#sQty').value = S.es.qty; $('#sDate').value = S.es.date;
@@ -1798,12 +1821,19 @@ function openShip(id, carry) {
   $('#sError').hidden = true;
   $('#sDelete').hidden = !ex;
   $('#sSaveMore').hidden = !!ex;
-  renderShipChoices(); renderQrBox(); fillDatalists();
+  renderShipChoices(); renderShipMore(); renderQrBox(); fillDatalists();
   openScreen('shipEditor');
   autosize($('#sMemo'));
 }
+function renderShipMore() {   /* 같이 보내는 품목 (품목 2부터) */
+  $('#sMore').innerHTML = (S.es.more || []).map((x, i) => { const fl = x.kind === '근조기', n = i + 2;
+    return `<div class="s-more-item"><div class="s-more-h"><b>품목 ${n}</b><button class="btn small" type="button" data-mdel="${i}" aria-label="품목 ${n} 빼기">빼기</button></div>
+      <div class="seg choice" data-mk="${i}" role="group" aria-label="품목 ${n} 구분"><button type="button" data-v="용품" aria-pressed="${!fl}">용품</button><button type="button" data-v="근조기" aria-pressed="${fl}">근조기</button></div>
+      <div class="grid2 s-more-g"><label class="field"><span>${fl ? '근조기명' : '용품명'}</span><input type="text" data-mn="${i}" list="dlNames" autocomplete="off" value="${esc(x.name || '')}" placeholder="${fl ? '예: 본사 근조기' : '예: 관, 유골함'}"></label>
+        <label class="field"><span>수량</span><input type="number" data-mq="${i}" inputmode="numeric" min="1" step="1" value="${esc(x.qty || 1)}"></label></div></div>`; }).join('');
+}
 function renderShipChoices() {
-  $$('#shipEditor .seg.choice').forEach((seg) => {
+  $$('#shipEditor .seg.choice[data-field]').forEach((seg) => {
     const f = seg.dataset.field;
     $$('button', seg).forEach((b) => b.setAttribute('aria-pressed', String(S.es[f] === b.dataset.v)));
   });
@@ -1849,6 +1879,8 @@ async function saveShip(andMore) {
   e.sender = $('#sSender').value.trim();
   e.feeAmt = e.fee === '선불' ? $('#sFeeAmt').value.trim() : '';
   e.payer = e.fee === '선불' ? $('#sPayer').value.trim() : '';
+  e.more = (e.more || []).map((x) => ({ kind: x.kind === '근조기' ? '근조기' : '용품', name: String(x.name || '').trim(), qty: Math.max(1, parseInt(x.qty, 10) || 1) })).filter((x) => x.name);   /* 이름 없는 줄은 뺌 */
+  if (!e.more.length) delete e.more;
   const errs = [];
   if (!e.name) errs.push(e.kind === '근조기' ? '근조기명' : '용품명');
   if (!e.date) errs.push('탁송날짜');
@@ -2097,10 +2129,15 @@ function shipRowBlock(cols, e, idx, img, header, last) {
   const fw = shipFee(e), snd = String(e.sender || '').trim(), pay = e.fee === '선불' ? String(e.payer || '').trim() : '';
   const vals = { No: String(idx + 1), 파트: e._part || '-', 날짜: fmtDay(e.date), 구분: e.kind, 품명: e.name, 수량: String(e.qty), 담당자: e.manager || '-', 방법: e.method, 운임: fw ? `${e.fee}\n${fuWon(fw)}` : e.fee, 배송지: e.dest || '-' };
   const memo = [snd && snd !== String(e.manager || '').trim() ? `보낸 사람 ${snd}` : '', pay ? `지불 ${pay}` : '', e.memo].filter(Boolean).join(' · ');
+  const parts = shipParts(e), PC = ['구분', '품명', '수량'], PL = { 구분: [], 품명: [], 수량: [] };   /* 같이 보낸 품목: 품목마다 줄을 맞춤 */
+  if (parts.length > 1) parts.forEach((x) => {
+    const w = {}; PC.forEach((k) => { const c = cols.find((cc) => cc.label === k); ctx.font = F(k === '구분' ? 700 : 400, 20); w[k] = wrapLines(ctx, k === '구분' ? x.kind : k === '품명' ? x.name : String(x.qty), c.w - pad * 2); });
+    const n = Math.max(...PC.map((k) => w[k].length)); PC.forEach((k) => { while (w[k].length < n) w[k].push(''); PL[k].push(...w[k]); });
+  });
   const cells = cols.filter((c) => c.label !== 'QR').map((c) => {
     const bold = (c.label === '운임' && e.fee === '착불') || c.label === '구분';
     ctx.font = F(bold ? 700 : 400, 20);
-    const lines = wrapLines(ctx, vals[c.label], c.w - pad * 2);
+    const lines = parts.length > 1 && PC.includes(c.label) ? PL[c.label] : wrapLines(ctx, vals[c.label], c.w - pad * 2);
     let sub = null;
     if (c.label === '품명' && memo) { ctx.font = F(400, 17); sub = wrapLines(ctx, memo, c.w - pad * 2); }
     return { c, lines, sub, bold, hh: lines.length * lh + (sub ? sub.length * 24 + 4 : 0) };
@@ -2108,9 +2145,10 @@ function shipRowBlock(cols, e, idx, img, header, last) {
   const qrCol = cols.find((c) => c.label === 'QR');
   let h = Math.max(54, ...cells.map((x) => x.hh + 22));
   if (qrCol && img) h = Math.max(h, 150);
+  const hhP = (cells.find((x) => x.c.label === '품명') || {}).hh || 0;
   return { h, gapBefore: 0, tableHeader: header, draw(ctx, y) {
     cells.forEach(({ c, lines, sub, bold, hh }) => {
-      const top = y + (h - hh) / 2;
+      const top = y + (h - (parts.length > 1 && PC.includes(c.label) ? hhP : hh)) / 2;   /* 여러 품목이면 구분 · 수량을 품명 줄 높이에 맞춤 */
       const color = c.label === '운임' && e.fee === '착불' ? RP.strong : (c.label === '날짜' || c.label === 'No' ? RP.muted : RP.ink);
       drawLines(ctx, lines, c.x + pad, top, c.w - pad * 2, lines.length * lh, lh, c.a === 'c' ? 'center' : 'left', color, F(bold ? 700 : 400, 20));
       if (sub) drawLines(ctx, sub, c.x + pad, top + lines.length * lh + 4, c.w - pad * 2, sub.length * 24, 24, 'left', RP.muted, F(400, 17));
@@ -2293,7 +2331,7 @@ function weeklyJob(r, opts = {}) {
 function shipJob(p, items, withQr, opts = {}) {
   const s = opts.settings || S.settings;
   const title = opts.gather ? `탁송·출고 ${p.typeLabel} 취합` : `탁송·출고 ${p.typeLabel} 보고서`;
-  const text = [s.company, s.author, ...approvalsOf(s), ...items.flatMap((e) => [e.name, e.manager, e.dest, e.memo, e.kind, e.method, e.fee, e.sender, e.payer, fuWon(shipFee(e))])].join(' ') + ' 선불 택배비 지불한 사람별 보낸 사람 지불 미입력 원 만원';
+  const text = [s.company, s.author, ...approvalsOf(s), ...items.flatMap((e) => [...shipParts(e).flatMap((x) => [x.name, x.kind]), e.manager, e.dest, e.memo, e.method, e.fee, e.sender, e.payer, fuWon(shipFee(e))])].join(' ') + ' 선불 택배비 지불한 사람별 보낸 사람 지불 미입력 원 만원';
   return {
     title, sample: !!opts.sample, text: text + ` ${title} 보고 구분 작성자 보고 기간 작성일 요약 상세 내역 총 건수 용품 근조기 택배 탁송 선불 착불 담당자별 날짜 구분 품명 수량 배송지 방법 운임`,
     fileBase: safeName(`탁송출고_${opts.gather ? '취합_' : ''}${p.typeLabel}_${p.file}`),
@@ -2341,7 +2379,7 @@ function sampleShipItems() {
     { id: 's1', kind: '근조기', name: '본사 근조기', qty: 1, date: d(0), manager: '김민수', method: '탁송', fee: '착불', dest: '○○병원 장례식장 3호실', memo: '', qr: 'placeholder', createdAt: 1 },
     { id: 's2', kind: '용품', name: '수의(대마)', qty: 2, date: d(1), manager: '이서연', method: '택배', fee: '선불', feeAmt: '5000', payer: '이서연', dest: '○○장례식장', memo: '송장 6012-3456-7890', qr: 'placeholder', createdAt: 2 },
     { id: 's3', kind: '용품', name: '부의록(우단)', qty: 5, date: d(2), manager: '김민수', sender: '박준호', method: '택배', fee: '선불', feeAmt: '4000', payer: '김민수', dest: '○○추모공원', memo: '', qr: null, createdAt: 3 },
-    { id: 's4', kind: '근조기', name: '협력사 근조기', qty: 2, date: d(3), manager: '박준호', method: '탁송', fee: '선불', dest: '△△의료원 장례식장', memo: '', qr: 'placeholder', createdAt: 4 },
+    { id: 's4', kind: '근조기', name: '협력사 근조기', qty: 2, more: [{ kind: '근조기', name: '본사 근조기', qty: 1 }], date: d(3), manager: '박준호', method: '탁송', fee: '선불', dest: '△△의료원 장례식장', memo: '', qr: 'placeholder', createdAt: 4 },
   ];
 }
 function sampleShipJob() {
@@ -2807,7 +2845,12 @@ function bind() {
   if (WIDE_MQ.addEventListener) WIDE_MQ.addEventListener('change', onWide);
   $('#rptPreview').addEventListener('click', () => { const p = rptPeriod(); openPreview(shipJob(p, shipItemsBetween(p.start, p.end), S.rpt.qr)); });
   $('#sBack').addEventListener('click', () => closeScreen('shipEditor'));
-  $$('#shipEditor .seg.choice').forEach((seg) => seg.addEventListener('click', (e) => {
+  $('#sMoreAdd').addEventListener('click', () => { const m = S.es.more || (S.es.more = []); m.push({ kind: S.es.kind || '용품', name: '', qty: 1 }); renderShipMore(); const el = $(`#sMore [data-mn="${m.length - 1}"]`); if (el) el.focus(); });
+  $('#sMore').addEventListener('input', (e) => { const t = e.target, m = S.es.more || []; if (t.dataset.mn != null && m[+t.dataset.mn]) m[+t.dataset.mn].name = t.value; else if (t.dataset.mq != null && m[+t.dataset.mq]) m[+t.dataset.mq].qty = t.value; });
+  $('#sMore').addEventListener('click', (e) => { const m = S.es.more || [];
+    const d = e.target.closest('[data-mdel]'); if (d) { m.splice(+d.dataset.mdel, 1); renderShipMore(); return; }
+    const b = e.target.closest('[data-mk] button'); if (b) { const x = m[+b.closest('[data-mk]').dataset.mk]; if (x && x.kind !== b.dataset.v) { x.kind = b.dataset.v; renderShipMore(); } } });
+  $$('#shipEditor .seg.choice[data-field]').forEach((seg) => seg.addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
     S.es[seg.dataset.field] = b.dataset.v; renderShipChoices();
     if (seg.dataset.field === 'kind') fillDatalists();
@@ -4756,7 +4799,7 @@ function gShipItems(t, p) {
     .sort((a, c) => String(a.date).localeCompare(String(c.date)) || (a.createdAt || 0) - (c.createdAt || 0));
 }
 function gShipByPart(t, items) {
-  return gPeople(t).map((pp) => { const its = items.filter((e) => e._uid === pp.id); return { label: pp.label, part: pp.part || pp.name, n: its.length, goods: its.filter((e) => e.kind === '용품').length, flag: its.filter((e) => e.kind === '근조기').length, cod: its.filter((e) => e.fee === '착불').length }; });
+  return gPeople(t).map((pp) => { const its = items.filter((e) => e._uid === pp.id); return { label: pp.label, part: pp.part || pp.name, n: its.length, goods: its.filter((e) => shipHas(e, '용품')).length, flag: its.filter((e) => shipHas(e, '근조기')).length, cod: its.filter((e) => e.fee === '착불').length }; });
 }
 function gShipView(t) {
   const p = gShipPeriod(), items = gShipItems(t, p), st = shipStats(items), parts = gShipByPart(t, items);
@@ -4769,7 +4812,7 @@ function gShipView(t) {
   if (!items.length) return h + '<p class="bd-empty">이 기간에 올라온 탁송 · 출고가 없습니다.</p>';
   const groups = []; items.slice().reverse().forEach((e) => { const g = groups[groups.length - 1]; if (g && g.date === e.date) g.items.push(e); else groups.push({ date: e.date, items: [e] }); });
   h += groups.map((g) => `<div class="day"><div class="day-h"><span>${fmtDay(g.date)}</span><span>${g.items.length}건</span></div>${g.items.map((e) => `<div class="s-row gt-srow">
-    <div style="min-width:0"><div class="s-main"><span class="chip ${e.kind === '근조기' ? 'gold' : 'kind'}">${esc(e.kind)}</span><span class="s-name">${esc(e.name)}</span><span class="s-qty">× ${esc(e.qty)}</span></div>
+    <div style="min-width:0">${shipMainHtml(e)}
     <div class="s-sub"><span class="chip">${esc(e._part)}</span>${shipSubHtml(e)}</div></div>
     ${typeof e.qrThumb === 'string' && e.qrThumb.startsWith('data:image/') ? `<img class="s-qr" src="${esc(e.qrThumb)}" alt="QR">` : ''}</div>`).join('')}</div>`).join('');
   return h;
@@ -4780,7 +4823,7 @@ function gShipCopy(t) {
   if (parts.length) out.push(`파트별: ${parts.map((x) => `${x.part} ${x.n}건`).join(' · ')}`);
   const fl = shipFeeLine(items); if (fl) out.push(fl.replace(/\s{2,}/g, ' '));
   if (items.length) out.push('');
-  items.forEach((e) => { const w = shipFee(e), snd = String(e.sender || '').trim(); out.push(`${fmtDay(e.date)} [${e._part}] ${e.kind} ${e.name} ×${e.qty} · ${[e.method, w ? `${e.fee} ${fuWon(w)}${e.payer ? `(지불 ${e.payer})` : ''}` : e.fee, e.dest, e.manager, snd && snd !== e.manager ? `보냄 ${snd}` : ''].filter(Boolean).join(' · ')}`); });
+  items.forEach((e) => { const w = shipFee(e), snd = String(e.sender || '').trim(); out.push(`${fmtDay(e.date)} [${e._part}] ${shipParts(e).map((x) => `${x.kind} ${x.name} ×${x.qty}`).join(', ')} · ${[e.method, w ? `${e.fee} ${fuWon(w)}${e.payer ? `(지불 ${e.payer})` : ''}` : e.fee, e.dest, e.manager, snd && snd !== e.manager ? `보냄 ${snd}` : ''].filter(Boolean).join(' · ')}`); });
   return out.join('\n');
 }
 function gShipJob(t) {
@@ -4859,7 +4902,7 @@ function gAllDetail(p) {
     row = (x) => `<div><b>${esc(fmtYMD(fromKey(x.date)))}(${DOW[fromKey(x.date).getDay()]}) 출상</b><p>${esc(String(x.text).trim())}</p></div>`;
   } else {
     items = a.ship.filter((e) => e && e.date).sort((x, y) => String(y.date).localeCompare(String(x.date)) || (y.createdAt || 0) - (x.createdAt || 0));
-    row = (e) => `<div class="s-row gt-srow"><div style="min-width:0"><div class="s-main"><span class="chip ${e.kind === '근조기' ? 'gold' : 'kind'}">${esc(e.kind)}</span><span class="s-name">${esc(e.name)}</span><span class="s-qty">× ${esc(e.qty)}</span></div>
+    row = (e) => `<div class="s-row gt-srow"><div style="min-width:0">${shipMainHtml(e)}
       <div class="s-sub"><span>${esc(fmtYMD(fromKey(e.date)))}</span>${shipSubHtml(e)}</div></div>
       ${typeof e.qrThumb === 'string' && e.qrThumb.startsWith('data:image/') ? `<img class="s-qr" src="${esc(e.qrThumb)}" alt="QR">` : ''}</div>`;
   }
