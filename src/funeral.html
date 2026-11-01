@@ -2818,17 +2818,26 @@ function arm(btn,label,fn,o){
   clearTimeout(btn._t); btn.classList.remove('armed'); btn.textContent=btn.dataset.label; fn();
 }
 $('#delCase').onclick=()=>{ const c=curCase(); if(!c) return; cpClose(false); delCaseAsk(c); };
-/* 행사 지우기: 확인 창 → 지우고 「되돌리기」 (봉투 기록은 그대로 남음) */
-function delCaseAsk(c,after){
-  arm($('#delCase'),'행사 삭제',()=>{
-    syncEnvelopeArchives();
-    const idx=db.cases.findIndex(x=>x.id===c.id); if(idx<0) return;
-    const removed=db.cases[idx], wasCur=db.cur===c.id;
-    db.cases.splice(idx,1); if(wasCur) db.cur=db.cases.length?[...db.cases].sort((a,b)=>b.updated-a.updated)[0].id:null;
-    save(); dirty=true; renderAll(); if(after) after();
-    const undo=()=>{ if(db.cases.find(x=>x.id===removed.id)) return; removed.updated=Date.now(); db.cases.splice(Math.min(idx,db.cases.length),0,removed); if(wasCur) db.cur=removed.id; save(); dirty=true; renderAll(); if(after) after(); toast('행사를 복원했습니다'); };
-    if(window.dwUndo) window.dwUndo('행사를 삭제했습니다',undo); else toast('삭제했습니다');
-  },{title:'이 행사를 삭제하시겠습니까?',body:(caseLabel(c)||'이름 없는 행사')+'\n봉투 기록은 지워지지 않습니다.',ok:'삭제'});
+/* 행사 지우기: 확인 창 → 지우고 「되돌리기」. 봉투 기록이 있으면 「봉투 기록도 같이 삭제」를 고를 수 있음 (2026.11.01 사용자, 기본은 봉투 남김) */
+async function delCaseAsk(c,after){
+  syncEnvelopeArchives();
+  const hasEnv=db.envelopes.some(r=>r.sourceCaseId===c.id), o={title:'이 행사를 삭제하시겠습니까?',ok:'삭제',
+    body:(caseLabel(c)||'이름 없는 행사')+(hasEnv?'\n봉투 기록은 체크하지 않으면 봉투정리에 그대로 남습니다.':''),check:hasEnv?'봉투 기록도 같이 삭제':''};
+  if(window.dwConfirm){ if(!(await window.dwConfirm(o))) return; }
+  else { arm($('#delCase'),'행사 삭제',()=>delCaseNow(c,false,after)); return; }
+  delCaseNow(c,!!(hasEnv&&o.checked),after);
+}
+function delCaseNow(c,withEnv,after){
+  const idx=db.cases.findIndex(x=>x.id===c.id); if(idx<0) return;
+  const removed=db.cases[idx], wasCur=db.cur===c.id, envs=withEnv?db.envelopes.map((r,i)=>[r,i]).filter(([r])=>r.sourceCaseId===c.id):[];
+  db.cases.splice(idx,1); if(wasCur) db.cur=db.cases.length?[...db.cases].sort((a,b)=>b.updated-a.updated)[0].id:null;
+  if(envs.length){ db.envelopes=db.envelopes.filter(r=>r.sourceCaseId!==c.id); if(envs.some(([r])=>r.id===envelopeEditId)){ envelopeEditId=null; envelopeEditSnap=null; } }
+  save(); dirty=true; renderAll(); if(after) after();
+  const undo=()=>{ if(db.cases.find(x=>x.id===removed.id)) return; removed.updated=Date.now(); db.cases.splice(Math.min(idx,db.cases.length),0,removed);
+    envs.forEach(([r,i])=>{ if(!db.envelopes.find(x=>x.id===r.id)){ r.updated=Date.now(); db.envelopes.splice(Math.min(i,db.envelopes.length),0,r); } });
+    if(wasCur) db.cur=removed.id; save(); dirty=true; renderAll(); if(after) after(); toast(envs.length?'행사와 봉투 기록을 복원했습니다':'행사를 복원했습니다'); };
+  const msg=envs.length?'행사와 봉투 기록을 삭제했습니다':'행사를 삭제했습니다';
+  if(window.dwUndo) window.dwUndo(msg,undo); else toast(msg);
 }
 
 /* ---------- 결과 ---------- */

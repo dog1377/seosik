@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.01-3">
+<meta name="app-version" content="2026.11.01-4">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -3234,17 +3234,26 @@ function arm(btn,label,fn,o){
   clearTimeout(btn._t); btn.classList.remove('armed'); btn.textContent=btn.dataset.label; fn();
 }
 $('#delCase').onclick=()=>{ const c=curCase(); if(!c) return; cpClose(false); delCaseAsk(c); };
-/* 행사 지우기: 확인 창 → 지우고 「되돌리기」 (봉투 기록은 그대로 남음) */
-function delCaseAsk(c,after){
-  arm($('#delCase'),'행사 삭제',()=>{
-    syncEnvelopeArchives();
-    const idx=db.cases.findIndex(x=>x.id===c.id); if(idx<0) return;
-    const removed=db.cases[idx], wasCur=db.cur===c.id;
-    db.cases.splice(idx,1); if(wasCur) db.cur=db.cases.length?[...db.cases].sort((a,b)=>b.updated-a.updated)[0].id:null;
-    save(); dirty=true; renderAll(); if(after) after();
-    const undo=()=>{ if(db.cases.find(x=>x.id===removed.id)) return; removed.updated=Date.now(); db.cases.splice(Math.min(idx,db.cases.length),0,removed); if(wasCur) db.cur=removed.id; save(); dirty=true; renderAll(); if(after) after(); toast('행사를 복원했습니다'); };
-    if(window.dwUndo) window.dwUndo('행사를 삭제했습니다',undo); else toast('삭제했습니다');
-  },{title:'이 행사를 삭제하시겠습니까?',body:(caseLabel(c)||'이름 없는 행사')+'\n봉투 기록은 지워지지 않습니다.',ok:'삭제'});
+/* 행사 지우기: 확인 창 → 지우고 「되돌리기」. 봉투 기록이 있으면 「봉투 기록도 같이 삭제」를 고를 수 있음 (2026.11.01 사용자, 기본은 봉투 남김) */
+async function delCaseAsk(c,after){
+  syncEnvelopeArchives();
+  const hasEnv=db.envelopes.some(r=>r.sourceCaseId===c.id), o={title:'이 행사를 삭제하시겠습니까?',ok:'삭제',
+    body:(caseLabel(c)||'이름 없는 행사')+(hasEnv?'\n봉투 기록은 체크하지 않으면 봉투정리에 그대로 남습니다.':''),check:hasEnv?'봉투 기록도 같이 삭제':''};
+  if(window.dwConfirm){ if(!(await window.dwConfirm(o))) return; }
+  else { arm($('#delCase'),'행사 삭제',()=>delCaseNow(c,false,after)); return; }
+  delCaseNow(c,!!(hasEnv&&o.checked),after);
+}
+function delCaseNow(c,withEnv,after){
+  const idx=db.cases.findIndex(x=>x.id===c.id); if(idx<0) return;
+  const removed=db.cases[idx], wasCur=db.cur===c.id, envs=withEnv?db.envelopes.map((r,i)=>[r,i]).filter(([r])=>r.sourceCaseId===c.id):[];
+  db.cases.splice(idx,1); if(wasCur) db.cur=db.cases.length?[...db.cases].sort((a,b)=>b.updated-a.updated)[0].id:null;
+  if(envs.length){ db.envelopes=db.envelopes.filter(r=>r.sourceCaseId!==c.id); if(envs.some(([r])=>r.id===envelopeEditId)){ envelopeEditId=null; envelopeEditSnap=null; } }
+  save(); dirty=true; renderAll(); if(after) after();
+  const undo=()=>{ if(db.cases.find(x=>x.id===removed.id)) return; removed.updated=Date.now(); db.cases.splice(Math.min(idx,db.cases.length),0,removed);
+    envs.forEach(([r,i])=>{ if(!db.envelopes.find(x=>x.id===r.id)){ r.updated=Date.now(); db.envelopes.splice(Math.min(i,db.envelopes.length),0,r); } });
+    if(wasCur) db.cur=removed.id; save(); dirty=true; renderAll(); if(after) after(); toast(envs.length?'행사와 봉투 기록을 복원했습니다':'행사를 복원했습니다'); };
+  const msg=envs.length?'행사와 봉투 기록을 삭제했습니다':'행사를 삭제했습니다';
+  if(window.dwUndo) window.dwUndo(msg,undo); else toast(msg);
 }
 
 /* ---------- 결과 ---------- */
@@ -6343,12 +6352,15 @@ body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
 </script>
 <!-- 확인 창 · 되돌리기 (2026.10.24, 세 화면 공통: DW장례업무 · 장례업무 · 회사 서류).
      예전 「한 번 더 누르면 삭제」(같은 자리를 3초 안에 두 번 누르기)는 휴대폰에서 헷갈려서 → 아래에서 올라오는 확인 창(「삭제」 · 「취소」 큰 버튼).
-     지운 뒤에는 아래에 「되돌리기」가 7초 동안 보임. window.dwConfirm({title, body, ok, danger}) → Promise(true/false), window.dwUndo(글, 되돌리는 함수). -->
+     지운 뒤에는 아래에 「되돌리기」가 7초 동안 보임. window.dwConfirm({title, body, ok, danger}) → Promise(true/false), window.dwUndo(글, 되돌리는 함수).
+     고르는 칸이 필요하면 check: '글' (2026.11.01, 행사 삭제 「봉투 기록도 같이 삭제」) → 누른 뒤 o.checked 에 참/거짓. -->
 <style id="dw-confirm-kit">
 .dwc-bg{position:fixed;inset:0;z-index:2147481000;background:rgba(10,12,14,.5);display:flex;align-items:flex-end;justify-content:center}
 .dwc{width:100%;max-width:440px;background:var(--surface,#fff);color:var(--ink,#1c1d1f);border-top:1px solid var(--ink,#1c1d1f);border-radius:6px 6px 0 0;padding:22px 18px calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;box-sizing:border-box}
 .dwc h2{margin:0;font-family:var(--serif,var(--font-display,serif));font-size:19px;line-height:1.4;font-weight:700;word-break:keep-all}
 .dwc p{margin:0;color:var(--muted,#5a5e63);font-size:15px;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere;white-space:pre-line}
+.dwc-chk{display:flex;align-items:center;gap:10px;min-height:44px;margin-top:4px;font-size:15px;font-weight:600;line-height:1.4;color:var(--ink,#1c1d1f);cursor:pointer;word-break:keep-all}
+.dwc-chk input{flex:none;width:20px;height:20px;margin:0;accent-color:var(--ink,#1c1d1f)}
 .dwc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .dwc-row button{min-height:52px;border-radius:4px;font:inherit;font-size:16px;font-weight:700;cursor:pointer;border:1px solid var(--line-2,var(--edge,#9a9d9a));background:var(--surface,#fff);color:var(--ink,#1c1d1f);touch-action:manipulation}
 .dwc-row .dwc-ok{background:var(--accent,#1c1d1f);border-color:var(--accent,#1c1d1f);color:var(--accent-ink,#fff)}
@@ -6375,10 +6387,11 @@ body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
       bg.className = 'dwc-bg';
       bg.innerHTML = '<div class="dwc" role="alertdialog" aria-modal="true" aria-labelledby="dwcT"' + (o.body ? ' aria-describedby="dwcB"' : '') + '>'
         + '<h2 id="dwcT">' + esc(o.title || '계속하시겠습니까?') + '</h2>' + (o.body ? '<p id="dwcB">' + esc(o.body) + '</p>' : '')
+        + (o.check ? '<label class="dwc-chk"><input type="checkbox" class="dwc-cb"' + (o.checked ? ' checked' : '') + '> ' + esc(o.check) + '</label>' : '')
         + '<div class="dwc-row"><button type="button" class="dwc-no">' + esc(o.cancel || '취소') + '</button>'
         + '<button type="button" class="dwc-ok' + (o.danger === false ? '' : ' danger') + '">' + esc(o.ok || '확인') + '</button></div></div>';
       document.body.appendChild(bg);
-      function done(v) { if (!bg.isConnected) return; bg.remove(); document.removeEventListener('keydown', key, true); open = null; try { if (back && back.focus && back.isConnected) back.focus({ preventScroll: true }); } catch (e) {} res(v); }
+      function done(v) { if (!bg.isConnected) return; var cb = bg.querySelector('.dwc-cb'); if (cb) o.checked = cb.checked; bg.remove(); document.removeEventListener('keydown', key, true); open = null; try { if (back && back.focus && back.isConnected) back.focus({ preventScroll: true }); } catch (e) {} res(v); }
       function key(e) { if (e.key === 'Escape') { e.preventDefault(); done(false); } else if (e.key === 'Tab') { var b = bg.querySelectorAll('button'), f = b[0], l = b[b.length - 1]; if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); } else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); } } }
       bg.addEventListener('click', function (e) { if (e.target === bg) done(false); });
       bg.querySelector('.dwc-no').onclick = function () { done(false); };
