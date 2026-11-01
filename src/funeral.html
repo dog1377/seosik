@@ -4997,10 +4997,11 @@ function updateEnvelopeSummary(){
 }
 /* ---------- 봉투 라벨 인쇄 (2026.10.31 사용자 「봉투정리한 거 프린트해서 봉투에 붙일 수 있게」 → 고른 답: A4 에 8개 · 잘라 붙이기 · 내용은 카톡 양식처럼 · 보고 있는 달 전부)
    A4 세로(1240×1754) 한 장에 2칸 × 4줄 = 봉투 8개, 칸 사이 자르는 점선. 칸마다 envelopeText(카톡 양식) 그대로: 제목 줄(행사번호 · 장소 · 이름 · 직급, 실장 봉투는 「(실장)」) + 식장/제단 · 장지 · 기타 · 합계.
-   순서는 봉투 목록 순서(행사번호), 행사마다 본부장 → 실장, 0원 봉투는 뺌. 인쇄는 공통 window.dwPrintImages (주소 · 쪽 번호 안 찍힘) */
+   순서는 봉투 목록 순서(행사번호), 행사마다 본부장 → 실장. 인쇄는 공통 window.dwPrintImages (주소 · 쪽 번호 안 찍힘)
+   (2026.11.01 사용자 「라벨에 안 나오는 행사가 있다」 → 0원 봉투를 빼던 것을 없앰. 봉투정리 목록 · 「이달 양식 전체 복사」와 똑같이 모든 봉투) */
 const LB={W:1240,H:1754,C:2,R:4,pad:46};
 function envLabelItems(month=envelopeMonth){
-  const out=[]; envelopeMonthRows(month).forEach(r=>{ const v=envelopeValues(r); ['part','manager'].forEach(role=>{ if(v[role]) out.push(envelopeText(r,role).split('\n\n')); }); }); return out;
+  const out=[]; envelopeMonthRows(month).forEach(r=>{ ['part','manager'].forEach(role=>out.push(envelopeText(r,role).split('\n\n'))); }); return out;
 }
 function envLabelWrap(g,t,maxW){   /* 띄어쓰기에서 줄 바꿈 (한 낱말이 넘치면 글자 단위) */
   const out=[]; let line='';
