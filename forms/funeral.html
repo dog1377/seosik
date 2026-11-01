@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.01-5">
+<meta name="app-version" content="2026.11.01-6">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1556,8 +1556,8 @@ body[data-tab="list"] .case-panel{display:none}
 
   <section id="p-admin" class="stack" hidden>
     <div class="set-cards" id="setCards" aria-label="설정 고르기"></div>
-    <div class="out-tabs" id="adminTabs" role="tablist" aria-label="설정 항목"><button type="button" role="tab" data-av-tab="forms">업체 양식</button><button type="button" role="tab" data-av-tab="common">공통 양식</button><button type="button" role="tab" data-av-tab="rules">정산 기준</button><button type="button" role="tab" data-av-tab="lists">선택 목록</button><button type="button" role="tab" data-av-tab="keep">내 계정</button></div>
-    <div class="sec" data-av="forms">
+    <div class="out-tabs" id="adminTabs" role="tablist" aria-label="설정 항목"><button type="button" role="tab" data-av-tab="forms" data-admin>업체 양식</button><button type="button" role="tab" data-av-tab="common" data-admin>공통 양식</button><button type="button" role="tab" data-av-tab="rules">정산 기준</button><button type="button" role="tab" data-av-tab="lists">선택 목록</button><button type="button" role="tab" data-av-tab="keep">내 계정</button></div>
+    <div class="sec" data-av="forms" data-admin>
       <div class="sec-head"><h2>업체별 양식</h2></div>
       <div class="chips" id="coChips"></div>
       <label class="f">업체명<input class="input" id="coName"></label>
@@ -1579,13 +1579,13 @@ body[data-tab="list"] .case-panel{display:none}
         <button class="btn danger" id="coDel" type="button">업체 삭제</button>
       </div>
     </div>
-    <div class="sec" data-av="common">
+    <div class="sec" data-av="common" data-admin>
       <div class="sec-head"><h2>배차 양식</h2></div>
       <p class="note">모든 업체 행사의 보고서 화면에 나오는 배차 문자 양식입니다. {업체명}에는 업체 양식의 「배차 양식 회사명」이 있으면 그 이름이 들어갑니다(대한선진(국향) → 대한항공노동조합). 쓸 수 있는 자리: {발인날짜} {장소} {업체명} {회사명} {발인} {배차} {화장하관} {화장장회차} {차량경로} {차량} {운행경로} {장지} {담당} {담당연락처} {고인명} {상주명}. 배차 칸을 비워 두면 발인 30분 전으로, 운행 경로를 비워 두면 「화장장-장지-장례식장」으로 들어갑니다.</p>
       <label class="f">배차 양식<textarea class="input tpl" id="dispTpl" rows="11"></textarea></label>
       <div class="row"><button class="btn sm primary" id="saveDispTpl" type="button">저장</button><button class="btn sm" id="resetDispTpl" type="button">기본값으로</button></div>
     </div>
-    <div class="sec" data-av="common">
+    <div class="sec" data-av="common" data-admin>
       <div class="sec-head"><h2>퇴근 양식</h2></div>
       <p class="note">모든 행사의 보고서 화면에 나오고, 날짜가 바뀌면 자동으로 바뀝니다. 퇴근은 오늘 19시. 출근은 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분), 발인이면 1시간 전(현진시닝은 1시간 30분 전). 계산한 출근이 08시 30분보다 늦으면 모두 08시 30분. 내일 일정이 없으면 08시 30분. 발인 날부터는 퇴근 · 출근 줄이 빠집니다. 쓸 수 있는 자리: {장소} {담당} {담당연락처} {업체명} {퇴근줄} {출근줄} {입관줄} {발인줄}</p>
       <label class="f">퇴근 양식<textarea class="input tpl" id="offTpl" rows="7"></textarea></label>
@@ -1669,8 +1669,8 @@ body[data-tab="list"] .case-panel{display:none}
     <div class="acc" data-acc="admin">
       <button class="acc-h" type="button" aria-expanded="false"><span><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>설정</span><i></i></button>
       <div class="acc-b"><div>
-        <button type="button" data-go="admin:forms">업체 양식</button>
-        <button type="button" data-go="admin:common">공통 양식 (배차 · 퇴근)</button>
+        <button type="button" data-go="admin:forms" data-admin>업체 양식</button>
+        <button type="button" data-go="admin:common" data-admin>공통 양식 (배차 · 퇴근)</button>
         <button type="button" data-go="admin:rules">정산 기준</button>
         <button type="button" data-go="admin:lists">선택 목록</button>
         <button type="button" data-go="admin:keep">내 계정</button>
@@ -2480,7 +2480,7 @@ function updateSaveState(state){
 }
 function updateWorkspace(t){
   document.body.dataset.tab=t;
-  const titles={home:['행사','필요한 업무를 눌러 바로 여십시오.'],dhome:['배송','배송 양식을 새로 작성하거나 이어서 작성하십시오.'],list:['행사 목록','모든 행사를 한눈에 보고, 찾고, 정산 상태를 관리하십시오.'],input:['행사 입력','행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.'],out:['양식 · 복사','완성된 양식을 확인하고 필요한 양식을 복사하십시오.'],sched:['행사 보고서','장례행사 일정표(보고서)를 한 단계씩 채우고 이미지 · 엑셀로 저장하십시오.'],deliv:['배송','현진시닝 단순용품 · 인력지원 · 인력+차량 · 인력+대체 양식을 만들고 복사하십시오. 행사 기록 · 정산과는 따로 저장됩니다.'],poster:['장례일정표','빈소에 붙이는 주요 장례일정을 행사 입력과 따로 적고 인쇄 · 저장하십시오.'],settle:['정산 · 수당','수금 내역과 회사 정산금, 개인 수당을 확인하십시오.'],envelopes:['월별 봉투정리','행사별 봉투를 모아 월 합계와 출금할 지폐 장수를 확인하십시오.'],admin:['업무 설정','업체 양식과 선택 목록을 내 업무에 맞게 관리하십시오.']};
+  const titles={home:['행사','필요한 업무를 눌러 바로 여십시오.'],dhome:['배송','배송 양식을 새로 작성하거나 이어서 작성하십시오.'],list:['행사 목록','모든 행사를 한눈에 보고, 찾고, 정산 상태를 관리하십시오.'],input:['행사 입력','행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.'],out:['양식 · 복사','완성된 양식을 확인하고 필요한 양식을 복사하십시오.'],sched:['행사 보고서','장례행사 일정표(보고서)를 한 단계씩 채우고 이미지 · 엑셀로 저장하십시오.'],deliv:['배송','현진시닝 단순용품 · 인력지원 · 인력+차량 · 인력+대체 양식을 만들고 복사하십시오. 행사 기록 · 정산과는 따로 저장됩니다.'],poster:['장례일정표','빈소에 붙이는 주요 장례일정을 행사 입력과 따로 적고 인쇄 · 저장하십시오.'],settle:['정산 · 수당','수금 내역과 회사 정산금, 개인 수당을 확인하십시오.'],envelopes:['월별 봉투정리','행사별 봉투를 모아 월 합계와 출금할 지폐 장수를 확인하십시오.'],admin:['업무 설정','설정을 내 업무에 맞게 관리하십시오.']};
   const info=titles[t]||['휴무 · 당직',''];
   { const si=STEP_KEYS.indexOf(t); $('#pageTitle').innerHTML=(si>=0?`<span class="pt-step">${si+1}단계</span>`:'')+esc(info[0]); } $('#pageDesc').textContent=info[1];
   $('#newCase').innerHTML=uiIcon('plus')+(t==='envelopes'?'봉투 1건 추가':t==='settle'?'새 정산':t==='deliv'?'새 배송':'새 행사');
@@ -5642,22 +5642,28 @@ $('#saveDispTpl').onclick=()=>{ const t=$('#dispTpl').value.replace(/\s+$/,''); 
 $('#resetDispTpl').onclick=()=>{ $('#dispTpl').value=DISPATCH_TPL; db.dispatchTpl=''; save(); dirty=true; renderAll(); toast('배차 양식을 기본값으로 되돌렸습니다'); };
 $('#reportCards').onclick=e=>{ if(e.target.closest('[data-xlinput]')){ setTab('sched'); return; } { const b=e.target.closest('[data-xlsave]'); if(b){ szSave(curCase(),b.dataset.xlsave); return; } } { const z=e.target.closest('[data-sz-zoom]'); if(z){ z.classList.toggle('zoom'); return; } } if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
 const ADMIN_TITLES={forms:'업체 양식',common:'공통 양식',rules:'정산 기준',lists:'선택 목록',keep:'내 계정'};
+/* 양식 고치기(업체 양식 · 공통 양식)는 파트장만 (2026.11.01 사용자 「어차피 공통으로 고쳐서 배포하니 직원한테는 없어도 됨」).
+   직원 계정(html.dw-member)은 [data-admin] 이 숨겨지고(leader-gate-head.html), 설정을 열면 정산 기준부터 */
+const ADMIN_LEAD=['forms','common'];
+const adminMember=()=>document.documentElement.classList.contains('dw-member');
+function adminViewFix(v){ if(!ADMIN_TITLES[v]) v='forms'; return adminMember()&&ADMIN_LEAD.includes(v)?'rules':v; }
 /* 설정 고르기 카드 (2026.10.28 사용자 「각 설정이 어떤 기능의 설정인지 한눈에」): 이름 · 무엇을 정하는지 · 쓰이는 곳 */
 const SET_INFO={forms:['업체별 밴드 · 회사 보고 양식, 제공내역','보고서 → 밴드 · 회사 양식'],common:['모든 업체 공통 배차 · 퇴근 문자','보고서 → 배차 · 퇴근'],rules:['정산 · 봉투 · 수당 나누는 기준','정산 · 봉투 · 수당 계산'],lists:['입력할 때 눌러 고르는 목록','행사 입력 · 정산'],keep:['자동 저장 · 내 정보 · 비밀번호 · 화면 밝기','모든 화면']};
-(()=>{ const el=$('#setCards'); if(!el) return; el.innerHTML=Object.keys(ADMIN_TITLES).map(k=>`<button type="button" data-set="${k}"><b>${ADMIN_TITLES[k]}</b><span>${SET_INFO[k][0]}</span><small>${SET_INFO[k][1]}</small></button>`).join('');
+(()=>{ const el=$('#setCards'); if(!el) return; el.innerHTML=Object.keys(ADMIN_TITLES).map(k=>`<button type="button" data-set="${k}"${ADMIN_LEAD.includes(k)?' data-admin':''}><b>${ADMIN_TITLES[k]}</b><span>${SET_INFO[k][0]}</span><small>${SET_INFO[k][1]}</small></button>`).join('');
   el.addEventListener('click',e=>{ const b=e.target.closest('[data-set]'); if(b) adminGo(b.dataset.set); }); })();
-function applyAdminView(){ const v=ADMIN_TITLES[db.adminView]?db.adminView:'forms';
+function applyAdminView(){ const v=db.adminView=adminViewFix(db.adminView);
   document.querySelectorAll('#adminTabs [data-av-tab]').forEach(b=>{ const on=b.dataset.avTab===v; b.setAttribute('aria-selected',String(on)); b.tabIndex=on?0:-1; });
   document.querySelectorAll('#p-admin [data-av]').forEach(el=>el.classList.toggle('ov-off',el.dataset.av!==v));
   document.querySelectorAll('#setCards [data-set]').forEach(b=>{ if(b.dataset.set===v) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current'); });
   tbScroll($(`#adminTabs [data-av-tab="${v}"]`)); tabsFade($('#adminTabs')); }
 function adminGo(v){   /* 설정 안에서 항목만 바꿈 (고치던 칸은 그대로 · 화면을 다시 그리지 않음) */
-  if(!ADMIN_TITLES[v]) return; db.adminView=v; save(); applyAdminView(); $('#abTitle').textContent=ADMIN_TITLES[v];
+  if(!ADMIN_TITLES[v]||adminViewFix(v)!==v) return; db.adminView=v; save(); applyAdminView(); $('#abTitle').textContent=ADMIN_TITLES[v];
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go==='admin:'+v));
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>{ if(b.classList.contains('on')) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   const t=$('#setCards'), ab=($('#appbar')?.getBoundingClientRect().bottom)||0; if(t&&t.getBoundingClientRect().top<ab) window.scrollTo({top:Math.max(0,scrollY+t.getBoundingClientRect().top-ab-8)}); }
+window.addEventListener('dw-role',()=>{ if(db.tab!=='admin') return; applyAdminView(); $('#abTitle').textContent=ADMIN_TITLES[db.adminView]; });
 $('#adminTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-av-tab]'); if(!b) return; adminGo(b.dataset.avTab); });
-$('#adminTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; const bs=[...e.currentTarget.querySelectorAll('[data-av-tab]')], i=bs.indexOf(document.activeElement); if(i<0) return;
+$('#adminTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; const bs=[...e.currentTarget.querySelectorAll('[data-av-tab]')].filter(b=>b.offsetParent!==null), i=bs.indexOf(document.activeElement); if(i<0) return;
   const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정',data:'데이터 관리'};
 const TAB_TITLES={home:['','DW장례업무'],dhome:['','DW장례업무'],deliv:['배송','배송 양식'],list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','양식 · 복사'],sched:['장례 행사','행사 보고서'],poster:['장례 행사','장례일정표'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['업무 설정','양식 · 목록 · 백업']};
@@ -5680,7 +5686,7 @@ let outT=null;
 function liveOut(){ if(!isSplit()||db.tab!=='input') return; clearTimeout(outT); outT=setTimeout(()=>{ if(isSplit()&&db.tab==='input') renderOut(); },220); }
 function setTab(t,sub){
   if(t==='duty'){ db.dutyView=sub||db.dutyView||'calendar'; }
-  if(t==='admin'){ if(sub&&ADMIN_TITLES[sub]) db.adminView=sub; if(!ADMIN_TITLES[db.adminView]) db.adminView='forms'; }
+  if(t==='admin'){ if(sub&&ADMIN_TITLES[sub]) db.adminView=sub; db.adminView=adminViewFix(db.adminView); }
   db.tab=t; save();
   const [s1,s2]=t==='duty'?['휴무 · 당직',DUTY_TITLES[db.dutyView]]:t==='admin'?['업무 설정',ADMIN_TITLES[db.adminView]]:(TAB_TITLES[t]||['','']);
   $('#abSub').textContent=s1; $('#abTitle').textContent=s2;
