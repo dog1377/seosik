@@ -3734,13 +3734,14 @@ async function posterAssets(){ if(PX) return PX; const r=await fetch('assets/pos
   const [bg,head,line]=await Promise.all([prImg(files['ppt/media/image1.jpeg'],'image/jpeg'),prImg(files['ppt/media/image2.jpeg'],'image/jpeg'),prImg(files['ppt/media/image3.png'],'image/png')]);
   PX={files,bg,head,line}; return PX; }
 const PX_LAB={'입관':'입      관','발인':'발      인','화장':'화      장','하관':'하      관','장지':'장      지','종교의식':'종교의식'};
-function pxDT(v){ const p=parseDT(v); return p?`${p.mo}월 ${p.d}일${p.h!=null?` ${pad(p.h)}시${p.mi?` ${pad(p.mi)}분`:''}`:''}`:''; }
+function pxDT(v){ const p=parseDT(v); return p?`${p.mo}월 ${pad(p.d)}일${p.h!=null?` ${pad(p.h)}시${p.mi?` ${pad(p.mi)}분`:''}`:''}`:''; }
 const pxName=n=>n?`故 ${[...String(n).replace(/\s/g,'')].join(' ')} 님`:'故 　　　 님';
 function posterAuto(c){
   const f=c.f||{}, nm=caseCoName(c), co=String(f.company||'').trim()||(c.companyId===ETC&&!String(f.coName||'').trim()?'':dispCoName(c));
   const staff=String(f.staff||'').trim().replace(/\s*(팀장|실장|과장|대리|부장|주임|파트장|님)$/,'').trim()||String(me().name||'').trim(), tel=String(f.staffTel||'').trim();
   return { burial:String(f.burial||'').trim()||[f.burial1,f.burial2].map(v=>String(v||'').trim()).filter(Boolean).join('-'),
-    org:coKey(nm)==='디더블유'&&!String(f.company||'').trim()?'디더블유 장례의전':co?`${co} 장례지원단`:'장례지원단',
+    /* 첫째 줄 (2026.11.01 사용자 「현진시닝만 장례지원단, 다른 회사는 회사명만」): 현진시닝 → 「고객사 장례지원단」, 디더블유 → 「디더블유 장례의전」, 그 밖 → 회사명만 */
+    org:coKey(nm)==='디더블유'&&!String(f.company||'').trim()?'디더블유 장례의전':coKey(nm)==='현진시닝'?(co?`${co} 장례지원단`:'장례지원단'):co,
     contact:`(문 의: 의전팀장 ${staff}${tel?', '+tel:''})` };
 }
 /* ---------- 장례일정표 따로 입력 (2026.10.28-5) ----------
@@ -3843,7 +3844,7 @@ function renderPoster(){
     </div></div>
     <div class="sec"><div class="sec-head"><h2>아래 문구</h2></div><div class="fields">
       <label class="f">첫째 줄<input class="input" data-pxd="org" value="${esc(d.org||'')}" placeholder="예: ${PX_ORG_EX}" autocomplete="off"><span class="crem-picks"><button type="button" class="chip" data-pxorg="${PX_ORG_EX}" aria-pressed="${String(d.org||'').trim()===PX_ORG_EX}">${PX_ORG_EX}</button></span></label>
-      <p class="note">고객사 행사면 「매일유업 장례지원단」처럼 적어 주십시오. 비운 칸은 빈칸 그대로 나갑니다.</p>
+      <p class="note">현진시닝 행사는 「매일유업 장례지원단」처럼, 다른 업체는 회사명만 적어 주십시오. 비운 칸은 빈칸 그대로 나갑니다.</p>
       <div class="f-wrap"><span class="field-label">둘째 줄 · 고정</span><div id="pxContactBox">${pxContactHtml()}</div></div>
       <div class="row"><button class="btn sm" type="button" data-pxme>내 정보 수정</button></div>
     </div></div>
