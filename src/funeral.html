@@ -1515,8 +1515,8 @@ const DAEHAN_REPORT=`장소 : {장소}
 장례담당자 : {담당팀장}
 연락처 : {담당연락처}`;
 const DAEHAN_ID='daehan';
-/* SJ산림조합상조 회사 보고 양식 (2026.11.01, 사용자가 보낸 회사 보고 양식 그대로 · 「바른의전」 「수의: 제공」은 양식 글) */
-const SJ_REPORT=`[SJ산림조합상조]상담결과보고
+/* 산림조합라이프 회사 보고 양식 (2026.11.01 「SJ산림조합상조」로 추가 → 2026.11.03 사용자 「산림조합라이프로 수정 · 회사 양식도 변경」. 사용자가 보낸 양식 그대로 · 「바른의전」 「수의: 제공」은 양식 글) */
+const SJ_REPORT=`[산림조합라이프]상담결과보고
 ※회원: {고객명} ({상구분})
 ※연락처: {고객연락처}
 ※고인: {고인이름} ({나이성별})
@@ -1541,7 +1541,8 @@ const SJ_REPORT=`[SJ산림조합상조]상담결과보고
 ※지도사: 바른의전 {담당}
              ( {담당연락처})
 ※특이사항: {특이사항}`;
-const SJ_ID='sjsanlim', SJ_NAME='SJ산림조합상조';
+const SJ_ID='sjsanlim', SJ_NAME='산림조합라이프', SJ_OLD='SJ산림조합상조';   /* 업체 번호는 그대로 */
+const isSJ=co=>!!co&&(co.id===SJ_ID||[SJ_NAME,SJ_OLD].includes(coKey(co.name)));
 /* 배차 양식 「회사 :」 줄에 쓰는 이름 (2026.10.28): 업체 양식의 「배차 양식 회사명」(co.dispName), 한 번도 안 정했으면 아래 기본값, 없으면 업체명 */
 const DISP_CO_DEFAULT={'대한선진(국향)':'대한항공노동조합'};
 const coKey=v=>String(v||'').replace(/\s/g,'');
@@ -1786,6 +1787,11 @@ if(!db.vSJ){   /* SJ산림조합상조 업체 추가 (2026.11.01) — 업체 번
   else if(!(has.reports||[]).length) has.reports=[{id:uid(),name:'회사 보고 양식',body:SJ_REPORT}];
   db.vSJ=true;
 }
+if(!db.vSJLife){   /* SJ산림조합상조 → 산림조합라이프 (2026.11.03): 업체 이름 · 보고 양식 첫 줄만 바꿈 (양식을 고쳐 둔 다른 줄 · 행사 기록은 그대로) */
+  db.companies.forEach(x=>{ if(!isSJ(x)) return; if(coKey(x.name)===SJ_OLD) x.name=SJ_NAME;
+    (x.reports||[]).forEach(r=>{ r.body=String(r.body||'').split('[SJ산림조합상조]').join('[산림조합라이프]'); }); });
+  db.vSJLife=true;
+}
 if(!db.vGoiEnd){ const goi=db.companies.find(x=>isGoi(x)); if(goi){ if(!goi.reports) goi.reports=[]; if(!goi.reports.some(r=>r.name==='장례 종료 보고')) goi.reports.push({id:uid(),name:'장례 종료 보고',body:GOI_END_REPORT}); } db.vGoiEnd=true; }
 function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
@@ -1984,7 +1990,7 @@ function fmtAs(v,fm){
   if(fm==='iso') return `${Y}-${M}-${D}${t}`;
   if(fm==='long') return longDT(v);
   if(fm==='md') return `${M}월 ${D}일${t}`;   /* 08월 09일 11:00 */
-  if(fm==='kr') return `${M}월${D}일${p.h==null?'':` ${pad(p.h)}시${pad(p.mi)}분`}`;   /* 10월31일 14시30분 (SJ산림조합상조) */
+  if(fm==='kr') return `${M}월${D}일${p.h==null?'':` ${pad(p.h)}시${pad(p.mi)}분`}`;   /* 10월31일 14시30분 (산림조합라이프) */
   return dayTime(v);
 }
 function fillTpl(body,c,over){
@@ -2361,7 +2367,7 @@ function renderInput(){
   SECTIONS.forEach(s=>{
     const filled=k=>String(c.f[k]??'').trim()!=='';
     const sameOn=k=>!!c.f.sameChief&&Object.entries(SAME_MAP).some(([ck,uk])=>uk===k&&visible(ck,used));   /* 상주 = 회원이면 상주 칸이 회원 칸에서 채워짐 */
-    const rows=s.rows.map(r=>r.filter(fd=>(fd.k==='recv'?(isGoi(co)||coKey(co.name)===SJ_NAME):visible(fd.k,used))||filled(fd.k)||sameOn(fd.k))).filter(r=>r.length);   // 접수는 고이장례연구소 · SJ산림조합상조만 (이미 넣은 값은 항상 보임)
+    const rows=s.rows.map(r=>r.filter(fd=>(fd.k==='recv'?(isGoi(co)||isSJ(co)):visible(fd.k,used))||filled(fd.k)||sameOn(fd.k))).filter(r=>r.length);   // 접수는 고이장례연구소 · 산림조합라이프만 (이미 넣은 값은 항상 보임)
     const extra = s.key==='mgr'?true /* 도우미 시간대: 모든 업체 (일정표 도우미 칸에 들어감, 2026.10.31) */ : s.key==='prov'?used.has('제공항목') : s.key==='deduct'?(used.has('공제항목')||used.has('대체공제')||(c.deductions||[]).some(d=>String(d.text||'').trim())) : s.key==='crem'?(used.has('화장')||used.has('화장장')||used.has('하관')||['cremName','cremDate','cremTime','hagwanDate'].some(filled)) : false;
     if(!rows.length && !extra) return;
     const sectionKey=s.key||s.rows[0][0].k, meta=SECTION_UI[sectionKey]||{group:'basic',title:s.t};
