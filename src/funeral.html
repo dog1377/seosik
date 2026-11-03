@@ -587,6 +587,21 @@ body[data-tab="envelopes"] .case-panel,body[data-tab="envelopes"] .work-tabs{dis
 .env-stat span{font-size:12px;color:var(--muted);white-space:nowrap}
 .env-stat strong{font-size:clamp(16px,2.2vw,23px);font-variant-numeric:tabular-nums;letter-spacing:-.04em;overflow-wrap:anywhere}
 .env-badge{font-size:11px;color:var(--muted);white-space:nowrap}
+/* 봉투 점검 (2026.11.03) */
+.env-check>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;cursor:pointer;list-style:none;min-height:44px;align-content:center}
+.env-check>summary::-webkit-details-marker{display:none}
+.env-check>summary b{font-size:17px}
+.env-check>summary span{font-size:13px;color:var(--warn);font-weight:600}
+.env-check>summary::after{content:"열기";margin-left:auto;font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.env-check[open]>summary::after{content:"접기"}
+.env-chk-list{display:grid;margin-top:6px}
+.env-chk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.env-chk-t{display:grid;gap:3px;min-width:0}
+.env-chk-t b{font-size:15px;overflow-wrap:anywhere}
+.env-chk-t span{font-size:13px;line-height:1.5;color:var(--muted)}
+.env-chk strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+.env-chk .btn{grid-column:1/-1;justify-self:start}
+@media (min-width:700px){ .env-chk{grid-template-columns:minmax(0,1fr) auto auto} .env-chk .btn{grid-column:auto} }
 .env-cash{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;font-variant-numeric:tabular-nums}
 .env-cash th,.env-cash td{padding:12px 4px;border-bottom:1px solid var(--line);text-align:right;overflow-wrap:anywhere}
 .env-cash th:first-child{text-align:left;width:19%}
@@ -4999,11 +5014,47 @@ function updateEnvelopeSummary(){
   }
   h+='</tbody></table><p class="note">5만원권 금액 '+esc(wonStr(a.fifty*50000)||'0원')+' · 1만원권 금액 '+esc(wonStr(a.ten*10000)||'0원')+'</p>';
   if(a.five||a.one||a.remainder) h+='<p class="env-notice">추가 준비: '+[a.five?'5천원권 '+a.five+'장':'',a.one?'1천원권 '+a.one+'장':'',a.remainder?'잔돈 '+wonStr(a.remainder):''].filter(Boolean).join(' · ')+'</p>';
+  paintEnvChk();
   if(s.negative) h+='<p class="env-notice">음수 봉투 '+s.negative+'개가 있습니다. 해당 봉투는 출금 장수에서 제외했으니 금액을 확인해 주십시오.</p>';
   h+='<p class="note">각 봉투에 5만원권을 먼저 넣고 남은 금액을 1만원권으로 채운 뒤, 필요한 장수를 합산합니다.</p><div class="row"><button class="btn" type="button" data-env-action="copySummary">월 합계 복사</button><button class="btn" type="button" data-env-action="copyMonth" '+(s.rows.length?'':'disabled')+'>이달 양식 전체 복사</button></div>'
     +'<div class="row"><button class="btn primary" type="button" data-env-action="printLabels" '+(s.rows.length?'':'disabled')+'>봉투 라벨 인쇄</button></div><p class="note">이 달 봉투를 A4 한 장에 8개씩 인쇄합니다. 점선대로 잘라 봉투에 붙이십시오.</p></div>';
   el.innerHTML=h;
 }
+/* ---------- 봉투 점검 (2026.11.03 사용자 「봉투정리 금액이 안 맞음 — 405만원인데 실제 426만원」) ----------
+   봉투 금액 계산(envelopeValues)은 그대로. 이 달 합계에 들어가고 빠지는 봉투를 보여 줌:
+   ① 이 달 행사인데 봉투가 없음(봉투를 지운 적이 있으면 다시 안 만듦 → 「봉투 다시 만들기」) ② 이 달 행사 봉투가 다른 달에 있음(정산월을 직접 바꿈)
+   ③ 발인은 이 달인데 접수한 달 기준으로 다른 달에 들어감 → 「이 달로 옮기기」(그 봉투만 정산월 직접 지정 r.edits.month)
+   ④ 이 달 봉투 중 발인이 다른 달 ⑤ 행사를 지운 봉투 ⑥ 같은 행사번호 봉투 둘 이상 ⑦ 직접 고친 금액 → 「봉투 보기」 */
+function envChkItems(M=envelopeMonth){
+  const out=[], byId=new Map(db.cases.map(c=>[c.id,c])), rows=envelopeMonthRows(M), envOf=c=>db.envelopes.find(x=>x.sourceCaseId===c.id);
+  const tot=r=>{ const v=envelopeValues(r); return v.part+v.manager; }, depM=c=>String((c.f||{}).depart||'').slice(0,7);
+  const lab=r=>{ const n=envelopeMeta(r,'eventNo').trim().replace(/번$/,''); return [n?n+'번':'',envelopeMeta(r,'place')].filter(Boolean).join(' ')||'행사번호 · 장소 미입력'; };
+  db.cases.forEach(c=>{ if(!envelopeHasSettlement(c)) return; const r=envOf(c), cm=caseMonth(c);
+    if(!r){ if(cm!==M) return; const a=envelopeValues({auto:{altar:commData(c).altarKeep,urn:commData(c).urnKeep,...envelopeSplitAuto(c)},amounts:{},notes:{}}), w=a.part+a.manager;
+      if(w) out.push({label:[String((c.f||{}).eventNo||'').trim().replace(/번$/,'')].filter(Boolean).map(n=>n+'번').concat(String((c.f||{}).place||'').trim()||[]).join(' ')||caseLabel(c),won:w,why:'이 달 행사인데 봉투가 없습니다'+(db.envelopeSkipped.includes(c.id)?' · 봉투를 지운 적이 있어 다시 만들지 않았습니다':''),act:'make',id:c.id}); return; }
+    const em=envelopeRecordMonth(r);
+    if(em===M) return;
+    if(cm===M) out.push({label:lab(r),won:tot(r),why:`이 달 행사인데 봉투는 ${monthLabel(em)}에 있습니다 (정산월을 직접 바꾼 봉투)`,act:'here',id:r.id});
+    else if(depM(c)===M) out.push({label:lab(r),won:tot(r),why:`발인은 이 달인데 접수한 달 기준으로 ${monthLabel(em)} 봉투에 들어 있습니다`,act:'here',id:r.id});
+  });
+  const nos={};
+  rows.forEach(r=>{ const c=r.sourceCaseId?byId.get(r.sourceCaseId):null, w=tot(r);
+    if(r.sourceCaseId&&!c) out.push({label:lab(r),won:w,why:'행사를 지운 봉투입니다 · 같은 행사를 다시 만들었다면 두 번 더해졌을 수 있습니다',act:'open',id:r.id});
+    if(c&&depM(c)&&depM(c)!==M) out.push({label:lab(r),won:w,why:`발인은 ${monthLabel(depM(c))}인데 접수한 달 기준으로 이 달에 들어 있습니다`,act:'open',id:r.id});
+    const a=envelopeValues({auto:r.auto||{},amounts:{},notes:{}}); if(a.part+a.manager!==w) out.push({label:lab(r),won:w,why:`직접 고친 금액 · 자동으로는 ${wonStr(a.part+a.manager)||'0원'}`,act:'open',id:r.id});
+    const n=envelopeMeta(r,'eventNo').trim().replace(/번$/,''); if(n) (nos[n]=nos[n]||[]).push(r); });
+  Object.entries(nos).forEach(([n,rs])=>{ if(rs.length>1) rs.forEach(r=>out.push({label:lab(r),won:tot(r),why:`행사번호 ${n}번 봉투가 ${rs.length}개 있습니다`,act:'open',id:r.id})); });
+  return out;
+}
+let envChkOpen=false;
+function envChkHtml(){
+  const L=envChkItems(); if(!L.length) return '';
+  const btn=x=>`<button class="btn sm" type="button" data-envchk="${x.act}" data-id="${esc(x.id)}">${x.act==='make'?'봉투 다시 만들기':x.act==='here'?'이 달로 옮기기':'봉투 보기'}</button>`;
+  return `<details class="sec env-check"${envChkOpen?' open':''}><summary><b>봉투 점검</b><span>합계가 다를 때 확인할 것 ${L.length}건</span></summary>
+    <div class="env-chk-list">${L.map(x=>`<div class="env-chk"><div class="env-chk-t"><b>${esc(x.label)}</b><span>${esc(x.why)}</span></div><strong>${esc(wonStr(x.won)||'0원')}</strong>${btn(x)}</div>`).join('')}</div>
+    <p class="note">봉투 금액 계산은 그대로이고, 이 달 합계에 들어가고 빠지는 봉투를 보여 줍니다.</p></details>`;
+}
+function paintEnvChk(){ const el=$('#envCheck'); if(el) el.innerHTML=envChkHtml(); }
 /* ---------- 봉투 라벨 인쇄 (2026.10.31 사용자 「봉투정리한 거 프린트해서 봉투에 붙일 수 있게」 → 고른 답: A4 에 8개 · 잘라 붙이기 · 내용은 카톡 양식처럼 · 보고 있는 달 전부)
    A4 세로(1240×1754) 한 장에 2칸 × 4줄 = 봉투 8개, 칸 사이 자르는 점선. 칸마다 envelopeText(카톡 양식) 그대로: 제목 줄(행사번호 · 장소 · 이름 · 직급, 실장 봉투는 「(실장)」) + 식장/제단 · 장지 · 기타 · 합계.
    순서는 봉투 목록 순서(행사번호), 행사마다 본부장 → 실장. 인쇄는 공통 window.dwPrintImages (주소 · 쪽 번호 안 찍힘)
@@ -5089,9 +5140,10 @@ function renderEnvelopes(){
   syncEnvelopeArchives();
   const rows=envelopeMonthRows(),months=[...new Set([seoulToday().slice(0,7),envelopeMonth,...db.envelopes.map(envelopeRecordMonth)])].sort().reverse();
   const [ey,em]=envelopeMonth.split('-').map(Number), AL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>', AR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
-  $('#p-envelopes').innerHTML='<div class="sec env-head"><div class="env-nav"><button class="cm-nav" type="button" data-env-shift="-1" aria-label="이전 달">'+AL+'</button><label class="env-mlabel"><b>'+ey+'년 '+em+'월</b><span>봉투 '+rows.length+'건</span><input id="envelopeMonth" type="month" value="'+envelopeMonth+'" aria-label="달 고르기"></label><button class="cm-nav" type="button" data-env-shift="1" aria-label="다음 달">'+AR+'</button></div><p class="note">정산에서 넣은 값으로 봉투가 자동으로 채워집니다. 칸에 직접 넣으면 그 값이 먼저입니다.</p><div class="row"><button class="btn" type="button" data-env-action="current" '+(curCase()?'':'disabled')+'>현재 행사 가져오기</button></div></div><div id="envelopeSummary" class="stack"></div>'+envelopeListTools()+'<div class="stack" id="envelopeList">'+(rows.length?rows.map(envelopeEditor).join(''):'<div class="sec env-empty"><h2>이달의 봉투 기록이 없습니다</h2><p class="note">정산 내용을 입력하면 자동으로 모입니다. 이전 행사는 직접 추가할 수 있습니다.</p></div>')+'</div>';
+  $('#p-envelopes').innerHTML='<div class="sec env-head"><div class="env-nav"><button class="cm-nav" type="button" data-env-shift="-1" aria-label="이전 달">'+AL+'</button><label class="env-mlabel"><b>'+ey+'년 '+em+'월</b><span>봉투 '+rows.length+'건</span><input id="envelopeMonth" type="month" value="'+envelopeMonth+'" aria-label="달 고르기"></label><button class="cm-nav" type="button" data-env-shift="1" aria-label="다음 달">'+AR+'</button></div><p class="note">정산에서 넣은 값으로 봉투가 자동으로 채워집니다. 칸에 직접 넣으면 그 값이 먼저입니다.</p><div class="row"><button class="btn" type="button" data-env-action="current" '+(curCase()?'':'disabled')+'>현재 행사 가져오기</button></div></div><div id="envelopeSummary" class="stack"></div><div id="envCheck"></div>'+envelopeListTools()+'<div class="stack" id="envelopeList">'+(rows.length?rows.map(envelopeEditor).join(''):'<div class="sec env-empty"><h2>이달의 봉투 기록이 없습니다</h2><p class="note">정산 내용을 입력하면 자동으로 모입니다. 이전 행사는 직접 추가할 수 있습니다.</p></div>')+'</div>';
   rows.forEach(updateEnvelopeCard); updateEnvelopeSummary();
 }
+document.addEventListener('toggle',e=>{ if(e.target&&e.target.classList&&e.target.classList.contains('env-check')) envChkOpen=e.target.open; },true);
 function showEnvelopeMonth(month){
   if(!envelopeMonthOK(month)) return;
   envelopeMonth=month; db.envelopeMonth=month; save(); renderEnvelopes();
@@ -5131,6 +5183,14 @@ $('#p-envelopes').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   const root=b.closest('[data-env-id]'),r=root&&db.envelopes.find(x=>x.id===root.dataset.envId);
   if(b.dataset.envMonth){showEnvelopeMonth(b.dataset.envMonth);return;}
+  if(b.dataset.envchk){ const k=b.dataset.envchk, id=b.dataset.id;   /* 봉투 점검 */
+    if(k==='make'){ const c=db.cases.find(x=>x.id===id); if(!c) return; const r=syncEnvelopeRecord(c,true); save(); renderEnvelopes();
+      if(window.dwUndo&&r) window.dwUndo('봉투를 다시 만들었습니다',()=>{ db.envelopes=db.envelopes.filter(x=>x.id!==r.id); if(!db.envelopeSkipped.includes(c.id)) db.envelopeSkipped.push(c.id); save(); renderEnvelopes(); }); else toast('봉투를 다시 만들었습니다'); return; }
+    const er=db.envelopes.find(x=>x.id===id); if(!er) return;
+    if(k==='here'){ er.edits=er.edits||{}; const was=er.edits.month; er.edits.month=envelopeMonth; er.updated=Date.now(); save(); renderEnvelopes();
+      if(window.dwUndo) window.dwUndo(`${monthLabel(envelopeMonth)}로 옮겼습니다`,()=>{ if(was===undefined) delete er.edits.month; else er.edits.month=was; er.updated=Date.now(); save(); renderEnvelopes(); }); else toast(`${monthLabel(envelopeMonth)}로 옮겼습니다`); return; }
+    envelopeOpenId=er.id; const m=envelopeRecordMonth(er); if(m!==envelopeMonth) showEnvelopeMonth(m); else renderEnvelopes();
+    const card=[...document.querySelectorAll('[data-env-id]')].find(el=>el.dataset.envId===er.id); if(card) card.scrollIntoView({block:'start',behavior:'auto'}); return; }
   if(b.dataset.envShift){const [y,m]=envelopeMonth.split('-').map(Number),d=new Date(y,m-1+Number(b.dataset.envShift),1);showEnvelopeMonth(d.getFullYear()+'-'+pad(d.getMonth()+1));return;}
   if(b.dataset.envCopy&&r){const role=b.dataset.envCopy;copyEnvelopeText(role==='both'?envelopeText(r,'part')+'\n\n──────────\n\n'+envelopeText(r,'manager'):envelopeText(r,role));return;}
   const action=b.dataset.envAction;
