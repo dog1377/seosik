@@ -33,7 +33,7 @@ SETUP = r"""(()=>{
  S(c1).burialSea='yes'; const sea=caseEnvelope(c1); S(c1).burialSea='no'; caseEnvelope(c1);
  return {ex1:settleCalc(c1).sendWon, ex2:settleCalc(c2).sendWon, tag2:caseTag(c2), ex3before:before3, ex3:settleCalc(c).sendWon,
    part:v.part, mgr:v.manager, seaBur:[sea.partBurial,sea.managerBurial],
-   comm:(commText(c1).match(/총계 : .*/)||[''])[0], rc:rcptForms(c1).map(f=>f.text).join('\n'), t1:settleText(c1),
+   comm:(commText(c1).match(/총계 : .*/)||[''])[0], commBur:(commText(c1).match(/장지 : .*/)||[''])[0], rc:rcptForms(c1).map(f=>f.text).join('\n'), t1:settleText(c1),
    altar:(()=>{ startCase(co('디더블유')); const a=curCase(); Object.assign(a.f,{collect:'300',altar:'20'}); Object.assign(S(a),{pay:'현금'});   // 제단공제 20 · 2026.10.29 법인카드결제
      const ded=settleCalc(a).sendWon; a.f.altarCard=true; const card=settleCalc(a).sendWon, txt=vals(a)['제단공제'], band=(bandOut(a).match(/제단공제 : .*/)||[''])[0]; a.f.altarCard=false; return [ded,card,txt,band]; })()};
 })()"""
@@ -48,7 +48,8 @@ EXPECT = [
     ('예시4 본부장 봉투', 'part', 1660000),
     ('예시4 실장 봉투', 'mgr', 2820000),
     ('해양장 장지 (본부장 · 실장)', 'seaBur', [1500000, 1500000]),
-    ('수당 총계', 'comm', '총계 : 134만원'),
+    ('수당 총계 (= 실장 봉투, 장지 실장 몫 포함 2026.11.09)', 'comm', '총계 : 282만원'),
+    ('수당 장지 줄', 'commBur', '장지 : 148만원(300)'),
 ]
 
 

@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.03-3">
+<meta name="app-version" content="2026.11.09-1">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -3899,8 +3899,8 @@ $('#p-list').addEventListener('click',e=>{
 });
 
 // 수당 정산: 회사로 보내고 남은 내 몫
-const COMM_ITEMS=['사진','검안','각인','바다장','납골','수목장','유골함','도시락','개장','산일','제단','꽃관','키트','초도','경비'];
-// 수당 정산(내 몫) = 실장 몫: 제단 · 유골함 · 꽃관 · 초도 · 키트 · 도시락은 정산에서 넣은 값으로 자동 (장지는 봉투에만)
+const COMM_ITEMS=['사진','검안','각인','바다장','납골','수목장','장지','유골함','도시락','개장','산일','제단','꽃관','키트','초도','경비'];
+// 수당 정산(내 몫) = 실장 몫: 제단 · 장지 · 유골함 · 꽃관 · 초도 · 키트 · 도시락은 정산에서 넣은 값으로 자동 (장지 실장 몫은 2026.11.09 사용자 요청으로 넣음 — 수당 총계 = 실장 봉투)
 const man=w=>{ const x=w/10000; return Number.isInteger(x)?String(x):String(Math.round(x*10)/10); };
 function me(){ if(!db.me) db.me={name:'',rank:''}; return db.me; }
 /* 설정 → 내 정보 (2026.10.28-5: 전화번호 칸 phone 추가 — db.me 안이라 내 계정 설정과 같이 저장) */
@@ -3935,10 +3935,11 @@ function commData(c){
   if(chodo) auto['초도']={text:wonStr(chodo),won:chodo};
   if(E.kit) auto['키트']={text:`${wonStr(kit)||'0원'}(${man(E.kit)})`,won:kit};
   if(E.lunch) auto['도시락']={text:`${wonStr(lunch)||'0원'}(${man(E.lunch)})`,won:lunch};
+  if(E.burial) auto['장지']={text:`${wonStr(E.burialMg)||'0원'}(${man(E.burial)})`,won:E.burialMg};   /* 장지 실장 몫 = 실장 봉투 장지 칸 (2026.11.09) */
   const m=s.comm||{};
   const rows=COMM_ITEMS.map(k=>auto[k]!==undefined?{k,text:auto[k]?auto[k].text:'',won:auto[k]?auto[k].won:0,auto:true}:{k,text:money(m[k]),won:toWon(m[k])});
   const total=rows.reduce((a,r)=>a+r.won,0);
-  return {rows,total,altarKeep,urnKeep,flowerKeep:FL.our,chodo,kit,lunch};
+  return {rows,total,altarKeep,urnKeep,flowerKeep:FL.our,chodo,kit,lunch,burial:E.burial?E.burialMg:0};
 }
 function commText(c){
   const d=commData(c), f=c.f||{}, p=parseDT(f.depart), who=me();
@@ -5125,10 +5126,10 @@ function renderSettle(){
   <div class="sec settle-wide" data-sv="comm"><div class="sec-head"><h2>수당 정산</h2></div><div class="fields">
     <label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}"><span>번</span></div></label>
     <p class="calc" id="commAuto"></p>
-    ${(()=>{ const ks=COMM_ITEMS.filter(k=>k!=='제단'&&k!=='유골함'), rows=[]; for(let i=0;i<ks.length;i+=2) rows.push(ks.slice(i,i+2)); const m=s.comm||{};
+    ${(()=>{ const ks=COMM_ITEMS.filter(k=>k!=='제단'&&k!=='유골함'&&k!=='장지'), rows=[]; for(let i=0;i<ks.length;i+=2) rows.push(ks.slice(i,i+2)); const m=s.comm||{};
       return rows.map(r=>`<div class="pair">${r.map(k=>`<label class="f">${k}${amtIn(`data-comm="${esc(k)}"`,m[k],'',false)}</label>`).join('')}</div>`).join(''); })()}
     <div class="pair"><label class="f">이름<input class="input" data-me="name" value="${esc(me().name)}" placeholder="홍길동"></label><label class="f">직급<input class="input" data-me="rank" value="${esc(me().rank)}" placeholder="주임"></label></div>
-    <p class="note">내 몫 = 실장 몫입니다. 제단 · 유골함 · 꽃관(관꽃장식 판매) · 초도 · 키트 · 도시락은 정산에서 넣은 값의 실장 몫으로 자동 계산됩니다. 장지는 봉투에만 기록되고 여기에는 안 나옵니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
+    <p class="note">내 몫 = 실장 몫입니다. 제단 · 장지 · 유골함 · 꽃관(관꽃장식 판매) · 초도 · 키트 · 도시락은 정산에서 넣은 값의 실장 몫으로 자동 계산됩니다. 나머지는 입력한 것만 나오고 총계에 더해집니다. 이름 · 직급은 한 번 넣으면 다음 건에도 그대로 남습니다. 날짜는 발인일입니다.</p></div></div>
   <div class="out" data-sv="comm"><div class="out-head"><h2>수당 정산<small>내 몫</small></h2><button class="btn primary" id="copyComm" type="button">복사</button></div>
     <textarea class="text-out" id="commText" rows="20" aria-label="수당 정산"></textarea></div>
   </div>
@@ -5253,7 +5254,7 @@ function updSettle(skipDef){
           :`${k==='card'?'카드':'현금'}로 받은 돈이 없습니다. 금액을 직접 입력하십시오.`; } });
     const nn=$('#rcNone'); if(nn) nn.hidden=forms.length>0;
     const wp=$('#rcWhoPrev'); if(wp) wp.textContent=rcWho(c)||'비어 있음'; }
-  const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''}${cd.chodo?` · 초도 ${wonStr(cd.chodo)}`:''}${cd.kit?` · 키트 ${wonStr(cd.kit)}`:''}${cd.lunch?` · 도시락 ${wonStr(cd.lunch)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
+  const cd=commData(c), ca=$('#commAuto'); if(ca) ca.textContent=`자동: 제단 ${cd.altarKeep?wonStr(cd.altarKeep):'없음'}${cd.burial?` · 장지 ${wonStr(cd.burial)}`:''} · 유골함 ${cd.urnKeep?wonStr(cd.urnKeep):'없음'}${cd.flowerKeep?` · 꽃관 ${wonStr(cd.flowerKeep)}`:''}${cd.chodo?` · 초도 ${wonStr(cd.chodo)}`:''}${cd.kit?` · 키트 ${wonStr(cd.kit)}`:''}${cd.lunch?` · 도시락 ${wonStr(cd.lunch)}`:''} · 총계 ${wonStr(cd.total)||'0원'}`;
   [['꽃관',cd.flowerKeep],['초도',cd.chodo],['키트',cd.kit],['도시락',cd.lunch]].forEach(([k,w])=>{ const el=document.querySelector(`#p-settle [data-comm="${k}"]`); if(!el) return; el.disabled=!!w; el.placeholder=w?'자동 '+wonStr(w):'';
     const want=w?'':String((s.comm||{})[k]??''); if(el.value!==want) el.value=want; const u=el.closest('.amt')?.querySelector('.amt-u'); if(u) u.textContent=w?'':amtUnit(want); });
   const ct=$('#commText'); if(ct) ct.value=commText(c);
