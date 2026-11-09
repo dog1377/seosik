@@ -18,7 +18,7 @@ SETUP = r"""(()=>{
  Object.assign(c.f,{eventNo:'1',place:'부산착한 VIP2호',name:'홍길동',depart:'2026-10-10T07:00',collect:'257.5',customer:'서재원',company:'넥센타이어',helper:'김정단',helperHours:'50',vehType:'버스 리무진',vehCo:'한맥장의차',mournBrand:'한맥',burial:'창원상복-부산추모(벽식)'});
  Object.assign(s,{pay:'현금',altarAmt:'100',altarPay:'현금',urnAsk:'yes',urnCollect:'90',urnCost:'25',urnDisc:'5',urnPay:'현금',urnType:'봉분골드천향',
    extras:[{id:'e1',text:'남상복 6세트 추가',amt:'30',pay:'현금'},{id:'e2',text:'여상복 4벌 추가',amt:'12',pay:'현금'}],flower:'경북 5만원',flowerPay:'월말 법카결제',flowerSale:'30',flowerSalePay:'현금',trib:'영호 5만원',tribPay:'월말 법카결제',
-   hall:'10',burialAmt:'300',burialSea:'no',chodo:'5',kit:'3',lunch:'6'});
+   hall:'10',burialAmt:'300',burialType:'tree',burialSea:'no',chodo:'5',kit:'3',lunch:'6'});
  const c1=c;
  startCase(co('디더블유')); c=curCase(); s=S(c);
  Object.assign(c.f,{eventNo:'3',place:'창원한마음',depart:'2026-10-12T07:00',collect:'389'});
@@ -30,10 +30,14 @@ SETUP = r"""(()=>{
  s.carry=[{id:'r1',from:c2.id,label:caseTag(c2),won:settleCalc(c2).sendWon}];
  save();
  const v=caseEnvelope(c1);   // 원 단위
- S(c1).burialSea='yes'; const sea=caseEnvelope(c1); S(c1).burialSea='no'; caseEnvelope(c1);
+ setBType(S(c1),'sea'); const sea=caseEnvelope(c1); setBType(S(c1),'tree'); caseEnvelope(c1);
+ const line=(k)=>(commText(c1).split('\n').find(l=>l.startsWith(k+' :'))||''), tot=()=>(commText(c1).match(/총계 : .*/)||[''])[0];
+ const bt={tree:[line('수목장'),tot()]}; setBType(S(c1),'sea'); bt.sea=[line('바다장'),tot()]; setBType(S(c1),'ossuary'); bt.oss=[line('납골'),tot()];
+ delete S(c1).burialType; S(c1).burialSea='no'; bt.oldNo=[line('수목장'),line('바다장'),line('납골'),tot()]; S(c1).burialSea='yes'; bt.oldYes=[line('바다장'),tot()];
+ setBType(S(c1),'tree'); caseEnvelope(c1);
  return {ex1:settleCalc(c1).sendWon, ex2:settleCalc(c2).sendWon, tag2:caseTag(c2), ex3before:before3, ex3:settleCalc(c).sendWon,
    part:v.part, mgr:v.manager, seaBur:[sea.partBurial,sea.managerBurial],
-   comm:(commText(c1).match(/총계 : .*/)||[''])[0], commBur:(commText(c1).match(/장지 : .*/)||[''])[0], rc:rcptForms(c1).map(f=>f.text).join('\n'), t1:settleText(c1),
+   comm:(commText(c1).match(/총계 : .*/)||[''])[0], bt, rc:rcptForms(c1).map(f=>f.text).join('\n'), t1:settleText(c1),
    altar:(()=>{ startCase(co('디더블유')); const a=curCase(); Object.assign(a.f,{collect:'300',altar:'20'}); Object.assign(S(a),{pay:'현금'});   // 제단공제 20 · 2026.10.29 법인카드결제
      const ded=settleCalc(a).sendWon; a.f.altarCard=true; const card=settleCalc(a).sendWon, txt=vals(a)['제단공제'], band=(bandOut(a).match(/제단공제 : .*/)||[''])[0]; a.f.altarCard=false; return [ded,card,txt,band]; })()};
 })()"""
@@ -48,8 +52,8 @@ EXPECT = [
     ('예시4 본부장 봉투', 'part', 1660000),
     ('예시4 실장 봉투', 'mgr', 2820000),
     ('해양장 장지 (본부장 · 실장)', 'seaBur', [1500000, 1500000]),
-    ('수당 총계 (= 실장 봉투, 장지 실장 몫 포함 2026.11.09)', 'comm', '총계 : 282만원'),
-    ('수당 장지 줄', 'commBur', '장지 : 148만원(300)'),
+    ('수당 총계 (수목장 실장 몫 포함, 2026.11.09)', 'comm', '총계 : 282만원'),
+    ('장지 종류 → 수당 줄 (수목장 · 해양장=바다장 · 납골당=납골 · 예전 일반 · 예전 해양장)', 'bt', {'tree': ['수목장 : 148만원(300)', '총계 : 282만원'], 'sea': ['바다장 : 150만원(300)', '총계 : 284만원'], 'oss': ['납골 : 148만원(300)', '총계 : 282만원'], 'oldNo': ['수목장 :', '바다장 :', '납골 :', '총계 : 134만원'], 'oldYes': ['바다장 : 150만원(300)', '총계 : 284만원']}),
 ]
 
 
