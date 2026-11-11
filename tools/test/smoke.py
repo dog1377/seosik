@@ -115,8 +115,9 @@ def main():
             ctx, p = page(w, h, sc)
             p.goto(BASE + 'forms/#board'); login(p, 'seo', 'pw1111')
             p.wait_for_function("typeof showTab==='function' && typeof S!=='undefined'", timeout=15000)
-            for t in ['board', 'docs', 'fhome', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings']:
-                p.evaluate(f"showTab('{t}')"); p.wait_for_timeout(500); look(p, f'forms_{t}_{tag}')
+            # 서식 설정은 한 가지씩 (2026.11.11 설정 한 곳 — 목록은 장례업무 설정, 서식 첫 화면 fhome 은 총괄실장만)
+            for t in ['board', 'docs', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings:info', 'settings:roster', 'settings:sig', 'settings:roles']:
+                p.evaluate(f"showTab('{t}')"); p.wait_for_timeout(500); look(p, f'forms_{t.replace(":", "_")}_{tag}')
                 want = 'event' if t in ('board', 'docs') else 'forms'
                 got = p.evaluate("[document.body.dataset.mode, (document.querySelector('#dwMode [aria-pressed=\"true\"]')||{getAttribute:()=>''}).getAttribute('data-dwmode')]")
                 if got[0] != want or got[1] != want:
@@ -129,7 +130,7 @@ def main():
             # 장례업무 (같은 기기 · 로그인 유지)
             p.goto(BASE + 'forms/funeral.html'); p.wait_for_function("typeof setTab==='function'", timeout=15000)
             p.evaluate(SEED)
-            # 휴대폰 첫 화면 (2026.10.30): 아래 메뉴 없음 · 큰 칸 바둑판 · 「‹ 홈」은 첫 화면이 아닐 때만
+            # 휴대폰 첫 화면 (2026.11.11 바둑판 3안): 아래 메뉴 없음 · 행사 · 서식 · 배송 묶음 한 장 · 「‹ 홈」은 첫 화면이 아닐 때만
             if p.evaluate("!!document.getElementById('mobileNav').offsetParent"):
                 problems.append(f'{tag}: 장례업무 아래 메뉴가 보임 (2026.10.30 에 없앰)')
             if w < 700:
@@ -137,21 +138,34 @@ def main():
                 if not p.evaluate("!!(document.getElementById('dwHomeBtn')||{}).offsetParent"):
                     problems.append(f'{tag}: 행사 입력 화면에 「‹ 홈」 버튼이 안 보임')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
-                got = p.evaluate("[db.tab, document.querySelectorAll('#p-home .dwh-menu .dwh-row').length, document.querySelectorAll('#p-home .dwh-modes button').length, !!(document.getElementById('dwHomeBtn')||{}).offsetParent]")
-                if got != ['home', 5, 3, False]:
-                    problems.append(f'{tag}: 행사 칸 첫 화면이 다름 [탭, 업무 줄 수, 칸 바꾸기 수, 홈 버튼 보임] = {got}')
-                p.locator('#p-home [data-dwh="event"]').click(); p.wait_for_timeout(300)
+                got = p.evaluate("[db.tab, [...document.querySelectorAll('#p-home .dwg-sec h2')].map(x=>x.textContent).join(' '), document.querySelectorAll('#p-home .dwg-t').length, document.querySelector('#p-home .dwg-todo')?.textContent||'', !!(document.getElementById('dwHomeBtn')||{}).offsetParent]")
+                if got != ['home', '행사 서식 배송', 18, '할 일 3건', False]:
+                    problems.append(f'{tag}: 첫 화면이 다름 [탭, 묶음, 칸 수, 할 일, 홈 버튼 보임] = {got}')
+                p.click('#p-home [data-dwg-todo]'); p.wait_for_timeout(200)
+                if p.evaluate("document.getElementById('dwgTodo').hidden || document.querySelectorAll('#dwgTodo .dwh-row').length!==3"):
+                    problems.append(f'{tag}: 첫 화면 「할 일 3건」을 눌러도 할 일이 안 펼쳐짐')
+                look(p, f'funeral_home_todo_{tag}')
+                p.locator('#p-home [data-dwh="list"]').click(); p.wait_for_timeout(300)
                 if p.evaluate("[db.tab, !document.getElementById('tnSubRow').hidden]") != ['list', True]:
-                    problems.append(f'{tag}: 첫 화면 「행사」 카드 → 행사 목록(안쪽 밑줄 탭)이 아님')
+                    problems.append(f'{tag}: 첫 화면 「행사 목록」 칸 → 행사 목록(안쪽 밑줄 탭)이 아님')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
-                p.locator('#p-home [data-dwh-mode="deliv"]').click(); p.wait_for_timeout(300)
-                if p.evaluate("[db.tab, document.body.dataset.mode]") != ['dhome', 'deliv']:
-                    problems.append(f'{tag}: 배송 칸 첫 화면으로 안 바뀜')
-                p.locator('#p-dhome [data-dwh="new"]').click(); p.wait_for_timeout(300)
+                p.locator('#p-home [data-dwh="d-new"]').click(); p.wait_for_timeout(300)
                 if p.evaluate("[db.tab, !!dvCur()]") != ['deliv', True]:
-                    problems.append(f'{tag}: 배송 칸 「새 배송」 카드를 눌렀는데 새 배송이 안 됨')
+                    problems.append(f'{tag}: 첫 화면 「새 배송」 칸을 눌렀는데 새 배송이 안 됨')
                 p.evaluate("db.ships=[]; db.shipCur=null; save()")
-            for t in ['home', 'dhome', 'list', 'input', 'out', 'poster', 'deliv', 'settle', 'envelopes', 'duty', 'admin']:
+                # 설정 한 곳 (2026.11.11): 첫 화면 「설정」 → 설정 목록 → 한 가지 → 「‹ 설정」
+                p.click('#dwHomeBtn'); p.wait_for_timeout(300)
+                p.locator('#p-home [data-dwh="admin"]').click(); p.wait_for_timeout(400)
+                got = p.evaluate("[db.tab, db.adminView, [...document.querySelectorAll('#setHub .dws-g h2')].map(x=>x.textContent).join(' '), !!document.querySelector('#setHub .dws-me')]")
+                if got != ['admin', 'hub', '행사 업무 서식 · 보고서 회사 서류 화면 · 계정', True]:
+                    problems.append(f'{tag}: 설정 목록이 다름 {got}')
+                p.locator('#setHub [data-dws="ev-rules"]').click(); p.wait_for_timeout(300)
+                if p.evaluate("[db.adminView, document.getElementById('setBack').hidden, !!document.getElementById('rAltar').offsetParent]") != ['rules', False, True]:
+                    problems.append(f'{tag}: 설정 목록 「정산 기준」 → 정산 기준 화면이 아님')
+                p.locator('#setBack [data-dws-back]').click(); p.wait_for_timeout(300)
+                if p.evaluate('db.adminView') != 'hub':
+                    problems.append(f'{tag}: 「‹ 설정」을 눌러도 설정 목록으로 안 감')
+            for t in ['home', 'list', 'input', 'out', 'poster', 'deliv', 'settle', 'envelopes', 'duty', 'admin']:
                 if t == 'deliv':   # 배송 (2026.10.30): 인력+대체 한 건을 넣고 양식 줄 확인
                     p.evaluate("db.ships=[{id:'t1',kind:'sub',co:'삼성SDS',place:'부산대동 VIP실',mgr:[{id:'m1',date:'2026-10-13',sh:'10',sm:'00',eh:'20',em:'00',n:'1'}],veh:{type:'리무진',km:'200',burial:'김해추모',depart:'2026-10-14T06:30',co:'한맥장의차'},subs:[{id:'s1',n:'4',what:'veh'},{id:'s2',n:'3',what:'mourn',m:'5',w:'1'}],updated:1}]; db.shipCur='t1'")
                 p.evaluate(f"setTab('{t}')"); look(p, f'funeral_{t}_{tag}')
@@ -177,6 +191,8 @@ def main():
             p.goto(BASE + 'forms/admin.html'); p.wait_for_function("typeof showTab==='function'", timeout=15000)
             for t in ['docs', 'staff', 'settings']:
                 p.evaluate(f"showTab('{t}')"); look(p, f'admin_{t}_{tag}')
+            if p.evaluate("[document.getElementById('coTabs').hidden, document.getElementById('coSetBack').hidden, document.querySelectorAll('#coTabs [data-ctab]').length]") != [True, False, 2]:
+                problems.append(f'{tag}: 회사 정보 화면이 설정 한 가지 모양(「‹ 설정」, 서류 · 직원 탭 숨김)이 아님')
             ctx.close()
             # 직원: 서식 · 회사 서류는 못 들어감
             ctx, p = page(w, h, sc)
@@ -184,10 +200,16 @@ def main():
             p.wait_for_function("typeof setTab==='function' && !document.documentElement.classList.contains('dw-gated')", timeout=15000); look(p, f'member_list_{tag}')
             if 'funeral.html' not in p.url:
                 problems.append(f'member {tag}: 앱을 열었는데 행사 목록이 아님')
-            if p.evaluate("!!(document.querySelector('#dwMode [data-dwmode=\"forms\"]')||{}).offsetParent || !!(document.querySelector('.dwh-modes [data-dwh-mode=\"forms\"]')||{}).offsetParent"):
+            if p.evaluate("!!(document.querySelector('#dwMode [data-dwmode=\"forms\"]')||{}).offsetParent"):
                 problems.append(f'member {tag}: 직원에게 「서식」 칸 바꾸기가 보임')
-            if w < 700 and p.evaluate('db.tab') != 'home':
-                problems.append(f'member {tag}: 휴대폰에서 앱을 열었는데 행사 칸 첫 화면이 아님')
+            if w < 700:
+                if p.evaluate('db.tab') != 'home':
+                    problems.append(f'member {tag}: 휴대폰에서 앱을 열었는데 첫 화면이 아님')
+                elif p.evaluate("[...document.querySelectorAll('#p-home .dwg-sec h2')].map(x=>x.textContent).join(' ')") != '행사 배송':
+                    problems.append(f'member {tag}: 직원 첫 화면에 서식 묶음이 보이거나 묶음이 다름')
+                p.evaluate("setTab('admin')"); look(p, f'member_settings_{tag}')
+                if p.evaluate("[...document.querySelectorAll('#setHub [data-dws]')].map(b=>b.dataset.dws).filter(k=>k.startsWith('ev-')||k.startsWith('fm-')||k.startsWith('co-')).join(',')") != 'ev-rules,ev-lists,ev-keep':
+                    problems.append(f'member {tag}: 직원 설정 목록에 파트장 설정이 보임')
             p.goto(BASE + 'forms/#board'); p.wait_for_function("typeof showTab==='function' && typeof S!=='undefined' && S.tab==='board'", timeout=15000); look(p, f'member_board_{tag}')
             p.goto(BASE + 'forms/admin.html'); p.wait_for_timeout(1500)
             if 'admin.html' in p.url:
@@ -209,6 +231,9 @@ def main():
                 p.click(f"#gtTabs [data-gv='{v}']"); p.wait_for_timeout(500); look(p, f'chief_{v}_{tag}')
             p.evaluate("showTab('docs')"); p.wait_for_timeout(500); look(p, f'chief_docs_{tag}')
             p.evaluate("showTab('settings')"); look(p, f'chief_settings_{tag}')
+            if p.evaluate("[S.setView, [...document.querySelectorAll('#setHubF [data-dws]')].map(b=>b.dataset.dws).filter(k=>/^(ev|fm|co|duty)/.test(k)).join(',')]") != ['hub', 'fm-info,fm-sig,co-info']:
+                problems.append(f'chief {tag}: 총괄실장 설정 목록이 다름')
+            p.evaluate("showTab('settings:info')"); look(p, f'chief_settings_info_{tag}')
             p.evaluate("showTab('stock')"); p.wait_for_timeout(300)
             if p.evaluate('S.tab') != 'gather':
                 problems.append(f'chief {tag}: 총괄실장이 물품 장부에 들어감')

@@ -346,7 +346,6 @@ p{text-wrap:pretty}
   <nav class="ftabs" id="coTabs" aria-label="회사 서류 고르기">
     <button type="button" data-ctab="docs" aria-current="page">서류</button>
     <button type="button" data-ctab="staff" aria-current="false">직원</button>
-    <button type="button" data-ctab="settings" aria-current="false">회사 정보</button>
   </nav>
   <section class="tab" id="tab-docs">
     <div class="tab-head">
@@ -377,6 +376,7 @@ p{text-wrap:pretty}
 
   <!-- ===== 설정 ===== -->
   <section class="tab" id="tab-settings" hidden>
+    <div id="coSetBack"></div>   <!-- 「‹ 설정」 (2026.11.11 설정 한 곳 — 회사 정보 · 직인은 설정 목록에서 들어옴) -->
     <div class="tab-head">
       <h1>회사 정보 · 직인</h1>
       <p>서식에 들어갈 회사 정보와 직인을 정합니다. 기록은 내 계정에 자동으로 저장됩니다.</p>
@@ -410,31 +410,6 @@ p{text-wrap:pretty}
       </div>
       <input type="file" id="sealFile" accept="image/*" class="vh">
     </div>
-    <div class="card" id="pwCard" hidden>
-      <h2>앱 비밀번호</h2>
-      <p class="small-t muted">DW관리(관리자)와 관리자 서식(파트장) 비밀번호를 정합니다. 여기서 만든 <b>비밀번호 코드</b>를 앱 담당자에게 보내면 앱에 적용됩니다. 코드로는 비밀번호를 알아낼 수 없지만, <b>비밀번호 자체는 어디에도 보내지 마십시오.</b> 장례일정은 비밀번호 없이 열립니다.</p>
-      <p class="small-t" id="pwState"></p>
-      <label class="field"><span>대상</span><select class="sel" id="pwFor"><option value="admin">DW관리 · 관리자 비밀번호</option><option value="forms">관리자 서식 · 파트장 비밀번호</option></select></label>
-      <label class="field"><span class="field-label">새 비밀번호 <span class="opt">6자 이상, 영문과 숫자를 섞어서</span></span><input type="password" id="pwNew" autocomplete="new-password"></label>
-      <label class="field"><span>한 번 더</span><input type="password" id="pwNew2" autocomplete="new-password"></label>
-      <button class="btn primary" type="button" id="pwMake">비밀번호 코드 만들기</button>
-      <div class="pw-out" id="pwOut" hidden>
-        <p class="small-t">아래 코드를 그대로 복사해서 보내 주십시오.</p>
-        <textarea id="pwCode" readonly rows="3"></textarea>
-        <button class="btn" type="button" id="pwCopy">코드 복사</button>
-      </div>
-    </div>
-    <div class="card" id="installSettings" hidden>
-      <h2>앱 설치</h2>
-      <div class="install-body" id="installBody2"></div>
-    </div>
-    <div class="card">
-      <h2>저장</h2>
-      <p class="small-t muted">직원 인적사항과 문서는 내 계정(서버)에 자동으로 저장됩니다. 앱을 지우거나 휴대폰을 바꿔도 같은 계정으로 로그인하면 돌아옵니다. 직원 개인정보가 들어 있으니 계정 비밀번호를 잘 지켜 주십시오.</p>
-      <p class="small-t" id="srvSync">로그인하면 내 계정에 자동 저장됩니다.</p>
-      <p class="small-t" id="dataCount">-</p>
-    </div>
-    <p class="ver" id="appVersion"></p>
   </section>
 </div>
 
@@ -849,7 +824,7 @@ let updatePending = false;
 function sessGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
 function sessSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) { /* ignore */ } }
 function renderInstall() {
-  if (!window.__PWA__ || isStandalone()) { $('#installCard').hidden = true; $('#installSettings').hidden = true; return; }
+  if (!window.__PWA__ || isStandalone()) { $('#installCard').hidden = true; return; }
   let html;
   if (isInApp()) {
     html = '<p>카카오톡 같은 앱 안에서는 설치할 수 없습니다. 주소를 복사해서 <b>Chrome</b>(안드로이드)이나 <b>Safari</b>(아이폰)에 붙여 넣어 열어 주십시오.</p><div><button class="btn small copy-link" type="button">주소 복사</button></div>';
@@ -862,10 +837,9 @@ function renderInstall() {
   } else {
     html = '<ol><li>Chrome 오른쪽 위 <b>⋮</b> 메뉴를 누르십시오.</li><li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르십시오.</li></ol>';
   }
-  $('#installBody').innerHTML = html; $('#installBody2').innerHTML = html;
+  $('#installBody').innerHTML = html;
   let dismissed = false; try { dismissed = localStorage.getItem('ca.installDismissed') === '1'; } catch (e) { /* ignore */ }
   $('#installCard').hidden = dismissed && !deferredInstall;
-  $('#installSettings').hidden = false;
 }
 async function copyLink() {
   const url = location.href.split('#')[0];
@@ -1140,7 +1114,8 @@ function showTab(t) {
   S.tab = t;
   ['docs', 'staff', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
   $$('#coTabs [data-ctab]').forEach((b) => b.setAttribute('aria-current', b.dataset.ctab === t ? 'page' : 'false'));
-  try { localStorage.setItem('ca.tab', t); } catch (e) { /* ignore */ }
+  $('#coTabs').hidden = t === 'settings'; $('#coSetBack').hidden = t !== 'settings';
+  if (t !== 'settings') { try { localStorage.setItem('ca.tab', t); } catch (e) { /* ignore */ } }
   window.scrollTo(0, 0);
   if (t === 'settings') renderSettings();
   if (t === 'staff') renderStaffList();
@@ -1795,8 +1770,6 @@ function renderSettings() {
   $('#coName').value = c.name || ''; $('#coCeo').value = c.ceo || ''; $('#coBiz').value = c.bizNo || ''; $('#coAddr').value = c.address || ''; $('#coTel').value = c.tel || '';
   $('#coShowAppr').checked = !!c.showApproval; $('#coAppr').value = c.approvals || ''; $('#coAppr').disabled = !c.showApproval;
   renderCoBar(); renderSeal();
-  const imgs = [...S.staff.values()].filter((s) => s.photo).length;
-  $('#dataCount').textContent = `저장된 기록: 직원 ${S.staff.size}명 (사진 ${imgs}장) · 문서 ${S.docs.size}건`;
 }
 function renderCoBar() {
   const dirty = !!S.cd;
@@ -1830,22 +1803,6 @@ function renderAll() { renderTypeGrid(); renderDocList(); renderStaffList(); ren
 
 /* ================= 이벤트 ================= */
 function bind() {
-  { const st = window.__LOCK_STATE__ || {}; $('#pwState').textContent = `지금: DW관리 잠금 ${st.admin ? '켜짐' : '꺼짐'} · 관리자 서식 잠금 ${st.forms ? '켜짐' : '꺼짐'}`; }
-  $('#pwMake').addEventListener('click', async () => {
-    const a = $('#pwNew').value, b = $('#pwNew2').value;
-    if (a.length < 6) { toast('비밀번호는 6자 이상으로 정해 주십시오'); return; }
-    if (!/[0-9]/.test(a) || !/[^0-9]/.test(a)) { toast('영문(또는 한글)과 숫자를 섞어 주십시오'); return; }
-    if (a !== b) { toast('두 번 넣은 비밀번호가 다릅니다'); return; }
-    if (!window.crypto || !crypto.subtle) { toast('이 화면에서는 만들 수 없습니다. https 주소에서 열어 주십시오'); return; }
-    const salt = crypto.getRandomValues(new Uint8Array(16)), it = 210000;
-    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(a), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: it }, key, 256);
-    const b64 = (u) => btoa(String.fromCharCode(...new Uint8Array(u)));
-    $('#pwCode').value = `${$('#pwFor').value}:p2$${it}$${b64(salt)}$${b64(bits)}`;
-    $('#pwOut').hidden = false; $('#pwNew').value = ''; $('#pwNew2').value = '';
-    toast('코드를 만들었습니다. 복사해서 보내 주십시오');
-  });
-  $('#pwCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#pwCode').value); toast('코드를 복사했습니다'); } catch (e) { $('#pwCode').select(); toast('선택된 코드를 길게 눌러 복사해 주십시오'); } });
   $('#coTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-ctab]'); if (b) showTab(b.dataset.ctab); });
   // 서식 목록
   $('#typeGrid').addEventListener('click', (e) => {
@@ -1968,7 +1925,6 @@ async function checkVersion() {
 }
 function setupPwa() {
   if (!window.__PWA__) return;
-  $('#appVersion').textContent = `앱 버전 ${window.__APP_VERSION__ || '-'}`;
   if (isInApp()) {
     $('#inappBanner').hidden = false;
     if (/KAKAOTALK/i.test(navigator.userAgent) && !sessGet('ca.kakaoOut')) {
@@ -2037,25 +1993,28 @@ window.DW_SYNC = {
     if (co) await Store.put('kv', clone(S.co), 'company');
     renderAll();
     return skipped;
-  },
-  onState(st, m) {
-    const el = $('#srvSync'); if (!el) return;
-    const d = m && m.at ? new Date(m.at) : null, at = d ? `${d.getMonth() + 1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
-    el.textContent = st === 'ok' ? `내 계정에 자동 저장 · 마지막 저장 ${at}` : st === 'sync' ? '내 계정에 저장하는 중…'
-      : st === 'err' ? '지금은 내 계정에 올리지 못했습니다. 인터넷이 되면 바로 다시 올립니다.'
-      : st === 'wait' ? '인터넷이 연결되면 바로 올립니다.' : '로그인하면 내 계정에 자동 저장됩니다.';
   }
+
 };
 
+/* 설정 목록으로 (2026.11.11 설정 한 곳): 파트장 = 장례업무 설정, 총괄실장 = 서식 설정 */
+function setHub() {
+  if (S.cd) { toast('설정을 저장하거나 되돌린 뒤에 이동해 주십시오.'); return; }
+  try { localStorage.setItem('mf.lastApp', 'forms'); } catch (e) { /* ignore */ }
+  location.replace(window.dwAcct && window.dwAcct.chief() ? './#settings:hub' : 'funeral.html#admin');
+}
 async function init() {
   bind(); bindPwa(); setupPwa(); getDownloads();
   let tab = 'docs';
   try { tab = localStorage.getItem('ca.tab') || 'docs'; } catch (e) { /* ignore */ }
-  if (!['docs', 'staff', 'settings'].includes(tab)) tab = 'docs';
+  if (!['docs', 'staff'].includes(tab)) tab = 'docs';
+  if (location.hash === '#settings') { tab = 'settings'; try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ } }   /* 설정 목록 「회사 정보 · 직인」 */
+  { const bk = $('#coSetBack'); bk.innerHTML = window.dwSet ? window.dwSet.back('') : ''; bk.addEventListener('click', (e) => { if (e.target.closest('[data-dws-back]')) setHub(); }); }
   renderAll(); showTab(tab);
   /* 휴대폰 「뒤로」 (2026.11.01, 공통 dwHist): 화면 = S.tab, 이 화면만의 창 = 직원 고르기 · 저장 · 보내기 */
   window.DW_VIEW = () => S.tab;
-  window.DW_GO = (t) => showTab(t);
+  window.DW_GO = (t) => { if (t === 'sethub') { setHub(); return; } showTab(t); };
+  window.DW_HOMEV = () => (window.dwPhone && window.dwPhone() && S.tab === 'settings' ? 'sethub' : '');   /* 회사 정보에서 뒤로 = 설정 목록 */
   window.DW_CLOSE_TOP = () => { if (!$('#pickSheet').hidden) { closePick(); return true; } if (!$('#sheet').hidden) { closeSheet(); return true; } return false; };
   if (window.dwHist) window.dwHist.init();
   const ok = await Store.open();

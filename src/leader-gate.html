@@ -139,6 +139,7 @@
     id: function () { return idOf(acct.user()); },
     leader: function () { return root.classList.contains('dw-leader'); },
     chief: function () { return root.classList.contains('dw-chief'); },
+    admin: function () { var u = acct.user(), m = u && u.app_metadata; return !!(m && m.dw_admin); },
     client: getClient,
     rpc: rpc,
     /* 로그아웃: 아직 안 올라간 기록을 먼저 올려 보고(최대 몇 초) → 로그아웃 → 다시 열림(로그인 화면). why 'idle' = 10분 동안 안 써서 */
@@ -175,7 +176,7 @@
     }
   };
   function renderAcct() {
-    var u = acct.user(), card = document.getElementById('dwAcctCard'), pill = document.querySelector('.appbar .local span');
+    var u = acct.user(), pill = document.querySelector('.appbar .local span');
     if (pill && u) {
       pill.textContent = idOf(u); var pl = pill.parentNode;
       /* 「· 내 정보」는 넓은 화면에서만 (휴대폰은 위 막대에 로그아웃 버튼이 같이 있어서 아이디만). 누르면 내 정보 (2026.10.29) */
@@ -184,15 +185,7 @@
       pl.onclick = function () { meOpen(pl); };
       pl.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); meOpen(pl); } };
     }
-    if (!card) return;
-    if (!u) { card.hidden = true; return; }
-    card.hidden = false;
-    card.innerHTML = '<h2>내 계정</h2><button type="button" class="ac-me" id="acMe"><span><b></b><small></small></span><i>내 정보 ›</i></button>';
-    var v = meVals();
-    card.querySelector('b').textContent = v.name || idOf(u);
-    card.querySelector('small').textContent = [u.email, v.rank, v.phone].filter(Boolean).join(' · ');
-    card.querySelector('#acMe').onclick = function () { meOpen(this); };
-    if (!ME.p && !ME.asked) { ME.asked = true; meLoad(); }
+    if (u && !ME.p && !ME.asked) { ME.asked = true; meLoad(); }
   }
 
   /* ---------- 내 정보 (2026.10.29, 사용자: 「설정 찾고 수정하기가 번잡함 · 내 계정은 이메일 누르면 내 정보 설정할 수 있게」) ----------
@@ -221,12 +214,13 @@
       if (!d || !d.ok) return;
       ME.p = { name: d.name || '', phone: d.phone || '', rank: d.rank || '', info_at: Number(d.info_at) || 0, old: d.info_at === undefined };
       if (ME.el && !ME.el.hidden && !ME.edited) meFill();
-      var card = document.getElementById('dwAcctCard'); if (card && !card.hidden && card.querySelector('#acMe')) { var v = meVals(); card.querySelector('b').textContent = v.name || idOf(acct.user()); card.querySelector('small').textContent = [acct.user().email, v.rank, v.phone].filter(Boolean).join(' · '); }
+      try { window.dispatchEvent(new CustomEvent('dw-me-load')); } catch (e) {}
     }).catch(function () {});
   }
   function meEl(id) { return ME.el.querySelector('#' + id); }
   function meMsg(id, t, bad) { var m = meEl(id); m.textContent = t || ''; m.classList.toggle('bad', !!bad); }
-  function meFill() { var v = meVals(); meEl('dwMeName').value = v.name; meEl('dwMePhone').value = v.phone; meEl('dwMeRank').value = v.rank; }
+  function meFill() { var v = meVals(); meEl('dwMeName').value = v.name; meEl('dwMePhone').value = v.phone; meEl('dwMeRank').value = v.rank; meRanks(); }
+  function meRanks() { var v = meEl('dwMeRank').value.trim(); [].forEach.call(ME.el.querySelectorAll('[data-me-rank]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-me-rank') === v)); }); }
   function meBuild() {
     var el = ME.el = document.createElement('div');
     el.className = 'dwme'; el.id = 'dwMe'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'dwMeT');
@@ -237,6 +231,7 @@
       + '<label>이름<input id="dwMeName" maxlength="20" autocomplete="name" placeholder="예: 홍길동"></label>'
       + '<label>전화번호<input id="dwMePhone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel" placeholder="010-0000-0000"></label>'
       + '<label>직급<input id="dwMeRank" maxlength="20" placeholder="예: 팀장"></label>'
+      + '<div class="dwme-ranks" role="group" aria-label="직급 고르기">' + ['팀장', '과장', '실장', '파트장', '총괄실장'].map(function (r) { return '<button type="button" data-me-rank="' + r + '">' + r + '</button>'; }).join('') + '</div>'
       + '<p class="dwme-note">게시판 이름 · 장례일정표 문의 줄 · 수당 정산에 들어갑니다. 어느 휴대폰에서 고쳐도 같습니다.</p>'
       + '<button type="submit" class="dwme-main" id="dwMeSave">저장</button><p class="dwme-msg" id="dwMeMsg" role="status"></p></form>'
       + '<div class="dwme-sec"><button type="button" class="dwme-row" id="dwMePwOpen" aria-expanded="false" aria-controls="dwMePwBox">비밀번호 바꾸기' + CH_SVG + '</button>'
@@ -254,9 +249,13 @@
       + '</div>';
     document.body.appendChild(el);
     if (window.dwTheme) meEl('dwMeTheme').insertAdjacentHTML('beforeend', window.dwTheme.seg());
-    el.addEventListener('click', function (e) { if (e.target.closest('[data-me-close]')) meClose(); });
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('[data-me-close]')) { meClose(); return; }
+      var rk = e.target.closest('[data-me-rank]'); if (rk) { var f = meEl('dwMeRank'); f.value = rk.getAttribute('data-me-rank'); f.dispatchEvent(new Event('input', { bubbles: true })); meRanks(); }
+    });
     el.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !document.querySelector('.dwc-bg')) { e.preventDefault(); meClose(); } });
     ['dwMeName', 'dwMePhone', 'dwMeRank'].forEach(function (id) { meEl(id).addEventListener('input', function () { ME.edited = true; meEl('dwMeSave').textContent = '저장'; meMsg('dwMeMsg', ''); }); });
+    meEl('dwMeRank').addEventListener('input', meRanks);
     meEl('dwMePhone').addEventListener('blur', function () { this.value = telFmt(this.value); });
     meEl('dwMeForm').addEventListener('submit', function (e) { e.preventDefault(); meSave(); });
     meEl('dwMePwOpen').onclick = function () { var b = meEl('dwMePwBox'), o = b.hidden; b.hidden = !o; this.setAttribute('aria-expanded', String(o)); if (o) meEl('dwMePw0').focus(); };
@@ -357,7 +356,8 @@
     if (typeof window.dwConfirm === 'function') window.dwConfirm({ title: '로그아웃하시겠습니까?', body: '기록은 내 계정에 저장돼 있습니다. 다시 들어올 때 이메일과 비밀번호를 넣어야 합니다 (인터넷 연결 필요).', ok: '로그아웃', danger: false }).then(go);
     else go(true);
   }
-  window.dwMe = { open: meOpen, close: meClose, vals: meVals, load: meLoad };
+  window.dwMe = { open: meOpen, close: meClose, vals: meVals, load: meLoad, ready: function () { return !!ME.p; } };
+  acct.askLogout = askLogout;   /* 설정 한 곳(dwSet)의 로그아웃 */
 
   /* ---------- 비밀번호 초기화 (2026.10.29): 관리자는 모든 직원, 파트장은 자기 파트원. 비밀번호 = 12345678a, 그 직원은 다음 로그인 때 새 비밀번호를 정함 ---------- */
   var PW0 = '12345678a';
@@ -470,14 +470,14 @@
 
   /* ---------- 칸 바꾸기: 행사 · 서식 (2026.10.29) · 배송 (2026.10.30) ----------
      파트장 = 행사 · 서식 · 배송, 직원 = 행사 · 배송(서식 버튼은 CSS 로 숨김), 총괄실장 = 없음.
-     넓은 화면은 위 막대 앱 이름 · 화면 제목 앞, 휴대폰은 첫 화면 바둑판 맨 위 큰 버튼(dwHome)만.
+     넓은 화면만(위 막대 앱 이름 · 화면 제목 앞). 휴대폰은 칸 바꾸기 없이 첫 화면 한 장에 행사 · 서식 · 배송 묶음(2026.11.11 바둑판 3안).
      화면이 window.DW_MODE(지금 칸) · window.DW_MODE_GO(바꿀 칸)를 줌 */
   function modeNow() { var m = window.DW_MODE; try { m = typeof m === 'function' ? m() : m; } catch (e) { m = ''; } return m === 'event' || m === 'deliv' ? m : 'forms'; }
   function modeGo(to) {
     if (to === modeNow()) return;
     if (typeof window.DW_MODE_GO === 'function' && window.DW_MODE_GO(to) !== false) return;
     var ph = window.dwPhone && window.dwPhone();
-    location.replace(to === 'event' ? 'funeral.html#' + (ph ? 'home' : 'sec-event') : to === 'deliv' ? 'funeral.html#' + (ph ? 'dhome' : 'deliv') : './#' + (ph ? 'fhome' : 'forms'));
+    location.replace(to === 'event' ? 'funeral.html#' + (ph ? 'home' : 'sec-event') : to === 'deliv' ? 'funeral.html#' + (ph ? 'home' : 'deliv') : ph && !acct.chief() ? 'funeral.html#home' : './#' + (ph ? 'fhome' : 'forms'));
   }
   function paintMode() {
     var m = document.getElementById('dwMode'); if (!m) return;
@@ -510,7 +510,7 @@
     b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>홈';
     b.addEventListener('click', function () {
       if (typeof window.DW_HOME_GO === 'function' && window.DW_HOME_GO() !== false) return;
-      var m = modeNow(); location.replace(m === 'event' ? 'funeral.html#home' : m === 'deliv' ? 'funeral.html#dhome' : './#fhome');
+      location.replace(acct.chief() ? './#fhome' : 'funeral.html#home');   /* 첫 화면 = 파트장 · 직원은 장례업무 첫 화면(행사 · 서식 · 배송 한 장), 총괄실장은 서식 첫 화면 */
     });
     bar.insertBefore(b, bar.firstChild);
   }

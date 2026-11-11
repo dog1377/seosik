@@ -281,23 +281,8 @@ body .mobile-nav{display:none!important}
   .tn-sub-row button[aria-current="page"]{background:none;color:var(--ink);font-weight:700}
   .tn-sub-row button[aria-current="page"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;background:var(--ink)}
 }
-/* 설정 고르기 카드: 이름 · 무엇을 정하는지 · 쓰이는 곳 */
-#adminTabs{display:none!important}
-.set-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.set-cards button{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:3px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:44px;min-width:0}
-.set-cards b{font-family:var(--serif);font-size:15px;font-weight:700}
-.set-cards span{font-size:12.5px;color:var(--ink-2);line-height:1.45}
-.set-cards small{font-size:12px;color:var(--muted);line-height:1.4}
-.set-cards small::before{content:"쓰이는 곳 · "}
-.set-cards button[aria-current="true"]{border:2px solid var(--ink);padding:11px 13px;background:var(--accent-soft)}
-@media (hover:hover){.set-cards button:not([aria-current]):hover{border-color:var(--ink)}}
-@media (max-width:1199px){ .set-cards{grid-template-columns:repeat(3,minmax(0,1fr))} }
-@media (max-width:699px){
-  .set-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-  .set-cards small{display:none}
-  .set-cards button{padding:10px 12px}
-  .set-cards button[aria-current="true"]{padding:9px 11px}
-}
+/* 설정 (2026.11.11 「설정 한 곳」): 첫 화면 = 공통 설정 목록(leader-gate-head.html window.dwSet), 항목 화면은 맨 위 「‹ 설정」 (예전 설정 고르기 카드 · 밑줄 탭은 없앰) */
+#p-admin>#setHub{background:none;border:0;padding:0}
 .list-use{display:block;margin:2px 0 4px}
 /* 업무 순서 단계 줄 (2026.10.30 사용자 「메뉴 찾기에 급급 · 순서대로 표기되게 강조」)
    넓은 화면: 위 메뉴 줄 [행사 목록 | 1 입력 › 2 보고서 › 3 일정표 › 4 정산 › 5 봉투 | 장례일정표 | 휴무 · 당직 | 게시판 | 설정]
@@ -399,11 +384,11 @@ body.split[data-tab="input"] #outNext{display:none}
 @media (max-width:560px){ .pr-acts{grid-template-columns:repeat(2,minmax(0,1fr))} }
 /* 장례일정표 화면 (2026.10.28-5, 행사와 따로 입력) */
 body[data-tab="poster"] .case-panel,body[data-tab="deliv"] .top>.case-panel{display:none}
-/* 휴대폰 첫 화면 (2026.10.30, 바둑판은 leader-gate-head.html .dwh-*) — 행사 고르기 상자 · 새 행사 · 저장 버튼은 첫 화면에서 안 보임 (칸 안에 있음) */
-body[data-tab="home"] .top>.case-panel,body[data-tab="dhome"] .top>.case-panel,
-body[data-tab="home"] #newCase,body[data-tab="dhome"] #newCase,body[data-tab="home"] #saveNow,body[data-tab="dhome"] #saveNow,body[data-tab="home"] #saveState,body[data-tab="dhome"] #saveState{display:none}
+/* 휴대폰 첫 화면 (2026.11.11 바둑판 3안, 모양은 leader-gate-head.html .dwg-*) — 행사 고르기 상자 · 새 행사 · 저장 버튼은 첫 화면에서 안 보임 (칸 안에 있음) */
+body[data-tab="home"] .top>.case-panel,
+body[data-tab="home"] #newCase,body[data-tab="home"] #saveNow,body[data-tab="home"] #saveState{display:none}
 @media (max-width:699px){   /* 휴대폰: 행사 고르기 상자가 없는 화면은 위 빈 자리 없앰 */
-  body[data-tab="home"] .wrap>.top,body[data-tab="dhome"] .wrap>.top,body[data-tab="list"] .wrap>.top,body[data-tab="deliv"] .wrap>.top,body[data-tab="poster"] .wrap>.top{display:none}
+  body[data-tab="home"] .wrap>.top,body[data-tab="list"] .wrap>.top,body[data-tab="deliv"] .wrap>.top,body[data-tab="poster"] .wrap>.top{display:none}
   #p-list,#p-deliv,#p-poster{padding-top:14px}
 }
 /* 배송 칸 (넓은 화면): 행사 칸 메뉴 줄은 숨김 — 칸 바꾸기는 위 막대 「행사 · 서식 · 배송」 */
