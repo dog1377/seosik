@@ -1,57 +1,132 @@
-<!-- 디자인 3안 「큰 글씨 · 한 화면 한 일」 (2026.10.30 사용자가 시안 3안을 고름 + 「글씨체도 조금 더 차분하게」)
-     세 화면(장례업무 · 서식 첫 화면 · 회사 서류)의 맨 마지막에 build.py 가 넣음 → 색 · 글꼴 · 모서리 · 주 버튼을 여기 한 곳에서 덮어씀.
-     - 바탕은 밝은 회색, 상자는 흰 카드(모서리 16px), 버튼 · 칸 12px, 주 버튼은 먹색 · 굵게 · 크게(중요한 것은 화면 아래 고정 큰 버튼 .dw-cta)
-     - 글꼴은 원티드 산스 하나(2026.10.30 사용자가 글씨체 후보 중 고름, 받기 전 · 인터넷 끊김엔 Pretendard) — 예전 명조 제목도 같은 글꼴로.
-       인쇄 · 이미지로 나가는 양식(보고서 그림 · 일정표 · 장례일정표 · 상담서)은 그대로 Pretendard · 명조
-     - 색 이름은 세 화면이 쓰는 이름을 모두 덮음(--surface-2 = --field, --line-2 = --edge, --gold = --bronze, --font-display = --serif) -->
+<!-- 디자인 「파란 업무용」 (2026.11.13 사용자가 파란색 명세를 고름 — 프로젝트 문서 claude/UI_UX_개편_지침서.md 2~8장. 예전 3안 「큰 글씨 · 한 화면 한 일」 먹색 · 원티드 산스를 바꿈)
+     세 화면(장례업무 · 서식 첫 화면 · 회사 서류)의 맨 마지막에 build.py 가 넣음 → 색 · 글꼴 · 모서리 · 버튼 · 칸 · 카드 · 배지 · 표를 여기 한 곳에서 덮어씀.
+     - 밝은 화면: 회색 바탕 #F5F7FA · 카드 #FCFCFD(테두리 없이 옅은 그림자, 16px) · 네이비 글자 #1B2537 · 주 버튼 파랑 #2457D6 · 버튼과 칸 10px
+     - 어두운 화면: 같은 짜임. 카드는 그림자 대신 가는 선, 주 버튼은 밝은 파랑 + 어두운 글자(글자 대비 4.5:1 이상)
+     - 글꼴 Pretendard 하나(앱 글꼴). 인쇄 · 이미지로 나가는 양식(보고서 그림 · 일정표 · 장례일정표 · 상담서)은 그대로.
+     - 색 이름은 세 화면이 쓰는 이름을 모두 덮음(--surface-2 = --field, --line-2 = --edge, --gold = --bronze, --font-display = --serif)
+     - 새 이름: --brand · --brand-hover · --brand-active · --bg-subtle · --bg-selected · --st-ok/-warn/-bad/-info(-bg) · --shadow-card · --shadow-pop · --overlay -->
 <style id="dw-theme3">
 :root{
-  --bg:#f2f4f6; --surface:#ffffff; --field:#f7f8fa; --surface-2:#f7f8fa; --ink:#191b1f; --ink-2:#4e5258; --muted:#6b7178;
-  --line:#e5e8eb; --edge:#a8aeb5; --line-2:#a8aeb5; --ph:#767b82; --accent:#191b1f; --accent-ink:#ffffff; --accent-soft:#eef0f3;
-  --bronze:#8c6a1f; --gold:#8c6a1f; --gold-soft:#f5efe2; --warn:#a43c1c; --warn-soft:#fbeae4; --toast-bg:#191b1f; --toast-ink:#ffffff;
-  --sans:"Wanted Sans Variable","Wanted Sans","Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif; --font:var(--sans); --serif:var(--sans);
+  --bg:#F5F7FA; --surface:#FCFCFD; --field:#F0F3F8; --surface-2:#F0F3F8; --bg-subtle:#F0F3F8; --bg-hover:#F0F3F8; --bg-selected:#EDF2FF;
+  --ink:#1B2537; --ink-2:#4C596D; --muted:#5F6D82; --ph:#5F6D82;
+  --line:#E8EDF3; --edge:#7A879A; --line-2:#7A879A;
+  --brand:#2457D6; --brand-hover:#1E49B8; --brand-active:#193E9C;
+  --accent:#2457D6; --accent-ink:#F8FAFC; --accent-soft:#EDF2FF;
+  --bronze:#2858B8; --gold:#2858B8; --gold-soft:#EDF2FF;
+  --warn:#B3323D; --warn-soft:#FCEDEE; --toast-bg:#1B2537; --toast-ink:#F8FAFC;
+  --st-ok:#216843; --st-ok-bg:#EAF5EF; --st-warn:#8A5400; --st-warn-bg:#FFF3DD; --st-bad:#B3323D; --st-bad-bg:#FCEDEE; --st-info:#2858B8; --st-info-bg:#EDF2FF;
+  --btn2:#F0F3F8; --btn2-hover:#E9EEF5; --btn-off:#E9EEF5; --btn-off-ink:#5F6D82;
+  --shadow-card:0 1px 2px rgb(27 37 55 / 3%),0 4px 16px -4px rgb(27 37 55 / 5%);
+  --shadow-pop:0 4px 8px -2px rgb(27 37 55 / 6%),0 12px 32px -8px rgb(27 37 55 / 10%);
+  --shadow-modal:0 8px 24px -8px rgb(27 37 55 / 10%),0 24px 64px -16px rgb(27 37 55 / 16%);
+  --card-edge:0 0 0 0 transparent;
+  --overlay:rgb(27 37 55 / 32%);
+  --sans:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif; --font:var(--sans); --serif:var(--sans);
   --font-display:var(--serif);
+  --ease:cubic-bezier(.2,0,0,1);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#101113; --surface:#1b1d20; --field:#16181b; --surface-2:#16181b; --ink:#eceef0; --ink-2:#c5c9ce; --muted:#9ba1a8;
-    --line:#2a2d32; --edge:#4c525a; --line-2:#4c525a; --ph:#8b9198; --accent:#eceef0; --accent-ink:#101113; --accent-soft:#25282c;
-    --bronze:#d4b26a; --gold:#d4b26a; --gold-soft:#2e2719; --warn:#eea488; --warn-soft:#3a2219; --toast-bg:#eceef0; --toast-ink:#101113;
+    --bg:#0E131B; --surface:#161D28; --field:#1C2534; --surface-2:#1C2534; --bg-subtle:#1C2534; --bg-hover:#1C2534; --bg-selected:#1D2B47;
+    --ink:#E8EDF4; --ink-2:#B9C3D2; --muted:#97A3B6; --ph:#8C99AD;
+    --line:#263142; --edge:#6B7A91; --line-2:#6B7A91;
+    --brand:#7FA6FF; --brand-hover:#98B8FF; --brand-active:#6890F0;
+    --accent:#7FA6FF; --accent-ink:#0E131B; --accent-soft:#1D2B47;
+    --bronze:#9DBBFF; --gold:#9DBBFF; --gold-soft:#1D2B47;
+    --warn:#F2949B; --warn-soft:#3B1D23; --toast-bg:#E8EDF4; --toast-ink:#0E131B;
+    --st-ok:#74D39F; --st-ok-bg:#14301F; --st-warn:#F3B95F; --st-warn-bg:#33270F; --st-bad:#F2949B; --st-bad-bg:#3B1D23; --st-info:#9DBBFF; --st-info-bg:#1D2B47;
+    --btn2:#1C2534; --btn2-hover:#243045; --btn-off:#1C2534; --btn-off-ink:#8C99AD;
+    --shadow-card:none; --shadow-pop:0 12px 32px rgb(0 0 0 / 45%); --shadow-modal:0 24px 64px rgb(0 0 0 / 55%);
+    --card-edge:0 0 0 1px #263142;
+    --overlay:rgb(0 0 0 / 55%);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#101113; --surface:#1b1d20; --field:#16181b; --surface-2:#16181b; --ink:#eceef0; --ink-2:#c5c9ce; --muted:#9ba1a8;
-  --line:#2a2d32; --edge:#4c525a; --line-2:#4c525a; --ph:#8b9198; --accent:#eceef0; --accent-ink:#101113; --accent-soft:#25282c;
-  --bronze:#d4b26a; --gold:#d4b26a; --gold-soft:#2e2719; --warn:#eea488; --warn-soft:#3a2219; --toast-bg:#eceef0; --toast-ink:#101113;
+  --bg:#0E131B; --surface:#161D28; --field:#1C2534; --surface-2:#1C2534; --bg-subtle:#1C2534; --bg-hover:#1C2534; --bg-selected:#1D2B47;
+  --ink:#E8EDF4; --ink-2:#B9C3D2; --muted:#97A3B6; --ph:#8C99AD;
+  --line:#263142; --edge:#6B7A91; --line-2:#6B7A91;
+  --brand:#7FA6FF; --brand-hover:#98B8FF; --brand-active:#6890F0;
+  --accent:#7FA6FF; --accent-ink:#0E131B; --accent-soft:#1D2B47;
+  --bronze:#9DBBFF; --gold:#9DBBFF; --gold-soft:#1D2B47;
+  --warn:#F2949B; --warn-soft:#3B1D23; --toast-bg:#E8EDF4; --toast-ink:#0E131B;
+  --st-ok:#74D39F; --st-ok-bg:#14301F; --st-warn:#F3B95F; --st-warn-bg:#33270F; --st-bad:#F2949B; --st-bad-bg:#3B1D23; --st-info:#9DBBFF; --st-info-bg:#1D2B47;
+  --btn2:#1C2534; --btn2-hover:#243045; --btn-off:#1C2534; --btn-off-ink:#8C99AD;
+  --shadow-card:none; --shadow-pop:0 12px 32px rgb(0 0 0 / 45%); --shadow-modal:0 24px 64px rgb(0 0 0 / 55%);
+  --card-edge:0 0 0 1px #263142;
+  --overlay:rgb(0 0 0 / 55%);
 }
-html body{background:var(--bg);letter-spacing:-.003em}
-/* 글자: 제목은 Pretendard 굵게, 크기는 한 단계 차분하게 */
-html body .ab-title b,html body .brand{font-size:17px;font-weight:700;letter-spacing:-.01em}
-html body .page-intro h1,html body .tab-head h1{font-size:22px;font-weight:700;letter-spacing:-.015em}
-html body .sec-head h2,html body .card h2,html body .out-head h2{font-weight:700;letter-spacing:-.01em}
-html body .wz-card .wz-q{font-weight:700;letter-spacing:-.02em}
+html body{background:var(--bg);color:var(--ink);font-family:var(--sans);letter-spacing:-.01em}
+/* 글자 단계: 페이지 제목 28/700 · 섹션 20/600 · 카드 16/600 · 라벨 13/500 (휴대폰 페이지 제목 24) */
+html body .page-intro h1,html body .tab-head h1{font-size:28px;line-height:36px;font-weight:700;letter-spacing:-.025em}
+@media (max-width:767px){html body .page-intro h1,html body .tab-head h1{font-size:24px;line-height:32px}}
+html body .ab-title b,html body .brand{font-size:16px;font-weight:600;letter-spacing:-.015em}
+html body .sec-head h2,html body .card h2,html body .out-head h2,html body .dwg-sec h2{font-weight:600;letter-spacing:-.02em}
+html body .wz-card .wz-q{font-weight:700;letter-spacing:-.025em}
 html body .wz-total b,html body .cp-t,html body .w-label,html body .bd-title b,html body .ps-h h2{font-weight:700;letter-spacing:-.01em}
-/* 위 막대: 흰 바탕 · 옅은 선 */
+html body .num,html body .wz-total b,html body .lv-tr .num{font-variant-numeric:lining-nums tabular-nums;letter-spacing:0}
+/* 위 막대: 카드 색 · 옅은 선 */
 html body header.appbar{background:var(--surface);border-bottom:1px solid var(--line);box-shadow:none}
-/* 모서리: 상자 16px · 버튼과 칸 12px · 칸 안 작은 버튼 · 표시 8~10px · 주 버튼 14px · 아래에서 올라오는 창 20px (앞의 「모서리 통일」 규칙보다 이기게 :root body 를 붙임) */
+/* 모서리: 상자 16px · 버튼과 칸 10px · 칸 안 작은 버튼 8px · 배지 6px · 아래에서 올라오는 창 20px (앞의 「모서리 통일」 규칙보다 이기게 :root body 를 붙임) */
 :root body .sec,:root body .out,:root body .case-panel,:root body .case-steps,:root body .co-card,:root body .wz-card,:root body .wz-review,:root body .case-pick,:root body .lv-dd,:root body .lv-table,:root body .settle-guide,:root body .calc,:root body .sum,:root body .px-pv,:root body .sz-box,:root body .env-stat,:root body .env-prev,:root body .env-event,:root body .env-lock,:root body .env-form,:root body .acc,:root body .set-cards button,:root body .card,:root body .w-card,:root body .st-card,:root body .type-card,:root body .d-card,:root body .r-card,:root body .install-card,:root body .banner,:root body .stat,:root body .boxed{border-radius:16px}
-:root body .btn,:root body .btn.sm,:root body .btn.link,:root body #newCase,:root body #saveNow,:root body .input,:root body .seg,:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea,:root body .icon-btn,:root body .cp-go,:root body .cp-close,:root body .text-out,:root body .wz-choice button,:root body .chip,:root body .group-tabs,:root body .sub-fold,:root body .missing,:root body .co-symbol,:root body .cm-nav,:root body .rp{border-radius:12px}
-:root body .seg button,:root body .group-tabs button,:root body .ph button,:root body .acc-b button,:root body .tp-grid button,:root body .csheet-list button,:root body .burial-seg button,:root body .missing button,:root body .ch-btn,:root body .check,:root body .lv-st,:root body .tag,:root body .pt-step,:root body .item .tog{border-radius:9px}
+:root body .btn,:root body .btn.sm,:root body .btn.link,:root body #newCase,:root body #saveNow,:root body .input,:root body .seg,:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea,:root body .icon-btn,:root body .cp-go,:root body .cp-close,:root body .text-out,:root body .wz-choice button,:root body .chip,:root body .group-tabs,:root body .sub-fold,:root body .missing,:root body .co-symbol,:root body .cm-nav,:root body .rp{border-radius:10px}
+:root body .seg button,:root body .group-tabs button,:root body .ph button,:root body .acc-b button,:root body .tp-grid button,:root body .csheet-list button,:root body .burial-seg button,:root body .missing button,:root body .ch-btn,:root body .check,:root body .pt-step,:root body .item .tog{border-radius:8px}
+:root body .lv-st,:root body .tag{border-radius:6px}
 :root body .wz-amt .input{border-radius:0}
-:root body .btn.primary{border-radius:14px;font-weight:700}
-:root body .csheet{border-radius:20px 20px 0 0}
-:root body .sheet{border-radius:20px}
+:root body .btn.primary{border-radius:10px;font-weight:600}
+:root body .csheet{border-radius:20px 20px 0 0;box-shadow:var(--shadow-modal)}
+:root body .sheet{border-radius:20px;box-shadow:var(--shadow-modal)}
 @media (min-width:700px){ :root body .csheet{border-radius:20px} }
-:root body .toast{border-radius:12px}
-/* 화면 아래 고정 큰 주 버튼 (휴대폰) — 새 행사 · 새 배송 · 주간보고 등 그 화면에서 가장 중요한 일 하나 */
-.dw-cta{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to bottom,transparent,var(--bg) 32%);pointer-events:none}
-.dw-cta-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:560px;height:56px;margin:0 auto;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:17px;font-weight:700;letter-spacing:-.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+:root body .toast{border-radius:12px;box-shadow:var(--shadow-pop)}
+/* 카드: 테두리 없이 옅은 그림자 (어두운 화면은 가는 선) — 카드 안 카드에는 그림자를 겹치지 않음 */
+:root body .sec,:root body .out,:root body .case-panel,:root body .case-steps,:root body .co-card,:root body .wz-card,:root body .wz-review,:root body .lv-dd,:root body .lv-table,:root body .settle-guide,:root body .calc,:root body .sum,:root body .env-stat,:root body .env-prev,:root body .env-event,:root body .acc,:root body .card,:root body .w-card,:root body .st-card,:root body .d-card,:root body .r-card,:root body .banner,:root body .stat,:root body .boxed,:root body .dwg-sec,:root body .set-cards button{background-color:var(--surface);border:0;box-shadow:var(--shadow-card),var(--card-edge)}
+:root body :is(.sec,.out,.case-panel,.wz-card,.wz-review,.card,.co-card,.env-event,.w-card) :is(.sum,.calc,.card,.acc,.boxed,.settle-guide,.wz-review,.stat,.banner,.env-prev,.env-stat){box-shadow:none;background-color:var(--field)}
+/* 버튼: 높이 44 · 글자 14/600 · 보조 = 옅은 바탕 테두리 없음 · 주 = 파랑 */
+:root body .btn{min-height:44px;border:0;background-color:var(--btn2);color:var(--ink-2);font-size:14px;font-weight:600;box-shadow:none;transition:background-color 160ms var(--ease),color 160ms var(--ease),transform 120ms var(--ease)}
+:root body #newCase,:root body #saveNow,:root body .icon-btn,:root body .cp-go,:root body .dw-home-btn,:root body .dw-out{border:0;background-color:var(--btn2);color:var(--ink-2);box-shadow:none}
+:root body .btn.primary,:root body .dw-cta-btn{background-color:var(--brand);border-color:var(--brand);color:var(--accent-ink);box-shadow:none}
+:root body .btn.link{background:none;color:var(--ink-2)}
+:root body .btn.danger{background-color:var(--btn2);color:var(--warn)}
+:root body .btn:disabled,:root body .btn[aria-disabled="true"]{background-color:var(--btn-off);color:var(--btn-off-ink);cursor:not-allowed}
+@media (hover:hover){
+  :root body .btn:not(.primary):not(.link):not(:disabled):hover,:root body #newCase:hover,:root body #saveNow:hover,:root body .icon-btn:hover,:root body .dw-home-btn:hover,:root body .dw-out:hover{background-color:var(--btn2-hover)}
+  :root body .btn.primary:not(:disabled):hover,:root body .dw-cta-btn:hover{background-color:var(--brand-hover)}
+}
+:root body .btn.primary:not(:disabled):active{background-color:var(--brand-active)}
+/* 화면의 주 버튼 하나 (지침서 9-2): 행사 목록에서는 위 막대 「새 행사」가 주 버튼(넓은 화면) — 휴대폰은 화면 아래 고정 버튼 */
+@media (min-width:700px){
+  :root body[data-tab="list"] #newCase{background-color:var(--brand);color:var(--accent-ink)}
+  @media (hover:hover){:root body[data-tab="list"] #newCase:hover{background-color:var(--brand-hover)}}
+}
+/* 입력 칸: 1px 식별 경계(#7A879A) · 카드 색 바탕 · 16px */
+:root body .input:not(.wz-amt .input),:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea{border:1px solid var(--edge);background-color:var(--surface);color:var(--ink)}
+:root body .input::placeholder,:root body label.field input::placeholder,:root body textarea::placeholder{color:var(--ph);opacity:1}
+:root body .wz-amt .input{border-bottom-color:var(--edge)}
+:root body .wz-amt .input:focus{border-bottom-color:var(--brand)}
+/* 고르는 칸(현금/카드 등): 옅은 바탕, 고른 칸 = 선택 바탕 + 파란 글자 */
+:root body .seg,:root body .group-tabs{border:0;background-color:var(--bg-subtle)}
+:root body .seg button[aria-pressed="true"],:root body .group-tabs button[aria-pressed="true"],:root body .group-tabs button.on{background-color:var(--bg-selected);color:var(--st-info);box-shadow:inset 0 0 0 1px var(--st-info);font-weight:600}
+/* 배지: 24px · 2px 8px · 12/600 + 상태색 (색만으로 뜻을 전하지 않음 — 글자 그대로) */
+:root body .lv-st,:root body .tag{min-height:24px;padding:2px 8px;border:0;font-size:12px;line-height:18px;font-weight:600;background-color:var(--bg-subtle);color:var(--ink-2)}
+:root body .lv-st.st-open,:root body .lv-st.st-changed{background-color:var(--st-warn-bg);color:var(--st-warn)}
+:root body .lv-st.st-minus{background-color:var(--st-bad-bg);color:var(--st-bad)}
+:root body .lv-st.st-sent,:root body .lv-st.st-cleared{background-color:var(--st-ok-bg);color:var(--st-ok)}
+/* 표: 머리 44px 옅은 바탕 · 행 52px · 가로선만 */
+:root body .lv-th{min-height:44px;background-color:var(--bg-subtle);color:var(--ink-2);border-bottom:1px solid var(--line);font-size:13px;font-weight:500}
+:root body .lv-tr{min-height:52px;font-size:14px;line-height:22px;border-bottom:1px solid var(--line)}
+:root body .lv-tr.cur{background-color:var(--bg-selected)}
+/* 첫 화면 그림 칸: 장식용 파랑 대신 옅은 바탕, 주 칸만 파랑 */
+:root body .dwg-i{background-color:var(--bg-subtle);color:var(--ink);border-radius:16px}
+:root body .dwg-t.pri .dwg-i{background-color:var(--brand);color:var(--accent-ink)}
+/* 포커스: 2px 파랑 · 2px 띄움 */
+:root body .btn:focus-visible,:root body .input:focus-visible,:root body a:focus-visible,:root body .dw-cta-btn:focus-visible,:root body [role="button"]:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+/* 화면 아래 고정 주 버튼 (휴대폰) — 그 화면에서 가장 중요한 일 하나 */
+.dw-cta{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to bottom,transparent,var(--bg) 32%);pointer-events:none}
+.dw-cta-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:560px;height:52px;margin:0 auto;border:0;border-radius:10px;background:var(--brand);color:var(--accent-ink);font:inherit;font-size:16px;font-weight:600;letter-spacing:-.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 160ms var(--ease),transform 120ms var(--ease)}
 .dw-cta-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 .dw-cta-btn:active{transform:scale(.98)}
-.dw-cta-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-@media (prefers-reduced-motion:reduce){.dw-cta-btn{transition:none}.dw-cta-btn:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.dw-cta-btn,:root body .btn{transition:none}.dw-cta-btn:active,:root body .btn:active{transform:none}}
 @media (min-width:700px){ .dw-cta{position:static;padding:18px 0 0;background:none}.dw-cta-btn{max-width:340px;margin:0} }
-@media (max-width:699px){ html.dw-at-home body .toast,html body[data-tab="list"] .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))} }   /* 알림이 아래 큰 버튼을 가리지 않게 */
+@media (max-width:699px){ html.dw-at-home body .toast,html body[data-tab="list"] .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))} }   /* 알림이 아래 큰 버튼을 가리지 않게 */
 </style>

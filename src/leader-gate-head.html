@@ -187,7 +187,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
 .dws-back h1{margin:0 0 0 6px;font-size:19px;font-weight:700;letter-spacing:-.015em;line-height:1.3}
 .dws-back button:focus-visible{outline:2px solid var(--ink,#191b1f);outline-offset:2px}
 </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/variable/split/WantedSansVariable.css">   <!-- 앱 글꼴 원티드 산스 (2026.10.30, 색 · 글꼴은 dw-theme3.html) -->
+<!-- 앱 글꼴은 Pretendard 하나 (2026.11.13 파란 업무용 디자인, 색 · 글꼴은 dw-theme3.html — 원티드 산스 불러오기 없앰) -->
 <script>
 /* 화면 밝기: 자동(휴대폰 설정 따라) · 밝게 · 어둡게. <html data-theme> 로 색을 바꿈 (각 화면 CSS가 data-theme 를 앎). 같은 기기 모든 화면 · 휴무 화면(iframe)에 같이 적용 */
 (function () {
@@ -201,7 +201,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
     try { document.querySelectorAll('iframe').forEach(function (f) { try { setOn(f.contentDocument && f.contentDocument.documentElement, m); } catch (e) {} }); } catch (e) {}
     try { document.querySelectorAll('meta[name="theme-color"]').forEach(function (t) {
       if (t.dataset.dwC == null) { t.dataset.dwC = t.getAttribute('content') || ''; t.dataset.dwM = t.getAttribute('media') || ''; }
-      if (m) { t.setAttribute('content', isDark(m) ? '#121314' : '#ffffff'); t.removeAttribute('media'); }
+      if (m) { t.setAttribute('content', isDark(m) ? '#161D28' : '#FCFCFD'); t.removeAttribute('media'); }
       else { t.setAttribute('content', t.dataset.dwC); if (t.dataset.dwM) t.setAttribute('media', t.dataset.dwM); }
     }); } catch (e) {}
     try { document.querySelectorAll('[data-dwtheme]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-dwtheme') === m)); }); } catch (e) {}
@@ -535,6 +535,7 @@ window.dwHist = (function () {
   function closeTop() {
     var c = document.querySelector('.dwc-bg .dwc-no'); if (c) { c.click(); return true; }
     var me = document.getElementById('dwMe'); if (me && !me.hidden && window.dwMe) { window.dwMe.close(); return true; }
+    if (window.dwDrawer && window.dwDrawer.isOpen() && !document.querySelector('.csheet-bg:not([hidden]),#picker:not([hidden])')) { window.dwDrawer.close(); return true; }   /* 상세 패널 (2026.11.13) */
     if (call('DW_CLOSE_TOP') === true) return true;
     var scr = [].slice.call(document.querySelectorAll('.screen')).filter(function (x) { return !x.hidden; }).pop();
     if (scr) { var b = scr.querySelector('.back'); if (b) { b.click(); return true; } }
@@ -557,3 +558,121 @@ window.dwHist = (function () {
   return { push: push, init: init };
 })();
 </script>
+<!-- 상세 패널 (Drawer · Master-Detail, 2026.11.13 사용자: 「항목을 누르거나 고칠 때 페이지 이동 · 가운데 창 대신 오른쪽에서 패널, 목록은 그대로」 — 프로젝트 문서 claude/UI_UX_개편_지침서.md 9-3)
+     window.dwDrawer = open({key, title, sub, body, foot, back, label, from}) · update(같은 칸) · close() · isOpen() · key()
+     - 1280px 이상: 오른쪽 고정 패널(min(560px, 42vw)), 목록을 밀어냄(덮지 않음, 목록을 계속 누를 수 있음)
+     - 700~1279px: 오른쪽에서 덮는 패널(min(480px, 90vw)) + 뒤 어둡게(누르면 닫힘)
+     - 699px 이하: 전체 화면 패널 + 맨 위 「‹ 목록」(back)
+     - 열면 제목으로 초점, 닫으면 누른 곳으로 초점 복귀, Esc · 뒤로 가기(dwHist) 로 닫힘, 덮는 패널은 Tab 이 패널 안에서만 돎
+     - 버튼 · 내용은 화면마다 그 화면 코드가 그림(이 부품은 틀만). 움직임 열기 200ms · 닫기 160ms, 움직임 줄이기면 없음 -->
+<style id="dw-drawer-css">
+.dwdr-scrim{position:fixed;inset:0;z-index:46;background:var(--overlay,rgb(27 37 55 / 32%));opacity:0;transition:opacity 200ms cubic-bezier(.2,0,0,1)}
+.dwdr-scrim.in{opacity:1}
+.dwdr{position:fixed;top:0;right:0;bottom:0;z-index:47;width:min(480px,90vw);display:flex;flex-direction:column;background:var(--surface,#fcfcfd);color:var(--ink,#1b2537);border-radius:20px 0 0 20px;box-shadow:var(--shadow-modal,0 24px 64px rgb(27 37 55 / 16%)),var(--card-edge,0 0 0 0 transparent);transform:translateX(100%);transition:transform 160ms cubic-bezier(.2,0,0,1);overscroll-behavior:contain}
+.dwdr.in{transform:none;transition-duration:200ms}
+.dwdr[hidden],.dwdr-scrim[hidden]{display:none!important}
+html.dw-dr-push .dwdr{width:var(--dr-w);border-radius:0;box-shadow:none;border-left:1px solid var(--line,#e8edf3)}
+html.dw-dr-push body{padding-right:var(--dr-w)}
+html.dw-dr-lock,html.dw-dr-lock body{overflow:hidden}
+.dwdr-head{display:flex;align-items:center;gap:8px;min-height:64px;padding:10px 12px 10px 24px;padding-top:max(10px,env(safe-area-inset-top,0px));border-bottom:1px solid var(--line,#e8edf3);flex:none}
+.dwdr-ttl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dwdr-ttl h2{margin:0;font-size:20px;line-height:28px;font-weight:600;letter-spacing:-.02em;word-break:keep-all;overflow-wrap:anywhere;outline:none}
+.dwdr-x,.dwdr-back{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;border:0;border-radius:10px;background:none;color:var(--ink-2,#4c596d);font:inherit;font-size:14px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dwdr-x svg,.dwdr-back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dwdr-back{display:none;gap:2px;padding:0 10px 0 4px;min-height:44px;background:var(--btn2,#f0f3f8)}
+@media (hover:hover){.dwdr-x:hover{background:var(--bg-hover,#f0f3f8)}}
+.dwdr-x:focus-visible,.dwdr-back:focus-visible{outline:2px solid var(--brand,#2457d6);outline-offset:2px}
+.dwdr-body{flex:1;min-height:0;overflow:auto;padding:24px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.dwdr-foot{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 24px;padding-bottom:max(12px,env(safe-area-inset-bottom,0px));border-top:1px solid var(--line,#e8edf3);background:var(--surface,#fcfcfd)}
+.dwdr-foot:empty{display:none}
+.dwdr-foot .dwdr-sp{flex:1}
+@media (max-width:699px){
+  .dwdr{width:100%;border-radius:0;box-shadow:none}
+  .dwdr-head{padding-left:16px;padding-right:8px}
+  .dwdr-back{display:inline-flex}
+  .dwdr-x{display:none}   /* 휴대폰은 「‹ 목록」 하나로 닫음 */
+  .dwdr-body{padding:16px}
+  .dwdr-foot{padding-left:16px;padding-right:16px}
+}
+@media (prefers-reduced-motion:reduce){.dwdr,.dwdr.in,.dwdr-scrim{transition:none}}
+@media print{.dwdr,.dwdr-scrim{display:none!important}html.dw-dr-push body{padding-right:0}}
+</style>
+<script>
+window.dwDrawer = (function () {
+  'use strict';
+  var el = null, scrim = null, cur = null, from = null, closeT = 0, mode = '';
+  var X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>', BK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function make() {
+    if (el) return;
+    scrim = document.createElement('div'); scrim.className = 'dwdr-scrim'; scrim.hidden = true;
+    scrim.addEventListener('click', function () { close(); });
+    el = document.createElement('aside'); el.className = 'dwdr'; el.id = 'dwDr'; el.hidden = true; el.setAttribute('aria-labelledby', 'dwDrTitle');
+    el.innerHTML = '<div class="dwdr-head"><button class="dwdr-back" type="button" data-dwdr-close>' + BK + '<span>목록</span></button><div class="dwdr-ttl"><h2 id="dwDrTitle" tabindex="-1"></h2><span class="dwdr-sub"></span></div><button class="dwdr-x" type="button" data-dwdr-close aria-label="닫기">' + X + '</button></div><div class="dwdr-body"></div><div class="dwdr-foot"></div>';
+    el.addEventListener('click', function (e) { if (e.target.closest('[data-dwdr-close]')) close(); });
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !document.querySelector('.dwc-bg')) { e.stopPropagation(); close(); return; }
+      if (e.key === 'Tab' && mode !== 'push') {   /* 덮는 패널: Tab 이 패널 안에서만 */
+        var f = [].slice.call(el.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter(function (x) { return !x.disabled && x.offsetParent !== null; });
+        if (!f.length) return; var a = f[0], z = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+      }
+    });
+    document.body.appendChild(scrim); document.body.appendChild(el);
+    document.addEventListener('keydown', function (e) {   /* 초점이 패널 밖에 있어도 Esc 로 닫힘 (다른 창이 위에 있으면 그 창 먼저) */
+      if (e.key !== 'Escape' || !cur || e.defaultPrevented || el.contains(e.target)) return;
+      if (document.querySelector('.dwc-bg,.csheet-bg:not([hidden]),#picker:not([hidden])')) return;
+      close();
+    });
+    window.addEventListener('resize', function () { if (cur) layout(); });
+  }
+  function layout() {
+    var w = window.innerWidth || document.documentElement.clientWidth, H = document.documentElement;
+    mode = w >= 1280 ? 'push' : w >= 700 ? 'over' : 'full';
+    H.style.setProperty('--dr-w', Math.round(Math.min(560, w * 0.42)) + 'px');
+    H.classList.toggle('dw-dr-push', mode === 'push');
+    H.classList.toggle('dw-dr-lock', mode !== 'push');
+    scrim.hidden = mode !== 'over';
+    if (mode === 'push') { el.setAttribute('role', 'region'); el.removeAttribute('aria-modal'); }
+    else { el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); }
+  }
+  function paint(o) {
+    el.querySelector('#dwDrTitle').textContent = o.title || '';
+    el.querySelector('.dwdr-sub').innerHTML = o.sub || '';
+    el.querySelector('.dwdr-back span').textContent = o.back || '목록';
+    el.querySelector('.dwdr-body').innerHTML = o.body || '';
+    el.querySelector('.dwdr-foot').innerHTML = o.foot || '';
+    el.setAttribute('data-key', o.key || '');
+  }
+  function open(o) {
+    o = o || {}; make(); clearTimeout(closeT);
+    var was = !!cur; cur = o; from = o.from || document.activeElement;
+    paint(o); el.querySelector('.dwdr-body').scrollTop = 0;
+    if (!was) {
+      el.hidden = false; layout(); void el.offsetWidth;
+      el.classList.add('in'); scrim.classList.add('in');
+      if (window.dwHist) window.dwHist.push('drawer');
+    } else layout();
+    var t = el.querySelector('#dwDrTitle'); try { t.focus({ preventScroll: true }); } catch (e) { t.focus(); }
+    try { document.dispatchEvent(new CustomEvent('dw-drawer', { detail: { open: true, key: o.key || '' } })); } catch (e) {}
+  }
+  function update(o) {
+    if (!cur || !o || (o.key || '') !== (cur.key || '')) return;
+    var b = el.querySelector('.dwdr-body'), y = b.scrollTop, inside = el.contains(document.activeElement);
+    cur = Object.assign({}, cur, o); paint(cur); b.scrollTop = y;
+    if (inside && !el.contains(document.activeElement)) { var t = el.querySelector('#dwDrTitle'); try { t.focus({ preventScroll: true }); } catch (e) {} }   /* 누른 버튼이 다시 그려져 초점을 잃으면 제목으로 */
+  }
+  function close() {
+    if (!cur) return; var k = cur.key || '', back = from; cur = null;
+    el.classList.remove('in'); scrim.classList.remove('in');
+    var H = document.documentElement; H.classList.remove('dw-dr-push', 'dw-dr-lock');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    closeT = setTimeout(function () { if (!cur) { el.hidden = true; scrim.hidden = true; } }, reduce ? 0 : 170);
+    if (back && back.isConnected) { try { back.focus({ preventScroll: true }); } catch (e) {} }
+    else { var again = k && document.querySelector('[data-dwdr-from="' + (window.CSS && CSS.escape ? CSS.escape(k) : k) + '"]'); if (again) try { again.focus({ preventScroll: true }); } catch (e) {} }
+    try { document.dispatchEvent(new CustomEvent('dw-drawer', { detail: { open: false, key: k } })); } catch (e) {}
+  }
+  return { open: open, update: update, close: close, isOpen: function () { return !!cur; }, key: function () { return cur ? cur.key || '' : ''; }, esc: esc };
+})();
+</script>
+
