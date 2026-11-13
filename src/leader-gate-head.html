@@ -560,19 +560,16 @@ window.dwHist = (function () {
 </script>
 <!-- 상세 패널 (Drawer · Master-Detail, 2026.11.13 사용자: 「항목을 누르거나 고칠 때 페이지 이동 · 가운데 창 대신 오른쪽에서 패널, 목록은 그대로」 — 프로젝트 문서 claude/UI_UX_개편_지침서.md 9-3)
      window.dwDrawer = open({key, title, sub, body, foot, back, label, from}) · update(같은 칸) · close() · isOpen() · key()
-     - 1280px 이상: 오른쪽 고정 패널(min(560px, 42vw)), 목록을 밀어냄(덮지 않음, 목록을 계속 누를 수 있음)
-     - 700~1279px: 오른쪽에서 덮는 패널(min(480px, 90vw)) + 뒤 어둡게(누르면 닫힘)
+     - 700px 이상: 오른쪽에서 튀어나오는 서랍(고정 480px) + 뒤 흐리게(누르면 닫힘) — 2026.11.14 밀어내기 없앰
      - 699px 이하: 전체 화면 패널 + 맨 위 「‹ 목록」(back)
      - 열면 제목으로 초점, 닫으면 누른 곳으로 초점 복귀, Esc · 뒤로 가기(dwHist) 로 닫힘, 덮는 패널은 Tab 이 패널 안에서만 돎
      - 버튼 · 내용은 화면마다 그 화면 코드가 그림(이 부품은 틀만). 움직임 열기 200ms · 닫기 160ms, 움직임 줄이기면 없음 -->
 <style id="dw-drawer-css">
-.dwdr-scrim{position:fixed;inset:0;z-index:46;background:var(--overlay,rgb(27 37 55 / 32%));opacity:0;transition:opacity 200ms cubic-bezier(.2,0,0,1)}
+.dwdr-scrim{position:fixed;inset:0;z-index:46;background:var(--overlay,rgb(15 23 42 / 22%));-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);opacity:0;transition:opacity 200ms cubic-bezier(.2,0,0,1)}
 .dwdr-scrim.in{opacity:1}
-.dwdr{position:fixed;top:0;right:0;bottom:0;z-index:47;width:min(480px,90vw);display:flex;flex-direction:column;background:var(--surface,#fcfcfd);color:var(--ink,#1b2537);border-radius:20px 0 0 20px;box-shadow:var(--shadow-modal,0 24px 64px rgb(27 37 55 / 16%)),var(--card-edge,0 0 0 0 transparent);transform:translateX(100%);transition:transform 160ms cubic-bezier(.2,0,0,1);overscroll-behavior:contain}
+.dwdr{position:fixed;top:0;right:0;bottom:0;z-index:47;width:min(480px,100vw);display:flex;flex-direction:column;background:var(--surface,#fcfcfd);color:var(--ink,#1b2537);border-radius:20px 0 0 20px;box-shadow:var(--shadow-modal,0 24px 64px rgb(27 37 55 / 16%)),var(--card-edge,0 0 0 0 transparent);transform:translateX(100%);transition:transform 160ms cubic-bezier(.2,0,0,1);overscroll-behavior:contain}
 .dwdr.in{transform:none;transition-duration:200ms}
 .dwdr[hidden],.dwdr-scrim[hidden]{display:none!important}
-html.dw-dr-push .dwdr{width:var(--dr-w);border-radius:0;box-shadow:none;border-left:1px solid var(--line,#e8edf3)}
-html.dw-dr-push body{padding-right:var(--dr-w)}
 html.dw-dr-lock,html.dw-dr-lock body{overflow:hidden}
 .dwdr-head{display:flex;align-items:center;gap:8px;min-height:64px;padding:10px 12px 10px 24px;padding-top:max(10px,env(safe-area-inset-top,0px));border-bottom:1px solid var(--line,#e8edf3);flex:none}
 .dwdr-ttl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -595,7 +592,7 @@ html.dw-dr-lock,html.dw-dr-lock body{overflow:hidden}
   .dwdr-foot{padding-left:16px;padding-right:16px}
 }
 @media (prefers-reduced-motion:reduce){.dwdr,.dwdr.in,.dwdr-scrim{transition:none}}
-@media print{.dwdr,.dwdr-scrim{display:none!important}html.dw-dr-push body{padding-right:0}}
+@media print{.dwdr,.dwdr-scrim{display:none!important}}
 </style>
 <script>
 window.dwDrawer = (function () {
@@ -628,13 +625,10 @@ window.dwDrawer = (function () {
   }
   function layout() {
     var w = window.innerWidth || document.documentElement.clientWidth, H = document.documentElement;
-    mode = w >= 1280 ? 'push' : w >= 700 ? 'over' : 'full';
-    H.style.setProperty('--dr-w', Math.round(Math.min(560, w * 0.42)) + 'px');
-    H.classList.toggle('dw-dr-push', mode === 'push');
-    H.classList.toggle('dw-dr-lock', mode !== 'push');
+    mode = w >= 700 ? 'over' : 'full';   /* 2026.11.14 사용자: 언제나 오른쪽에서 튀어나오는 서랍(고정 폭) + 배경 흐림 — 밀어내기 없앰 */
+    H.classList.add('dw-dr-lock');
     scrim.hidden = mode !== 'over';
-    if (mode === 'push') { el.setAttribute('role', 'region'); el.removeAttribute('aria-modal'); }
-    else { el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); }
+    el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
   }
   function paint(o) {
     el.querySelector('#dwDrTitle').textContent = o.title || '';
@@ -665,7 +659,7 @@ window.dwDrawer = (function () {
   function close() {
     if (!cur) return; var k = cur.key || '', back = from; cur = null;
     el.classList.remove('in'); scrim.classList.remove('in');
-    var H = document.documentElement; H.classList.remove('dw-dr-push', 'dw-dr-lock');
+    var H = document.documentElement; H.classList.remove('dw-dr-lock');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     closeT = setTimeout(function () { if (!cur) { el.hidden = true; scrim.hidden = true; } }, reduce ? 0 : 170);
     if (back && back.isConnected) { try { back.focus({ preventScroll: true }); } catch (e) {} }

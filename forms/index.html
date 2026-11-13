@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.13-12";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.14-1";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <script>
@@ -1245,19 +1245,16 @@ window.dwHist = (function () {
 </script>
 <!-- 상세 패널 (Drawer · Master-Detail, 2026.11.13 사용자: 「항목을 누르거나 고칠 때 페이지 이동 · 가운데 창 대신 오른쪽에서 패널, 목록은 그대로」 — 프로젝트 문서 claude/UI_UX_개편_지침서.md 9-3)
      window.dwDrawer = open({key, title, sub, body, foot, back, label, from}) · update(같은 칸) · close() · isOpen() · key()
-     - 1280px 이상: 오른쪽 고정 패널(min(560px, 42vw)), 목록을 밀어냄(덮지 않음, 목록을 계속 누를 수 있음)
-     - 700~1279px: 오른쪽에서 덮는 패널(min(480px, 90vw)) + 뒤 어둡게(누르면 닫힘)
+     - 700px 이상: 오른쪽에서 튀어나오는 서랍(고정 480px) + 뒤 흐리게(누르면 닫힘) — 2026.11.14 밀어내기 없앰
      - 699px 이하: 전체 화면 패널 + 맨 위 「‹ 목록」(back)
      - 열면 제목으로 초점, 닫으면 누른 곳으로 초점 복귀, Esc · 뒤로 가기(dwHist) 로 닫힘, 덮는 패널은 Tab 이 패널 안에서만 돎
      - 버튼 · 내용은 화면마다 그 화면 코드가 그림(이 부품은 틀만). 움직임 열기 200ms · 닫기 160ms, 움직임 줄이기면 없음 -->
 <style id="dw-drawer-css">
-.dwdr-scrim{position:fixed;inset:0;z-index:46;background:var(--overlay,rgb(27 37 55 / 32%));opacity:0;transition:opacity 200ms cubic-bezier(.2,0,0,1)}
+.dwdr-scrim{position:fixed;inset:0;z-index:46;background:var(--overlay,rgb(15 23 42 / 22%));-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);opacity:0;transition:opacity 200ms cubic-bezier(.2,0,0,1)}
 .dwdr-scrim.in{opacity:1}
-.dwdr{position:fixed;top:0;right:0;bottom:0;z-index:47;width:min(480px,90vw);display:flex;flex-direction:column;background:var(--surface,#fcfcfd);color:var(--ink,#1b2537);border-radius:20px 0 0 20px;box-shadow:var(--shadow-modal,0 24px 64px rgb(27 37 55 / 16%)),var(--card-edge,0 0 0 0 transparent);transform:translateX(100%);transition:transform 160ms cubic-bezier(.2,0,0,1);overscroll-behavior:contain}
+.dwdr{position:fixed;top:0;right:0;bottom:0;z-index:47;width:min(480px,100vw);display:flex;flex-direction:column;background:var(--surface,#fcfcfd);color:var(--ink,#1b2537);border-radius:20px 0 0 20px;box-shadow:var(--shadow-modal,0 24px 64px rgb(27 37 55 / 16%)),var(--card-edge,0 0 0 0 transparent);transform:translateX(100%);transition:transform 160ms cubic-bezier(.2,0,0,1);overscroll-behavior:contain}
 .dwdr.in{transform:none;transition-duration:200ms}
 .dwdr[hidden],.dwdr-scrim[hidden]{display:none!important}
-html.dw-dr-push .dwdr{width:var(--dr-w);border-radius:0;box-shadow:none;border-left:1px solid var(--line,#e8edf3)}
-html.dw-dr-push body{padding-right:var(--dr-w)}
 html.dw-dr-lock,html.dw-dr-lock body{overflow:hidden}
 .dwdr-head{display:flex;align-items:center;gap:8px;min-height:64px;padding:10px 12px 10px 24px;padding-top:max(10px,env(safe-area-inset-top,0px));border-bottom:1px solid var(--line,#e8edf3);flex:none}
 .dwdr-ttl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -1280,7 +1277,7 @@ html.dw-dr-lock,html.dw-dr-lock body{overflow:hidden}
   .dwdr-foot{padding-left:16px;padding-right:16px}
 }
 @media (prefers-reduced-motion:reduce){.dwdr,.dwdr.in,.dwdr-scrim{transition:none}}
-@media print{.dwdr,.dwdr-scrim{display:none!important}html.dw-dr-push body{padding-right:0}}
+@media print{.dwdr,.dwdr-scrim{display:none!important}}
 </style>
 <script>
 window.dwDrawer = (function () {
@@ -1313,13 +1310,10 @@ window.dwDrawer = (function () {
   }
   function layout() {
     var w = window.innerWidth || document.documentElement.clientWidth, H = document.documentElement;
-    mode = w >= 1280 ? 'push' : w >= 700 ? 'over' : 'full';
-    H.style.setProperty('--dr-w', Math.round(Math.min(560, w * 0.42)) + 'px');
-    H.classList.toggle('dw-dr-push', mode === 'push');
-    H.classList.toggle('dw-dr-lock', mode !== 'push');
+    mode = w >= 700 ? 'over' : 'full';   /* 2026.11.14 사용자: 언제나 오른쪽에서 튀어나오는 서랍(고정 폭) + 배경 흐림 — 밀어내기 없앰 */
+    H.classList.add('dw-dr-lock');
     scrim.hidden = mode !== 'over';
-    if (mode === 'push') { el.setAttribute('role', 'region'); el.removeAttribute('aria-modal'); }
-    else { el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); }
+    el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
   }
   function paint(o) {
     el.querySelector('#dwDrTitle').textContent = o.title || '';
@@ -1350,7 +1344,7 @@ window.dwDrawer = (function () {
   function close() {
     if (!cur) return; var k = cur.key || '', back = from; cur = null;
     el.classList.remove('in'); scrim.classList.remove('in');
-    var H = document.documentElement; H.classList.remove('dw-dr-push', 'dw-dr-lock');
+    var H = document.documentElement; H.classList.remove('dw-dr-lock');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     closeT = setTimeout(function () { if (!cur) { el.hidden = true; scrim.hidden = true; } }, reduce ? 0 : 170);
     if (back && back.isConnected) { try { back.focus({ preventScroll: true }); } catch (e) {} }
@@ -6613,20 +6607,20 @@ init();
      - 새 이름: --brand · --brand-hover · --brand-active · --bg-subtle · --bg-selected · --st-ok/-warn/-bad/-info(-bg) · --shadow-card · --shadow-pop · --overlay -->
 <style id="dw-theme3">
 :root{
-  --bg:#F5F7FA; --surface:#FCFCFD; --field:#F0F3F8; --surface-2:#F0F3F8; --bg-subtle:#F0F3F8; --bg-hover:#F0F3F8; --bg-selected:#EDF2FF;
-  --ink:#1B2537; --ink-2:#4C596D; --muted:#5F6D82; --ph:#5F6D82;
-  --line:#E8EDF3; --edge:#7A879A; --line-2:#7A879A;
+  --bg:#F8FAFC; --surface:#FFFFFF; --field:#F8FAFC; --surface-2:#F8FAFC; --bg-subtle:#F8FAFC; --bg-hover:#F1F5F9; --bg-selected:#EFF4FF;
+  --ink:#1B2537; --ink-2:#475569; --muted:#64748B; --ph:#64748B;
+  --line:#F1F5F9; --edge:#E2E8F0; --line-2:#E2E8F0;
   --brand:#2457D6; --brand-hover:#1E49B8; --brand-active:#193E9C;
   --accent:#2457D6; --accent-ink:#F8FAFC; --accent-soft:#EDF2FF;
   --bronze:#2858B8; --gold:#2858B8; --gold-soft:#EDF2FF;
   --warn:#B3323D; --warn-soft:#FCEDEE; --toast-bg:#1B2537; --toast-ink:#F8FAFC;
   --st-ok:#216843; --st-ok-bg:#EAF5EF; --st-warn:#8A5400; --st-warn-bg:#FFF3DD; --st-bad:#B3323D; --st-bad-bg:#FCEDEE; --st-info:#2858B8; --st-info-bg:#EDF2FF;
-  --btn2:#F0F3F8; --btn2-hover:#E9EEF5; --btn-off:#E9EEF5; --btn-off-ink:#5F6D82;
-  --shadow-card:0 1px 2px rgb(27 37 55 / 3%),0 4px 16px -4px rgb(27 37 55 / 5%);
+  --btn2:#F1F5F9; --btn2-hover:#E2E8F0; --btn-off:#F1F5F9; --btn-off-ink:#64748B;
+  --shadow-card:0 1px 2px 0 rgb(15 23 42 / 5%);
   --shadow-pop:0 4px 8px -2px rgb(27 37 55 / 6%),0 12px 32px -8px rgb(27 37 55 / 10%);
   --shadow-modal:0 8px 24px -8px rgb(27 37 55 / 10%),0 24px 64px -16px rgb(27 37 55 / 16%);
-  --card-edge:0 0 0 0 transparent;
-  --overlay:rgb(27 37 55 / 32%);
+  --card-edge:0 0 0 1px #F1F5F9;
+  --overlay:rgb(15 23 42 / 22%);
   --sans:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif; --font:var(--sans); --serif:var(--sans);
   --font-display:var(--serif);
   --ease:cubic-bezier(.2,0,0,1);
@@ -6675,7 +6669,7 @@ html body .num,html body .wz-total b,html body .lv-tr .num{font-variant-numeric:
 /* 위 막대: 카드 색 · 옅은 선 */
 html body header.appbar{background:var(--surface);border-bottom:1px solid var(--line);box-shadow:none}
 /* 모서리: 상자 16px · 버튼과 칸 10px · 칸 안 작은 버튼 8px · 배지 6px · 아래에서 올라오는 창 20px (앞의 「모서리 통일」 규칙보다 이기게 :root body 를 붙임) */
-:root body .sec,:root body .out,:root body .case-panel,:root body .case-steps,:root body .co-card,:root body .wz-card,:root body .wz-review,:root body .case-pick,:root body .lv-dd,:root body .lv-table,:root body .settle-guide,:root body .calc,:root body .sum,:root body .px-pv,:root body .sz-box,:root body .env-stat,:root body .env-prev,:root body .env-event,:root body .env-lock,:root body .env-form,:root body .acc,:root body .set-cards button,:root body .card,:root body .w-card,:root body .st-card,:root body .type-card,:root body .d-card,:root body .r-card,:root body .install-card,:root body .banner,:root body .stat,:root body .boxed{border-radius:16px}
+:root body .sec,:root body .out,:root body .case-panel,:root body .case-steps,:root body .co-card,:root body .wz-card,:root body .wz-review,:root body .case-pick,:root body .lv-dd,:root body .lv-table,:root body .settle-guide,:root body .calc,:root body .sum,:root body .px-pv,:root body .sz-box,:root body .env-prev,:root body .acc,:root body .set-cards button,:root body .card,:root body .w-card,:root body .st-card,:root body .type-card,:root body .d-card,:root body .r-card,:root body .install-card,:root body .banner,:root body .stat,:root body .boxed{border-radius:16px}
 :root body .btn,:root body .btn.sm,:root body .btn.link,:root body #newCase,:root body #saveNow,:root body .input,:root body .seg,:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea,:root body .icon-btn,:root body .cp-go,:root body .cp-close,:root body .text-out,:root body .wz-choice button,:root body .chip,:root body .group-tabs,:root body .sub-fold,:root body .missing,:root body .co-symbol,:root body .cm-nav,:root body .rp{border-radius:10px}
 :root body .seg button,:root body .group-tabs button,:root body .ph button,:root body .acc-b button,:root body .tp-grid button,:root body .csheet-list button,:root body .burial-seg button,:root body .missing button,:root body .ch-btn,:root body .check,:root body .pt-step,:root body .item .tog{border-radius:8px}
 :root body .lv-st,:root body .tag{border-radius:6px}
@@ -6684,10 +6678,11 @@ html body header.appbar{background:var(--surface);border-bottom:1px solid var(--
 :root body .csheet{border-radius:20px 20px 0 0;box-shadow:var(--shadow-modal)}
 :root body .sheet{border-radius:20px;box-shadow:var(--shadow-modal)}
 @media (min-width:700px){ :root body .csheet{border-radius:20px} }
-:root body .toast{border-radius:12px;box-shadow:var(--shadow-pop)}
+:root body .toast{border-radius:12px;box-shadow:var(--shadow-pop);z-index:60}   /* 서랍(47) 위에 보이게 (2026.11.14) */
+html.dw-dr-lock body .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}   /* 서랍 아래 버튼 줄을 가리지 않게 */
 /* 카드: 테두리 없이 옅은 그림자 (어두운 화면은 가는 선) — 카드 안 카드에는 그림자를 겹치지 않음 */
-:root body .sec,:root body .out,:root body .case-panel,:root body .case-steps,:root body .co-card,:root body .wz-card,:root body .wz-review,:root body .lv-dd,:root body .lv-table,:root body .settle-guide,:root body .calc,:root body .sum,:root body .env-stat,:root body .env-prev,:root body .env-event,:root body .acc,:root body .card,:root body .w-card,:root body .st-card,:root body .d-card,:root body .r-card,:root body .banner,:root body .stat,:root body .boxed,:root body .dwg-sec,:root body .set-cards button{background-color:var(--surface);border:0;box-shadow:var(--shadow-card),var(--card-edge)}
-:root body :is(.sec,.out,.case-panel,.wz-card,.wz-review,.card,.co-card,.env-event,.w-card) :is(.sum,.calc,.card,.acc,.boxed,.settle-guide,.wz-review,.stat,.banner,.env-prev,.env-stat){box-shadow:none;background-color:var(--field)}
+:root body .sec,:root body .out,:root body .case-panel,:root body .case-steps,:root body .co-card,:root body .wz-card,:root body .wz-review,:root body .lv-dd,:root body .lv-table,:root body .settle-guide,:root body .calc,:root body .sum,:root body .env-prev,:root body .acc,:root body .card,:root body .w-card,:root body .st-card,:root body .d-card,:root body .r-card,:root body .banner,:root body .stat,:root body .boxed,:root body .dwg-sec,:root body .set-cards button{background-color:var(--surface);border:0;box-shadow:var(--shadow-card),var(--card-edge)}
+:root body :is(.sec,.out,.case-panel,.wz-card,.wz-review,.card,.co-card,.w-card) :is(.sum,.calc,.card,.acc,.boxed,.settle-guide,.wz-review,.stat,.banner,.env-prev){box-shadow:none;background-color:var(--field)}
 /* 버튼: 높이 44 · 글자 14/600 · 보조 = 옅은 바탕 테두리 없음 · 주 = 파랑 */
 :root body .btn{min-height:44px;border:0;background-color:var(--btn2);color:var(--ink-2);font-size:14px;font-weight:600;box-shadow:none;transition:background-color 160ms var(--ease),color 160ms var(--ease),transform 120ms var(--ease)}
 :root body #newCase,:root body #saveNow,:root body .icon-btn,:root body .cp-go,:root body .dw-home-btn,:root body .dw-out{border:0;background-color:var(--btn2);color:var(--ink-2);box-shadow:none}
@@ -6700,13 +6695,10 @@ html body header.appbar{background:var(--surface);border-bottom:1px solid var(--
   :root body .btn.primary:not(:disabled):hover,:root body .dw-cta-btn:hover{background-color:var(--brand-hover)}
 }
 :root body .btn.primary:not(:disabled):active{background-color:var(--brand-active)}
-/* 화면의 주 버튼 하나 (지침서 9-2): 행사 목록에서는 위 막대 「새 행사」가 주 버튼(넓은 화면) — 휴대폰은 화면 아래 고정 버튼 */
-@media (min-width:700px){
-  :root body[data-tab="list"] #newCase{background-color:var(--brand);color:var(--accent-ink)}
-  @media (hover:hover){:root body[data-tab="list"] #newCase:hover{background-color:var(--brand-hover)}}
-}
+/* 화면의 주 버튼 하나: 행사 목록은 화면 위 제목 줄 오른쪽 「새 행사」(funeral.html .pg-cta) — 위 막대 「새 행사」는 그 화면에서 숨김 (2026.11.14) */
 /* 입력 칸: 1px 식별 경계(#7A879A) · 카드 색 바탕 · 16px */
-:root body .input:not(.wz-amt .input),:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea{border:1px solid var(--edge);background-color:var(--surface);color:var(--ink)}
+:root body .input:not(.wz-amt .input),:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea{border:1px solid var(--edge);background-color:var(--field);color:var(--ink)}
+:root body .input:not(.wz-amt .input):focus,:root body .sel:focus,:root body label.field input:focus,:root body label.field select:focus,:root body label.field textarea:focus{background-color:var(--surface);border-color:var(--brand);box-shadow:0 0 0 3px var(--bg-selected);outline:none}
 :root body .input::placeholder,:root body label.field input::placeholder,:root body textarea::placeholder{color:var(--ph);opacity:1}
 :root body .wz-amt .input{border-bottom-color:var(--edge)}
 :root body .wz-amt .input:focus{border-bottom-color:var(--brand)}
@@ -6734,7 +6726,38 @@ html body header.appbar{background:var(--surface);border-bottom:1px solid var(--
 .dw-cta-btn:active{transform:scale(.98)}
 @media (prefers-reduced-motion:reduce){.dw-cta-btn,:root body .btn{transition:none}.dw-cta-btn:active,:root body .btn:active{transform:none}}
 @media (min-width:700px){ .dw-cta{position:static;padding:18px 0 0;background:none}.dw-cta-btn{max-width:340px;margin:0} }
-@media (max-width:699px){ html.dw-at-home body .toast,html body[data-tab="list"] .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))} }   /* 알림이 아래 큰 버튼을 가리지 않게 */
+/* 진한 테두리 없앰 (2026.11.14 사용자: 「검은색 테두리 쓰지 마 · 바탕 연한 회색 · 카드 흰색」) — 먹색 선 · 두 줄 테두리를 쓰던 곳을 옅은 선 · 파란 고름 표시로 */
+:root body .dw-mode{border:0;border-radius:10px;background:var(--bg-subtle);padding:3px;gap:2px;box-shadow:inset 0 0 0 1px var(--line)}
+:root body .dw-mode button{border-radius:8px;color:var(--ink-2)}
+:root body .dw-mode button+button{border-left:0}
+:root body .dw-mode button[aria-pressed="true"]{background:var(--surface);color:var(--brand);box-shadow:var(--shadow-card),var(--card-edge)}
+:root body .appbar{border-bottom:1px solid var(--line)}
+:root body .mobile-nav{border-top:1px solid var(--line)}
+:root body .wz-card .wz-choice button{border-color:var(--edge)}
+:root body .wz-card .wz-choice button[aria-pressed="true"]{border:2px solid var(--brand);background:var(--bg-selected);color:var(--ink)}
+:root body .wz-total{border:0;border-radius:16px;background:var(--bg-selected)}
+:root body .cp-row[aria-selected="true"]{outline:2px solid var(--brand)}
+:root body .pt-step,:root body .step-next .stn-go{border-color:var(--edge)}
+:root body .step-next{border-top-color:var(--line)}
+:root body .ck-total{border:0;border-radius:12px;background:var(--bg-selected)}
+:root body .ck-how li.sum{border-bottom:1px solid var(--edge)}
+:root body .seal{border-color:var(--edge)}
+:root body .ab-save{border-color:transparent}
+:root body .install-card{border:0;box-shadow:var(--shadow-card),var(--card-edge)}
+:root body .pv-sign{border-color:var(--edge)}
+:root body .bd-list,:root body .dc-list,:root body .gt-rv,:root body .tm-sum{border-top-color:var(--line)}
+:root body .tm-sum{border-bottom-color:var(--line)}
+:root body .bd-tag,:root body .dc-ext,:root body .st-k{border-color:transparent;background:var(--bg-subtle)}
+:root body .tm-tbl th{border-bottom-color:var(--edge)}
+:root body .tm-tbl tfoot td{border-bottom:1px solid var(--edge)}
+/* 새 행사 · 업체 고르기 창 = 오른쪽 서랍 모양 (상세 패널과 같은 폭 · 배경 흐림) */
+:root body .picker{padding:0;align-items:stretch;justify-content:flex-end;background:var(--overlay);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:47}
+:root body .picker .sheet{display:flex;flex-direction:column;gap:14px;width:min(480px,100vw);max-width:none;height:100%;max-height:none;margin:0;border-radius:20px 0 0 20px;overflow:auto;overscroll-behavior:contain;padding-top:max(20px,env(safe-area-inset-top,0px));padding-bottom:max(20px,env(safe-area-inset-bottom,0px));animation:dwdr-in 200ms var(--ease)}
+:root body .picker .sheet>*{flex:none}
+@media (max-width:699px){:root body .picker .sheet{border-radius:0}}
+@keyframes dwdr-in{from{transform:translateX(100%)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){:root body .picker .sheet{animation:none}}
+@media (max-width:699px){ html.dw-at-home body .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))} }   /* 알림이 아래 큰 버튼을 가리지 않게 */
 </style>
 
 </body>
