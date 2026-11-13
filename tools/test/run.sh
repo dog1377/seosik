@@ -13,6 +13,6 @@ for _ in $(seq 1 50); do curl -s -o /dev/null "http://127.0.0.1:$PORT/forms/" &&
 export DW_BASE="http://127.0.0.1:$PORT/"
 echo "== 1/4 문법 검사";      python3 tools/test/syntax.py
 echo "== 2/4 돈 계산 검산";   python3 tools/test/money.py
-echo "== 3/4 복사한 글로 새 행사"; python3 tools/test/paste.py
+echo "== 3/4 복사한 글로 새 행사 · 장지 추후입금"; python3 tools/test/paste.py; python3 tools/test/later.py
 echo "== 4/4 화면 점검";      python3 tools/test/smoke.py
 echo "== 모두 통과"
