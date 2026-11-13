@@ -1264,6 +1264,7 @@ body[data-tab="list"] .case-panel{display:none}
 <div class="picker" id="picker" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
     <div class="pick-head"><div><div class="picker-kicker"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5"/></svg>진행 업체 선택</div><h2 id="pickTitle">어느 업체 행사입니까?</h2><p class="note" style="margin-top:4px">업체를 고르면 그 업체의 밴드 · 보고 양식과 제공내역이 준비됩니다.</p></div><button class="x pick-x" type="button" id="pickX" aria-label="닫기">✕</button></div>
+    <button class="pick-paste" id="pickPaste" type="button" data-ps-open><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="4" width="10" height="4" rx="1.5"/><path d="M9 6H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2M9 13h6M9 17h4"/></svg><span><b>복사한 글로 새 행사</b><small>밴드 일정표 · 제공내역 · 회사 양식을 붙여 넣으면 자동으로 입력됩니다</small></span></button>
     <div class="co-list" id="coList"></div>
     <button class="btn primary" id="pickSettle" type="button" data-quick-settle>행사 입력 없이 정산만</button>
     <button class="btn" id="pickEnvelope" type="button">행사 등록 없이 봉투 1건 추가</button>
@@ -1272,6 +1273,7 @@ body[data-tab="list"] .case-panel{display:none}
   </div>
 </div>
 <div class="csheet-bg" id="chBg" hidden><div class="csheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="chTitle"></b><button class="x" type="button" id="chClose" aria-label="닫기">✕</button></div><div class="csheet-list" id="chList" role="listbox"></div></div></div>
+<div class="csheet-bg" id="psBg" hidden><div class="csheet pz-sheet" role="dialog" aria-modal="true" aria-labelledby="psTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="psTitle">복사한 글로 새 행사</b><button class="x" type="button" id="psClose" aria-label="닫기">✕</button></div><div class="pz-body" id="psBody"></div></div></div>
 <div class="csheet-bg" id="cpBg" hidden><div class="csheet cp-sheet" role="dialog" aria-modal="true" aria-labelledby="cpTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="cpTitle">행사 선택</b><button class="x" type="button" id="cpClose" aria-label="닫기">✕</button></div>
   <div class="cp-month"><button class="cm-nav" id="cmPrev" type="button" aria-label="이전 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button><div class="cm-label"><b id="cmLabel">-</b><span id="cmCount"></span></div><button class="cm-nav" id="cmNext" type="button" aria-label="다음 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button></div>
   <div class="cp-list" id="cpList" role="listbox" aria-labelledby="cpTitle"></div>
@@ -2353,7 +2355,7 @@ function deductHtml(c){
 }
 function renderInput(){
   const c=curCase();
-  if(!c){ $('#p-input').innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>새 행사 시작</h2></div><p class="note">진행 업체를 누르면 그 업체 양식으로 바로 시작합니다. 행사 없이도 아래 메뉴(봉투 · 휴무 · 설정)는 그대로 쓸 수 있습니다.</p><div class="co-list">${coButtons('data-start')}</div></div>
+  if(!c){ $('#p-input').innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>새 행사 시작</h2></div><p class="note">진행 업체를 누르면 그 업체 양식으로 바로 시작합니다. 행사 없이도 아래 메뉴(봉투 · 휴무 · 설정)는 그대로 쓸 수 있습니다.</p>${pasteStartBtn()}<div class="co-list">${coButtons('data-start')}</div></div>
     <div class="sec quick-start"><div class="sec-head"><h2>행사 입력 없이 정산만</h2></div><p class="note">정산 카톡과 봉투만 필요하면 업체를 고르지 않고 바로 시작하십시오. 행사번호 · 장소 · 발인일부터 하나씩 물어봅니다.</p><div class="row"><button class="btn primary" type="button" data-quick-settle>정산만 바로 시작</button></div></div>`; return; }
   const co=coById(c.companyId);
   let h=`<div class="co-card"><div class="co-identity"><span class="co-symbol">${uiIcon('building')}</span><div><small>진행 업체${co.id===ETC?' · 기본 양식':''}${c.quick?' · 정산에서 바로 만든 행사':''}</small><b>${esc(caseCoName(c))}</b></div></div><button class="btn sm" type="button" data-act="changeCo">업체 변경</button></div>
@@ -2493,7 +2495,7 @@ function openPicker(mode){
   $('#coList').innerHTML=coButtons('data-pick');
   $('#pickTitle').textContent=mode==='change'?'업체 변경':'어느 업체 행사입니까?';
   $('#pickCancel').hidden=false;
-  $('#pickEnvelope').hidden=$('#pickSettle').hidden=$('#pickCheck').hidden=mode==='change';
+  $('#pickEnvelope').hidden=$('#pickSettle').hidden=$('#pickCheck').hidden=$('#pickPaste').hidden=mode==='change';
   $('#picker').hidden=false;
 }
 function closePicker(){ $('#picker').hidden=true; }
@@ -2530,6 +2532,348 @@ $('#pickCancel').onclick=closePicker;
 $('#pickEnvelope').onclick=()=>newManualEnvelope();
 $('#picker').onclick=e=>{ if(e.target.id==='picker') closePicker(); };
 $('#pickX').onclick=closePicker;
+
+/* ---------- 복사한 글로 새 행사 (2026.11.13 사용자: 「밴드 일정표 · 제공내역 · 회사 양식 복사하면 새 행사 자동으로 판독해서 등록되고 입력되게」) ----------
+   앱이 만드는 양식(밴드 일정표 · 제공내역 · 업체 보고 양식)을 거꾸로 읽음.
+   ① 양식(이 기기 업체 양식 + 기본 양식)의 줄마다 정규식을 만들고, 붙여 넣은 줄과 순서대로 맞춤(가장 많이 맞는 짝 — 같은 「연락처 :」도 순서로 구분).
+   ② 맞은 줄의 자리({고객명} · {입관} …) 값 → 입력 칸(psPut). 날짜에 달이 없으면(15일 14시) 글 안의 다른 날짜(화장 11월 15일 …) · 오늘에 가까운 달로.
+   ③ 양식에 안 맞는 줄은 「이름 : 값」으로 한 번 더 읽음(PS_LABEL).
+   수금액은 밴드 양식에 나온 금액이 그대로 나오게 넣음(제단공제 · 공제 · 추가 항목만큼 되돌림). 같은 행사(고인 이름 + 장소 · 발인 · 행사번호)가 있으면 그 행사 빈 칸만 채우기도 고를 수 있음. */
+const PS_BLOCK=['제공항목','공제항목','대체공제','관리사배치'];
+const psEsc=s=>s.replace(/[.*+?^${}()|[\]\\/]/g,'\\$&');
+function psLitRe(p){ let r=''; for(const ch of p.replace(/\s+/g,'')) r+=(ch===':'||ch==='：'?'[:：]':psEsc(ch))+'\\s*'; return r; }
+function psLineRe(line){
+  const parts=line.split(/(\{[^}]+\})/), keys=[]; let re='^\\s*', w=0;
+  parts.forEach((p,i)=>{
+    if(/^\{[^}]+\}$/.test(p)){ keys.push(p.slice(1,-1)); re+=keys.length&&i===parts.length-2&&!parts[i+1].trim()?'(.*)':'(.*?)'; return; }
+    if(!p) return;
+    if(!p.trim()){ re+=(i>0&&i<parts.length-1)?'\\s+':'\\s*'; return; }
+    re+=(/^\s/.test(p)&&i>0?'\\s*':'')+psLitRe(p); w+=p.replace(/\s+/g,'').length;
+  });
+  return {re:new RegExp(re+'\\s*$'), keys, w};
+}
+function psCompile(body){
+  return String(body||'').split('\n').map(line=>{
+    const only=line.trim().match(/^\{([^}:]+)\}$/);
+    if(only&&PS_BLOCK.includes(only[1])) return {block:only[1], w:0, alts:[]};
+    const alts=[psLineRe(line)];
+    if(/^\s*화\s*장\s*:\s*\{화장\}/.test(line)) alts.push(psLineRe(line.replace(/화\s*장(\s*:\s*)\{화장\}/,'하 관$1{하관}')));   /* 매장이면 화장 줄이 하관 줄 (fillTpl) */
+    return {alts, w:alts[0].w, line};
+  });
+}
+let PS_TPL=null, PS_TPL_KEY='';
+function psTemplates(){
+  const key=JSON.stringify(db.companies.map(c=>[c.id,c.name,c.band,(c.reports||[]).map(r=>r.body)]));
+  if(PS_TPL&&PS_TPL_KEY===key) return PS_TPL;
+  const out=[], seen=new Map(), byName=n=>{ const co=db.companies.find(x=>coKey(x.name)===coKey(n)); return co?[co.id]:[]; };
+  const add=(body,cos,name,kind)=>{ body=String(body||''); if(!body.trim()) return;
+    const t=seen.get(body); if(t){ cos.forEach(id=>{ if(!t.cos.includes(id)) t.cos.push(id); }); if(t.etc&&cos.length&&!cos.includes(ETC)){ t.name=name; t.etc=false; } return; }   /* 이름은 기타 업체보다 그 업체 이름으로 */
+    const n={body,cos:cos.slice(),name,kind,hj:/회사지원\s*:\s*\{회사지원\}/.test(body)&&/\{회사명\}/.test(body),etc:cos.includes(ETC),lines:psCompile(body)}; seen.set(body,n); out.push(n); };
+  const band=(body,cos)=>{ const L=String(body||'').split('\n'), i=L.findIndex(l=>/제공내역\s*$/.test(l));   /* 밴드 양식은 일정표 · 제공내역 따로 (복사도 따로 함 — splitBand) */
+    if(i<0){ add(body,cos,'밴드 일정표','band'); return; } add(L.slice(0,i).join('\n'),cos,'밴드 일정표','band'); add(L.slice(i).join('\n'),cos,'제공내역','band'); };
+  db.companies.forEach(co=>{ band(co.band,[co.id]); (co.reports||[]).forEach(r=>{ if(r.name!=='장례 종료 보고') add(r.body,[co.id],(co.id===ETC?'':co.name+' ')+(r.name||'회사 양식'),'report'); }); });
+  band(HJ_BAND,byName('현진시닝')); band(GEN_BAND,[]);
+  HJ_REPORTS.forEach(r=>add(r.body,byName('현진시닝'),'현진시닝 '+r.name,'report'));
+  [[GOI_REPORT,'고이장례연구소','회사 보고'],[JABIN_REPORT,'The자빈','보고 양식'],[NH_REPORT,'농협상조','보고 양식'],[JH_REPORT,'JH라이프','보고 양식']].forEach(([b,n,nm])=>add(b,byName(n),n+' '+nm,'report'));
+  add(DAEHAN_REPORT,[DAEHAN_ID],'대한선진(국향) 회사 양식','report'); add(SJ_REPORT,[SJ_ID],'산림조합라이프 회사 보고 양식','report'); add(DEFAULT_REPORT,[],'보고 양식','report');
+  PS_TPL=out; PS_TPL_KEY=key; return out;
+}
+/* 양식 하나를 붙여 넣은 줄에 맞춤: 순서를 지키면서 맞은 글자 수(w)가 가장 많은 짝.
+   맞은 줄 사이에 끼인 다른 줄은 조금씩 빼서(EPS) 한데 모인 짝을 고름 — 다른 양식 줄과 섞이지 않게 (뒤에서부터 채우는 표, 0 = 첫 짝 전 · 1 = 짝 사이) */
+const PS_EPS=0.01;
+function psAlign(t,L){
+  const T=t.lines, m=T.length, n=L.length, M=[];
+  for(let i=0;i<m;i++){ const row=new Array(n).fill(null); if(T[i].w>0) for(let j=0;j<n;j++){ if(!L[j].trim()) continue; for(let a=0;a<T[i].alts.length;a++){ const x=T[i].alts[a].re.exec(L[j]); if(x){ row[j]={a,x}; break; } } } M.push(row); }
+  const W=n+1, A=new Float64Array((m+1)*W), B=new Float64Array((m+1)*W);
+  for(let i=m-1;i>=0;i--) for(let j=n-1;j>=0;j--){ const k=i*W+j, hit=M[i][j]?T[i].w+B[(i+1)*W+j+1]:-1;
+    A[k]=Math.max(A[k+W],A[k+1],hit); B[k]=Math.max(0,B[k+W],B[k+1]-PS_EPS,hit); }
+  const pairs=[]; let i=0,j=0,st=0;
+  while(i<m&&j<n){ const k=i*W+j, cur=st?B[k]:A[k], hit=M[i][j]?T[i].w+B[(i+1)*W+j+1]:-1;
+    if(st&&cur===0) break;
+    if(M[i][j]&&Math.abs(hit-cur)<1e-9){ pairs.push({i,j,a:M[i][j].a,x:M[i][j].x}); i++; j++; st=1; }
+    else if(Math.abs((st?B[k+1]-PS_EPS:A[k+1])-cur)<1e-9) j++; else i++; }
+  return {score:A[0], pairs};
+}
+/* 날짜 · 시간 글 → {y, mo, d, h, mi} (모르는 것은 null) */
+function psDT(s){
+  s=String(s||'').trim(); if(!s) return null; let y=null,mo=null,d=null,h=null,mi=0,m,rest=s;
+  if((m=s.match(/(\d{4})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})\s*일?\.?/))){ y=+m[1]; mo=+m[2]; d=+m[3]; rest=s.replace(m[0],' '); }
+  else if((m=s.match(/(?:^|[^\d])(\d{2})-(\d{1,2})-(\d{1,2})(?!\d)/))){ y=2000+(+m[1]); mo=+m[2]; d=+m[3]; rest=s.replace(m[0],' '); }
+  else if((m=s.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/))){ mo=+m[1]; d=+m[2]; rest=s.replace(m[0],' '); }
+  else if((m=s.match(/(?:^|[^\d:])(\d{1,2})\s*\/\s*(\d{1,2})(?![\d:])/))){ mo=+m[1]; d=+m[2]; rest=s.replace(m[0],' '); }
+  else if((m=s.match(/(\d{1,2})\s*일/))){ d=+m[1]; rest=s.replace(m[0],' '); }
+  rest=rest.replace(/\([월화수목금토일]\)|[월화수목금토일]요일/g,' ');
+  if((m=rest.match(/(오전|오후|새벽|저녁|밤)?\s*(\d{1,2})\s*시\s*(?:(\d{1,2})\s*분|(반))?/))){ h=+m[2]; mi=m[3]?+m[3]:m[4]?30:0; if(/오후|저녁|밤/.test(m[1]||'')&&h<12) h+=12; if(m[1]==='오전'&&h===12) h=0; }
+  else if((m=rest.match(/(\d{1,2})\s*:\s*(\d{2})/))){ h=+m[1]; mi=+m[2]; }
+  if(d==null&&h==null) return null;
+  if((mo!=null&&(mo<1||mo>12))||(d!=null&&(d<1||d>31))||(h!=null&&h>24)||mi>59) return null;
+  if(h===24) h=0;
+  return {y,mo,d,h,mi};
+}
+const psYMD=t=>`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;
+function psToday(){ const t=parseDT(todayYMD()); return new Date(t.y,t.mo-1,t.d); }
+/* 달 · 해가 빠진 날짜 → ref(같은 글 안의 다른 날짜 · 오늘)에 가장 가까운 날 */
+function psResolve(p,ref,after){
+  if(!p||p.d==null) return null; const cands=[];
+  if(p.y!=null&&p.mo!=null) cands.push(new Date(p.y,p.mo-1,p.d));
+  else if(p.mo!=null) [-1,0,1].forEach(k=>cands.push(new Date(ref.getFullYear()+k,p.mo-1,p.d)));
+  else [-1,0,1].forEach(k=>cands.push(new Date(ref.getFullYear(),ref.getMonth()+k,p.d)));
+  const ok=cands.filter(t=>t.getDate()===p.d&&(!after||t>=new Date(after.getFullYear(),after.getMonth(),after.getDate())));
+  const pool=ok.length?ok:cands.filter(t=>t.getDate()===p.d); if(!pool.length) return null;
+  return pool.sort((a,b)=>Math.abs(a-ref)-Math.abs(b-ref))[0];
+}
+const psGender=v=>{ v=String(v||'').trim(); return /^남/.test(v)?'남자':/^여/.test(v)?'여자':v; };
+const psRel=v=>{ v=String(v||'').trim(); const m=v.match(/^(기독교|개신교|교회)|^(천주교|성당|가톨릭)|^(불교|절)|^(유교)|^(무교|없음)/); return !m?v:m[1]?'기독교':m[2]?'천주교':m[3]?'불교':m[4]?'유교':'무교'; };
+function psMoneyIn(won){ if(!won) return ''; return won%1000===0&&won<10000000?String(won/10000):String(won); }   /* 칸 값: 120 · 120.5 · 2575100 */
+const psTel=v=>(String(v||'').match(/0\d{1,2}[-\s.]?\d{3,4}[-\s.]?\d{4}/)||[''])[0];
+/* 읽은 결과 R = {f, dt:{칸:[날짜 후보]}, items, ded, mgr, coName, collect, tpls, n} */
+function psNew(){ return {f:{}, dt:{}, items:null, ded:null, mgr:null, mgrRaw:null, coName:'', collect:null, tpls:[], hj:false}; }
+function psSet(R,k,v){ v=typeof v==='string'?v.trim():v; if(v===''||v==null||v===false) return; if(R.f[k]===undefined||R.f[k]==='') R.f[k]=v; }
+function psDate(R,k,s,rank){ const p=psDT(s); if(!p) return; p.rank=rank||(p.mo!=null?2:1); (R.dt[k]=R.dt[k]||[]).push(p); }
+function psPut(R,key,raw){
+  const [name,fm]=String(key).split(':'); let v=String(raw??'').replace(/\s+$/,'').trim(); if(!v) return;
+  const DT={'접수':'recv','접수일시':'recv','통화':'callAt','출발':'leaveAt','상담':'consultAt','도착':'arrive','임종':'death','발생':'death','입관':'casket','입관일시':'casket','발인':'depart','발인일시':'depart','배차':'dispatchAt'};
+  const TX={'장소':'place','회사명':'company','관계':'custRel','고객연락처':'custTel','상주명':'chief','상주연락처':'chiefTel','상주관계':'chiefRel','장지':'burial','운행경로':'route','상품':'product','상품약칭':'productShort',
+    '1차장지':'burial1','2차장지':'burial2','담당':'staff','담당연락처':'staffTel','특이사항':'note','수의대체':'shroud','제공특이사항':'provNote','상구분':'mourn','소속':'staffOrg','이송':'transport','본관':'origin',
+    '사망사유':'cause','제단지원':'altarSup','할인권사용':'coupon','회원증회수':'cardBack','확인서대체':'certSub','계열사':'affiliate','직급':'rank','주소':'addr','화장장':'cremName','사전가입할인':'preJoin','이행완료확인서':'certDone'};
+  const MN={'납입':'paid','잔액':'balance','회사지원':'support','추가금':'extraAmt','총수금액':'totalAmt'};
+  if(name==='배차'&&v==='미사용'){ psSet(R,'vehNone',true); return; }
+  if(DT[name]){ psDate(R,DT[name],v,fm==='kr'||fm==='long'||fm==='md'||fm==='iso'||fm==='dot'||fm==='short'?2:0); return; }
+  if(/연락처$/.test(name)) v=psTel(v)||v;
+  if(name==='담당'||name==='상주명'){ const tel=psTel(v); if(tel){ psSet(R,name==='담당'?'staffTel':'chiefTel',tel); v=v.replace(tel,'').replace(/\(\s*\)/g,'').trim(); } }
+  if(TX[name]){ psSet(R,TX[name],name==='이송'?(/미/.test(v)?'미제공':/제공/.test(v)?'제공':v):v); return; }
+  if(MN[name]){ const w=toWon(v); if(w) psSet(R,MN[name],psMoneyIn(w)); return; }
+  switch(name){
+    case '업체명': if(!R.coName) R.coName=v; return;
+    case '고객명': psSet(R,'customer',v.replace(/\s*님$/,'')); return;
+    case '고인이름': psSet(R,'name',v.replace(/^故\s*/,'')); return;
+    case '성별': psSet(R,'gender',psGender(v)); return;
+    case '나이': psSet(R,'age',(v.match(/\d{1,3}/)||[''])[0]); return;
+    case '종교': psSet(R,'religion',psRel(v)); return;
+    case '행사번호': psSet(R,'eventNo',(v.match(/\d+/)||[''])[0]); return;
+    case '담당팀장': psSet(R,'staff',v.replace(/\s*팀장$/,'')); return;
+    case '수금액': { const w=toWon(v); if(w&&R.collect==null) R.collect=w; return; }
+    case '고인명': psDeceased(R,v); return;
+    case '고인성별나이': { const m=v.match(/^(.*?)\s*\(([^)]*)\)\s*$/); if(!m){ psSet(R,'name',v); return; } psSet(R,'name',m[1].replace(/^故\s*/,'')); const g=m[2].match(/남|여/), a=m[2].match(/(\d{1,3})\s*세?/); psSet(R,'gender',g?psGender(g[0]):''); psSet(R,'age',a?a[1]:''); return; }
+    case '나이성별': { const a=v.match(/(\d{1,3})\s*세/), g=v.match(/남|여/); psSet(R,'age',a?a[1]:''); psSet(R,'gender',g?psGender(g[0]):''); return; }
+    case '도우미': case '도우미이름': { if(v==='미사용'){ psSet(R,'helperNone',true); return; } const m=v.match(/^(.*?)(?:\s*(\d+(?:\.\d+)?)\s*시간)?$/); psSet(R,'helper',m[1]); if(name==='도우미') psSet(R,'helperHours',m[2]||''); return; }
+    case '상복': { if(v==='미사용'){ psSet(R,'mournNone',true); return; }
+      let s=v, brand=''; const brands=[...(db.lists.mournBrands||[])].filter(Boolean).sort((a,b)=>b.length-a.length);
+      const hit=brands.find(b=>s.endsWith(' '+b)||s===b); if(hit){ brand=hit; s=s.slice(0,s.length-hit.length).trim(); }
+      const m=s.match(/^(?:남\s+(.+?))?\s*(?:여\s+(.+))?$/);
+      if(!m||(!m[1]&&!m[2])){ if(!brand&&s){ const t=s.split(/\s+/); if(t.length===1&&!/세트|벌|제공/.test(s)) brand=s; else { psSet(R,'mourning',v); return; } } }
+      else { if(!brand&&m[2]){ const t=m[2].split(/\s+/); if(t.length>1&&!/세트|벌|제공/.test(t[t.length-1])){ brand=t.pop(); m[2]=t.join(' '); } }
+        if(!brand&&m[1]&&!m[2]){ const t=m[1].split(/\s+/); if(t.length>1&&!/세트|벌|제공/.test(t[t.length-1])){ brand=t.pop(); m[1]=t.join(' '); } }
+        const cnt=(x,u)=>{ x=String(x||'').trim(); const n=x.match(new RegExp('^(\\d+)\\s*'+u+'$')); return n?n[1]:x; };
+        psSet(R,'mournM',cnt(m[1],'세트')); psSet(R,'mournW',cnt(m[2],'벌')); }
+      psSet(R,'mournBrand',brand); return; }
+    case '차량': { if(v==='미사용'){ psSet(R,'vehNone',true); return; }
+      const types=[...new Set([...(db.lists.vehTypes||[]),'버스 리무진','리무진 버스','리무진','버스','장의버스'])].filter(Boolean).sort((a,b)=>b.length-a.length), k=x=>x.replace(/\s/g,'');
+      let t=types.find(x=>k(v).startsWith(k(x)));
+      if(t){ let n=0, cut=0; for(const ch of v){ cut++; if(!/\s/.test(ch)) n++; if(n===k(t).length) break; } psSet(R,'vehType',v.slice(0,cut).trim()); psSet(R,'vehCo',v.slice(cut).trim()); }
+      else { const p=v.split(/\s+/); if(p.length>1&&/장의차|운수|관광/.test(p[p.length-1])){ psSet(R,'vehCo',p.pop()); psSet(R,'vehType',p.join(' ')); } else psSet(R,'vehType',v); }
+      return; }
+    case '제단공제': { const m=v.match(/^(.*?)\s*(공제|법인카드결제)$/), card=/법인카드|법카/.test(v);
+      if(m&&/^\d/.test(m[1])&&toWon(m[1])){ psSet(R,'altar',psMoneyIn(toWon(m[1]))); if(m[2]==='법인카드결제') psSet(R,'altarCard',true); return; }
+      psSet(R,'altar',v.replace(/\s*\(법인카드결제\)$/,'')); if(card) psSet(R,'altarCard',true); return; }
+    case '장법': { const m=v.match(/화장|매장|수목장/); psSet(R,'method',m?m[0]:v); return; }
+    case '장법화장장': { const m=v.match(/^(화장|매장|수목장)?\s*(?:\(([^)]*)\))?$/); if(!m){ psSet(R,'method',v); return; } psSet(R,'method',m[1]||''); psSet(R,'cremName',m[2]||''); return; }
+    case '화장': { const m=v.match(/^(.*?)(?:\s*\(([^)]*)\))?$/); psDate(R,'crem',m[1],2); const ex=String(m[2]||'').trim();
+      if(ex){ const r=ex.match(/^(.*?)\s*(\d+)\s*회차$/); psSet(R,'cremName',(r?r[1]:ex).trim()); if(r) psSet(R,'cremRound',String(+r[2])); } return; }
+    case '하관': { psSet(R,'method','매장'); const m=v.match(/^(.*?)(?:\s*\(([^)]*)\))?$/); let head=m[1]; const si=SIJIN.find(s=>head.includes(s[0])); if(si){ psSet(R,'hagwanSi',si[0]); head=head.replace(si[0],' '); }
+      const p=psDT(head.replace(/\d{1,2}\s*시.*$/,'')); if(p) (R.dt.hagwan=R.dt.hagwan||[]).push({...p,h:null,rank:2});
+      const span=String(m[2]||''), a=span.match(/(\d{1,2})\s*시\s*~/)||span.match(/^(\d{1,2})\s*시/), b=span.match(/~\s*(\d{1,2})\s*시/);
+      psSet(R,'hagwanFrom',a?pad(+a[1]):''); psSet(R,'hagwanTo',b?pad(+b[1]):''); return; }
+    case '장례기간': { const ds=[...v.matchAll(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/g)]; if(ds[0]) psDate(R,'death',`${ds[0][1]}월 ${ds[0][2]}일`,1.5); if(ds[1]) psDate(R,'depart',`${ds[1][1]}월 ${ds[1][2]}일`,1.5); return; }
+    case '기간': { const m=v.match(/(\d{1,2})\s*일\s*-\s*(\d{1,2})\s*일/); if(m){ psDate(R,'death',m[1]+'일',0.5); psDate(R,'depart',m[2]+'일',0.5); } return; }
+    case '접수월일': { const m=v.match(/(\d{1,2})\s*\/\s*(\d{1,2})/); if(m) psDate(R,'recv',`${m[1]}월 ${m[2]}일`,0.5); return; }
+    case '제공항목': case '공제항목': case '대체공제': case '관리사배치': return;
+  }
+}
+/* 「홍길동 남자 82세(본관/김해)」 · 「김영희 (여, 85세)」 · 「故 홍길동 / 남 / 82세」 */
+function psDeceased(R,v){ const m=String(v||'').trim().match(/^(?:故\s*)?([^\s(/,]+)(.*)$/); if(!m) return; psSet(R,'name',m[1]);
+  const rest=m[2], o=rest.match(/본관\s*[\/:]?\s*([^)\s,]+)/), r2=o?rest.replace(o[0],' '):rest, g=r2.match(/(남자|여자|남|여)(?![가-힣])/), a=r2.match(/(\d{1,3})\s*세/);
+  if(g) psSet(R,'gender',psGender(g[1])); if(a) psSet(R,'age',a[1]); if(o) psSet(R,'origin',o[1]); }
+/* 번호 줄 묶음: 「1.내용」 + 번호 없는 다음 줄은 위 항목에 이어짐 */
+function psNumbered(lines){ const out=[]; lines.forEach(l=>{ const t=l.trim(); if(!t) return; const m=t.match(/^(\d{1,2})\s*[.)．]\s*(.*)$/); if(m) out.push(m[2].trim()); else if(out.length) out[out.length-1]+='\n'+t; }); return out.filter(x=>x.trim()); }
+function psMgr(lines){ return lines.map(l=>{ const m=l.trim().match(/^(\d{1,2})\s*일\s*[:：]?\s*(?:(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?)?\s*[-~]?\s*(?:(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?)?\s*(?:(\d+)\s*명)?/); return m&&(m[2]||m[6])?{d:+m[1],sh:m[2]?pad(+m[2]):'',sm:m[2]?pad(+(m[3]||0)):'',eh:m[4]?pad(+m[4]):'',em:m[4]?pad(+(m[5]||0)):'',n:m[6]||''}:null; }).filter(Boolean); }
+/* 양식에 안 맞은 줄: 「이름 : 값」 · 「[이름] 값」 · 「※이름: 값」 */
+const PS_LABEL=[[/^(장소|빈소|장례식장|식장)$/,'장소'],[/^(고인|고인명)$/,'고인*'],[/^(고객|고객명|회원|회원명|직원|직원명|조합원)$/,'고객*'],[/^(상주|상주명)$/,'상주*'],
+  [/^(종교)$/,'종교'],[/^(임종|발생|사망일시)$/,'임종'],[/^(입관)$/,'입관'],[/^(발인)$/,'발인'],[/^(접수)$/,'접수'],[/^(도착)$/,'도착'],[/^(장지)$/,'장지'],[/^(1차장지)$/,'1차장지'],[/^(2차장지)$/,'2차장지'],
+  [/^(상품|상품명)$/,'상품'],[/^(담당|팀장|의전팀장|장례지도사|지도사|장례담당자)$/,'담당*'],[/^(연락처|전화|전화번호|핸드폰)$/,'연락처*'],[/^(관계)$/,'관계*'],[/^(행사번호)$/,'행사번호'],
+  [/^(화장)$/,'화장'],[/^(하관)$/,'하관'],[/^(도우미|관리사)$/,'도우미'],[/^(상복)$/,'상복'],[/^(차량|장의차량)$/,'차량'],[/^(제단공제)$/,'제단공제'],[/^(수의대체)$/,'수의대체'],[/^(본관)$/,'본관'],[/^(주소)$/,'주소'],[/^(장법)$/,'장법'],[/^(사인|사망사유|사망원인)$/,'사망사유'],[/^(특이사항)$/,'특이사항'],[/^(수금액|수금)$/,'수금액'],[/^(회사|회사명)$/,'회사명'],[/^(나이)$/,'나이'],[/^(성별)$/,'성별']];
+function psLoose(R,lines){
+  let grp='';
+  lines.forEach(l=>{
+    const m=l.match(/^\s*[※＊*·•-]?\s*\[([^\]]{1,12})\]\s*(.*)$/)||l.match(/^\s*[※＊*·•-]?\s*([^:：\[\]]{1,12}?)\s*[:：]\s*(.*)$/);
+    if(!m) return; const lab=m[1].replace(/\s/g,''), val=m[2].trim(); const hit=PS_LABEL.find(x=>x[0].test(lab)); if(!hit) return;
+    const k=hit[1];
+    if(k==='고인*'){ grp='name'; psDeceased(R,val); return; }
+    if(k==='고객*'||k==='상주*'){ grp=k==='고객*'?'cust':'chief'; const tel=psTel(val), nm=val.replace(tel,'').replace(/\(\s*\)|님/g,'').replace(/\(([^)]*)\)/,(x,r)=>{ psSet(R,grp==='cust'?'custRel':'chiefRel',r.trim()); return ''; }).trim();
+      psSet(R,grp==='cust'?'customer':'chief',nm.split(/\s+/)[0]); if(tel) psSet(R,grp==='cust'?'custTel':'chiefTel',tel); return; }
+    if(k==='담당*'){ grp='staff'; const tel=psTel(val); psSet(R,'staff',val.replace(tel,'').replace(/[()]/g,'').replace(/\s*팀장$/,'').trim()); if(tel) psSet(R,'staffTel',tel); return; }
+    if(k==='연락처*'){ const tel=psTel(val)||val; psSet(R,grp==='chief'?'chiefTel':grp==='staff'?'staffTel':'custTel',tel); return; }
+    if(k==='관계*'){ psSet(R,grp==='chief'?'chiefRel':'custRel',val); return; }
+    if(k==='회사명'&&psFindCo(val)){ if(!R.coName) R.coName=val; return; }
+    psPut(R,k,val);
+  });
+}
+/* 줄 나누기: 밴드 · 카톡에서 줄마다 빈 줄이 하나씩 끼어 복사되면(줄의 7할 넘게) 빈 줄 하나는 빼고, 두 줄 넘게 빈 곳만 빈 줄 하나로 */
+function psLines(text){
+  const L=String(text||'').replace(/\r/g,'').replace(/\u00a0/g,' ').split('\n'), nb=L.filter(l=>l.trim()).length; let single=0;
+  for(let j=0;j<L.length-2;j++) if(L[j].trim()&&!L[j+1].trim()&&L[j+2].trim()) single++;
+  if(nb<4||single<nb*0.7) return L;
+  const out=[]; let run=0; L.forEach(l=>{ if(!l.trim()){ run++; return; } if(run>=2) out.push(''); run=0; out.push(l); }); return out;
+}
+function psParse(text){
+  const R=psNew(), L=psLines(text), used=new Array(L.length).fill(false), conts=[]; R.text=String(text||'');
+  if(!L.some(l=>l.trim())) return R;
+  const res=psTemplates().map(t=>({t,...psAlign(t,L)})).filter(r=>r.pairs.length>=3&&r.pairs.length>=r.t.lines.filter(x=>x.w>0).length*0.5).sort((a,b)=>b.score-a.score);   /* 양식 줄의 절반 넘게 맞아야 그 양식으로 봄 */
+  res.forEach(r=>{
+    const fresh=r.pairs.filter(p=>!used[p.j]); if(fresh.length<3||fresh.length<r.pairs.length*0.6) return;
+    const T=r.t.lines, P=fresh;   /* 앞 양식이 이미 읽은 줄은 빼고 */
+    P.forEach(p=>{ used[p.j]=true; });
+    P.forEach((p,k)=>{
+      const keys=T[p.i].alts[p.a].keys; keys.forEach((key,q)=>psPut(R,key,p.x[q+1]));
+      /* 줄바꿈된 특이사항: 다음 맞은 줄 앞까지 이어 붙임 */
+      const last=keys[keys.length-1], nx=P[k+1]?P[k+1].j:L.length;
+      if((last==='특이사항'||last==='제공특이사항')&&!T.slice(p.i+1,P[k+1]?P[k+1].i:T.length).some(x=>x.block)) conts.push({fk:last==='특이사항'?'note':'provNote',base:String(p.x[keys.length]||'').trim(),from:p.j+1,to:nx});
+    });
+    /* 여러 줄 자리(제공항목 · 공제항목 · 관리사배치): 앞뒤로 맞은 줄 사이 */
+    T.forEach((tl,i)=>{ if(!tl.block) return;
+      const prev=[...P].reverse().find(p=>p.i<i), next=P.find(p=>p.i>i); if(!prev&&!next) return;
+      const from=prev?prev.j+1:0, to=next?next.j:L.length, got=[];
+      let blank=false; for(let j=from;j<to;j++){ if(used[j]) break; const s=L[j].trim(); if(!s){ blank=true; continue; } if(blank&&got.length&&!next&&!/^\d{1,2}\s*[.)．]/.test(s)) break; blank=false; got.push(L[j]); used[j]=true; }
+      if(!got.length) return;
+      if(tl.block==='제공항목'){ const it=psNumbered(got); if(it.length&&!R.items) R.items=it; }
+      else if(tl.block==='관리사배치'){ const mg=psMgr(got); if(mg.length&&!R.mgrRaw) R.mgrRaw=mg; }
+      else { const dd=psNumbered(got); if(dd.length&&!R.ded) R.ded=dd; }
+    });
+    if(r.t.hj) R.hj=true;
+    R.tpls.push(r.t);
+  });
+  /* 줄바꿈된 특이사항: 바로 아래 줄부터 빈 줄 · 다른 양식이 읽은 줄 앞까지 이어 붙임 (모든 양식을 읽은 뒤) */
+  conts.forEach(({fk,base,from,to})=>{ const more=[]; for(let j=from;j<to;j++){ if(used[j]||!L[j].trim()) break; more.push(L[j].trim()); used[j]=true; }
+    if(more.length&&(R.f[fk]||'')===base) R.f[fk]=[base,...more].filter(Boolean).join('\n'); });   /* 다른 양식에서 이미 이어 붙였으면 그대로 */
+  psLoose(R,L.filter((l,j)=>!used[j]));
+  psFinishDates(R);
+  return R;
+}
+/* 같은 칸 날짜 후보 합치기: 순위 높은 것 + 같은 날이면 빠진 달 · 시간을 다른 후보에서 */
+function psBest(list){ if(!list||!list.length) return null; const s=list.slice().sort((a,b)=>b.rank-a.rank), p={...s[0]};
+  s.slice(1).forEach(q=>{ if(q.d!==p.d) return; if(p.mo==null&&q.mo!=null){ p.mo=q.mo; p.y=q.y; } if(p.h==null&&q.h!=null){ p.h=q.h; p.mi=q.mi; } }); return p; }
+/* 날짜 후보 → 칸 값. 달이 있는 날짜를 먼저 정하고, 달 없는 날짜는 그 날짜(없으면 오늘)에 가까운 달로. 임종 ≤ 입관 ≤ 발인 */
+function psFinishDates(R){
+  const today=psToday(), best=k=>psBest(R.dt[k]);
+  const full={}; let ref=null;
+  ['crem','depart','casket','death','recv','arrive','hagwan','callAt','leaveAt','consultAt','dispatchAt'].forEach(k=>{ const p=best(k); if(p&&p.mo!=null){ const t=psResolve(p,today); if(t){ full[k]=t; if(!ref) ref=t; } } });
+  ref=ref||today; const order=['recv','callAt','leaveAt','arrive','consultAt','death','casket','dispatchAt','depart','crem','hagwan'], got={};
+  let after=null;
+  order.forEach(k=>{ const p=best(k); if(!p) return; const t=full[k]||psResolve(p,ref,['death','casket','depart'].includes(k)?after:null); if(!t) return; got[k]={t,p}; if(['death','casket','depart'].includes(k)) after=t; });
+  Object.entries(got).forEach(([k,{t,p}])=>{
+    const ymd=psYMD(t), hm=p.h!=null?`T${pad(p.h)}:${pad(p.mi||0)}`:'';
+    if(k==='crem'){ psSet(R,'cremDate',ymd); if(p.h!=null) psSet(R,'cremTime',`${pad(p.h)}:${pad(p.mi||0)}`); return; }
+    if(k==='hagwan'){ psSet(R,'hagwanDate',ymd); return; }
+    psSet(R,k,ymd+hm);
+  });
+  if(R.mgrRaw){ const base=got.death?got.death.t:got.recv?got.recv.t:ref;
+    R.mgr=R.mgrRaw.map(m=>{ const t=psResolve({d:m.d},base,got.recv?got.recv.t:(got.death?got.death.t:null)); return t?{id:uid(),date:psYMD(t),sh:m.sh,sm:m.sm,eh:m.eh,em:m.em,n:m.n}:null; }).filter(Boolean); }
+}
+const psCount=R=>Object.keys(R.f).length+(R.items?1:0)+(R.ded?1:0)+(R.mgr&&R.mgr.length?1:0)+(R.collect?1:0);
+/* 업체: ① 양식의 업체명 줄 ② 글 안의 업체 이름(하나일 때) ③ 그 업체 회사 양식 ④ 현진시닝 밴드 양식(회사명 · 회사지원) */
+function psFindCo(name){ const k=coKey(name); if(!k) return null; return db.companies.find(x=>x.id!==ETC&&coKey(x.name)===k)||(k===SJ_OLD?db.companies.find(x=>isSJ(x)):null)||db.companies.find(x=>x.id!==ETC&&coKey(x.name).length>=3&&k.length>=3&&(coKey(x.name).startsWith(k)||k.startsWith(coKey(x.name)))); }
+function psCompany(R){
+  if(R.coName){ const co=psFindCo(R.coName); return co?co.id:ETC; }
+  { const k=coKey(R.text||''), hit=db.companies.filter(x=>x.id!==ETC&&coKey(x.name).length>=3&&k.includes(coKey(x.name))); if(hit.length===1) return hit[0].id; }   /* 글 안에 업체 이름이 하나만 있으면 */
+  for(const t of R.tpls){ const ids=t.cos.filter(id=>id!==ETC&&db.companies.some(x=>x.id===id)); if(t.kind==='report'&&ids.length===1) return ids[0]; }
+  if(R.hj||R.f.company){ const hj=psFindCo('현진시닝'); if(hj) return hj.id; }
+  return ETC;
+}
+/* 칸에 넣기: fill=true 면 빈 칸만 */
+function psApply(c,R,fill){
+  let n=0; const f=c.f||(c.f={}), empty=v=>v==null||v===''||v===false;
+  Object.entries(R.f).forEach(([k,v])=>{ if(fill&&!empty(f[k])) return; if(f[k]===v) return; f[k]=v; n++; });
+  if(R.items&&R.items.length){ const co=coById(c.companyId), items=c.items||[], untouched=items.length===co.items.length&&items.every((it,i)=>it.on&&it.text===co.items[i]);
+    if(!fill||untouched||!items.length){ c.items=R.items.map(t=>({id:uid(),text:t,on:true})); n++; } }
+  if(R.ded&&R.ded.length&&(!fill||!(c.deductions||[]).some(d=>String(d.text||'').trim()))){ c.deductions=R.ded.map(t=>({id:uid(),text:t})); n++; }
+  if(R.mgr&&R.mgr.length&&(!fill||!(c.mgr||[]).length)){ c.mgr=R.mgr.map(m=>({...m,id:uid()})); n++; }
+  if(R.collect&&(!fill||empty(f.collect))){ const w=R.collect+altarDeductWon(c)-dedAdjWon(c); if(w>0){ f.collect=psMoneyIn(w); n++; } }   /* 밴드 「수금액」이 그대로 나오게: 제단공제 · 공제 · 추가만큼 되돌림 */
+  return n;
+}
+function psDup(R){
+  const nm=coKey(R.f.name); if(!nm) return null; const day=v=>String(v||'').slice(0,10);
+  return db.cases.filter(c=>{ const f=c.f||{}; if(coKey(f.name)!==nm) return false;
+    return (R.f.place&&coKey(f.place)===coKey(R.f.place))||(R.f.depart&&day(f.depart)===day(R.f.depart))||(R.f.eventNo&&String(f.eventNo||'').replace(/번$/,'')===R.f.eventNo); })
+    .sort((a,b)=>(b.updated||0)-(a.updated||0))[0]||null;
+}
+/* ---------- 화면: 아래에서 올라오는 창 (넓은 화면은 가운데) ---------- */
+let psText='', psR=null, psCo=null, psT=null;
+function pasteStartBtn(){ const b=document.getElementById('pickPaste'); return b?b.outerHTML.replace(' id="pickPaste"','').replace(' hidden=""',''):''; }   /* 처음 화면(행사 없음)에도 같은 버튼 */
+function psOpen(){
+  closePicker(); if(window.dwHist) window.dwHist.push('ps');
+  psText=''; psR=null; psCo=null; psRender();
+  const bg=$('#psBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show'));
+  psClip(true);
+}
+function psClose(){ const bg=$('#psBg'); if(bg.hidden) return; bg.classList.remove('show'); setTimeout(()=>{ bg.hidden=true; },200); }
+async function psClip(auto){
+  let t=''; try{ if(navigator.clipboard&&navigator.clipboard.readText) t=await navigator.clipboard.readText(); }catch(e){}
+  if(t&&t.trim()){ const R=psParse(t); if(!auto||psCount(R)>=3){
+    if(!auto&&psText.trim()&&!psText.includes(t.trim())) t=psText.replace(/\s+$/,'')+'\n\n'+t;   /* 두 번째로 붙이면 이어서 (일정표 → 회사 양식) */
+    else if(!auto&&psText.includes(t.trim())){ toast('이미 붙여 넣은 글입니다'); return; }
+    psText=t; psR=null; const ta=$('#psText'); if(ta) ta.value=t; psPaint(); return; } }
+  if(!auto) toast('복사한 글을 읽지 못했습니다. 아래 칸을 길게 눌러 붙여 넣으십시오');
+  setTimeout(()=>{ const ta=$('#psText'); if(ta&&!psText) ta.focus(); },80);
+}
+function psRender(){
+  $('#psBody').innerHTML=`<p class="note">밴드 일정표 · 제공내역 · 회사 양식을 복사해서 붙여 넣으면 업체와 입력 칸을 알아서 채웁니다. 여러 개를 이어서 붙여 넣어도 됩니다.</p>
+    <textarea class="input pz-ta" id="psText" rows="6" placeholder="여기를 길게 눌러 붙여넣기" aria-label="복사한 글">${esc(psText)}</textarea>
+    <div class="row pz-tools"><button class="btn" type="button" id="psPaste">복사한 글 붙여넣기</button><button class="btn" type="button" id="psClear"${psText?'':' hidden'}>지우기</button></div>
+    <div class="pz-res" id="psRes" aria-live="polite"></div>`;
+  psPaint();
+}
+const PS_SHOW=[['eventNo','행사번호',v=>v+'번'],['place','장소'],['name','고인',(v,f)=>['故 '+v,f.gender,f.age?f.age+'세':''].filter(Boolean).join(' · ')],['chief','상주',(v,f)=>[v,f.chiefRel,f.chiefTel].filter(Boolean).join(' · ')],
+  ['customer','고객 · 회원',(v,f)=>[f.company,v,f.custRel,f.custTel].filter(Boolean).join(' · ')],['death','임종',v=>psDTShow(v)],['casket','입관',v=>psDTShow(v)],['depart','발인',v=>psDTShow(v)],
+  ['cremDate','화장',(v,f)=>[psDTShow(v+(f.cremTime?'T'+f.cremTime:'')),f.cremName,f.cremRound?f.cremRound+'회차':''].filter(Boolean).join(' · ')],['hagwanDate','하관',v=>psDTShow(v)],
+  ['burial','장지'],['burial1','1차 장지'],['product','상품'],['staff','담당',(v,f)=>[v,f.staffTel].filter(Boolean).join(' · ')]];
+const psDTShow=v=>{ const p=parseDT(v); return p?`${p.mo}월 ${pad(p.d)}일 (${wdOf(p)})${p.h!=null?` ${pad(p.h)}:${pad(p.mi)}`:''}`:''; };
+function psPaint(){
+  const box=$('#psRes'); if(!box) return; const clr=$('#psClear'); if(clr) clr.hidden=!psText; const bd=$('#psBody'); if(bd) bd.classList.toggle('has',!!psText.trim());
+  if(!psText.trim()){ box.innerHTML=''; return; }
+  const R=psR||(psR=psParse(psText)), n=psCount(R);
+  if(n<3){ box.innerHTML=`<div class="pz-empty"><b>알아볼 수 있는 내용이 없습니다</b><span>앱에서 복사한 밴드 일정표 · 제공내역 · 회사 양식을 그대로 붙여 넣으십시오.</span></div>`; return; }
+  const coId=psCo||psCompany(R), dup=psDup(R), f=R.f;
+  const coOpts=[...db.companies.filter(x=>x.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko')),coById(ETC)].map(x=>`<option value="${x.id}"${x.id===coId?' selected':''}>${esc(x.id===ETC?`기타 업체${R.coName&&!psFindCo(R.coName)?` (${R.coName})`:''}`:x.name)}</option>`).join('');
+  const rows=PS_SHOW.filter(([k])=>f[k]).map(([k,l,fn])=>`<div class="pz-row"><span>${l}</span><b>${esc(fn?fn(f[k],f):f[k])}</b></div>`);
+  if(R.collect) rows.push(`<div class="pz-row"><span>수금액</span><b>${esc(wonStr(R.collect))}${f.altar&&!f.altarCard?` <small>(제단공제 전 금액으로 넣음)</small>`:''}</b></div>`);
+  const extra=[f.helper||f.helperNone?'도우미':'', f.mournM||f.mournW||f.mournBrand||f.mournNone?'상복':'', f.vehType||f.vehCo||f.vehNone?'차량':'', R.items?`제공내역 ${R.items.length}항목`:'', R.ded?`공제 · 추가 ${R.ded.length}항목`:'', R.mgr&&R.mgr.length?`도우미 시간대 ${R.mgr.length}줄`:''].filter(Boolean);
+  const shown=new Set(PS_SHOW.map(x=>x[0]).concat(['gender','age','chiefRel','chiefTel','company','custRel','custTel','cremTime','cremName','cremRound','staffTel','helper','helperHours','helperNone','mournM','mournW','mournBrand','mournNone','vehType','vehCo','vehNone']));
+  const more=Object.keys(f).filter(k=>!shown.has(k)).length;
+  if(extra.length||more) rows.push(`<div class="pz-row"><span>그 밖에</span><b>${esc([...extra, more?`${more}칸`:''].filter(Boolean).join(' · '))}</b></div>`);
+  const names=[...new Set(R.tpls.map(t=>t.name))].join(' · ');
+  box.innerHTML=`<p class="pz-found">읽은 양식 · ${esc(names||'이름 : 값 줄')}</p>
+    <label class="f"><span class="field-label">진행 업체</span><select class="input" id="psCoSel" aria-label="진행 업체">${coOpts}</select></label>
+    <div class="pz-list">${rows.join('')}</div>
+    ${dup?`<div class="pz-dup"><b>같은 행사가 이미 있습니다</b><span>${esc(caseLabel(dup)||caseTitle(dup))}</span></div>
+      <div class="pz-acts"><button class="btn primary" type="button" data-ps-go="fill">이 행사에 빈 칸만 채우기</button><button class="btn" type="button" data-ps-go="new">새 행사로 만들기</button></div>`
+    :`<div class="pz-acts"><button class="btn primary" type="button" data-ps-go="new">새 행사 만들기 · ${n}칸 입력</button></div>`}`;
+}
+function psGo(mode){
+  const R=psR; if(!R) return; const coId=psCo||psCompany(R), dup=mode==='fill'?psDup(R):null; let c, n;
+  if(dup){ c=dup; n=psApply(c,R,true); c.updated=Date.now(); db.cur=c.id; }
+  else { c=makeCase(coId); if(c.companyId===ETC&&R.coName&&!psFindCo(R.coName)) c.f.coName=R.coName; c.mgr=[]; n=psApply(c,R,false); db.cases.push(c); db.cur=c.id; }
+  save(); dirty=true; psClose(); setTab('input'); renderAll(); inputGroup='basic'; inputSection=null; applyInputGroup();
+  toast(dup?(n?`${caseTitle(c)} 행사에 ${n}칸을 채웠습니다`:'새로 채울 빈 칸이 없습니다'):`새 행사를 만들었습니다 · ${n}칸을 채웠습니다. 확인하십시오`);
+}
+$('#psClose').onclick=()=>psClose();
+$('#psBg').addEventListener('click',e=>{ if(e.target.id==='psBg'){ psClose(); return; }
+  if(e.target.closest('#psPaste')){ psClip(false); return; }
+  if(e.target.closest('#psClear')){ psText=''; psR=null; psCo=null; $('#psText').value=''; psPaint(); $('#psText').focus(); return; }
+  const g=e.target.closest('[data-ps-go]'); if(g) psGo(g.dataset.psGo); });
+$('#psBg').addEventListener('input',e=>{ if(e.target.id!=='psText') return; psText=e.target.value; clearTimeout(psT); psT=setTimeout(()=>{ psR=null; psPaint(); },250); });
+$('#psBg').addEventListener('change',e=>{ if(e.target.id==='psCoSel') psCo=e.target.value; });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#psBg').hidden) psClose(); });
+document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[data-ps-open]')) psOpen(); });
 
 /* ---------- 건 관리 ---------- */
 function renderTtl(){
@@ -5512,7 +5856,7 @@ window.DW_VIEW=()=>db.tab==='admin'?'admin:'+db.adminView:db.tab==='duty'?'duty:
 window.DW_GO=v=>{ const [t,sub]=String(v).split(':'); setTab(t,sub); };
 window.DW_HOMEV=()=>window.dwPhone&&window.dwPhone()?'home':'';
 window.DW_CLOSE_TOP=()=>{ const on=id=>{ const el=$(id); return !!el&&!el.hidden; };
-  if(on('#tpBg')){ tpClose(); return true; } if(on('#chBg')){ chClose(); return true; } if(on('#cpBg')){ cpClose(false); return true; }
+  if(on('#tpBg')){ tpClose(); return true; } if(on('#chBg')){ chClose(); return true; } if(on('#cpBg')){ cpClose(false); return true; } if(on('#psBg')){ psClose(); return true; }
   if(on('#dvBg')){ dvClose(false); return true; } if(on('#picker')){ closePicker(); return true; }
   if($('#sideNav')&&$('#sideNav').classList.contains('show')){ closeNav(); return true; } return false; };
 if(window.dwHist) window.dwHist.init();

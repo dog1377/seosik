@@ -421,4 +421,34 @@ body[data-tab="admin"] #newCase,body[data-tab="poster"] #newCase{display:none}
   .px-side .px-pv canvas{width:auto;height:auto;max-width:100%;max-height:calc(100dvh - var(--ab-h) - var(--tn-h,0px) - 300px - env(safe-area-inset-top,0px));min-height:300px} }
 .px-from{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--field);font-size:14px;color:var(--ink-2)}
 .px-fixed{padding:12px 14px;border:1px dashed var(--edge);border-radius:4px;background:var(--field);font-weight:600;color:var(--ink);word-break:keep-all;overflow-wrap:break-word}
+/* 복사한 글로 새 행사 (2026.11.13): 새 행사 창 맨 위 버튼 + 붙여 넣는 창(휴대폰 아래에서 · 넓은 화면 가운데) */
+.pick-paste{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;margin:0 0 12px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.pick-paste[hidden]{display:none}
+.pick-paste .ui-icon{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pick-paste b{display:block;font-size:16px;font-weight:700}
+.pick-paste small{display:block;margin-top:1px;font-size:13px;color:var(--muted);font-weight:400}
+@media (hover:hover){ .pick-paste:hover{border-color:var(--edge)} }
+.pick-paste:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.start-card .pick-paste{margin:4px 0 14px}
+.csheet.pz-sheet{max-width:600px}
+.pz-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:12px;padding:0 18px 18px}
+.pz-body>.note{margin:0}
+textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 14px;font-size:16px;line-height:1.5}
+.pz-body.has textarea.input.pz-ta{min-height:96px;height:96px}   /* 붙여 넣은 뒤에는 읽은 내용이 잘 보이게 칸을 줄임 */
+.pz-tools{display:flex;gap:8px;flex-wrap:wrap}
+.pz-tools [hidden]{display:none}
+.pz-res{display:flex;flex-direction:column;gap:12px}
+.pz-res:empty{display:none}
+.pz-found{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.pz-list{border-top:1px solid var(--line)}
+.pz-row{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);font-size:15px;line-height:1.45}
+.pz-row span{color:var(--muted)}
+.pz-row b{font-weight:600;overflow-wrap:anywhere}
+.pz-row small{color:var(--muted);font-weight:400}
+.pz-dup{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--field)}
+.pz-dup span{font-size:14px;color:var(--ink-2)}
+.pz-acts{position:sticky;bottom:-18px;display:flex;flex-direction:column;gap:8px;margin:0 -18px -18px;padding:12px 18px calc(18px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
+.pz-acts .btn{min-height:52px;font-size:16px}
+.pz-empty{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px dashed var(--edge);border-radius:12px}
+.pz-empty span{font-size:14px;color:var(--muted)}
 </style>

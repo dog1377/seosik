@@ -11,7 +11,8 @@ SRV=$!
 trap 'kill $SRV 2>/dev/null || true' EXIT
 for _ in $(seq 1 50); do curl -s -o /dev/null "http://127.0.0.1:$PORT/forms/" && break; sleep 0.1; done
 export DW_BASE="http://127.0.0.1:$PORT/"
-echo "== 1/3 문법 검사";      python3 tools/test/syntax.py
-echo "== 2/3 돈 계산 검산";   python3 tools/test/money.py
-echo "== 3/3 화면 점검";      python3 tools/test/smoke.py
+echo "== 1/4 문법 검사";      python3 tools/test/syntax.py
+echo "== 2/4 돈 계산 검산";   python3 tools/test/money.py
+echo "== 3/4 복사한 글로 새 행사"; python3 tools/test/paste.py
+echo "== 4/4 화면 점검";      python3 tools/test/smoke.py
 echo "== 모두 통과"
