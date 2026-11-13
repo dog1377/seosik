@@ -139,7 +139,7 @@ def main():
                     problems.append(f'{tag}: 행사 입력 화면에 「‹ 홈」 버튼이 안 보임')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
                 got = p.evaluate("[db.tab, [...document.querySelectorAll('#p-home .dwg-sec h2')].map(x=>x.textContent).join(' '), document.querySelectorAll('#p-home .dwg-t').length, document.querySelector('#p-home .dwg-todo')?.textContent||'', !!(document.getElementById('dwHomeBtn')||{}).offsetParent]")
-                if got != ['home', '행사 서식 배송', 18, '할 일 3건', False]:
+                if got != ['home', '행사 서식 배송', 21, '할 일 3건', False]:
                     problems.append(f'{tag}: 첫 화면이 다름 [탭, 묶음, 칸 수, 할 일, 홈 버튼 보임] = {got}')
                 p.click('#p-home [data-dwg-todo]'); p.wait_for_timeout(200)
                 if p.evaluate("document.getElementById('dwgTodo').hidden || document.querySelectorAll('#dwgTodo .dwh-row').length!==3"):
@@ -148,6 +148,15 @@ def main():
                 p.locator('#p-home [data-dwh="list"]').click(); p.wait_for_timeout(300)
                 if p.evaluate("[db.tab, !document.getElementById('tnSubRow').hidden]") != ['list', True]:
                     problems.append(f'{tag}: 첫 화면 「행사 목록」 칸 → 행사 목록(안쪽 밑줄 탭)이 아님')
+                # 1~5단계 칸 (2026.11.13): 「행사 보고서」 → 이번 달 행사 고르기 → 그 행사의 행사 보고서
+                p.click('#dwHomeBtn'); p.wait_for_timeout(300)
+                p.locator('#p-home [data-dwh="p-sched"]').click(); p.wait_for_timeout(400)
+                got = p.evaluate("[!document.getElementById('cpBg').hidden, document.getElementById('cpTitle').textContent, cpMonth===seoulToday().slice(0,7)||!db.cases.some(c=>caseMonth(c)===seoulToday().slice(0,7))]")
+                if got != [True, '행사 보고서 · 행사 선택', True]:
+                    problems.append(f'{tag}: 첫 화면 「행사 보고서」 칸 → 이번 달 행사 고르기가 아님 {got}')
+                p.locator('#cpList [data-cp]').first.click(); p.wait_for_timeout(400)
+                if p.evaluate("[db.tab, document.getElementById('cpBg').hidden]") != ['sched', True]:
+                    problems.append(f'{tag}: 행사를 골랐는데 행사 보고서로 안 감')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
                 p.locator('#p-home [data-dwh="d-new"]').click(); p.wait_for_timeout(300)
                 if p.evaluate("[db.tab, !!dvCur()]") != ['deliv', True]:
