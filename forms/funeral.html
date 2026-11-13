@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.13-9">
+<meta name="app-version" content="2026.11.13-12">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1724,7 +1724,8 @@ body[data-tab="list"] .case-panel{display:none}
 .lv-dd .lv-close{display:inline-flex;align-items:baseline;gap:8px;font-size:13.5px;color:var(--muted);flex-wrap:wrap}
 .lv-dd .lv-close b{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;padding:0 8px;border:3px double var(--ink);border-radius:2px;line-height:1.35}
 /* 요약 카드: 누르면 아래 목록이 그 상태로 (aria-pressed) */
-.lv-kpis{display:grid;gap:8px}
+.lv-kpis{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,auto);align-items:stretch;gap:16px}   /* 상태 카드(거르기) + 그 달 봉투 합계 카드(누르면 봉투정리) */
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .lv-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
 .kpi-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-width:0;min-height:88px;padding:16px;border:0;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card,none),var(--card-edge,0 0 0 1px var(--line));color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 160ms var(--ease,ease)}
 .kpi-l{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:20px;font-weight:500;color:var(--muted)}
@@ -1739,8 +1740,8 @@ body[data-tab="list"] .case-panel{display:none}
 .kpi-card.on .kpi-n,.kpi-card.on .kpi-n small{color:var(--brand,var(--accent))}
 @media (hover:hover){.kpi-card:not(.on):hover{background:var(--bg-hover,var(--field))}}
 .kpi-card:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
-.lv-envsum{margin:0;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px 12px;font-size:13px;line-height:20px;color:var(--muted)}
-.lv-envsum b{color:var(--ink);font-weight:600}
+.kpi-env .kpi-l .ui-icon{width:16px;height:16px;margin-left:2px;color:var(--muted)}
+.kpi-env .kpi-n{font-size:24px;line-height:32px}
 /* 도구 줄: 검색 · 필터 (휴대폰은 「필터 · 정렬」로 접음) */
 .lv-filter{display:grid;gap:8px}
 .lv-qrow{display:flex;gap:8px}
@@ -1785,6 +1786,7 @@ body[data-tab="list"] .case-panel{display:none}
 @media (max-width:1100px){ .lv-tr{grid-template-columns:52px minmax(0,1fr) 84px 156px 120px 76px;column-gap:8px} }
 html.dw-dr-push .lv-tr{grid-template-columns:48px minmax(0,1fr) 80px 132px 112px 72px;column-gap:8px;padding:0 12px}
 html.dw-dr-push .lv-kpi{grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px}
+html.dw-dr-push .lv-kpis{grid-template-columns:1fr}
 html.dw-dr-push .kpi-card{min-height:76px;padding:12px}
 html.dw-dr-push .kpi-n{font-size:24px;line-height:30px}
 html.dw-dr-push .lv-sel{grid-template-columns:1fr 1fr}
@@ -1795,7 +1797,11 @@ html.dw-dr-push .lv-sel{grid-template-columns:1fr 1fr}
   .lv-kpi::-webkit-scrollbar{display:none}
   .kpi-card{flex:0 0 auto;min-width:116px;min-height:72px;padding:12px 14px;scroll-snap-align:start}
   .kpi-n{font-size:24px;line-height:30px}
-  .lv-envsum{justify-content:flex-start}
+  .lv-kpis{grid-template-columns:1fr;gap:8px}
+  .kpi-env{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"l n" "s n";column-gap:12px;row-gap:2px;align-items:center;min-height:0;padding:12px 16px}
+  .kpi-env .kpi-l{grid-area:l}
+  .kpi-env .kpi-n{grid-area:n;font-size:22px;line-height:30px}
+  .kpi-env .kpi-s{grid-area:s;white-space:normal}
   .lv-morebtn{display:inline-flex}
   .lv-filter:not(.more) .lv-sel{display:none}
   .lv-sel{grid-template-columns:1fr 1fr}
@@ -4432,14 +4438,14 @@ function lvMain(c){ const f=c.f||{}, nm=String(f.name||'').trim(); return nm?`�
 function lvSubLine(c){ const f=c.f||{}, nm=String(f.name||'').trim(), co=lvCo(c), cust=co.replace(/\s/g,'')==='현진시닝'?String(f.company||'').trim():'';
   return [nm&&String(f.place||'').trim(),[co,cust].filter(Boolean).join(' ')].filter(Boolean).join(' · '); }
 function lvBadge(st){ return `<span class="lv-st st-${st.k}">${st.k==='minus'?'− ':st.k==='sent'?'✓ ':''}${esc(st.t)}</span>`; }
-function lvNext(c){ const i=STEPS.findIndex(x=>!stepDone(c,x[0])); return i<0?[settleStatus(c).k==='none'?'input':'settle','행사 열기']:[STEPS[i][0],`${i+1}단계 ${STEPS[i][2]} 열기`]; }
+function lvNext(c){ const i=STEPS.findIndex(x=>!stepDone(c,x[0])); return i<0?[settleStatus(c).k==='none'?'input':'settle','행사 열기']:[STEPS[i][0],`이어서 하기 · ${STEPS[i][2]}`]; }
 function lvMark(){ const el=$('#p-list'); if(!el) return; el.querySelectorAll('.lv-tr[data-id]').forEach(r=>{ const id=r.dataset.id, on=LVD?id===LVD:false;
   r.classList.toggle('on',on); r.classList.toggle('cur',!LVD&&id===db.cur); if(on) r.setAttribute('aria-current','true'); else r.removeAttribute('aria-current'); }); }
 function lvDrawerData(c){
   const f=c.f||{}, st=settleStatus(c), env=caseEnvelope(c), row=(k,v,cls)=>v?`<div><dt>${k}</dt><dd${cls?` class="${cls}"`:''}>${v}</dd></div>`:'';
   const dt=v=>{ const p=parseDT(v); return p?`${p.mo}월 ${pad(p.d)}일${p.h==null?'':` ${pad(p.h)}:${pad(p.mi)}`}`:''; };
-  const stNote=st.k==='sent'||st.k==='changed'?` <small class="lvd-at">${esc(sentDay(st.at))} 보냄${st.k==='changed'?` · 보낼 때 ${esc(wonStr(st.was)||'0원')}`:''}</small>`
-    :st.k==='cleared'?` <small class="lvd-at">${esc(st.out?st.out.who+' 팀장 행사에서 뺌':caseTag(st.by)+' 정산에서 뺌')}</small>`:'';
+  const stRow=st.k==='sent'||st.k==='changed'?row('보낸 날',esc(sentDay(st.at))+(st.k==='changed'?` <small class="lvd-at">보낸 뒤 금액이 바뀌었습니다 (보낼 때 ${esc(wonStr(st.was)||'0원')})</small>`:''))
+    :st.k==='cleared'?row('정리',esc(st.out?st.out.who+' 팀장 행사에서 뺐습니다':caseTag(st.by)+' 정산에서 뺐습니다')):'';
   const later=burialLater(c)?row('장지 금액',`추후입금${bType(S(c))?` (${esc(BT_NAME[bType(S(c))])})`:''}`,'warn'):'';
   const act=st.k==='open'||st.k==='changed'?`<button class="btn lvd-sent" type="button" data-sent="on" data-case="${esc(c.id)}">${st.k==='changed'?'지금 금액으로 다시 보냄 표시':'보냄 표시'}</button>`
     :st.k==='sent'?`<button class="btn link lvd-sent" type="button" data-sent="off" data-case="${esc(c.id)}">보냄 취소</button>`:'';
@@ -4449,7 +4455,7 @@ function lvDrawerData(c){
     return `<li><button class="lvd-step${done?' done':''}" type="button" data-lvd-go="${k}"><span class="st-no" aria-hidden="true">${done?'✓':i+1}</span><span class="lvd-sn">${esc(short)}<small>${esc(long)}</small></span><span class="lvd-ss">${done?'끝냄':'남음'}</span>${uiIcon('right')}</button></li>`; }).join('');
   const [nk,nl]=lvNext(c);
   return {key:'case:'+c.id, title:caseTitle(c), sub:lvBadge(st), back:'목록',
-    body:`<section class="lvd-sec" aria-label="정산">${money}<dl class="lvd-dl">${row('정산 상태',esc(st.t)+stNote)}${row('봉투 본부장',esc(wonStr(env.part)||'–'),'num')}${row('봉투 실장',esc(wonStr(env.manager)||'–'),'num')}${later}</dl>${st.k==='minus'?'<p class="lvd-note">마이너스 행사입니다. 수익이 충분한 다른 행사 정산에서 빼 주십시오.</p>':''}${act?`<div class="lvd-act">${act}</div>`:''}</section>
+    body:`<section class="lvd-sec"><h3>정산</h3>${money}<dl class="lvd-dl">${stRow}${row('본부장 봉투',esc(wonStr(env.part)||'–'),'num')}${row('실장 봉투',esc(wonStr(env.manager)||'–'),'num')}${later}</dl>${st.k==='minus'?'<p class="lvd-note">마이너스 행사입니다. 수익이 충분한 다른 행사 정산에서 빼 주십시오.</p>':''}${act?`<div class="lvd-act">${act}</div>`:''}</section>
       <section class="lvd-sec"><h3>행사 정보</h3><dl class="lvd-dl">${row('장소',esc(String(f.place||'').trim()))}${row('업체',esc(lvCo(c)))}${lvCo(c).replace(/\s/g,'')==='현진시닝'?row('고객 회사',esc(String(f.company||'').trim())):''}${row('접수',esc(dt(f.recv)))}${row('임종',esc(dt(f.death)))}${row('입관',esc(dt(f.casket)))}${row('발인',esc(dt(f.depart)))}${row('상주',esc(String(f.chief||'').trim()))}${row('장지',esc(String(f.burial||'').trim()))}${row('상품',esc(String(f.product||'').trim()))}</dl></section>
       <section class="lvd-sec"><h3>업무 단계</h3><ol class="lvd-steps">${steps}</ol></section>`,
     foot:`<button class="btn link lvd-del" type="button" data-lvd-del>삭제</button><span class="dwdr-sp"></span><button class="btn primary" type="button" data-lvd-go="${nk}">${esc(nl)}</button>`};
@@ -4460,8 +4466,8 @@ function renderList(){
   if(LV.month==null) LV.month=seoulToday().slice(0,7);
   const months=[...new Set([seoulToday().slice(0,7),LV.month,...db.cases.map(caseMonth)].filter(Boolean))].sort().reverse();
   const cos=[...new Set(db.cases.map(lvCo).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
-  const all=listRows(true), rows=LV.st?listRows():all, env={part:0,mgr:0};
-  rows.forEach(r=>{ env.part+=r.env.part; env.mgr+=r.env.manager; });
+  const all=listRows(true), rows=LV.st?listRows():all;
+  const envM=LV.month||seoulToday().slice(0,7), envS=envelopeSummary(envM), envMo=Number(envM.slice(5,7));   /* 봉투 합계 = 봉투정리 그 달 합계와 같은 값 (2026.11.13 사용자 「이 목록 봉투 이상함 · 이번 달 봉투 금액 합계」) */
   const cnt=k=>k?all.filter(r=>r.st.k===k):all, sumWon=list=>list.reduce((t,r)=>t+r.st.won,0);
   const opt=(v,t,cur)=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(t)}</option>`;
   const has=$('#lvQ')&&document.activeElement===$('#lvQ'), hadCard=document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.lvCard;
@@ -4469,7 +4475,7 @@ function renderList(){
   let h=`<div class="lv-dd"><span class="lv-today">${mm}월 ${dd}일 ${wdOfD(dd)}요일</span><span class="lv-close">${mm}월 마감 <b>${dday}</b>${left===0?'오늘이 마감일입니다':`${mm}월 ${lastD}일(${wdOfD(lastD)})까지`}</span></div>`;
   h+=`<div class="lv-kpis"><div class="lv-kpi" role="group" aria-label="정산 상태로 거르기">${LV_CARDS.map(([k,t])=>{ const list=cnt(k), on=LV.st===k, won=k==='open'||k==='minus'?sumWon(list):0;
       return `<button type="button" class="kpi-card${on?' on':''}" aria-pressed="${on}" data-lv-card="${k||'all'}"><span class="kpi-l">${k?`<i class="kpi-dot st-${k}" aria-hidden="true"></i>`:''}${esc(t)}</span><b class="kpi-n num">${k==='minus'&&list.length?'− ':''}${list.length}<small>건</small></b>${won?`<span class="kpi-s num">${won<0?'− ':''}${esc(wonStr(Math.abs(won)))}</span>`:''}</button>`; }).join('')}</div>
-    <p class="lv-envsum">${LV.st?'걸러진 ':'이 '}목록 봉투 <span>본부장 <b class="num">${esc(wonStr(env.part)||'0원')}</b></span> <span>실장 <b class="num">${esc(wonStr(env.mgr)||'0원')}</b></span></p></div>`;
+    <button type="button" class="kpi-card kpi-env" data-lv-env="${esc(envM)}" aria-label="${envMo}월 봉투 합계 ${esc(wonStr(envS.all.total)||'0원')}, 본부장 ${esc(wonStr(envS.part.total)||'0원')}, 실장 ${esc(wonStr(envS.manager.total)||'0원')} · 봉투정리 열기"><span class="kpi-l">${envMo}월 봉투 합계${uiIcon('right')}</span><b class="kpi-n num">${esc(wonStr(envS.all.total)||'0원')}</b><span class="kpi-s num">본부장 ${esc(wonStr(envS.part.total)||'0원')} · 실장 ${esc(wonStr(envS.manager.total)||'0원')}</span></button></div>`;
   const nf=[LV.month!==seoulToday().slice(0,7),!!LV.co,!!LV.st,LV.sort!=='no'].filter(Boolean).length;
   h+=`<div class="lv-filter${LVM?' more':''}">
     <div class="lv-qrow"><label class="lv-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="lvQ" type="search" value="${esc(LV.q)}" placeholder="고인 · 장례식장 · 행사번호 · 상주 검색" aria-label="행사 검색" enterkeyhint="search"></label>
@@ -4485,7 +4491,7 @@ function renderList(){
   } else {
     const stCell=r=>{ const st=r.st; return lvBadge(st)+(st.k==='sent'?`<small class="lv-at">${esc(sentDay(st.at))}</small>`
         :st.k==='cleared'?`<small class="lv-at">${esc(st.out?st.out.who+' 행사':caseTag(st.by))}</small>`:'')+(burialLater(r.c)?'<small class="lv-later">장지 추후입금</small>':''); };
-    h+=`<div class="lv-table" role="table" aria-label="행사 목록"><div class="lv-tr lv-th" role="row"><span role="columnheader">번호</span><span role="columnheader">행사</span><span role="columnheader">발인</span><span role="columnheader">정산 상태</span><span role="columnheader" class="num">보내는금액</span><span role="columnheader" class="lv-act">작업</span></div>`
+    h+=`<div class="lv-table" role="table" aria-label="행사 목록"><div class="lv-tr lv-th" role="row"><span role="columnheader">번호</span><span role="columnheader">행사</span><span role="columnheader">발인</span><span role="columnheader">정산 상태</span><span role="columnheader" class="num">보내는금액</span><span role="columnheader" class="lv-act"><span class="sr-only">보냄 표시</span></span></div>`
       +rows.map(r=>{ const f=r.c.f||{}, no=String(f.eventNo||'').trim().replace(/번$/,''), sub=lvSubLine(r.c), id=esc(r.c.id), sendable=r.st.k==='open'||r.st.k==='changed';
         return `<div class="lv-tr" role="row" data-id="${id}">
           <button class="lv-open" type="button" data-lv-open="${id}" data-dwdr-from="case:${id}" aria-haspopup="dialog" aria-label="${esc(caseLabel(r.c)||'행사')} 정보 보기"></button>
@@ -4495,7 +4501,7 @@ function renderList(){
           <span role="cell" class="lv-stc">${stCell(r)}</span>
           <span role="cell" class="num lv-send${r.st.won<0?' minus':''}">${r.st.k==='none'?'–':(r.st.won<0?'− ':'')+esc(wonStr(Math.abs(r.st.won))||'0원')}</span>
           <span role="cell" class="lv-act${sendable?' has':''}">${sendable?`<button class="btn sm lv-sent" type="button" data-sent="on" data-case="${id}">보냄</button>`:''}<span class="lv-chev" aria-hidden="true">${uiIcon('right')}</span></span></div>`; }).join('')
-      +`</div><p class="note">줄을 누르면 오른쪽에 행사 정보가 열립니다. 「보냄」은 정산 카톡을 보낸 뒤 눌러 두십시오.</p>`;
+      +`</div><p class="note">줄을 누르면 행사 정보가 열립니다. 「보냄」은 정산 카톡을 보낸 뒤 눌러 두십시오.</p>`;
   }
   h+=`<div class="dw-cta lv-cta"><button type="button" class="dw-cta-btn" data-lv-new>${uiIcon('plus')}새 행사</button></div>`;   /* 휴대폰: 화면 아래 고정 주 버튼 */
   el.innerHTML=h; lvMark();
@@ -4509,6 +4515,7 @@ $('#p-list').addEventListener('click',e=>{
   if(e.target.closest('[data-lv-new]')){ openPicker('new'); return; }
   if(e.target.closest('[data-lv-reset]')){ LV.month=''; LV.co=''; LV.st=''; LV.q=''; listSave(); renderList(); return; }
   if(e.target.closest('[data-lv-more]')){ LVM=!LVM; const f=$('#p-list .lv-filter'), b=e.target.closest('[data-lv-more]'); if(f) f.classList.toggle('more',LVM); b.setAttribute('aria-expanded',String(LVM)); return; }
+  const ev=e.target.closest('[data-lv-env]'); if(ev){ envelopeMonth=ev.dataset.lvEnv; db.envelopeMonth=envelopeMonth; setTab('envelopes'); return; }
   const k=e.target.closest('[data-lv-card]'); if(k){ const v=k.dataset.lvCard==='all'?'':k.dataset.lvCard; LV.st=LV.st===v?'':v; listSave(); renderList(); return; }
   const o=e.target.closest('[data-lv-open]'); if(!o) return;
   const c=db.cases.find(x=>x.id===o.dataset.lvOpen); if(!c) return;
