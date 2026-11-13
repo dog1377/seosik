@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.13-2">
+<meta name="app-version" content="2026.11.13-3">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -2445,17 +2445,18 @@ function endPay(c){ try{ return endPay_(c); }catch(e){ return {method:'',day:'',
 function endPay_(c){
   const s=c.s?S(c):{}, f=c.f||{}, r=rcptSums(c);
   const cash=String(s.rcCashAmt||'').trim()?toWon(s.rcCashAmt):r.cash, card=String(s.rcCardAmt||'').trim()?toWon(s.rcCardAmt):r.card;
-  const main=s.pay==='카드'?'카드':'현금';
-  const method=cash>0&&card>0?'현금 · 카드':cash>0?'현금':card>0?'카드':main;
+  const main=s.pay==='카드'?'카드':s.pay==='본사송금'?'본사송금':'현금', hq=s.pay==='본사송금'?collectNetWon(c):0;
+  const ways=[hq>0&&['본사송금',hq],cash>0&&['현금',cash],card>0&&['카드',card]].filter(Boolean);
+  const method=ways.map(x=>x[0]).join(' · ')||main;
   const dayV=method==='카드'?(String(s.rcCardDate||'').trim()||String(f.depart||'').slice(0,10)):(String(s.rcCashDate||'').trim()||String(f.depart||'').slice(0,10));
   const day=md2(dayV), p=parseDT(dayV), mmdd=p?`${pad(p.mo)}${pad(p.d)}`:'';
   const W=w=>w>0?`${w.toLocaleString('ko-KR')}원`:'';
-  const amount=method==='현금 · 카드'?`현금 ${W(cash)} · 카드 ${W(card)}`:W(method==='카드'?card:cash);
+  const amount=ways.length>1?ways.map(([k,w])=>`${k} ${W(w)}`).join(' · '):ways.length?W(ways[0][1]):W(method==='카드'?card:cash);
   const staff=String(f.staff||'').trim().replace(/\s*(팀장|실장|과장|대리|부장|주임|님)$/,'').trim(), cust=String(f.customer||'').trim();
   const cashPayer=[cust, staff?staff+mmdd:''].filter(Boolean).join(' / ');
   return { method, day, amount,
-    payer: method==='카드'?'카드 결제':method==='현금 · 카드'?`${cashPayer} · 카드 결제`:cashPayer,
-    cardNote: method==='현금'?'':'하단 첨부 - 비과세 확인 완료',
+    payer: method==='카드'?'카드 결제':/카드/.test(method)?`${cashPayer} · 카드 결제`:cashPayer,
+    cardNote: /카드/.test(method)?'하단 첨부 - 비과세 확인 완료':'',
     receipt: method==='카드'?'카드':String(s.rcCashNo||'').trim() };
 }
 /* 퇴근 · 출근 계산
@@ -4047,8 +4048,8 @@ function parseSettleKakao(text){
       if(CK_KEYS.includes(k)){
         P.order.push(k); if(P.orig[k]==null) P.orig[k]=v;
         if(k in P.head) P.head[k]=v;
-        else if(k==='수금'){ const w=toWon(ckMain(v)); P.f.collect=w?String(w):''; const pay=ckPayOf(ckParens(v).join(' '))||ckPayOf(v);
-          if(w && !pay) P.notes.push('수금에 현금 · 카드 표시가 없어 현금으로 봤습니다'); s.pay=pay||'현금'; }
+        else if(k==='수금'){ const w=toWon(ckMain(v)); P.f.collect=w?String(w):''; const pay=/본사\s*송금/.test(v)?'본사송금':(ckPayOf(ckParens(v).join(' '))||ckPayOf(v));   /* 상품 수금만 본사송금 */
+          if(w && !pay) P.notes.push('수금에 현금 · 카드 · 본사송금 표시가 없어 현금으로 봤습니다'); s.pay=pay||'현금'; }
         else if(k==='제단'){ const ps=ckParens(v), main=toWon(ckMain(v)), rec=ps.map(toWon).find(w=>w>0);
           if(main||rec){ s.altarAmt=String(rec||main); s.altarPay=/카드/.test(v)?'카드':'현금'; P.claim.altar=main; } }
         else if(k==='유골함'){ if(v){ const ps=ckParens(v), col=v.match(/수금\s*\(([^)]*)\)/), dis=v.match(/할인\s*\(([^)]*)\)/), lastP=ps.length?ps[ps.length-1]:'';
@@ -4351,7 +4352,7 @@ const RC_CARD_COS=['현진시닝','고이장례연구소','농협상조'];
 const rcCardCo=c=>RC_CARD_COS.includes(caseCoName(c).replace(/\s/g,''));   // 카드결제 양식이 있는 업체
 function rcptSums(c){
   const s=c.s?S(c):{pay:'현금',extras:[],urnPay:'현금'}, f=c.f||{}, R=rules(), U=urnSplit(s,R), FL=flowerSplit(s,R);
-  const parts={'현금':[],'카드':[]}, put=(pay,k,w)=>{ if(w>0&&parts[pay]) parts[pay].push({k,w}); };
+  const parts={'현금':[],'카드':[]}, put=(pay,k,w)=>{ if(w>0&&parts[pay]) parts[pay].push({k,w}); };   /* 본사송금(상품 수금)은 본사가 받은 돈 → 현금영수증 · 카드결제에 안 넣음 (2026.11.13 사용자 결정) */
   put(s.pay||'현금','상품 수금',collectNetWon(c));
   if(U.uCol) put(s.urnPay||'현금','유골함',U.uCol);
   (s.extras||[]).forEach(x=>put(x.pay,String(x.text||'').trim()||'추가',toWon(x.amt)));
@@ -4403,7 +4404,7 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
   set('E9',[f.support,f.paid].map(szWon).filter(Boolean).join(' / '));   /* 회사지원 · 납입금은 금액만 (660,000원) */
   // 수금 결제 구분
   const col=collectNetWon(c), pay=s.pay||'현금';
-  if(col){ if(pay==='카드'){ set('E10','V'); set('F10',`결제금액: ${fullWon(col)}`); } else { set('E11','V'); set('F11',`결제금액: ${fullWon(col)}`); } }
+  if(col){ if(pay==='카드'){ set('E10','V'); set('F10',`결제금액: ${fullWon(col)}`); } else { set('E11','V'); set('F11',`결제금액: ${fullWon(col)}${pay==='본사송금'?' (본사송금)':''}`); } }
   set('P10',s.rcCardAppr); set('P11',s.rcCashNo||s.rcCashAppr);
   const R=rcptSums(c), other=[...R.cardParts.map(x=>({...x,pay:'카드'})),...R.cashParts.map(x=>({...x,pay:'현금'}))].filter(x=>x.k!=='상품 수금');
   if(other.length){ set('E12','V'); if(other.some(x=>x.pay==='카드')) set('G12','V'); if(other.some(x=>x.pay==='현금')) set('I12','V'); set('J12',`금액: ${wonStr(other.reduce((a,x)=>a+x.w,0))}`); }
@@ -5128,7 +5129,7 @@ function rcCashFields(c){
     <label class="f">발행금액${amtIn('data-s="rcCashAmt"',s.rcCashAmt,'비우면 자동')}</label><p class="note rc-auto" id="rcAuto_cash"></p>`;
 }
 const rcPrevBox=(kind,title)=>`<div class="rc-box" id="rcPrevBox_${kind}"><div class="rc-box-h"><span>${title} 양식</span><button class="btn sm" type="button" data-rc-copy="${kind}">복사</button></div><pre id="rcPrev_${kind}"></pre></div>`;
-const seg2=(key,val,attr='data-seg')=>`<div class="seg" ${attr}="${key}"><button type="button" data-v="현금" aria-pressed="${val==='현금'}">현금</button><button type="button" data-v="카드" aria-pressed="${val==='카드'}">카드</button></div>`;
+const seg2=(key,val,attr='data-seg')=>`<div class="seg" ${attr}="${key}"><button type="button" data-v="현금" aria-pressed="${val==='현금'}">현금</button><button type="button" data-v="카드" aria-pressed="${val==='카드'}">카드</button>${key==='pay'&&attr==='data-seg'?`<button type="button" data-v="본사송금" aria-pressed="${val==='본사송금'}">본사송금</button>`:''}</div>`;   /* 상품 수금만 본사송금 (2026.11.13) */
 /* 금액 칸: 숫자만 넣으면 만원, 1000 이상이면 원. 옆에 단위, 아래에 실제 금액 */
 function amtUnit(v){ const t=String(v??'').replace(/,/g,'').trim(); if(!t) return '만원'; if(!/^\d+(\.\d+)?$/.test(t)) return ''; return Number(t)>=1000?'원':'만원'; }
 function amtRead(v){ const t=String(v??'').trim(); if(!t) return ''; const w=toWon(t); return w?`= ${w.toLocaleString('ko-KR')}원`:''; }
@@ -5181,7 +5182,7 @@ const SCR=[
   {id:'kit',g:'recv',kind:'amt',key:'kit',ph:'예: 4',q:'키트는 얼마 받았습니까?',sub:'본부장 · 실장이 반씩 나눕니다.'},
   {id:'lunch',g:'recv',kind:'amt',key:'lunch',ph:'예: 6',q:'도시락은 얼마 받았습니까?',sub:'본부장 · 실장이 반씩 나눕니다.'},
   {id:'collect',g:'collect',kind:'amt',scope:'f',key:'collect',ph:'예: 257.5',q:'상품 수금액은 얼마입니까?',sub:'상품 수금 금액만 입력하십시오. 제단 · 유골함 · 추가 항목은 따로 물어봅니다.',warn:true},
-  {id:'pay',g:'collect',kind:'pay',key:'pay',q:'상품 수금은 어떻게 받았습니까?',sub:'카드면 보내는금액에 더하지 않습니다.',when:c=>toWon(c.f.collect)>0},
+  {id:'pay',g:'collect',kind:'pay',key:'pay',q:'상품 수금은 어떻게 받았습니까?',sub:'카드 · 본사송금이면 보내는금액에 더하지 않습니다. 본사송금은 고객이 본사 계좌로 바로 보낸 경우입니다.',when:c=>toWon(c.f.collect)>0},
   {id:'urnAsk',g:'urn',kind:'yn',key:'urnAsk',q:'유골함 판매가 있었습니까?',yes:urnYes},
   {id:'urnCollect',g:'urn',kind:'amt',key:'urnCollect',ph:'예: 90',q:'유골함은 얼마 받았습니까?',when:urnYes},
   {id:'urnCost',g:'urn',kind:'amt',key:'urnCost',ph:'예: 25',q:'유골함 원가는 얼마입니까?',when:urnYes},
@@ -5296,7 +5297,7 @@ function stepBody(id,c,all){
     <label class="f wz-big">상품 수금 금액${amtIn('data-sf="collect"',f.collect,'예: 257.5')}</label>
     ${(n=>`<p class="calc altar-net" data-altar-note="collect" ${n?'':'hidden'}>${esc(n)}</p>`)(altarNotes(c).collect)}
     <label class="f">결제${seg2('pay',s.pay||'현금')}</label>
-    <p class="note">카드 수금은 보내는금액에 더하지 않습니다.</p>`;
+    <p class="note">카드 · 본사송금 수금은 보내는금액에 더하지 않습니다.</p>`;
   if(id==='urn'){
     if(!all && !urnHas(s)) return `<div class="wz-choice"><button type="button" data-wz-urn="yes"><b>있음</b><small>수금 · 원가 넣기</small></button><button type="button" data-wz-urn="no" aria-pressed="${s.urnAsk==='no'}"><b>없음</b><small>다음 단계로</small></button></div>`;
     return `<div class="pair"><label class="f">수금${amtIn('data-s="urnCollect"',s.urnCollect,'예: 90')}</label>
@@ -5361,7 +5362,7 @@ function wzScreen(c,id){
   else if(x.kind==='who') body=`${rcWhoFields(c)}<div class="wz-result"><div><span>양식 둘째 줄</span><b id="rcWhoPrev"></b></div></div>${go()}`;
   else if(x.kind==='rcCard') body=`${rcCardFields(c)}${rcPrevBox('card','카드결제')}${go()}`;
   else if(x.kind==='rcCash') body=`${rcCashFields(c)}${rcPrevBox('cash','현금영수증')}${go()}`;
-  else if(x.kind==='pay') body=choice('data-wz-pick',x.key,[['현금','현금'],['카드','카드']],s[x.key]||'현금');
+  else if(x.kind==='pay') body=choice('data-wz-pick',x.key,[['현금','현금'],['카드','카드'],...(x.key==='pay'?[['본사송금','본사송금']]:[])],s[x.key]||'현금');
   else if(x.kind==='pick'){
     if(x.id==='sea'&&burialLater(c)) body=`<p class="calc later-note">장지 금액은 추후입금입니다. 종류를 먼저 골라 두면 금액이 들어올 때 이 종류로 나눕니다.</p>`;
     else if(x.id==='sea'){ const b=toWon(s.burialAmt), fee=Math.min(b,(Number(R.burialFee)||0)*10000), h1=hqRound((b-fee)/2), h2=hqRound(b/2), mw=w=>wonStr(w)||'0원';
@@ -5582,7 +5583,7 @@ function applySettleView(c){
 }
 function updSettle(skipDef){
   const c=curCase(); if(!c) return; const d=settleData(c), R=d.R, s=d.s;
-  chipSet('chCollect',d.sub.collect,d.collectWon&&s.pay==='카드'?'카드 · 안 더함':'');
+  chipSet('chCollect',d.sub.collect,d.collectWon&&(s.pay==='카드'||s.pay==='본사송금')?s.pay+' · 안 더함':'');
   chipSet('chRecv',d.sub.recv,d.altarWon&&!d.sub.recv?'카드 · 안 더함':'');
   { const E=d.env, mw=w=>wonStr(w)||'0원', put=(k,t)=>{ const el=$('#sp_'+k); if(el) el.innerHTML=t; };
     put('hall',E.hall?`→ 본부장 봉투 <b>${mw(E.hall)}</b>`:'전부 본부장 봉투로 들어갑니다.');
