@@ -4229,7 +4229,15 @@ function myName(){ const n=String(me().name||'').trim(); if(n) return n;
   return ''; }
 const myPhone=()=>String(me().phone||'').trim();
 const pxBare=n=>String(n||'').trim().replace(/\s*(팀장|실장|과장|대리|부장|차장|주임|파트장|님)$/,'').trim();
-function pxContact(){ const n=pxBare(myName()), t=myPhone(); return `(문 의: 의전팀장 ${n||'　　　'}${t?', '+t:''})`; }
+/* 문의 담당 고르기 (2026.11.14 사용자 「장례일정표 담당이랑 전화번호 고정인데, 옵션으로 등록된직원 골라서 일정표도 뽑을수있게 · 드롭다운 · 최대한 이쁘고 깔끔하게」)
+   기본 = 나(내 정보 이름 · 전화번호). 다른 직원을 고르면 db.posterDoc.who = {uid, name, rank, phone} (이 기기 · 장례일정표와 같이 저장, 고른 때 값을 적어 둠 → 인터넷이 없어도 그대로).
+   명단 = 서버 dw_staff_contacts (파트장: 가입한 직원 모두 · 직원: 같은 파트 사람), 각자 「내 정보」에 넣은 이름 · 직급 · 전화번호. 명단을 받으면 고른 직원 값을 새 값으로 맞춤.
+   둘째 줄 모양 「(문 의: 의전팀장 이름, 전화번호)」은 그대로 고정. */
+var PXW={people:null,at:0,err:'',load:null,open:false,q:''};
+function pxWho(){ const w=pxDoc().who; return w&&typeof w==='object'&&w.uid&&!(sbUser&&w.uid===sbUser.id)?w:null; }
+function pxWhoNP(){ const w=pxWho(); return w?{n:pxBare(w.name),t:String(w.phone||'').trim(),rank:String(w.rank||'').trim(),nm:String(w.name||'').trim()||'이름 없음',w}
+  :{n:pxBare(myName()),t:myPhone(),rank:String(me().rank||'').trim(),nm:myName()||'내 이름 없음',w:null}; }
+function pxContact(){ const {n,t}=pxWhoNP(); return `(문 의: 의전팀장 ${n||'　　　'}${t?', '+t:''})`; }
 const PX_ORG_EX='디더블유 장례의전';
 /* (2026.10.28-6 사용자 「칸 비우면 그냥 빈칸으로」) 다섯 줄은 늘 나오고, 비운 칸은 빈칸 · 첫째 줄도 비우면 빈칸 */
 function pxDocData(d){
@@ -4296,8 +4304,77 @@ async function posterSave(kind){
   }catch(e){ console.warn(e); toast(e&&e.message==='poster'?'양식 파일을 받지 못했습니다 · 인터넷 연결을 확인해 주십시오':'만들지 못했습니다 · 다시 눌러 주십시오'); }
 }
 const PX_REL=['유교','기독교','천주교','불교'];
-function pxContactHtml(){ const n=pxBare(myName()), t=myPhone();
-  return `<div class="px-fixed"><span>${esc(pxContact())}</span></div>`+(n&&t?'':`<p class="note warn">${!n&&!t?'이름 · 전화번호':!n?'이름':'전화번호'}가 비어 있습니다. 「내 정보 수정」에서 한 번만 넣으면 계속 들어갑니다.</p>`); }
+const PXW_CHEV='<svg class="ui-icon pxw-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+const PXW_CHECK='<svg class="ui-icon pxw-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+const pxwAv=n=>esc(String(n||'').trim().replace(/^故\s*/,'').slice(0,1)||'?');
+function pxwWhoHtml(nm,rank,tel,isMe){ return `<span class="pxw-av" aria-hidden="true">${pxwAv(nm)}</span><span class="pxw-who"><b><span class="pxw-nm">${esc(nm)}</span>${rank?`<small>${esc(rank)}</small>`:''}${isMe?'<em class="pxw-me">나</em>':''}</b><small class="pxw-tel${tel?'':' none'}">${tel?esc(tel):'전화번호 없음'}</small></span>`; }
+function pxwListHtml(){
+  const cur=(pxWho()||{}).uid||'me', meRow={user_id:'me',name:myName()||'내 이름 없음',rank:String(me().rank||'').trim(),phone:myPhone(),me:true};
+  const others=(PXW.people||[]).filter(p=>!p.me&&!(sbUser&&p.user_id===sbUser.id));
+  const q=PXW.q.toLowerCase().replace(/[\s-]+/g,''), hit=p=>!q||[p.name,p.login_id,p.rank,p.phone].map(v=>String(v||'')).join(' ').toLowerCase().replace(/[\s-]+/g,'').includes(q);
+  const opt=p=>{ const id=p.me?'me':p.user_id, nm=String(p.name||'').trim()||p.login_id||'이름 없음', sel=id===cur;
+    return `<li role="none"><button type="button" role="option" class="pxw-opt" aria-selected="${sel}" data-pxw-pick="${esc(id)}">${pxwWhoHtml(nm,String(p.rank||'').trim(),String(p.phone||'').trim(),!!p.me)}${sel?PXW_CHECK:''}</button></li>`; };
+  const mine=others.filter(p=>p.mine&&hit(p)), rest=others.filter(p=>!p.mine&&hit(p)), two=mine.length&&rest.length, head=t=>`<li class="pxw-g" role="presentation">${t}</li>`;
+  let h=hit(meRow)?opt(meRow):'';
+  if(two) h+=head('우리 파트'); h+=mine.map(opt).join(''); if(two) h+=head('다른 직원'); h+=rest.map(opt).join('');
+  if(PXW.err) h+=`<li class="pxw-msg" role="presentation"><span>${esc(PXW.err)}</span><button class="btn sm" type="button" data-pxw-reload>다시 불러오기</button></li>`;
+  else if(!PXW.people) h+=`<li class="pxw-msg" role="presentation"><span>직원 명단을 불러오는 중입니다…</span></li>`;
+  else if(!others.length) h+=`<li class="pxw-msg" role="presentation"><span>고를 수 있는 다른 직원이 없습니다.</span></li>`;
+  else if(!mine.length&&!rest.length) h+=`<li class="pxw-msg" role="presentation"><span>검색한 직원이 없습니다.</span></li>`;
+  return h;
+}
+function pxwMenuHtml(){
+  const many=(PXW.people||[]).length>7;
+  return `${many?`<label class="pg-search pxw-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="pxwQ" type="search" value="${esc(PXW.q)}" placeholder="이름 · 전화번호 검색" aria-label="직원 검색" autocomplete="off" enterkeyhint="search"></label>`:''}
+    <ul class="pxw-list" id="pxwList" role="listbox" aria-label="문의 담당 고르기">${pxwListHtml()}</ul>`;
+}
+function pxContactHtml(){
+  const {n,t,rank,nm,w}=pxWhoNP();
+  const warn=w?(t?'':`<p class="note warn">${esc(nm)}님 전화번호가 등록되어 있지 않습니다. 그 직원이 「내 정보」에 넣으면 들어갑니다.</p>`)
+    :(n&&t?'':`<p class="note warn">${!n&&!t?'이름 · 전화번호':!n?'이름':'전화번호'}가 비어 있습니다. 「내 정보 수정」에서 한 번만 넣으면 계속 들어갑니다.</p>`);
+  return `<div class="pxw${PXW.open?' open':''}">
+    <button type="button" class="pxw-btn" id="pxwBtn" data-pxw-toggle aria-haspopup="listbox" aria-expanded="${PXW.open}" aria-controls="pxwMenu" aria-label="문의 담당 · ${esc(nm)}${t?' '+esc(t):''} · 바꾸기">
+      ${pxwWhoHtml(nm,rank,t,!w)}<span class="pxw-chg">바꾸기${PXW_CHEV}</span></button>
+    <div class="pxw-menu" id="pxwMenu"${PXW.open?'':' hidden'}>${PXW.open?pxwMenuHtml():''}</div>
+  </div>
+  <p class="pxw-out"><span>인쇄되는 줄</span><b>${esc(pxContact())}</b></p>${warn}
+  ${w?'':'<div class="row"><button class="btn sm" type="button" data-pxme>내 정보 수정</button></div>'}`;
+}
+function pxwPaint(focus){ const b=$('#pxContactBox'); if(!b) return; b.innerHTML=pxContactHtml();
+  if(focus==='btn') $('#pxwBtn')?.focus();
+  else if(focus==='menu'){ const q=$('#pxwQ'); if(q) q.focus({preventScroll:true}); else (b.querySelector('.pxw-opt[aria-selected="true"]')||b.querySelector('.pxw-opt'))?.focus({preventScroll:true});
+    const m=$('#pxwMenu'); if(m) m.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); } }
+function pxwListPaint(){ const l=$('#pxwList'); if(!l) return; const had=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#pxwList'), id=had&&document.activeElement.dataset.pxwPick;
+  l.innerHTML=pxwListHtml(); if(had){ (l.querySelector(`[data-pxw-pick="${CSS.escape(id||'')}"]`)||l.querySelector('.pxw-opt'))?.focus(); }
+  if(!$('#pxwQ')&&(PXW.people||[]).length>7) pxwPaint(had?'menu':null); }
+/* 명단 받기 (1분 안에 받은 건 다시 안 받음) → 고른 직원 이름 · 전화번호를 새 값으로 */
+function pxwLoad(force){
+  if(!force&&PXW.people&&Date.now()-PXW.at<60000) return;
+  if(PXW.load||!window.dwAcct||!window.dwAcct.rpc) return; PXW.err='';
+  PXW.load=window.dwAcct.rpc('dw_staff_contacts').then(d=>{ if(!d||!d.ok) throw {why:(d&&d.why)||'net'}; PXW.people=Array.isArray(d.people)?d.people:[]; PXW.at=Date.now();
+      const w=pxWho(), p=w&&PXW.people.find(x=>x.user_id===w.uid);
+      if(p){ const nx={uid:p.user_id,name:String(p.name||'').trim()||p.login_id||'',rank:String(p.rank||'').trim(),phone:String(p.phone||'').trim()};
+        if(['name','rank','phone'].some(k=>String(w[k]||'')!==nx[k])){ pxDoc().who=nx; pxTouched(); if(db.tab==='poster'&&!PXW.open) pxwPaint(); } } },
+    e=>{ const why=(e&&e.why)||'net'; PXW.err=why==='offline'?'인터넷이 연결되면 직원 명단이 나옵니다':why==='noserver'?'서버 준비가 아직 안 됐습니다 (supabase-part.sql 실행 필요)':why==='login'?'로그인하면 직원 명단이 나옵니다':'직원 명단을 불러오지 못했습니다'; })
+    .then(()=>{ PXW.load=null; if(db.tab==='poster'&&PXW.open) pxwListPaint(); });
+}
+function pxwToggle(on){ PXW.open=on==null?!PXW.open:!!on; if(PXW.open){ PXW.q=''; pxwLoad(false); } pxwPaint(PXW.open?'menu':'btn'); }
+function pxwPick(id){
+  const d=pxDoc(), prev=d.who?{...d.who}:null;
+  if(id==='me') delete d.who;
+  else { const p=(PXW.people||[]).find(x=>x.user_id===id); if(!p) return; d.who={uid:p.user_id,name:String(p.name||'').trim()||p.login_id||'',rank:String(p.rank||'').trim(),phone:String(p.phone||'').trim()}; }
+  PXW.open=false; PXW.q=''; pxTouched(); pxwPaint('btn');
+  if(String((prev||{}).uid||'')!==String((d.who||{}).uid||'')) toast(d.who?`문의 담당을 ${d.who.name||'그 직원'}님으로 바꿨습니다`:'문의 담당을 나로 바꿨습니다');
+}
+document.addEventListener('click',e=>{ if(!PXW.open) return; if(e.target.closest&&e.target.closest('.pxw')) return; PXW.open=false; pxwPaint(); });
+document.addEventListener('keydown',e=>{
+  if(!PXW.open||!e.target.closest||!e.target.closest('.pxw')) return;
+  if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); pxwToggle(false); return; }
+  if(e.key!=='ArrowDown'&&e.key!=='ArrowUp'&&e.key!=='Home'&&e.key!=='End') return;
+  const opts=[...document.querySelectorAll('#pxwList .pxw-opt')]; if(!opts.length) return; e.preventDefault();
+  const i=opts.indexOf(document.activeElement), n=e.key==='Home'?0:e.key==='End'?opts.length-1:e.key==='ArrowDown'?(i<0?0:Math.min(opts.length-1,i+1)):(i<=0?(i<0?opts.length-1:0):i-1);
+  if(e.key==='ArrowUp'&&i===0&&$('#pxwQ')){ $('#pxwQ').focus(); return; } opts[n].focus();
+});
 function renderPoster(){
   const d=pxDoc(), c=curCase(), cn=c&&c.f?String(c.f.name||'').trim():'', bur=d.method==='매장', rel=String(d.religion||'').trim();
   $('#p-poster').innerHTML=`<div class="px-page">
@@ -4317,8 +4394,7 @@ function renderPoster(){
     <div class="sec"><div class="sec-head"><h2>아래 문구</h2></div><div class="fields">
       <label class="f">첫째 줄<input class="input" data-pxd="org" value="${esc(d.org||'')}" placeholder="예: ${PX_ORG_EX}" autocomplete="off"><span class="crem-picks"><button type="button" class="chip" data-pxorg="${PX_ORG_EX}" aria-pressed="${String(d.org||'').trim()===PX_ORG_EX}">${PX_ORG_EX}</button></span></label>
       <p class="note">현진시닝 행사는 「매일유업 장례지원단」처럼, 다른 업체는 회사명만 적어 주십시오. 비운 칸은 빈칸 그대로 나갑니다.</p>
-      <div class="f-wrap"><span class="field-label">둘째 줄 · 고정</span><div id="pxContactBox">${pxContactHtml()}</div></div>
-      <div class="row"><button class="btn sm" type="button" data-pxme>내 정보 수정</button></div>
+      <div class="f-wrap"><span class="field-label pxw-label">둘째 줄 · 문의 담당<small class="pxw-lh">기본은 나 · 등록된 직원으로 바꿀 수 있습니다</small></span><div id="pxContactBox" class="pxw-box">${pxContactHtml()}</div></div>
     </div></div>
   </div>
   <div class="px-side stack">
@@ -4329,6 +4405,7 @@ function renderPoster(){
     </div>
   </div></div>`;
   pxPaintSoon(true);
+  if(pxWho()||PXW.open) pxwLoad(false);   /* 고른 직원이 이름 · 전화번호를 바꿨으면 맞춤 */
 }
 /* ---------- 배송 (2026.10.30 사용자 「배송 탭 만들어서 배송 양식도 만들어 줘 (현진시닝)」 · 「니가 한번 분석해 봐」) ----------
    고른 답: 행사와 따로 「배송」 화면 · 「진행 : 개인장의 / 담당 :」 = 장례 진행한 곳과 그쪽 담당자 · 줄 모양은 한 가지로 맞춤.
@@ -4573,7 +4650,7 @@ document.addEventListener('click',e=>{
   const sw=e.target.closest('[data-dvs-what]'); if(sw){ const sb=(r.subs||[]).find(x=>x.id===sw.dataset.dvsWhat); if(sb&&sb.what!==sw.dataset.v){ sb.what=sw.dataset.v; dvTouched(); dvRepaint(); } return; }
 });
 function pxTouched(){ markUnsaved(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),400); pxPaintSoon(); }
-$('#p-poster').addEventListener('input',e=>{ const t=e.target; if(!t.dataset||!t.dataset.pxd) return; pxDoc()[t.dataset.pxd]=t.value;
+$('#p-poster').addEventListener('input',e=>{ const t=e.target; if(t.id==='pxwQ'){ PXW.q=t.value; pxwListPaint(); return; } if(!t.dataset||!t.dataset.pxd) return; pxDoc()[t.dataset.pxd]=t.value;
   if(t.dataset.pxd==='religion') document.querySelectorAll('#p-poster [data-pxrel]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pxrel===t.value.trim())));
   if(t.dataset.pxd==='org') document.querySelectorAll('#p-poster [data-pxorg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pxorg===t.value.trim())));
   pxTouched(); });
@@ -4584,13 +4661,16 @@ $('#p-poster').addEventListener('click',async e=>{
   const r=e.target.closest('[data-pxrel]'); if(r){ const inp=$('#p-poster [data-pxd="religion"]'); inp.value=r.dataset.pxrel; inp.dispatchEvent(new Event('input',{bubbles:true})); return; }
   const m=e.target.closest('[data-pxm]'); if(m){ if((pxDoc().method||'화장')!==m.dataset.pxm){ pxDoc().method=m.dataset.pxm; pxTouched(); renderPoster(); } return; }
   if(e.target.closest('[data-pxme]')){ if(window.dwMe) window.dwMe.open(e.target.closest('[data-pxme]'),myName()?'phone':'name'); return; }
+  if(e.target.closest('[data-pxw-toggle]')){ pxwToggle(); return; }
+  if(e.target.closest('[data-pxw-reload]')){ pxwLoad(true); pxwListPaint(); return; }
+  const pk=e.target.closest('[data-pxw-pick]'); if(pk){ pxwPick(pk.dataset.pxwPick); return; }
   const fb=e.target.closest('[data-pxfrom]'); if(fb){ const c=curCase(); if(!c) return; const d=pxDoc(), has=['name','casket','depart','rite','burial','org','religion'].some(k=>String(d[k]||'').trim());
     if(has&&window.dwConfirm&&!(await window.dwConfirm({title:'지금 행사 일정으로 채우시겠습니까?',body:'지금 적힌 장례일정표 내용이 행사 입력 값으로 바뀝니다.',ok:'채우기',danger:false}))) return;
-    const prev={...d}; db.posterDoc=pxFromCase(c); pxTouched(); renderPoster(); toast('행사 입력 값으로 채웠습니다');
+    const prev={...d}; db.posterDoc=Object.assign(pxFromCase(c),d.who?{who:d.who}:{}); pxTouched(); renderPoster(); toast('행사 입력 값으로 채웠습니다');
     if(has&&window.dwUndo) window.dwUndo('행사 값으로 바꿨습니다',()=>{ db.posterDoc=prev; pxTouched(); renderPoster(); }); return; }
-  if(e.target.closest('[data-pxclear]')){ const d=pxDoc(); if(!Object.values(d).some(v=>String(v||'').trim())) return;
+  if(e.target.closest('[data-pxclear]')){ const d=pxDoc(); if(!Object.entries(d).some(([k,v])=>k!=='who'&&String(v||'').trim())) return;
     if(window.dwConfirm&&!(await window.dwConfirm({title:'장례일정표를 새로 쓰시겠습니까?',body:'적어 둔 고인 · 일정 · 장지 · 첫째 줄이 비워집니다.',ok:'비우기',danger:true}))) return;
-    const prev={...d}; db.posterDoc={}; pxTouched(); renderPoster(); if(window.dwUndo) window.dwUndo('장례일정표를 비웠습니다',()=>{ db.posterDoc=prev; pxTouched(); renderPoster(); }); return; }
+    const prev={...d}; db.posterDoc=d.who?{who:d.who}:{}; pxTouched(); renderPoster(); if(window.dwUndo) window.dwUndo('장례일정표를 비웠습니다',()=>{ db.posterDoc=prev; pxTouched(); renderPoster(); }); return; }
 });
 document.addEventListener('click',e=>{ const z=e.target.closest('[data-pr-zoom]'); if(z){ z.classList.toggle('zoom'); } });
 /* 한 단계씩 묻기 */

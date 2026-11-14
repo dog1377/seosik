@@ -498,6 +498,25 @@ class Srv:
         for r in rows: r.update(deleted=True,updated_at=max(r['updated_at']+1,t),device='handover',server_at=now_iso())
         lg['undone']=True
         return s.ok(n=n)
+    # 장례일정표 문의 담당 고르기 (2026.11.14) — supabase-part.sql dw_staff_contacts 와 같은 규칙
+    def f_dw_staff_contacts(s,me):
+        if s.chief(me): return s.no('denied')
+        lead=s.leader(me)
+        def mine(uid):
+            for a,b,_ in s.MEM:
+                if a not in s.PARTS: continue
+                t=s.PARTS[a]
+                if t['leader_id']==me and b==uid: return True
+                if b==me and (t['leader_id']==uid or any(a2==a and b2==uid for a2,b2,_ in s.MEM)): return True
+            return False
+        out=[]
+        for uid,p in s.PROF.items():
+            if s.chief(uid): continue
+            mn=mine(uid)
+            if not (lead or uid==me or mn): continue
+            out.append(dict(user_id=uid,login_id=p['login_id'],name=p['name'],rank=p.get('rank',''),phone=p.get('phone',''),leader=s.leader(uid),me=uid==me,mine=mn))
+        out.sort(key=lambda x:(not x['me'],not x['mine'],(x['name'] or '').strip() or x['login_id'],x['login_id']))
+        return s.ok(people=out)
 def wire(ctx,srv,mockjs):
     ctx.route('**/vendor/supabase.js', lambda r: r.fulfill(status=200,content_type='application/javascript',body=mockjs))
     for n,f in [('mockUpdatePw',srv.updatepw),('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert),('mockStorage',srv.storage)]: ctx.expose_binding(n,f)

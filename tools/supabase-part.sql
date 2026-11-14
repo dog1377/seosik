@@ -4,7 +4,8 @@
 --   2026.10.28: 자료실 — 회사 기본 서류 파일을 올려 두고 직원 모두가 열어 보고 내려받음 (모두 합쳐 800MB까지),
 --   2026.10.28-21: 섞인 기록 정리 — 예전에 다른 계정으로 같이 올라간 기록을 관리자가 원래 주인 계정에만 남김,
 --   2026.10.29: 내 정보(이름 · 전화번호 · 직급)를 계정에 · 관리자 · 파트장이 직원 비밀번호 초기화(12345678a, 다음 로그인 때 새 비밀번호를 정함),
---   2026.11.14: 행사 인수인계 — 파트장이 장례업무 행사(+ 봉투 기록)를 가입한 다른 직원에게 넘김, 넘긴 쪽에서는 없어짐)
+--   2026.11.14: 행사 인수인계 — 파트장이 장례업무 행사(+ 봉투 기록)를 가입한 다른 직원에게 넘김, 넘긴 쪽에서는 없어짐,
+--   2026.11.14: 장례일정표 문의 담당 고르기 — 파트장은 모든 직원, 직원은 같은 파트 사람의 이름 · 직급 · 전화번호)
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -1124,6 +1125,34 @@ begin
   return jsonb_build_object('ok', true, 'n', n);
 end $$;
 
+-- ---------- 장례일정표 「문의」 담당 고르기 (2026.11.14) ----------
+-- 장례일정표 아래 「(문 의: 의전팀장 이름, 전화번호)」에 넣을 직원 명단 (이름 · 직급 · 전화번호 — 각자 「내 정보」에 넣은 값)
+--   · 파트장: 가입한 직원 모두 (총괄실장 빼고) · 직원: 나와 같은 파트 사람(파트장 포함)과 나 · 총괄실장: 안 됨
+create or replace function public.dw_staff_contacts() returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); lead boolean;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if public.dw_is_chief(me) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  lead := public.dw_is_leader(me);
+  perform public.dw_profile_ensure(me);
+  return jsonb_build_object('ok', true, 'people', coalesce((
+    select jsonb_agg(x.o order by x.self desc, x.mine desc, x.nm, x.lid)
+    from (
+      select p.user_id = me as self, q.mine, coalesce(nullif(btrim(p.name), ''), p.login_id) as nm, p.login_id as lid,
+             jsonb_build_object('user_id', p.user_id, 'login_id', p.login_id, 'name', p.name, 'rank', p.rank, 'phone', p.phone,
+               'leader', public.dw_is_leader(p.user_id), 'me', p.user_id = me, 'mine', q.mine) as o
+      from public.dw_profiles p
+      cross join lateral (select exists (
+          select 1 from public.dw_part_members m join public.dw_parts t on t.id = m.part_id
+          where (t.leader_id = me and m.user_id = p.user_id)                                          -- 내 파트원 (파트장)
+             or (m.user_id = me and (t.leader_id = p.user_id                                          -- 내 파트장 (직원)
+                 or exists (select 1 from public.dw_part_members m2 where m2.part_id = t.id and m2.user_id = p.user_id)))   -- 같은 파트 직원
+        ) as mine) q
+      where not public.dw_is_chief(p.user_id) and (lead or p.user_id = me or q.mine)
+    ) x), '[]'::jsonb));
+end $$;
+
 -- ---------- 누가 부를 수 있는지 ----------
 revoke all on function public.dw_login_of(text, uuid)          from public, anon, authenticated;
 revoke all on function public.dw_profile_ensure(uuid)          from public, anon, authenticated;
@@ -1214,5 +1243,7 @@ revoke all on function public.dw_case_handover_undo(jsonb)     from public, anon
 grant execute on function public.dw_handover_people()                        to authenticated;
 grant execute on function public.dw_case_handover(jsonb)                     to authenticated;
 grant execute on function public.dw_case_handover_undo(jsonb)                to authenticated;
+revoke all on function public.dw_staff_contacts()              from public, anon;
+grant execute on function public.dw_staff_contacts()                         to authenticated;
 
 select 'DW 파트 · 게시판 · 물품 장부 · 자료실 · 행사 인수인계 준비 끝' as result;
