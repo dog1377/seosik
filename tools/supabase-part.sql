@@ -3,7 +3,8 @@
 --   2026.10.27: 물품 수령 · 불출 장부 — 파트장끼리 같이 쓰는 장부 (부산 · 울산 · 창원 입고 · 불출 · 남은 수량),
 --   2026.10.28: 자료실 — 회사 기본 서류 파일을 올려 두고 직원 모두가 열어 보고 내려받음 (모두 합쳐 800MB까지),
 --   2026.10.28-21: 섞인 기록 정리 — 예전에 다른 계정으로 같이 올라간 기록을 관리자가 원래 주인 계정에만 남김,
---   2026.10.29: 내 정보(이름 · 전화번호 · 직급)를 계정에 · 관리자 · 파트장이 직원 비밀번호 초기화(12345678a, 다음 로그인 때 새 비밀번호를 정함))
+--   2026.10.29: 내 정보(이름 · 전화번호 · 직급)를 계정에 · 관리자 · 파트장이 직원 비밀번호 초기화(12345678a, 다음 로그인 때 새 비밀번호를 정함),
+--   2026.11.14: 행사 인수인계 — 파트장이 장례업무 행사(+ 봉투 기록)를 가입한 다른 직원에게 넘김, 넘긴 쪽에서는 없어짐)
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -999,6 +1000,130 @@ begin
   return jsonb_build_object('ok', true, 'n', n, 'states', ns);
 end $$;
 
+-- ---------- 행사 인수인계 (2026.11.14) ----------
+-- 파트장이 장례업무 행사(+ 그 행사 봉투 기록)를 가입한 다른 직원 계정으로 넘김 → 받은 사람 장례업무에 들어가고, 넘긴 사람 쪽은 「지움」 표시(서버에 남음).
+--   · 받는 사람: 가입한 직원 모두 (나 · 총괄실장 빼고). 넘긴 기록에는 data.handover = {from, fromName, to, toName, at, envSkip} 가 붙음
+--   · 넘긴 직후 넘긴 파트장만 「되돌리기」 (10분 안, 받은 사람 쪽에 그 행사가 아직 있을 때 — 받은 사람이 고친 내용도 같이 돌아옴)
+--   · 적어 둔 것: dw_handover_log (앱에서 바로 못 읽음)
+create table if not exists public.dw_handover_log (
+  id         uuid        primary key default gen_random_uuid(),
+  case_id    text        not null,
+  from_id    uuid        not null references auth.users(id) on delete cascade,
+  to_id      uuid        not null references auth.users(id) on delete cascade,
+  title      text        not null default '',
+  env_ids    text[]      not null default '{}',
+  at         bigint      not null,
+  undone     boolean     not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists dw_handover_log_from on public.dw_handover_log (from_id, case_id, at desc);
+alter table public.dw_handover_log enable row level security;
+revoke all on public.dw_handover_log from anon, authenticated;
+
+-- 넘길 수 있는 직원 명단 (파트장만): 우리 파트원 먼저, 그다음 이름순. 전화번호는 안 보냄
+create or replace function public.dw_handover_people() returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid();
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_is_leader(me) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  insert into public.dw_profiles (user_id, login_id, name)
+  select u.id, public.dw_login_of(u.email, u.id), left(btrim(coalesce(u.raw_user_meta_data ->> 'name', '')), 20) from auth.users u
+  on conflict do nothing;
+  return jsonb_build_object('ok', true, 'people', coalesce((
+    select jsonb_agg(x.o order by x.mine desc, x.nm, x.lid)
+    from (
+      select q.mine, coalesce(nullif(btrim(p.name), ''), p.login_id) as nm, p.login_id as lid,
+             jsonb_build_object('user_id', p.user_id, 'login_id', p.login_id, 'name', p.name, 'rank', p.rank,
+               'leader', public.dw_is_leader(p.user_id), 'mine', q.mine,
+               'part', (select t.name from public.dw_part_members m join public.dw_parts t on t.id = m.part_id where m.user_id = p.user_id order by t.created_at limit 1)) as o
+      from public.dw_profiles p
+      cross join lateral (select exists (select 1 from public.dw_part_members m join public.dw_parts t on t.id = m.part_id
+                                         where m.user_id = p.user_id and t.leader_id = me) as mine) q
+      where p.user_id <> me and not public.dw_is_chief(p.user_id)
+    ) x), '[]'::jsonb));
+end $$;
+
+-- 넘기기 (p = {case_id, to, title, env_skip})
+create or replace function public.dw_case_handover(p jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  me uuid := auth.uid();
+  cid text := btrim(coalesce(p ->> 'case_id', ''));
+  tgt uuid;
+  t bigint := (extract(epoch from clock_timestamp()) * 1000)::bigint;
+  envs text[];
+  meta jsonb;
+  tname text;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_is_leader(me) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  if cid = '' then return jsonb_build_object('ok', false, 'why', 'nocase'); end if;
+  begin tgt := nullif(btrim(coalesce(p ->> 'to', '')), '')::uuid; exception when others then tgt := null; end;
+  if tgt is null or not exists (select 1 from public.dw_profiles x where x.user_id = tgt) then return jsonb_build_object('ok', false, 'why', 'noone'); end if;
+  if tgt = me then return jsonb_build_object('ok', false, 'why', 'self'); end if;
+  if public.dw_is_chief(tgt) then return jsonb_build_object('ok', false, 'why', 'chief'); end if;
+  perform 1 from public.dw_records r
+  where r.user_id = me and r.app = 'funeral' and r.kind = 'case' and r.id = cid and not r.deleted and r.data is not null
+  for update;
+  if not found then return jsonb_build_object('ok', false, 'why', 'nocase'); end if;
+  select coalesce(array_agg(r.id order by r.id), '{}') into envs from public.dw_records r
+  where r.user_id = me and r.app = 'funeral' and r.kind = 'env' and not r.deleted and r.data is not null and r.data ->> 'sourceCaseId' = cid;
+  tname := public.dw_name(tgt);
+  meta := jsonb_build_object('from', me, 'fromName', public.dw_name(me), 'to', tgt, 'toName', tname, 'at', t,
+            'envSkip', coalesce(p ->> 'env_skip', '') = 'true');
+  -- 봉투 먼저, 행사 나중 (받는 휴대폰이 행사를 먼저 받으면 빈 봉투를 새로 만들 수 있어서)
+  insert into public.dw_records as d (user_id, app, kind, id, data, deleted, updated_at, device)
+  select tgt, r.app, r.kind, r.id, r.data || jsonb_build_object('updated', t), false, t, 'handover'
+  from public.dw_records r where r.user_id = me and r.app = 'funeral' and r.kind = 'env' and r.id = any(envs)
+  on conflict (user_id, app, kind, id) do update
+    set data = excluded.data, deleted = false, updated_at = greatest(excluded.updated_at, d.updated_at + 1), device = excluded.device;
+  insert into public.dw_records as d (user_id, app, kind, id, data, deleted, updated_at, device)
+  select tgt, r.app, r.kind, r.id, r.data || jsonb_build_object('handover', meta, 'updated', t), false, t, 'handover'
+  from public.dw_records r where r.user_id = me and r.app = 'funeral' and r.kind = 'case' and r.id = cid
+  on conflict (user_id, app, kind, id) do update
+    set data = excluded.data, deleted = false, updated_at = greatest(excluded.updated_at, d.updated_at + 1), device = excluded.device;
+  update public.dw_records r set deleted = true, updated_at = greatest(r.updated_at + 1, t), device = 'handover'
+  where r.user_id = me and r.app = 'funeral' and ((r.kind = 'case' and r.id = cid) or (r.kind = 'env' and r.id = any(envs)));
+  insert into public.dw_handover_log (case_id, from_id, to_id, title, env_ids, at)
+  values (cid, me, tgt, left(btrim(coalesce(p ->> 'title', '')), 120), envs, t);
+  return jsonb_build_object('ok', true, 'at', t, 'envs', coalesce(array_length(envs, 1), 0), 'env_ids', to_jsonb(envs), 'to_name', tname);
+end $$;
+
+-- 넘긴 것 되돌리기 (p = {case_id, at}) — 넘긴 사람만, 10분 안, 받은 사람 쪽에 행사가 아직 있을 때
+create or replace function public.dw_case_handover_undo(p jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  me uuid := auth.uid();
+  cid text := btrim(coalesce(p ->> 'case_id', ''));
+  a0 bigint;
+  t bigint := (extract(epoch from clock_timestamp()) * 1000)::bigint;
+  lg public.dw_handover_log%rowtype;
+  n int := 0;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  begin a0 := (p ->> 'at')::bigint; exception when others then a0 := null; end;
+  select * into lg from public.dw_handover_log l where l.from_id = me and l.case_id = cid and l.at = a0 and not l.undone for update;
+  if not found then return jsonb_build_object('ok', false, 'why', 'nolog'); end if;
+  if t - lg.at > 600000 then return jsonb_build_object('ok', false, 'why', 'late'); end if;
+  if not exists (select 1 from public.dw_records r where r.user_id = lg.to_id and r.app = 'funeral' and r.kind = 'case' and r.id = cid and not r.deleted and r.data is not null)
+    then return jsonb_build_object('ok', false, 'why', 'gone'); end if;
+  insert into public.dw_records as s (user_id, app, kind, id, data, deleted, updated_at, device)
+  select me, d.app, d.kind, d.id, (d.data - 'handover') || jsonb_build_object('updated', greatest(t, d.updated_at + 1)), false, greatest(t, d.updated_at + 1), 'handover'
+  from public.dw_records d
+  where d.user_id = lg.to_id and d.app = 'funeral' and not d.deleted and d.data is not null
+    and ((d.kind = 'env' and (d.id = any(lg.env_ids) or d.data ->> 'sourceCaseId' = cid)) or (d.kind = 'case' and d.id = cid))
+  order by d.kind = 'case'   -- 봉투 먼저
+  on conflict (user_id, app, kind, id) do update
+    set data = excluded.data, deleted = false, updated_at = greatest(excluded.updated_at, s.updated_at + 1), device = excluded.device;
+  get diagnostics n = row_count;
+  update public.dw_records d set deleted = true, updated_at = greatest(d.updated_at + 1, t), device = 'handover'
+  where d.user_id = lg.to_id and d.app = 'funeral' and not d.deleted
+    and ((d.kind = 'case' and d.id = cid) or (d.kind = 'env' and (d.id = any(lg.env_ids) or d.data ->> 'sourceCaseId' = cid)));
+  update public.dw_handover_log l set undone = true where l.id = lg.id;
+  return jsonb_build_object('ok', true, 'n', n);
+end $$;
+
 -- ---------- 누가 부를 수 있는지 ----------
 revoke all on function public.dw_login_of(text, uuid)          from public, anon, authenticated;
 revoke all on function public.dw_profile_ensure(uuid)          from public, anon, authenticated;
@@ -1083,5 +1208,11 @@ revoke all on function public.dw_admin_unmix_undo(uuid)        from public, anon
 grant execute on function public.dw_admin_mixed()                            to authenticated;
 grant execute on function public.dw_admin_unmix(jsonb)                       to authenticated;
 grant execute on function public.dw_admin_unmix_undo(uuid)                   to authenticated;
+revoke all on function public.dw_handover_people()             from public, anon;
+revoke all on function public.dw_case_handover(jsonb)          from public, anon;
+revoke all on function public.dw_case_handover_undo(jsonb)     from public, anon;
+grant execute on function public.dw_handover_people()                        to authenticated;
+grant execute on function public.dw_case_handover(jsonb)                     to authenticated;
+grant execute on function public.dw_case_handover_undo(jsonb)                to authenticated;
 
-select 'DW 파트 · 게시판 · 물품 장부 · 자료실 준비 끝' as result;
+select 'DW 파트 · 게시판 · 물품 장부 · 자료실 · 행사 인수인계 준비 끝' as result;

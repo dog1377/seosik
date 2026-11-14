@@ -15,7 +15,7 @@ def case_month(d):
 def now_iso(): return (datetime.datetime(2026,10,23,9)+datetime.timedelta(seconds=next(CNT))).isoformat()+'+00:00'
 class Srv:
     def __init__(s):
-        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.OBJ={}; s.DOCS={}; s.MADE={}; s.UNMIX=[]; s.noserver=False; s.calls=[]
+        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.OBJ={}; s.DOCS={}; s.MADE={}; s.UNMIX=[]; s.HOLOG=[]; s.noserver=False; s.calls=[]
     def add_user(s,login,pw,leader=False,name='',chief=False,admin=False):
         email=login if '@' in login else login+'@dwfuneral.com'; lid=login.split('@')[0] if email.endswith('@dwfuneral.com') else email
         am={'dw_role':'leader'} if leader else {'dw_role':'chief'} if chief else {}
@@ -446,6 +446,58 @@ class Srv:
                 elif x['prev'] is not None: r.update(data=x['prev'],updated_at=max(r['updated_at']+1,t),device='unmix',server_at=now_iso()); ns+=1
         s.UNMIX=[b for b in s.UNMIX if b['batch']!=p_batch]
         return s.ok(n=n,states=ns)
+    # 행사 인수인계 (2026.11.14) — supabase-part.sql dw_handover_people · dw_case_handover · dw_case_handover_undo 와 같은 규칙
+    def f_dw_handover_people(s,me):
+        if not s.leader(me): return s.no('denied')
+        mine=lambda uid:any(b==uid and a in s.PARTS and s.PARTS[a]['leader_id']==me for a,b,_ in s.MEM)
+        out=[]
+        for uid,p in s.PROF.items():
+            if uid==me or s.chief(uid): continue
+            part=next((s.PARTS[a]['name'] for a,b,_ in s.MEM if b==uid and a in s.PARTS),None)
+            out.append(dict(user_id=uid,login_id=p['login_id'],name=p['name'],rank=p.get('rank',''),leader=s.leader(uid),mine=mine(uid),part=part))
+        out.sort(key=lambda x:(not x['mine'],(x['name'] or '').strip() or x['login_id'],x['login_id']))
+        return s.ok(people=out)
+    def ho_put(s,uid,r,data,t):
+        k=(uid,r['app'],r['kind'],r['id']); old=s.ROWS.get(k)
+        up=max(t,old['updated_at']+1) if old else t
+        s.ROWS[k]=dict(user_id=uid,app=r['app'],kind=r['kind'],id=r['id'],data=data,deleted=False,updated_at=up,device='handover',server_at=now_iso())
+    def f_dw_case_handover(s,me,p):
+        import time
+        if not s.leader(me): return s.no('denied')
+        cid=str(p.get('case_id') or '').strip(); tgt=str(p.get('to') or '').strip()
+        if not cid: return s.no('nocase')
+        if not tgt or tgt not in s.PROF: return s.no('noone')
+        if tgt==me: return s.no('self')
+        if s.chief(tgt): return s.no('chief')
+        src=s.ROWS.get((me,'funeral','case',cid))
+        if not src or src.get('deleted') or src.get('data') is None: return s.no('nocase')
+        t=int(time.time()*1000)
+        envs=sorted(i for (u,ap,k,i),r in s.ROWS.items() if u==me and ap=='funeral' and k=='env' and not r.get('deleted') and r.get('data') is not None and str(r['data'].get('sourceCaseId'))==cid)
+        meta=dict(at=t,envSkip=str(p.get('env_skip')).lower()=='true',**{'from':me,'fromName':s.name(me),'to':tgt,'toName':s.name(tgt)})
+        for i in envs:
+            r=s.ROWS[(me,'funeral','env',i)]; s.ho_put(tgt,r,dict(copy.deepcopy(r['data']),updated=t),t)
+        s.ho_put(tgt,src,dict(copy.deepcopy(src['data']),handover=meta,updated=t),t)
+        for k in [('case',cid)]+[('env',i) for i in envs]:
+            r=s.ROWS[(me,'funeral')+k]; r.update(deleted=True,updated_at=max(r['updated_at']+1,t),device='handover',server_at=now_iso())
+        s.HOLOG.append(dict(case_id=cid,from_id=me,to_id=tgt,env_ids=envs,at=t,undone=False))
+        return s.ok(at=t,envs=len(envs),env_ids=envs,to_name=s.name(tgt))
+    def f_dw_case_handover_undo(s,me,p):
+        import time
+        cid=str(p.get('case_id') or '').strip(); t=int(time.time()*1000)
+        lg=next((l for l in s.HOLOG if l['from_id']==me and l['case_id']==cid and l['at']==p.get('at') and not l['undone']),None)
+        if not lg: return s.no('nolog')
+        if t-lg['at']>600000: return s.no('late')
+        tc=s.ROWS.get((lg['to_id'],'funeral','case',cid))
+        if not tc or tc.get('deleted') or tc.get('data') is None: return s.no('gone')
+        rows=[r for (u,ap,k,i),r in s.ROWS.items() if u==lg['to_id'] and ap=='funeral' and not r.get('deleted') and r.get('data') is not None
+              and ((k=='env' and (i in lg['env_ids'] or str(r['data'].get('sourceCaseId'))==cid)) or (k=='case' and i==cid))]
+        rows.sort(key=lambda r:r['kind']=='case'); n=0
+        for r in rows:
+            up=max(t,r['updated_at']+1); d=copy.deepcopy(r['data']); d.pop('handover',None); d['updated']=up
+            s.ho_put(me,r,d,up); n+=1
+        for r in rows: r.update(deleted=True,updated_at=max(r['updated_at']+1,t),device='handover',server_at=now_iso())
+        lg['undone']=True
+        return s.ok(n=n)
 def wire(ctx,srv,mockjs):
     ctx.route('**/vendor/supabase.js', lambda r: r.fulfill(status=200,content_type='application/javascript',body=mockjs))
     for n,f in [('mockUpdatePw',srv.updatepw),('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert),('mockStorage',srv.storage)]: ctx.expose_binding(n,f)

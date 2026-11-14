@@ -2970,10 +2970,12 @@ function sbApply(r){
       if(loc){ arr.splice(i,1); return true; } return false;
     }
     if(!r.data||typeof r.data!=='object') return false;
-    if(loc&&lu>=up){ SBM.known[key]=1; if(lu===up&&!SBM.h[key]) SBM.h[key]=sbHash(JSON.stringify(loc)); return false; }
+    const hoNew=r.device==='handover'&&!SBM.known[key];   /* 넘겨받은 봉투가 행사보다 늦게 오면 이 기기가 먼저 빈 봉투를 만들었을 수 있음 → 받은 것으로 (2026.11.14) */
+    if(loc&&lu>=up&&!hoNew){ SBM.known[key]=1; if(lu===up&&!SBM.h[key]) SBM.h[key]=sbHash(JSON.stringify(loc)); return false; }
     const obj=r.data; obj.updated=up;
     if(i>=0) arr[i]=obj; else arr.push(obj);
     SBM.known[key]=1; SBM.up[key]=up; SBM.h[key]=sbHash(JSON.stringify(obj));
+    if(r.kind==='case'&&obj.handover&&sbUser&&obj.handover.to===sbUser.id) hoIn.push(obj.id);
     return true;
   }
   if(r.kind==='state'&&r.data&&typeof r.data==='object'&&!r.deleted){
@@ -3002,6 +3004,7 @@ async function sbPull(full){
   return changed;
 }
 function sbAfterApply(){
+  hoInbox();
   if(!db.cases.find(c=>c.id===db.cur)) db.cur=db.cases.length?[...db.cases].sort((a,b)=>(b.updated||0)-(a.updated||0))[0].id:null;
   save(); dirty=true; try{ renderCaseSel(); }catch(e){}
   const a=document.activeElement; if(a&&a.closest&&a.closest('#mainContent')&&a.matches('input,textarea,select')){ sbNeedRender=true; return; }
@@ -3620,7 +3623,7 @@ let LVD='', LVM=false;   /* LVD: 상세 패널에 열린 행사 id · LVM: 휴�
 function lvCo(c){ return c.quick&&!c.coPicked?'정산만':caseCoName(c); }
 function lvMain(c){ const f=c.f||{}, nm=String(f.name||'').trim(); return nm?`故 ${nm}`:(String(f.place||'').trim()||'이름 없는 행사'); }
 function lvSubLine(c){ const f=c.f||{}, nm=String(f.name||'').trim(), co=lvCo(c), cust=co.replace(/\s/g,'')==='현진시닝'?String(f.company||'').trim():'';
-  return [nm&&String(f.place||'').trim(),[co,cust].filter(Boolean).join(' ')].filter(Boolean).join(' · '); }
+  return [nm&&String(f.place||'').trim(),[co,cust].filter(Boolean).join(' '),hoFresh(c)?'넘겨받음':''].filter(Boolean).join(' · '); }
 function lvBadge(st){ return `<span class="lv-st st-${st.k}">${st.k==='minus'?'− ':st.k==='sent'?'✓ ':''}${esc(st.t)}</span>`; }
 function lvNext(c){ const i=STEPS.findIndex(x=>!stepDone(c,x[0])); return i<0?[settleStatus(c).k==='none'?'input':'settle','행사 열기']:[STEPS[i][0],`이어서 하기 · ${STEPS[i][2]}`]; }
 function lvMark(){ const el=$('#p-list'); if(!el) return; el.querySelectorAll('.lv-tr[data-id]').forEach(r=>{ const id=r.dataset.id, on=LVD?id===LVD:false;
@@ -3637,11 +3640,11 @@ function lvDrawerData(c){
     :`<div class="lvd-money${st.won<0?' minus':''}"><span>보내는금액</span><b class="num">${st.won<0?'− ':''}${esc(wonStr(Math.abs(st.won))||'0원')}</b></div>`;
   const steps=STEPS.map(([k,short,long],i)=>{ const done=stepDone(c,k);
     return `<li><button class="lvd-step${done?' done':''}" type="button" data-lvd-go="${k}"><span class="st-no" aria-hidden="true">${done?'✓':i+1}</span><span class="lvd-sn">${esc(short)}<small>${esc(long)}</small></span><span class="lvd-ss">${done?'끝냄':'남음'}</span>${uiIcon('right')}</button></li>`; }).join('');
-  const [nk,nl]=lvNext(c);
+  const [nk,nl]=lvNext(c), ho=hoInfo(c);
   return {key:'case:'+c.id, title:caseTitle(c), sub:lvBadge(st), back:'목록',
     body:`<section class="lvd-sec"><h3>정산</h3>${money}<dl class="lvd-dl">${stRow}${row('본부장 봉투',esc(wonStr(env.part)||'–'),'num')}${row('실장 봉투',esc(wonStr(env.manager)||'–'),'num')}${later}</dl>${st.k==='minus'?'<p class="lvd-note">마이너스 행사입니다. 수익이 충분한 다른 행사 정산에서 빼 주십시오.</p>':''}${act?`<div class="lvd-act">${act}</div>`:''}</section>
       <section class="lvd-sec"><h3>행사 정보</h3><dl class="lvd-dl">${row('장소',esc(String(f.place||'').trim()))}${row('업체',esc(lvCo(c)))}${lvCo(c).replace(/\s/g,'')==='현진시닝'?row('고객 회사',esc(String(f.company||'').trim())):''}${row('접수',esc(dt(f.recv)))}${row('임종',esc(dt(f.death)))}${row('입관',esc(dt(f.casket)))}${row('발인',esc(dt(f.depart)))}${row('상주',esc(String(f.chief||'').trim()))}${row('장지',esc(String(f.burial||'').trim()))}${row('상품',esc(String(f.product||'').trim()))}</dl></section>
-      <section class="lvd-sec"><h3>업무 단계</h3><ol class="lvd-steps">${steps}</ol></section>`,
+      <section class="lvd-sec"><h3>업무 단계</h3><ol class="lvd-steps">${steps}</ol></section>${ho}`,
     foot:`<button class="btn link lvd-del" type="button" data-lvd-del>삭제</button><span class="dwdr-sp"></span><button class="btn primary" type="button" data-lvd-go="${nk}">${esc(nl)}</button>`};
 }
 function lvOpen(c,from){ if(!window.dwDrawer) return; LVD=c.id; window.dwDrawer.open(Object.assign(lvDrawerData(c),{from})); lvMark(); }
@@ -3698,6 +3701,7 @@ function renderList(){
   if(has){ const q=$('#lvQ'); q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
   else if(hadCard){ const b=el.querySelector(`[data-lv-card="${hadCard}"]`); if(b) b.focus({preventScroll:true}); }
   if(LVD&&window.dwDrawer&&window.dwDrawer.key()==='case:'+LVD){ const c=db.cases.find(x=>x.id===LVD); if(c&&db.tab==='list') window.dwDrawer.update(lvDrawerData(c)); else window.dwDrawer.close(); }
+  if(window.dwDrawer&&window.dwDrawer.key().indexOf('ho:')===0&&!HO.busy&&(db.tab!=='list'||!db.cases.find(x=>x.id===HO.cid))) window.dwDrawer.close();
 }
 $('#p-list').addEventListener('input',e=>{ if(e.target.id==='lvQ'){ LV.q=e.target.value; clearTimeout(renderList._t); renderList._t=setTimeout(renderList,180); } });
 $('#p-list').addEventListener('change',e=>{ const k=e.target.dataset.lv; if(!k) return; LV[k]=e.target.value; listSave(); renderList(); });
@@ -3718,8 +3722,143 @@ document.addEventListener('click',e=>{
   const c=db.cases.find(x=>x.id===key.slice(5)); if(!c) return;
   const g=e.target.closest('[data-lvd-go]'); if(g){ const t=g.dataset.lvdGo; db.cur=c.id; save(); dirty=true; window.dwDrawer.close(); renderCaseSel(); setTab(t); return; }
   if(e.target.closest('[data-lvd-del]')) delCaseAsk(c);
+  if(e.target.closest('[data-ho-start]')) hoOpen(c);
 });
-document.addEventListener('dw-drawer',e=>{ const d=e.detail||{}; if(!d.open&&String(d.key||'').indexOf('case:')===0){ LVD=''; lvMark(); } });
+document.addEventListener('dw-drawer',e=>{ const d=e.detail||{}; if(!d.open&&/^(case|ho):/.test(String(d.key||''))){ LVD=''; lvMark(); } });
+/* ---------- 행사 인수인계 (2026.11.14 사용자 「파트장들이 작성해서, 등록되어있는 직원에게 행사인수인계 하는기능 · 내가 입력한거 다른사람에게 넘어가고, 나한테는 없어지고」)
+   - 파트장만: 행사 목록 → 행사 상세(서랍) 아래 「다른 직원에게 넘기기」 → 직원 고르기(서랍 ho:행사id) → 확인 창 → 넘김 → 「되돌리기」(10분 안)
+   - 받는 사람: 가입한 직원 모두(나 · 총괄실장 빼고, 서버 dw_handover_people). 그 행사의 봉투 기록도 같이 넘어감
+   - 넘길 때: 먼저 내 계정에 다 올리고(sbFlush) → 서버 dw_case_handover 가 받는 사람 계정에 옮겨 넣고 내 쪽은 「지움」 표시 → 이 기기에서도 바로 뺌
+   - 마이너스 정리 표시: 이 행사가 내 다른 행사 정산에서 빠진 마이너스면(받는 사람 쪽에선 그 행사가 없음) / 이 행사 정산에서 내 다른 행사 마이너스를 뺐으면(내 쪽에선 이 행사가 없어짐)
+     → 「정리됨」(c.s.minusOut, ho:1)으로 표시해 둠. 돈 계산은 그대로. 되돌리면 표시도 원래대로
+   - 받은 쪽: 행사 data.handover = {from, fromName, to, toName, at, envSkip}. 처음 받으면 알림 한 번(db.hoSeen — 이 기기만), 넘긴 사람이 봉투를 지워 둔 행사면 봉투를 새로 만들지 않음 */
+const HO_ICO='<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.6-3.4 3-5.5 6-5.5 1.3 0 2.5.4 3.4 1.1"/><path d="M15 17h6m-2.5-2.5L21 17l-2.5 2.5"/></svg>';
+var HO={cid:null,q:'',people:null,at:0,err:'',busy:'',load:null}, hoIn=[];   /* var: 위쪽 함수(sbApply · renderList)가 먼저 불려도 멈추지 않게 */
+const hoName=p=>String((p&&p.name)||'').trim()||(p&&p.login_id)||'이름 없음';
+const hoMe=()=>String(me().name||'').trim()||(sbUser?sbIdOf(sbUser):'')||'나';
+function hoFresh(c){ const h=c&&c.handover; return !!(h&&sbUser&&h.to===sbUser.id&&Date.now()-(Number(h.at)||0)<3*864e5); }
+function hoCan(){ return !!(sbUser&&window.dwAcct&&window.dwAcct.leader&&window.dwAcct.leader()); }
+function hoInfo(c){
+  const h=c.handover, mine=h&&sbUser&&h.to===sbUser.id, d=h&&h.at?new Date(Number(h.at)):null;
+  const got=mine?`<p class="ho-got">${HO_ICO}<span><b>${esc(h.fromName||'파트장')}</b>님에게서 넘겨받은 행사입니다${d?` · ${d.getMonth()+1}월 ${pad(d.getDate())}일 ${pad(d.getHours())}:${pad(d.getMinutes())}`:''}</span></p>`:'';
+  if(!hoCan()) return got?`<section class="lvd-sec">${got}</section>`:'';
+  const envN=db.envelopes.filter(r=>r.sourceCaseId===c.id).length;
+  return `<section class="lvd-sec"><h3>인수인계</h3>${got}<p class="lvd-note">이 행사${envN?`와 봉투 기록 ${envN}건`:''}을 다른 직원에게 넘깁니다. 넘기면 내 행사 목록에서 없어집니다.</p><div><button class="btn" type="button" data-ho-start>${HO_ICO}다른 직원에게 넘기기</button></div></section>`;
+}
+const HO_WHY={login:'로그인해야 넘길 수 있습니다',offline:'인터넷이 연결되어야 넘길 수 있습니다',flush:'아직 내 계정에 저장되지 않은 기록이 있습니다. 인터넷을 확인하고 다시 해 주십시오',
+  noserver:'서버에 인수인계 준비가 아직 안 됐습니다 (supabase-part.sql 실행 필요)',denied:'파트장만 넘길 수 있습니다',self:'나에게는 넘길 수 없습니다',chief:'총괄실장에게는 넘길 수 없습니다',
+  noone:'그 직원을 찾을 수 없습니다. 명단을 다시 불러오십시오',nocase:'이 행사가 아직 내 계정에 없습니다. 잠시 뒤 다시 해 주십시오',net:'넘기지 못했습니다. 인터넷을 확인해 주십시오'};
+function hoRows(){
+  if(HO.busy) return `<p class="ho-msg" role="status">${esc(HO.busy)}님에게 넘기는 중입니다…</p>`;
+  if(HO.err) return `<div class="ho-msg"><p>${esc(HO.err)}</p><button class="btn" type="button" data-ho-reload>다시 불러오기</button></div>`;
+  if(!HO.people) return `<p class="ho-msg" role="status">직원 명단을 불러오는 중입니다…</p>`;
+  const q=HO.q.toLowerCase().replace(/\s+/g,''), list=HO.people.filter(p=>!q||[p.name,p.login_id,p.part,p.rank].map(v=>String(v||'')).join(' ').toLowerCase().replace(/\s+/g,'').includes(q));
+  if(!list.length) return `<p class="ho-msg">${HO.people.length?'검색한 직원이 없습니다.':'넘길 수 있는 직원이 없습니다.'}</p>`;
+  const two=list.some(p=>p.mine)&&list.some(p=>!p.mine); let g=null;
+  return `<ul class="ho-list">${list.map(p=>{ const nm=hoName(p), sub=[p.mine?'':p.part,p.login_id].filter(Boolean).join(' · '), gg=p.mine?'우리 파트':'다른 직원';
+    const head=two&&gg!==g?`<li class="ho-g" role="presentation">${gg}</li>`:''; g=gg;
+    return `${head}<li><button class="ho-row" type="button" data-ho-to="${esc(p.user_id)}"><span class="ho-av" aria-hidden="true">${esc(nm.slice(0,1))}</span><span class="ho-nm"><b>${esc(nm)}${p.rank?` <small>${esc(p.rank)}</small>`:''}</b>${sub?`<small>${esc(sub)}</small>`:''}</span>${p.leader?'<span class="ho-tag">파트장</span>':''}${uiIcon('right')}</button></li>`; }).join('')}</ul>`;
+}
+function hoDrawerData(c){
+  const envN=db.envelopes.filter(r=>r.sourceCaseId===c.id).length;
+  return {key:'ho:'+c.id, title:'다른 직원에게 넘기기', sub:'', back:'목록',
+    body:`<section class="lvd-sec ho-sec"><div class="ho-case"><b>${esc(caseLabel(c)||caseTitle(c))}</b><small>${envN?`봉투 기록 ${envN}건도 같이 넘어갑니다`:'봉투 기록 없음'}</small></div>
+      <p class="lvd-note">받을 직원을 고르십시오. 넘기면 내 행사 목록에서 없어지고, 받은 직원의 장례업무에 들어갑니다.</p>
+      <label class="pg-search ho-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="hoQ" type="search" value="${esc(HO.q)}" placeholder="이름 · 아이디 · 파트 검색" aria-label="직원 검색" enterkeyhint="search" autocomplete="off"></label>
+      <div id="hoList" aria-live="polite">${hoRows()}</div></section>`,
+    foot:`<button class="btn" type="button" data-ho-back>취소</button>`};
+}
+function hoPaint(){ const l=document.getElementById('hoList'); if(l&&window.dwDrawer&&window.dwDrawer.key()==='ho:'+HO.cid) l.innerHTML=hoRows(); }
+function hoLoad(force){
+  if(!force&&HO.people&&Date.now()-HO.at<120000) return;
+  if(HO.load) return; HO.err=''; if(force) HO.people=null; hoPaint();
+  HO.load=window.dwAcct.rpc('dw_handover_people').then(d=>{ if(!d||!d.ok) throw {why:(d&&d.why)||'net'}; HO.people=Array.isArray(d.people)?d.people:[]; HO.at=Date.now(); },
+    e=>{ HO.people=null; HO.err=HO_WHY[(e&&e.why)||'net']||HO_WHY.net; if((e&&e.why)==='net') HO.err='직원 명단을 불러오지 못했습니다. 인터넷을 확인해 주십시오'; })
+    .then(()=>{ HO.load=null; hoPaint(); });
+}
+function hoOpen(c){
+  if(!hoCan()){ toast(sbUser?HO_WHY.denied:HO_WHY.login); return; }
+  HO.cid=c.id; HO.q=''; HO.busy=''; LVD=c.id;
+  window.dwDrawer.open(Object.assign(hoDrawerData(c),{from:document.querySelector(`[data-dwdr-from="case:${CSS.escape(c.id)}"]`)||undefined}));
+  hoLoad(false);
+}
+/* 넘기기 전 「정리됨」 표시 (돈 계산은 그대로) — 되돌릴 때 쓰려고 바꾼 것을 돌려줌 */
+function hoPrep(c,toName){
+  const ch=[], at=new Date().toISOString(), mark=(x,v)=>{ const s=S(x); ch.push({id:x.id,was:s.minusOut?JSON.parse(JSON.stringify(s.minusOut)):null}); s.minusOut=v; x.updated=Date.now(); };
+  const by=carryUse().get(c.id);
+  if(by&&by.id!==c.id&&settleCalc(c).sendWon<0&&!minusOutOf(c)) mark(c,{who:hoMe(),event:caseTag(by),at,ho:1});
+  (S(c).carry||[]).forEach(r=>{ const b=db.cases.find(x=>x.id===r.from); if(!b||b.id===c.id||minusOutOf(b)||settleCalc(b).sendWon>=0) return;
+    if(db.cases.some(t=>t.id!==c.id&&((t.s&&t.s.carry)||[]).some(y=>y.from===b.id))) return;   /* 내 다른 정산에서도 뺐으면 그대로 정리됨 */
+    mark(b,{who:toName,event:caseTag(c),at,ho:1}); });
+  if(ch.length) save();
+  return ch;
+}
+function hoRevert(ch){ let n=0; (ch||[]).forEach(x=>{ const c=db.cases.find(y=>y.id===x.id); if(!c) return; const s=S(c); if(x.was) s.minusOut=x.was; else delete s.minusOut; c.updated=Date.now(); n++; }); if(n) save(); }
+/* 서버에서 넘긴 행사 · 봉투를 이 기기에서도 바로 뺌 (실시간 알림을 기다리지 않음) */
+function hoDropLocal(cid,envIds,at){
+  const kill=(arr,kind,id)=>{ const i=arr.findIndex(x=>x&&x.id===id); if(i>=0) arr.splice(i,1); const key=kind+':'+id; delete SBM.known[key]; delete SBM.h[key]; SBM.up[key]=Math.max(Number(SBM.up[key])||0,Number(at)||0); };
+  kill(db.cases,'case',cid); (envIds||[]).forEach(id=>kill(db.envelopes,'env',id)); sbSaveMeta();
+  if(!db.cases.find(c=>c.id===db.cur)) db.cur=db.cases.length?[...db.cases].sort((a,b)=>(b.updated||0)-(a.updated||0))[0].id:null;
+  save(); dirty=true; renderAll();
+}
+async function hoSend(c,p){
+  if(HO.busy) return;
+  const nm=hoName(p); HO.busy=nm; hoPaint();
+  const foot=document.querySelector('#dwDr [data-ho-back]'); if(foot) foot.disabled=true;
+  let ch=[];
+  try{
+    if(!sbUser) throw {why:'login'};
+    if(navigator.onLine===false) throw {why:'offline'};
+    ch=hoPrep(c,nm); save();
+    if(!(await sbFlush())) throw {why:'flush'};
+    const d=await window.dwAcct.rpc('dw_case_handover',{p:{case_id:c.id,to:p.user_id,title:caseLabel(c)||caseTitle(c)||'',env_skip:db.envelopeSkipped.includes(c.id)}});
+    if(!d||!d.ok) throw {why:(d&&d.why)||'net'};
+    HO.busy=''; HO.cid=null; LVD='';
+    if(window.dwDrawer.key().indexOf('ho:')===0) window.dwDrawer.close();
+    hoDropLocal(c.id,d.env_ids||[],d.at);
+    sbPull(false).catch(()=>{});
+    const msg=`${d.to_name||nm}님에게 넘겼습니다`;
+    if(window.dwUndo) window.dwUndo(msg,()=>hoUndo(c.id,d.at,d.to_name||nm,ch),10000); else toast(msg);
+  }catch(e){
+    hoRevert(ch); HO.busy=''; hoPaint(); const f=document.querySelector('#dwDr [data-ho-back]'); if(f) f.disabled=false;
+    const why=(e&&e.why)||'net'; toast(HO_WHY[why]||HO_WHY.net); if(why==='noone') hoLoad(true);
+  }
+}
+async function hoUndo(cid,at,nm,ch){
+  try{
+    const d=await window.dwAcct.rpc('dw_case_handover_undo',{p:{case_id:cid,at}});
+    if(!d||!d.ok) throw {why:(d&&d.why)||'net'};
+    await sbPull(false);
+    hoRevert(ch);
+    const c=db.cases.find(x=>x.id===cid); if(c){ db.cur=c.id; save(); }
+    dirty=true; renderAll(); toast('되돌렸습니다. 행사가 다시 내 목록에 있습니다');
+  }catch(e){ const w=e&&e.why; toast(w==='gone'?`${nm}님 쪽에서 이미 지우거나 다른 사람에게 넘겨서 되돌릴 수 없습니다`:w==='late'?'넘긴 지 10분이 지나 되돌릴 수 없습니다':w==='nolog'?'이미 되돌렸거나 되돌릴 수 없습니다':'되돌리지 못했습니다. 인터넷을 확인해 주십시오'); }
+}
+/* 받은 쪽: 처음 받은 행사 알림 · 봉투 지운 행사는 봉투를 새로 만들지 않음 */
+function hoInbox(){
+  if(!hoIn.length) return; const ids=[...new Set(hoIn)]; hoIn=[];
+  const seen=db.hoSeen&&typeof db.hoSeen==='object'?db.hoSeen:(db.hoSeen={}), fresh=[];
+  ids.forEach(id=>{ const c=db.cases.find(x=>x.id===id), h=c&&c.handover; if(!h||!sbUser||h.to!==sbUser.id) return;
+    const k=String(h.at||''); if(seen[id]===k) return; seen[id]=k;
+    if(h.envSkip&&!db.envelopes.some(r=>r.sourceCaseId===id)&&!db.envelopeSkipped.includes(id)) db.envelopeSkipped.push(id);
+    if(Date.now()-(Number(h.at)||0)<7*864e5) fresh.push(c); });
+  if(fresh.length){ const h=fresh[0].handover; setTimeout(()=>toast(fresh.length>1?`넘겨받은 행사 ${fresh.length}건이 행사 목록에 들어왔습니다`:`${h.fromName||'파트장'}님이 넘긴 행사가 들어왔습니다 · ${caseLabel(fresh[0])||caseTitle(fresh[0])}`),400); }
+}
+document.addEventListener('input',e=>{ if(e.target&&e.target.id==='hoQ'){ HO.q=e.target.value; hoPaint(); } });
+document.addEventListener('click',async e=>{
+  const dr=e.target.closest&&e.target.closest('#dwDr'); if(!dr||(dr.getAttribute('data-key')||'').indexOf('ho:')!==0) return;
+  const c=db.cases.find(x=>x.id===HO.cid);
+  if(e.target.closest('[data-ho-reload]')){ hoLoad(true); return; }
+  if(!c) return;
+  if(e.target.closest('[data-ho-back]')){ if(!HO.busy) lvOpen(c); return; }
+  const b=e.target.closest('[data-ho-to]'); if(!b||HO.busy) return;
+  const p=(HO.people||[]).find(x=>x.user_id===b.dataset.hoTo); if(!p) return;
+  const nm=hoName(p), envN=db.envelopes.filter(r=>r.sourceCaseId===c.id).length;
+  const ok=window.dwConfirm?await window.dwConfirm({title:`${nm}님에게 넘기시겠습니까?`,ok:'넘기기',danger:false,
+    body:`${caseLabel(c)||caseTitle(c)}${envN?`\n봉투 기록 ${envN}건도 같이 넘어갑니다.`:''}\n넘기면 내 행사 목록에서 없어지고 ${nm}님 장례업무에 들어갑니다.`}):true;
+  if(ok) hoSend(c,p);
+});
+
 
 // 수당 정산: 회사로 보내고 남은 내 몫
 const COMM_ITEMS=['사진','검안','각인','바다장','납골','수목장','유골함','도시락','개장','산일','제단','꽃관','키트','초도','경비'];
@@ -5827,7 +5966,7 @@ window.addEventListener('resize',()=>{ clearTimeout(splitT); splitT=setTimeout(c
 let outT=null;
 function liveOut(){ if(!isSplit()||db.tab!=='input') return; clearTimeout(outT); outT=setTimeout(()=>{ if(isSplit()&&db.tab==='input') renderOut(); },220); }
 function setTab(t,sub){
-  { const dk=window.dwDrawer?window.dwDrawer.key():''; if(dk&&!((t==='list'&&dk.indexOf('case:')===0)||(t==='envelopes'&&/^env/.test(dk))||(t==='deliv'&&dk.indexOf('dv:')===0))) window.dwDrawer.close(); }   /* 화면마다 서랍 — 행사 목록 case: · 봉투정리 env · 배송 기록 dv: (2026.11.13 · 11.14) */
+  { const dk=window.dwDrawer?window.dwDrawer.key():''; if(dk&&!((t==='list'&&/^(case|ho):/.test(dk))||(t==='envelopes'&&/^env/.test(dk))||(t==='deliv'&&dk.indexOf('dv:')===0))) window.dwDrawer.close(); }   /* 화면마다 서랍 — 행사 목록 case: · 봉투정리 env · 배송 기록 dv: (2026.11.13 · 11.14) */
   if(t==='duty'){ db.dutyView=DUTY_TITLES[sub]?sub:DUTY_TITLES[db.dutyView]?db.dutyView:'calendar'; }
   if(t==='admin'){ db.adminView=adminViewFix(sub&&ADMIN_TITLES[sub]?sub:'hub'); }   /* 설정을 열면 설정 목록부터 */
   db.tab=t; save();
