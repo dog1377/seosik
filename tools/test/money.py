@@ -40,11 +40,15 @@ SETUP = r"""(()=>{
    comm:(commText(c1).match(/총계 : .*/)||[''])[0], bt, rc:rcptForms(c1).map(f=>f.text).join('\n'), t1:settleText(c1),
    altar:(()=>{ startCase(co('디더블유')); const a=curCase(); Object.assign(a.f,{collect:'300',altar:'20'}); Object.assign(S(a),{pay:'현금'});   // 제단공제 20 · 2026.10.29 법인카드결제
      const ded=settleCalc(a).sendWon; a.f.altarCard=true; const card=settleCalc(a).sendWon, txt=vals(a)['제단공제'], band=(bandOut(a).match(/제단공제 : .*/)||[''])[0]; a.f.altarCard=false; return [ded,card,txt,band]; })(),
+   goiDed:(()=>{ startCase(co('고이장례연구소')); const g=curCase(); g.f.collect='300'; S(g).pay='현금';   // 2026.11.14 고이 공제 · 추가 항목 「할인」도 뺌
+     g.deductions=[{id:'d1',text:'헌화30송이 5만원공제'},{id:'d2',text:'장례식장 할인 10만원'},{id:'d3',text:'도우미 6시간 추가 120,000원'}];
+     return [collectNetWon(g), settleCalc(g).sendWon, dedAmtText(g,g.deductions[1])]; })(),
    hq:(()=>{ const p0=S(c1).pay; S(c1).pay='본사송금'; const t=settleText(c1), r=[settleCalc(c1).sendWon, t.split('\n').find(l=>/^수금 :/.test(l)), rcptSums(c1).cash]; S(c1).pay=p0; return r; })()};   // 2026.11.13 상품 수금 본사송금
 })()"""
 
 EXPECT = [
     ('제단공제 20 · 수금 300 현금 → 공제 / 법인카드결제(공제 안 함, 밴드 양식은 「20만원 공제」)', 'altar', [2800000, 3000000, '20만원 법인카드결제', '제단공제 : 20만원 공제']),
+    ('고이 공제 · 추가 항목 (5만원공제 · 할인 10만원 · 추가 12만원, 수금 300 현금)', 'goiDed', [2970000, 2970000, '수금액에서 10만원 뺍니다']),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시1 상품 수금 본사송금 → 보내는금액 · 현금영수증에서 빠짐', 'hq', [1380000, '수금 : 2,575,000원(본사송금)', 1620000]),
     ('예시2 보내는금액', 'ex2', -180000),

@@ -2284,7 +2284,7 @@ function deductHtml(c){
   const co=coById(c.companyId), have=new Set((c.deductions||[]).map(d=>d.text.trim()));
   return `<div class="items">${(c.deductions||[]).map((d,i)=>`<div class="dd"><span class="no">${i+1}.</span><input class="input" data-dd="${d.id}" value="${esc(d.text)}" placeholder="예: 헌화 30송이 5만원 공제" aria-label="공제 · 추가 항목"><button class="x" type="button" data-dddel="${d.id}" aria-label="항목 삭제">✕</button><small class="dd-amt" data-dd-amt="${d.id}">${esc(dedAmtText(c,d))}</small></div>`).join('')}</div>
     <button class="btn sm" type="button" data-act="addDeduct">+ 항목 추가</button>
-    <p class="note">예: 헌화 30송이 5만원 공제 · 넣은 순서대로 번호가 붙습니다.${isGoi(co)?' 「공제」가 들어간 줄은 수금액에서 빼고, 「추가」가 들어간 줄은 더합니다(금액은 「5만원」처럼). 수금액 칸에는 공제 · 추가 전 상품 금액을 넣으십시오.':''}</p>`;
+    <p class="note">예: 헌화 30송이 5만원 공제 · 넣은 순서대로 번호가 붙습니다.${isGoi(co)?' 「공제」 · 「할인」이 들어간 줄은 수금액에서 빼고, 「추가」가 들어간 줄은 더합니다(금액은 「5만원」처럼). 수금액 칸에는 공제 · 추가 전 상품 금액을 넣으십시오.':''}</p>`;
 }
 function renderInput(){
   const c=curCase();
@@ -3270,10 +3270,10 @@ function altarDeductWon(c){ if(!c||!c.altarNet||(c.f||{}).altarCard) return 0; c
    업체 보고 양식 · 일정표 등 다른 양식은 그대로 「20만원 법인카드결제」. 수금액 줄은 실제 금액(법인카드결제면 빼지 않은 금액) */
 function bandOut(c){ const co=coById(c.companyId); return fillTpl(co.band,c,{'제단공제':altarText((c.f||{}).altar,false)}); }
 /* 고이장례연구소 「공제 · 추가 항목」 금액 (2026.11.01 사용자 「공제항목 기입 시 자동으로 인식해서 금액 공제 · 추가 · 밴드 수금액에도」 → 「공제 · 추가 모두 정산까지」)
-   줄에 「공제」(차감)가 있으면 빼고, 「추가」가 있으면 더함. 금액 = 「만」 · 「원」이 붙은 숫자 중 마지막 것(헌화30송이 5만원공제 → −5만원). 못 읽은 줄은 계산에 안 넣음.
+   줄에 「공제」 · 「할인」(차감)이 있으면 빼고(할인은 2026.11.14 사용자 「공제 말고 할인이라고 넣어도 금액 빠지게」), 「추가」가 있으면 더함. 금액 = 「만」 · 「원」이 붙은 숫자 중 마지막 것(헌화30송이 5만원공제 → −5만원). 못 읽은 줄은 계산에 안 넣음.
    제단공제처럼 수금액(collectNetWon)에 반영 → 밴드 수금액 · 정산 상품 수금 · 보내는금액 · 정산 카톡 · 영수증 · 일정표 모두.
    새로 만든 행사 · 공제 칸을 고친 행사만(c.dedNet, 추가만 · 이전 코드 없음). 예전 행사는 그대로(두 번 빠지지 않게). */
-function dedLine(t){ t=String(t||''); const sign=/공제|차감/.test(t)?-1:/추가/.test(t)?1:0, m=[...t.matchAll(/\d[\d,]*(?:\.\d+)?\s*(?:만\s*원?|원)/g)], won=m.length?Math.abs(toWon(m[m.length-1][0])):0; return {sign,won,adj:sign*won}; }
+function dedLine(t){ t=String(t||''); const sign=/공제|차감|할인/.test(t)?-1:/추가/.test(t)?1:0, m=[...t.matchAll(/\d[\d,]*(?:\.\d+)?\s*(?:만\s*원?|원)/g)], won=m.length?Math.abs(toWon(m[m.length-1][0])):0; return {sign,won,adj:sign*won}; }
 function dedOn(c){ return !!(c&&c.dedNet&&isGoi(coById(c.companyId))); }   /* function: 위쪽(PH_KEYS = vals(...))에서 먼저 불림 */
 function dedAdjWon(c){ return dedOn(c)?(c.deductions||[]).reduce((a,d)=>a+dedLine(d.text).adj,0):0; }
 function dedAmtText(c,d){ if(!dedOn(c)||!String(d.text||'').trim()) return ''; const L=dedLine(d.text); if(!L.sign) return ''; if(!L.won) return '금액을 못 읽었습니다 (예: 5만원)'; return L.sign<0?`수금액에서 ${wonStr(L.won)} 뺍니다`:`수금액에 ${wonStr(L.won)} 더합니다`; }
