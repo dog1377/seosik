@@ -15,7 +15,7 @@ def case_month(d):
 def now_iso(): return (datetime.datetime(2026,10,23,9)+datetime.timedelta(seconds=next(CNT))).isoformat()+'+00:00'
 class Srv:
     def __init__(s):
-        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.OBJ={}; s.DOCS={}; s.MADE={}; s.UNMIX=[]; s.HOLOG=[]; s.noserver=False; s.calls=[]
+        s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.OBJ={}; s.DOCS={}; s.MADE={}; s.UNMIX=[]; s.HOLOG=[]; s.LEFT={}; s.noserver=False; s.calls=[]
     def add_user(s,login,pw,leader=False,name='',chief=False,admin=False):
         email=login if '@' in login else login+'@dwfuneral.com'; lid=login.split('@')[0] if email.endswith('@dwfuneral.com') else email
         am={'dw_role':'leader'} if leader else {'dw_role':'chief'} if chief else {}
@@ -26,6 +26,7 @@ class Srv:
     def auth(s,src,email,pw):
         u=s.USERS.get(email)
         if not u or u[0]!=pw: return {'error':'bad'}
+        if u[1] in s.LEFT: return {'error':'banned','msg':'User is banned','code':'user_banned'}
         return {'user':{'id':u[1],'email':email,'app_metadata':dict(u[2]),'user_metadata':dict(u[3])}}
     def signup(s,src,email,pw,meta):
         if email in s.USERS: return {'error':'User already registered'}
@@ -112,6 +113,7 @@ class Srv:
     def ok(s,**k): k['ok']=True; return k
     def no(s,why): return {'ok':False,'why':why}
     def f_dw_me(s,me):
+        if me in s.LEFT: return s.no('left')
         p=s.PROF[me]; parts=[]
         for pid,t in sorted(s.PARTS.items(),key=lambda x:x[1]['created']):
             if s.inpart(pid,me): parts.append({'id':pid,'name':t['name'],'leader_id':t['leader_id'],'leader_name':s.name(t['leader_id']),'mine':t['leader_id']==me,'members':sum(1 for a,b,_ in s.MEM if a==pid)})
@@ -175,6 +177,7 @@ class Srv:
         if v==me: return s.no('self')
         if s.leader(v) or any(t['leader_id']==v for t in s.PARTS.values()): return s.no('leader')
         if s.chief(v): return s.no('chief')
+        if v in s.LEFT: return s.no('left')
         if any(b==v and a!=p_part for a,b,_ in s.MEM): return s.no('otherpart')
         if any(a==p_part and b==v for a,b,_ in s.MEM): return s.no('already')
         s.MEM.append((p_part,v,now_iso())); return s.ok(user_id=v,name=s.name(v))
@@ -452,7 +455,7 @@ class Srv:
         mine=lambda uid:any(b==uid and a in s.PARTS and s.PARTS[a]['leader_id']==me for a,b,_ in s.MEM)
         out=[]
         for uid,p in s.PROF.items():
-            if uid==me or s.chief(uid): continue
+            if uid==me or s.chief(uid) or uid in s.LEFT: continue
             part=next((s.PARTS[a]['name'] for a,b,_ in s.MEM if b==uid and a in s.PARTS),None)
             out.append(dict(user_id=uid,login_id=p['login_id'],name=p['name'],rank=p.get('rank',''),leader=s.leader(uid),mine=mine(uid),part=part))
         out.sort(key=lambda x:(not x['mine'],(x['name'] or '').strip() or x['login_id'],x['login_id']))
@@ -466,7 +469,7 @@ class Srv:
         if not s.leader(me): return s.no('denied')
         cid=str(p.get('case_id') or '').strip(); tgt=str(p.get('to') or '').strip()
         if not cid: return s.no('nocase')
-        if not tgt or tgt not in s.PROF: return s.no('noone')
+        if not tgt or tgt not in s.PROF or tgt in s.LEFT: return s.no('noone')
         if tgt==me: return s.no('self')
         if s.chief(tgt): return s.no('chief')
         src=s.ROWS.get((me,'funeral','case',cid))
@@ -511,12 +514,75 @@ class Srv:
             return False
         out=[]
         for uid,p in s.PROF.items():
-            if s.chief(uid): continue
+            if s.chief(uid) or uid in s.LEFT: continue
             mn=mine(uid)
             if not (lead or uid==me or mn): continue
             out.append(dict(user_id=uid,login_id=p['login_id'],name=p['name'],rank=p.get('rank',''),phone=p.get('phone',''),leader=s.leader(uid),me=uid==me,mine=mn))
         out.sort(key=lambda x:(not x['me'],not x['mine'],(x['name'] or '').strip() or x['login_id'],x['login_id']))
         return s.ok(people=out)
+    # 직원 명단 (2026.11.14) — supabase-part.sql dw_staff_list · dw_staff_set · dw_staff_kick · dw_staff_restore 와 같은 규칙
+    def staff_can(s,me,u):
+        if not me or not u or me==u: return False
+        if s.admin(me): return True
+        return s.leader(me) and any(b==u and s.PARTS.get(a,{}).get('leader_id')==me for a,b,_ in s.MEM) and not s.leader(u) and not s.chief(u) and not s.admin(u)
+    def part_of(s,u):
+        ps=sorted([a for a,b,_ in s.MEM if b==u and a in s.PARTS],key=lambda a:s.PARTS[a]['created'])
+        return ps[0] if ps else None
+    def f_dw_staff_list(s,me):
+        adm=s.admin(me)
+        if not adm and not s.leader(me): return s.no('denied')
+        out=[]
+        for uid,p in s.PROF.items():
+            mine=any(b==uid and s.PARTS.get(a,{}).get('leader_id')==me for a,b,_ in s.MEM); gone=uid in s.LEFT
+            if not (adm or uid==me or (mine and not gone)): continue
+            pid=s.part_of(uid); lp=s.LEFT.get(uid,{}).get('part')
+            out.append(dict(user_id=uid,login_id=p['login_id'],name=p['name'],rank=p.get('rank',''),phone=p.get('phone',''),joined=s.MADE.get(uid,0),
+                leader=s.leader(uid),chief=s.chief(uid),admin=s.admin(uid),me=uid==me,mine=mine,part_id=pid,part=s.PARTS[pid]['name'] if pid else None,
+                leads=sum(1 for t in s.PARTS.values() if t['leader_id']==uid),left=gone,left_at=s.LEFT.get(uid,{}).get('at'),left_part=s.PARTS[lp]['name'] if lp in s.PARTS else None,
+                can_edit=s.staff_can(me,uid) and not gone,can_pw=s.staff_can(me,uid) and not gone,
+                can_role=adm and uid!=me and not s.admin(uid) and not gone,can_part=adm and uid!=me and not s.leader(uid) and not s.chief(uid) and not gone,
+                can_kick=adm and uid!=me and not s.admin(uid)))
+        rk=lambda x:0 if x['chief'] else 1 if x['leader'] else 2
+        out.sort(key=lambda x:(x['left'],not x['me'],rk(x),(x['name'] or '').strip() or x['login_id'],x['login_id']))
+        parts=[dict(id=k,name=t['name'],leader_id=t['leader_id'],leader_name=s.name(t['leader_id'])) for k,t in sorted(s.PARTS.items(),key=lambda x:x[1]['created']) if adm or t['leader_id']==me]
+        return s.ok(admin=adm,parts=parts,people=out)
+    def f_dw_staff_set(s,me,p):
+        if not isinstance(p,dict): return s.no('bad')
+        u=str(p.get('user') or '')
+        if u not in s.PROF: return s.no('nouser')
+        if u==me: return s.no('self')
+        if not s.staff_can(me,u): return s.no('deny')
+        if u in s.LEFT: return s.no('left')
+        r=s.PROF[u]
+        if any(k in p for k in ('name','rank','phone')):
+            for k in ('name','rank','phone'):
+                if k in p: r[k]=str(p.get(k) or '').strip()[:20]
+            r['info_at']=max(r.get('info_at',0)+1,s.now_ms())
+        if 'part' in p:
+            if not s.admin(me): return s.no('deny')
+            if s.leader(u) or s.chief(u): return s.no('leader')
+            pid=str(p.get('part') or '').strip() or None
+            if pid and pid not in s.PARTS: return s.no('nopart')
+            s.MEM=[m for m in s.MEM if not (m[1]==u and m[0]!=pid)]
+            if pid and not any(a==pid and b==u for a,b,_ in s.MEM): s.MEM.append((pid,u,now_iso()))
+        pid=s.part_of(u)
+        return s.ok(name=r['name'],rank=r.get('rank',''),phone=r.get('phone',''),part=s.PARTS[pid]['name'] if pid else None)
+    def f_dw_staff_kick(s,me,p_user):
+        if not s.admin(me): return s.no('notadmin')
+        if not p_user or p_user==me: return s.no('self')
+        if not s.user_of(p_user): return s.no('nouser')
+        if s.admin(p_user): return s.no('admin')
+        if p_user in s.LEFT: return s.ok(already=True,name=s.name(p_user))
+        s.LEFT[p_user]={'at':s.now_ms(),'part':s.part_of(p_user)}
+        s.MEM=[m for m in s.MEM if m[1]!=p_user]
+        return s.ok(name=s.name(p_user))
+    def f_dw_staff_restore(s,me,p_user):
+        if not s.admin(me): return s.no('notadmin')
+        if p_user not in s.PROF: return s.no('nouser')
+        lp=s.LEFT.pop(p_user,{}).get('part'); back=None
+        if lp in s.PARTS and not s.leader(p_user) and not s.chief(p_user) and not any(b==p_user for a,b,_ in s.MEM):
+            s.MEM.append((lp,p_user,now_iso())); back=s.PARTS[lp]['name']
+        return s.ok(name=s.name(p_user),part=back)
 def wire(ctx,srv,mockjs):
     ctx.route('**/vendor/supabase.js', lambda r: r.fulfill(status=200,content_type='application/javascript',body=mockjs))
     for n,f in [('mockUpdatePw',srv.updatepw),('mockAuth',srv.auth),('mockSignUp',srv.signup),('mockGetUser',srv.getuser),('mockRpc',srv.rpc),('mockSelect',srv.select),('mockUpsert',srv.upsert),('mockStorage',srv.storage)]: ctx.expose_binding(n,f)

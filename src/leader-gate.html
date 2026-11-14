@@ -56,6 +56,7 @@
     if (!join && !(u && u.email)) { var lid = ''; try { lid = localStorage.getItem(LIDK) || ''; } catch (e) {} if (lid) u = { email: lid }; }   /* 마지막으로 로그인한 아이디 (2026.10.29) */
     box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
       + (out && out.why === 'idle' && !join ? '<p class="gt-note" role="status">10분 동안 쓰지 않아서 로그아웃됐습니다. 다시 로그인해 주십시오.</p>' : '')
+      + (out && out.why === 'left' && !join ? '<p class="gt-note" role="status">사용이 중지된 계정이라 로그아웃됐습니다(제명). 관리자에게 말씀해 주십시오.</p>' : '')
       + '<input id="gtId" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="이메일 입력" aria-label="이메일">'
       + '<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '" placeholder="비밀번호 입력" aria-label="비밀번호">'
       + (join ? '<input id="gtPw2" type="password" autocomplete="new-password" placeholder="비밀번호 확인" aria-label="비밀번호 확인"><input id="gtName" autocomplete="name" placeholder="이름 입력" aria-label="이름">' : '')
@@ -91,6 +92,7 @@
     if (c === 'email_address_not_authorized' || c === 'over_email_send_rate_limit' || /not authorized|email rate limit/i.test(m)) return '가입 확인 메일 설정 때문에 가입이 막혔습니다. 관리자에게 말씀해 주십시오. (이메일 확인 켜짐)';
     if (c === 'email_not_confirmed' || /not confirmed/i.test(m)) return '가입 확인이 안 된 계정입니다. 관리자에게 말씀해 주십시오. (이메일 확인 안 됨)';
     if (c === 'invalid_credentials' || /invalid login|credentials/i.test(m)) return '이메일이나 비밀번호가 맞지 않습니다.';
+    if (c === 'user_banned' || /banned/i.test(m)) return '사용이 중지된 계정입니다(제명). 관리자에게 말씀해 주십시오.';
     if (c === 'weak_password' || /password/i.test(m)) return '비밀번호를 더 어렵게 해 주십시오. (6자 이상, 영문과 숫자를 섞어서)';
     if (c === 'email_address_invalid' || c === 'validation_failed' || /invalid.*email|email.*invalid/i.test(m)) return '쓸 수 없는 이메일입니다. 다른 이메일로 해 주십시오.';
     if (c === 'over_request_rate_limit' || st === 429) return '잠깐 사이에 너무 많이 시도했습니다. 조금 뒤에 다시 해 주십시오.';
@@ -156,7 +158,7 @@
         return wait(getClient().then(function (c) { return c.auth.signOut().catch(function () { return c.auth.signOut({ scope: 'local' }); }); }), 4000);
       }).then(function () {
         try { localStorage.removeItem(LK); localStorage.removeItem(CK); localStorage.removeItem(SK); localStorage.removeItem(IK); } catch (e) {}
-        try { sessionStorage.setItem(OUTK, JSON.stringify({ why: why === 'idle' ? 'idle' : 'out', email: u && u.email || '' })); sessionStorage.removeItem('dw-landed'); } catch (e) {}
+        try { sessionStorage.setItem(OUTK, JSON.stringify({ why: why === 'idle' || why === 'left' ? why : 'out', email: u && u.email || '' })); sessionStorage.removeItem('dw-landed'); } catch (e) {}
         location.reload();
       });
       return outBusy;
@@ -211,6 +213,7 @@
   function meLoad() {
     if (!acct.user()) return Promise.resolve();
     return rpc('dw_me').then(function (d) {
+      if (d && d.why === 'left') { acct.logout('left'); return; }   /* 제명된 계정 (2026.11.14 직원 명단) → 로그아웃 */
       if (!d || !d.ok) return;
       ME.p = { name: d.name || '', phone: d.phone || '', rank: d.rank || '', info_at: Number(d.info_at) || 0, old: d.info_at === undefined };
       if (ME.el && !ME.el.hidden && !ME.edited) meFill();

@@ -324,6 +324,8 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   /* 설정 한 곳 (2026.11.11) — 묶음 · 줄: [열쇠, 이름, 설명, 그림, 누구(L 파트장 · M 직원 · C 총괄실장 · A 관리자), 주소(forms/ 기준)]
      장례업무 설정 = funeral.html#admin:항목, 휴무 규칙 = funeral.html#duty:settings, 서식 설정 = ./#settings:항목, 회사 정보 = admin.html#settings */
   var SETS = [
+    { t: '직원', items: [   /* 직원 명단 (2026.11.14): 예전 「직원 권한」을 합침 — 관리자는 모든 직원, 파트장은 내 파트원 */
+      ['ad-staff', '직원 명단', '이름 · 직급 · 전화번호 · 권한 · 비밀번호 초기화 · 제명', 'people', 'LA', './#settings:staff']] },
     { t: '행사 업무', items: [
       ['ev-forms', '업체 양식', '밴드 · 회사 보고 양식 · 제공내역', 'doc', 'L', 'funeral.html#admin:forms'],
       ['ev-common', '배차 · 퇴근 양식', '모든 업체 공통 배차 · 퇴근 문자', 'truck', 'L', 'funeral.html#admin:common'],
@@ -338,13 +340,12 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
     { t: '회사 서류', items: [
       ['co-info', '회사 정보 · 직인', '재직증명서 · 공지 · 시말서에 들어가는 회사 정보', 'brief', 'LC', 'admin.html#settings']] },
     { t: '관리자', items: [
-      ['ad-roles', '직원 권한', '파트장 · 총괄실장 정하기 · 비밀번호 초기화', 'people', 'A', './#settings:roles'],
       ['ad-mix', '섞인 기록 정리', '예전에 다른 계정에 같이 올라간 기록 찾기', 'gather', 'A', './#settings:mix']] }
   ];
   function isAdmin() { try { var a = window.dwAcct && window.dwAcct.user(), m = a && a.app_metadata; return !!(m && m.dw_admin); } catch (e) { return false; } }
   function setItems() {
     var r = role(), c = r === 'chief' ? 'C' : r === 'leader' ? 'L' : 'M', ad = isAdmin();
-    return SETS.map(function (g) { return { t: g.t, items: g.items.filter(function (x) { return x[4].indexOf(c) >= 0 || (ad && x[4] === 'A'); }) }; }).filter(function (g) { return g.items.length; });
+    return SETS.map(function (g) { return { t: g.t, items: g.items.filter(function (x) { return x[4].indexOf(c) >= 0 || (ad && x[4].indexOf('A') >= 0); }) }; }).filter(function (g) { return g.items.length; });
   }
   function setFind(k) { for (var i = 0; i < SETS.length; i++) for (var j = 0; j < SETS[i].items.length; j++) if (SETS[i].items[j][0] === k) return SETS[i].items[j]; return null; }
   function ver() { var m = document.querySelector('meta[name="app-version"]'); return window.__APP_VERSION__ || (m && m.content) || ''; }

@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.14-5";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.14-6";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>DW장례업무</title>
 <script>
@@ -122,7 +122,7 @@ svg{flex:none}
 .field > span,.field-label{font-size:13px;font-weight:500;color:var(--muted)}
 .field-label{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .opt{font-weight:400;font-size:12px;color:var(--muted)}
-input[type="text"],input[type="number"],input[type="date"],select,input:not([type]),textarea{width:100%;min-width:0;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;line-height:1.45}
+input[type="text"],input[type="tel"],input[type="number"],input[type="date"],select,input:not([type]),textarea{width:100%;min-width:0;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;line-height:1.45}
 input[type="date"]{min-height:47px;-webkit-appearance:none;appearance:none}
 select{min-height:47px}
 textarea{resize:none;min-height:70px;overflow:hidden}
@@ -288,6 +288,38 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 .r-row .icon-btn{width:36px;height:36px}
 .r-row .icon-btn:disabled{opacity:.3}
 .roster-empty{font-size:13px;color:var(--muted);padding:2px}
+.roster-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.roster-acts .btn.quiet{background:var(--btn2,var(--surface-2));color:var(--ink)}
+@media (max-width:420px){.roster-acts{grid-template-columns:1fr}}
+/* 직원 명단 (2026.11.14): 설정 → 직원 명단 표 · 서랍 */
+.sf-page{gap:20px}
+.sf-kpi3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:699px){.sf-kpi3{grid-template-columns:1fr 1fr}.sf-kpi3 .kpi-card:first-child{grid-column:1/-1}}
+.sf-ava{flex:none;display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--bg-selected,var(--accent-soft));color:var(--st-info,var(--ink));font-size:15px;font-weight:700}
+.sf-ava.off{background:var(--btn2,var(--surface-2));color:var(--muted)}
+.sf-ava.lg{width:52px;height:52px;font-size:20px}
+.t-people .lv-who b{display:flex;align-items:center;gap:6px}
+.t-people .lv-me{font-style:normal;flex:none;padding:0 6px;border-radius:999px;background:var(--st-info-bg,var(--accent-soft));color:var(--st-info,var(--ink));font-size:11.5px;font-weight:600;line-height:18px}
+.t-people .sf-tel{font-weight:500;color:var(--ink-2,var(--ink));font-variant-numeric:tabular-nums;white-space:nowrap}
+.sf-card{display:flex;align-items:center;gap:14px}
+.sf-ct{min-width:0;display:flex;flex-direction:column;gap:2px}
+.sf-ct b{font-size:18px;line-height:26px;font-weight:700;color:var(--ink);word-break:keep-all}
+.sf-ct b small{font-size:14px;font-weight:500;color:var(--ink-2)}
+.sf-ct>small{font-size:13px;line-height:20px;color:var(--muted);overflow-wrap:anywhere}
+.sf-left{margin:0;padding:12px 14px;border-radius:12px;background:var(--st-bad-bg,var(--warn-soft));color:var(--ink);font-size:14px;line-height:22px;word-break:keep-all}
+.sf-left b{color:var(--st-bad,var(--warn));margin-right:4px}
+.sf-ranks{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.sf-ranks button{min-height:36px;padding:0 12px;border:0;border-radius:999px;background:var(--btn2,var(--surface-2));color:var(--ink-2,var(--ink));font:inherit;font-size:13.5px;font-weight:500;cursor:pointer}
+.sf-ranks button[aria-pressed="true"]{background:var(--bg-selected,var(--accent-soft));color:var(--brand,var(--ink));font-weight:600;box-shadow:inset 0 0 0 1px var(--brand,var(--ink))}
+.sf-ranks button:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
+@media (max-width:699px){.sf-ranks button{min-height:44px}}
+.sf-role{margin-top:2px}
+.sf-act{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;background:var(--field)}
+.sf-act>span{min-width:0;display:flex;flex-direction:column;gap:2px}
+.sf-act b{font-size:14.5px;font-weight:600;color:var(--ink)}
+.sf-act small{font-size:12.5px;line-height:19px;color:var(--muted);word-break:keep-all}
+.sf-act .btn{flex:none}
+:root body .sf-kick{background:var(--st-bad-bg,var(--warn-soft));color:var(--st-bad,var(--warn))}
 .member-head .m-rank{flex:none;width:92px;font-weight:500}
 @media (max-width:360px){.grid2{grid-template-columns:1fr}.local span{display:none}}
 /* ===== 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ===== */
@@ -325,8 +357,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 .btn,.icon-btn,.toast,.update-bar,.banner{border-radius:4px}
 .seg{border-radius:6px}.seg button{border-radius:4px}
 .seg button[aria-pressed="true"]{box-shadow:0 0 0 1px var(--ink)}
-input[type="text"],input[type="number"],input[type="date"],select,input:not([type]),textarea{border-radius:4px}
-input[type="text"]:focus,input[type="number"]:focus,input[type="date"]:focus,select:focus,input:not([type]):focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+input[type="text"],input[type="tel"],input[type="number"],input[type="date"],select,input:not([type]),textarea{border-radius:4px}
+input[type="text"]:focus,input[type="tel"]:focus,input[type="number"]:focus,input[type="date"]:focus,select:focus,input:not([type]):focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
 .card,.sample,.weekpick,.member,.install-card,.save-bar,.rv-day,.rv-preview,.switch.boxed,.stat,.s-row,.period,.qr-box,.sig-box,.pv-sign,.live-doc,.rv-recent button,.r-card,.type-card,.staff-pick,.seal-box,.sig-prev,.sig-wrap{border-radius:6px}
 .sheet{border-radius:10px 10px 0 0}
 .card h2{font-family:var(--font-display);font-weight:700}
@@ -981,6 +1013,8 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   /* 설정 한 곳 (2026.11.11) — 묶음 · 줄: [열쇠, 이름, 설명, 그림, 누구(L 파트장 · M 직원 · C 총괄실장 · A 관리자), 주소(forms/ 기준)]
      장례업무 설정 = funeral.html#admin:항목, 휴무 규칙 = funeral.html#duty:settings, 서식 설정 = ./#settings:항목, 회사 정보 = admin.html#settings */
   var SETS = [
+    { t: '직원', items: [   /* 직원 명단 (2026.11.14): 예전 「직원 권한」을 합침 — 관리자는 모든 직원, 파트장은 내 파트원 */
+      ['ad-staff', '직원 명단', '이름 · 직급 · 전화번호 · 권한 · 비밀번호 초기화 · 제명', 'people', 'LA', './#settings:staff']] },
     { t: '행사 업무', items: [
       ['ev-forms', '업체 양식', '밴드 · 회사 보고 양식 · 제공내역', 'doc', 'L', 'funeral.html#admin:forms'],
       ['ev-common', '배차 · 퇴근 양식', '모든 업체 공통 배차 · 퇴근 문자', 'truck', 'L', 'funeral.html#admin:common'],
@@ -995,13 +1029,12 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
     { t: '회사 서류', items: [
       ['co-info', '회사 정보 · 직인', '재직증명서 · 공지 · 시말서에 들어가는 회사 정보', 'brief', 'LC', 'admin.html#settings']] },
     { t: '관리자', items: [
-      ['ad-roles', '직원 권한', '파트장 · 총괄실장 정하기 · 비밀번호 초기화', 'people', 'A', './#settings:roles'],
       ['ad-mix', '섞인 기록 정리', '예전에 다른 계정에 같이 올라간 기록 찾기', 'gather', 'A', './#settings:mix']] }
   ];
   function isAdmin() { try { var a = window.dwAcct && window.dwAcct.user(), m = a && a.app_metadata; return !!(m && m.dw_admin); } catch (e) { return false; } }
   function setItems() {
     var r = role(), c = r === 'chief' ? 'C' : r === 'leader' ? 'L' : 'M', ad = isAdmin();
-    return SETS.map(function (g) { return { t: g.t, items: g.items.filter(function (x) { return x[4].indexOf(c) >= 0 || (ad && x[4] === 'A'); }) }; }).filter(function (g) { return g.items.length; });
+    return SETS.map(function (g) { return { t: g.t, items: g.items.filter(function (x) { return x[4].indexOf(c) >= 0 || (ad && x[4].indexOf('A') >= 0); }) }; }).filter(function (g) { return g.items.length; });
   }
   function setFind(k) { for (var i = 0; i < SETS.length; i++) for (var j = 0; j < SETS[i].items.length; j++) if (SETS[i].items[j][0] === k) return SETS[i].items[j]; return null; }
   function ver() { var m = document.querySelector('meta[name="app-version"]'); return window.__APP_VERSION__ || (m && m.content) || ''; }
@@ -1571,7 +1604,13 @@ window.dwScr = (function () {
   <section class="tab" id="tab-settings" hidden>
     <div id="setHubF" data-sv="hub" aria-label="설정"></div>   <!-- 설정 목록 (총괄실장 — 파트장 · 직원은 장례업무 설정) · leader-gate-head.html window.dwSet -->
     <div id="setBackF" hidden></div>
-    <div class="card" id="roleCard" data-sv="roles" hidden><h2>직원 권한</h2><p class="small-t muted">파트장으로 정하면 서식 · 설정 · 회사 서류가 보이고, 파트를 만들어 파트원을 넣을 수 있습니다. 총괄실장으로 정하면 회의록 · 주간보고 · 후기 · 탁송 · 회사 서류와, 파트장님들이 올린 보고를 모아 보는 「취합」만 보입니다. 비밀번호를 잊은 직원은 「비밀번호 초기화」(12345678a, 다음 로그인 때 새 비밀번호를 정함).</p><div id="roleList"></div></div>
+    <div class="pg-page sf-page" id="sfPage" data-sv="staff">   <!-- 직원 명단 (2026.11.14): 예전 「직원 권한」을 합침 — 이름 · 직급 · 전화번호 · 권한 · 파트 · 비밀번호 초기화 · 제명 -->
+      <header class="pg-head"><div class="pg-h"><h1 class="pg-title">직원 명단<span class="pg-count num" id="sfCount">0명</span></h1><p class="pg-sub" id="sfSub"></p></div></header>
+      <section class="pg-kpi" id="sfKpi" role="group" aria-label="직원 거르기"></section>
+      <div class="pg-tools keep"><label class="pg-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="sfQ" type="search" enterkeyhint="search" placeholder="이름 · 아이디 · 전화번호 · 직급 검색" autocomplete="off" aria-label="직원 찾기"></label><div class="pg-sel" id="sfSelBox"><select class="input" id="sfPartSel" aria-label="파트"></select></div></div>
+      <section class="pg-list lv-table t-people" id="sfList" role="table" aria-label="직원 명단"></section>
+      <div class="pg-empty" id="sfEmpty" hidden><p id="sfEmptyMsg"></p><button class="btn" type="button" id="sfReset" hidden>모든 직원 보기</button><button class="btn" type="button" id="sfReload" hidden>다시 불러오기</button></div>
+    </div>
     <div class="card" id="mixCard" data-sv="mix" hidden><h2>섞인 기록 정리</h2><p class="small-t muted">예전에는 한 휴대폰에서 다른 계정으로 로그인 · 가입하면 그 휴대폰에 있던 기록이 새 계정에도 같이 올라갔습니다(지금은 막혀 있습니다). 여기서 찾아서 원래 주인 계정에만 남깁니다. 지운 것도 서버에 남아서 되돌릴 수 있습니다.</p><div id="mixBody"></div></div>
     <div class="card" data-sv="info">
       <h2>기본 정보</h2>
@@ -1583,7 +1622,8 @@ window.dwScr = (function () {
       <h2>기본 파트원</h2>
       <p class="small-t muted">여기 적은 명단이 새 주간보고에 자동으로 들어갑니다. 보고서에도 이 순서대로 나옵니다.</p>
       <div class="roster" id="rosterList"></div>
-      <button class="btn block" type="button" id="rosterAdd">+ 파트원 추가</button>
+      <div class="roster-acts"><button class="btn block" type="button" id="rosterAdd">+ 파트원 추가</button><button class="btn block quiet" type="button" id="rosterFill">직원 명단에서 채우기</button></div>
+      <p class="small-t muted">「직원 명단에서 채우기」는 내 파트원 이름 · 직급을 가져옵니다. 없는 사람은 넣고, 있는 사람은 직급만 맞춥니다.</p>
     </div>
     <div class="card" data-sv="info">
       <h2>결재란</h2>
@@ -2169,14 +2209,14 @@ function renderFHome() {
 }
 /* 서식 설정 (2026.11.11 설정 한 곳): 한 가지씩 — 보고서 기본 정보(파트명 · 회사명 · 결재란) · 기본 파트원 · 내 서명 · 직원 권한 · 섞인 기록 정리.
    설정 목록(hub)은 총괄실장만 여기, 파트장은 장례업무 설정(funeral.html#admin)이 목록. 주소 ./#settings:info 처럼 */
-const SET_VIEWS = { hub: '설정', info: '보고서 기본 정보', roster: '기본 파트원', sig: '내 서명', roles: '직원 권한', mix: '섞인 기록 정리' };
-const SET_KEYS = { 'fm-info': 'info', 'fm-roster': 'roster', 'fm-sig': 'sig', 'ad-roles': 'roles', 'ad-mix': 'mix' };
-function setViewFix(v) { if (!SET_VIEWS[v]) v = ''; if (isChief() && v === 'roster') v = ''; return v || (isChief() ? 'hub' : ''); }
+const SET_VIEWS = { hub: '설정', info: '보고서 기본 정보', roster: '기본 파트원', sig: '내 서명', staff: '직원 명단', mix: '섞인 기록 정리' };   /* 예전 roles(직원 권한)는 직원 명단으로 합침 (2026.11.14) */
+const SET_KEYS = { 'fm-info': 'info', 'fm-roster': 'roster', 'fm-sig': 'sig', 'ad-staff': 'staff', 'ad-roles': 'staff', 'ad-mix': 'mix' };
+function setViewFix(v) { if (v === 'roles') v = 'staff'; if (!SET_VIEWS[v]) v = ''; if (isChief() && (v === 'roster' || v === 'staff')) v = ''; return v || (isChief() ? 'hub' : ''); }
 function applySetView() {
   const v = S.setView;
   $$('#tab-settings [data-sv]').forEach((el) => el.classList.toggle('sv-off', !el.dataset.sv.split(' ').includes(v)));
   const bk = $('#setBackF'); bk.hidden = v === 'hub'; if (!bk.__b) { bk.__b = true; bk.addEventListener('click', (e) => { if (!e.target.closest('[data-dws-back]')) return; if (isChief()) showTab('settings:hub'); else goFuneral('admin'); }); }
-  bk.innerHTML = window.dwSet ? window.dwSet.back(SET_VIEWS[v]) : '';
+  bk.innerHTML = window.dwSet ? window.dwSet.back(v === 'staff' ? '' : SET_VIEWS[v]) : '';   /* 직원 명단은 제목 줄이 따로 있음 */
   if (v === 'hub') renderSetHubF();
 }
 function renderSetHubF() {
@@ -2191,6 +2231,7 @@ function showTab(t) {
   if (t === 'forms') t = lastFormTab();
   if (t === 'report' || t === 'shipg') t = grpLast(t);
   if (t !== 'docs' && window.dwDrawer && window.dwDrawer.key().indexOf('doc:') === 0) window.dwDrawer.close();   /* 자료실 서랍은 자료실에서만 (2026.11.14) */
+  if (!(t === 'settings' && sv === 'staff') && window.dwDrawer && window.dwDrawer.key().indexOf('sf:') === 0) window.dwDrawer.close();   /* 직원 서랍은 직원 명단에서만 */
   if (!ALL_TABS.includes(t)) t = 'home';
   if (isMember() && ADMIN_TABS.includes(t)) t = 'home';   /* 직원 계정: 서식 · 설정은 안 열림 */
   if (isChief() && STAFF_TABS.includes(t)) t = 'gather';   /* 총괄실장: 홈 · 게시판 대신 취합 */
@@ -2212,7 +2253,7 @@ function showTab(t) {
   window.scrollTo(0, 0);
   if (t === 'board') boardOpen();
   if (t === 'docs') docsOpen();
-  if (t === 'settings') { applySetView(); renderSettings(); roleLoad(); mixLoad(); }
+  if (t === 'settings') { applySetView(); renderSettings(); if (sv === 'staff') sfLoad(false); mixLoad(); }
   if (t === 'review') renderReview();
   if (t === 'gather') gatherOpen(false);
   if (t === 'stock') stockOpen();
@@ -4558,7 +4599,7 @@ function bindHomeBoard() {
   $('#formTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-ftab]'); if (b) showTab(b.dataset.ftab); });
   $('#bdBody').addEventListener('click', boardClick);
   $('#bdBody').addEventListener('input', (e) => { if (e.target.id !== 'bdQ') return; PB.q = e.target.value; clearTimeout(PB.qT); PB.qT = setTimeout(paintBoard, 160); });
-  $('#roleCard').addEventListener('click', roleClick);
+  sfBind();
   $('#mixCard').addEventListener('click', mixClick); $('#mixCard').addEventListener('change', mixClick);
   $('#bdBody').addEventListener('change', (e) => { if (e.target.id === 'bdPart') { PB.part = e.target.value; try { localStorage.setItem('dw-part-sel', PB.part); } catch (err) { /* ignore */ } PB.view = 'posts'; PB.people = null; PB.posts = null; boardLoad(false); } });
   $('#bdBody').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const map = { bdAddId: 'add', bdNewName: 'create', bdRename: 'rename' }, act = map[e.target.id]; if (act) { e.preventDefault(); const b = e.target.parentNode.querySelector(`[data-bd="${act}"]`); if (b) b.click(); } });
@@ -5354,29 +5395,233 @@ async function mixClick(e) {
     toast(`되돌렸습니다 · 기록 ${d.n}건${d.states ? ` · 설정 ${d.states}개` : ''}`); MX.d = null; mixFind();
   }
 }
-/* ================= 직원 권한 (2026.10.23-7) — 관리자(app_metadata dw_admin)만: 파트장으로 정하기 · 직원으로 바꾸기 ================= */
-let roleList = null;
-async function roleLoad() {
-  const card = $('#roleCard'); if (!card || isMember()) { if (card) card.hidden = true; return; }
-  let me = null; try { me = await pbLoadMe(false); } catch (e) { card.hidden = true; return; }
-  if (!me || !me.admin) { card.hidden = true; return; }
-  card.hidden = false;
-  if (!roleList) $('#roleList').innerHTML = '<p class="bd-empty">불러오는 중…</p>';
-  try { const d = await window.dwAcct.rpc('dw_people'); roleList = (d && d.ok && d.people) || []; }
-  catch (e) { $('#roleList').innerHTML = `<p class="bd-empty">${esc(pbWhyText((e && e.why) || 'net', true))}</p>`; return; }
-  paintRoles();
+/* ================= 직원 명단 (2026.11.14 사용자 「설정에 직원명단 넣어서 여기저기 흩어져있는 기능 통합 · 전화번호 · 직급 · 퇴사한 직원은 제명」) =================
+   설정 → 직원 명단(./#settings:staff). 예전 「직원 권한」(권한 바꾸기 · 비밀번호 초기화)을 합침.
+   - 관리자: 가입한 직원 모두(제명한 직원 포함) · 파트장: 나 + 내 파트원. 서버 dw_staff_list · dw_staff_set · dw_staff_kick · dw_staff_restore (tools/supabase-part.sql)
+   - 4단 구조: 제목(N명) · 요약 카드(재직 · 전화번호 없음 · 직급 없음 · 제명) · 검색 + 파트 · 표(이름 · 직급 · 전화번호 · 권한) → 연필 = 오른쪽 서랍(sf:직원id)
+   - 서랍: 이름 · 직급 · 전화번호 고치기(그 직원 「내 정보」에도 바로 — 더 나중 값이 이김) · 권한(관리자) · 파트(관리자) · 비밀번호 초기화 · 제명 / 다시 들이기(관리자)
+   - 나는 「내 정보」 창에서 고침. 화면 표시 상태(SF)는 저장 안 함 */
+const SF = { d: null, at: 0, err: '', busy: false, f: '', q: '', part: '', open: '', dirty: false };
+const SF_RANKS = ['팀장', '과장', '실장', '파트장', '총괄실장'];
+const sfName = (x) => String((x && x.name) || '').trim() || (x && x.login_id) || '이름 없음';
+const sfRole = (x) => (x.chief ? '총괄실장' : x.leader ? '파트장' : '직원');
+function sfTel(v) {   /* 010-1234-5678 (내 정보 창과 같은 모양) */
+  const t = String(v || '').trim(), d = t.replace(/\D/g, '').slice(0, 11);
+  if (!/^01\d/.test(d)) return t;
+  return d.length > 10 ? `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}` : d.length > 6 ? `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}` : d.length > 3 ? `${d.slice(0, 3)}-${d.slice(3)}` : d;
 }
-function paintRoles() {
-  const el = $('#roleList'); if (!el || !roleList) return;
-  el.innerHTML = roleList.length ? `<div class="bd-ppl">${roleList.map((x) => {
-    const sub = x.me ? '나 · 관리자' : x.chief ? '총괄실장' : x.leader ? `파트장${x.leads ? ` · 파트 ${x.leads}개` : ''}` : `직원 · ${x.part ? x.part : '파트 없음'}`;
-    const rb = (to, t, q) => `<button class="btn small${q ? ' quiet' : ''}" type="button" data-role="${esc(x.user_id)}" data-to="${to}">${t}</button>`;
-    const pw = `<button class="btn small quiet" type="button" data-pwreset="${esc(x.user_id)}" data-nm="${esc(pName(x))}">비밀번호 초기화</button>`;
-    const btn = x.me ? '' : `<span class="rl-btns">${x.leader || x.chief ? rb('member', '직원으로', true) : rb('leader', '파트장으로') + rb('chief', '총괄실장으로')}${pw}</span>`;
-    return `<div class="bd-pp rl"><div><b>${esc(pName(x))}</b><small>${esc([x.name ? x.login_id : '', sub].filter(Boolean).join(' · '))}</small></div>${btn}</div>`;
-  }).join('')}</div>` : '<p class="bd-empty">아직 가입한 직원이 없습니다.</p>';
+const sfDay = (ms) => { const d = new Date(Number(ms) || 0); return Number(ms) ? `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일` : '-'; };
+function sfWhy(why) {
+  return why === 'noserver' ? '직원 명단이 서버에 아직 준비되지 않았습니다. 수파베이스 SQL Editor에서 tools/supabase-part.sql 을 한 번 다시 실행해 주십시오.'
+    : why === 'denied' ? '관리자와 파트장만 볼 수 있습니다.' : pbWhyText(why, true);
 }
-/* 비밀번호 초기화 (2026.10.29): 관리자 → 직원 권한 목록, 파트장 → 파트원 명단. 12345678a 로 바뀌고 그 직원은 다음 로그인 때 새 비밀번호를 정함 */
+const SF_WHY = { deny: '이 직원은 고칠 수 없습니다', self: '내 정보는 「내 정보」 창에서 고칩니다', left: '제명한 직원입니다. 먼저 「다시 들이기」를 해 주십시오', nouser: '찾을 수 없는 직원입니다',
+  notadmin: '관리자만 할 수 있습니다', admin: '관리자 계정은 제명할 수 없습니다', nopart: '없는 파트입니다. 새로 불러와 주십시오', leader: '파트장 · 총괄실장은 파트에 넣지 않습니다', bad: '저장하지 못했습니다' };
+async function sfCall(fn, args, btn) {
+  if (btn) btn.disabled = true;
+  try { const d = await window.dwAcct.rpc(fn, args); if (!d || !d.ok) { toast(SF_WHY[(d && d.why) || ''] || '지금은 하지 못했습니다. 잠시 뒤에 다시 해 주십시오'); return null; } return d; }
+  catch (e) { const w = (e && e.why) || 'net'; toast(w === 'noserver' ? '서버 준비가 아직 안 됐습니다 (supabase-part.sql 다시 실행 필요)' : pbWhyText(w, true).replace(/\.$/, '')); return null; }
+  finally { if (btn && btn.isConnected) btn.disabled = false; }
+}
+async function sfLoad(force) {
+  if (S.tab !== 'settings' || S.setView !== 'staff') return;
+  if (!force && SF.d && Date.now() - SF.at < 30000) { sfPaint(); sfDrawerSync(); return; }
+  if (!window.dwAcct) return;
+  SF.busy = true; SF.err = ''; if (!SF.d) sfPaint();
+  try { const d = await window.dwAcct.rpc('dw_staff_list'); if (!d || !d.ok) throw { why: (d && d.why) || 'net' }; SF.d = d; SF.at = Date.now(); }
+  catch (e) { SF.err = (e && e.why) || 'net'; }
+  SF.busy = false; sfPaint(); sfDrawerSync();
+}
+const sfFind = (id) => ((SF.d && SF.d.people) || []).find((x) => x.user_id === id);
+function sfBadges(x) { return (x.left ? pgBadge('제명', 'bad') : '') + (x.admin ? pgBadge('관리자', 'info') : '') + (x.left ? '' : pgBadge(sfRole(x), x.chief || x.leader ? 'ok' : '')); }
+function sfPaint() {
+  if (!$('#sfPage')) return;
+  const d = SF.d, all = (d && d.people) || [], adm = !!(d && d.admin), parts = (d && d.parts) || [], live = all.filter((x) => !x.left);
+  $('#sfSub').textContent = !d ? '가입한 직원의 이름 · 직급 · 전화번호 · 권한을 한곳에서 고칩니다.'
+    : adm ? '가입한 직원의 이름 · 직급 · 전화번호 · 권한 · 파트를 한곳에서 고칩니다. 퇴사한 직원은 제명하십시오.'
+      : '우리 파트원의 이름 · 직급 · 전화번호를 고칩니다. 파트원 넣기 · 빼기는 게시판 → 파트원 관리에서 합니다.';
+  $('#sfCount').textContent = `${live.length}명`;
+  const F = { '': (x) => !x.left, nophone: (x) => !x.left && !String(x.phone || '').trim(), norank: (x) => !x.left && !String(x.rank || '').trim(), left: (x) => x.left };
+  if (!F[SF.f] || (SF.f === 'left' && !adm)) SF.f = '';
+  const n = (k) => all.filter(F[k]).length, lead = live.filter((x) => x.leader).length, chief = live.filter((x) => x.chief).length;
+  const cards = [['', adm ? '재직' : '우리 파트', pgN(n(''), '명'), adm ? `파트장 ${lead}명 · 총괄실장 ${chief}명` : parts.map((t) => t.name).join(' · ') || '파트 없음'],
+    ['nophone', '전화번호 없음', pgN(n('nophone'), '명'), n('nophone') ? '장례일정표에 필요합니다' : '모두 넣었습니다', n('nophone') ? 'st-open' : ''],
+    ['norank', '직급 없음', pgN(n('norank'), '명'), n('norank') ? '서랍에서 고를 수 있습니다' : '모두 넣었습니다', n('norank') ? 'st-open' : '']];
+  if (adm) cards.push(['left', '제명', pgN(n('left'), '명'), '로그인이 막힌 직원', n('left') ? 'st-minus' : '']);
+  $('#sfKpi').innerHTML = pgCards(cards, SF.f, 'data-sf-card'); $('#sfKpi').classList.toggle('sf-kpi3', cards.length === 3);
+  /* 파트 고르기: 관리자 = 모든 파트 + 파트 없음, 파트장 = 내 파트가 둘 이상일 때만 */
+  const opts = [['', '모든 파트']].concat(parts.map((t) => [t.id, adm ? `${t.name} · ${t.leader_name}` : t.name])).concat(adm ? [['none', '파트 없음']] : []);
+  if (!opts.some((o) => o[0] === SF.part)) SF.part = '';
+  $('#sfPartSel').innerHTML = opts.map(([v, t]) => `<option value="${esc(v)}"${v === SF.part ? ' selected' : ''}>${esc(t)}</option>`).join('');
+  $('#sfSelBox').hidden = !(adm ? parts.length : parts.length > 1);
+  pgSync('#sfQ', SF.q);
+  const q = pgKey(SF.q).replace(/-/g, '');
+  const rows = all.filter(F[SF.f]).filter((x) => !SF.part || (SF.part === 'none' ? !x.part_id && !x.leader && !x.chief : x.part_id === SF.part || (!x.part_id && (parts.find((t) => t.id === SF.part) || {}).leader_id === x.user_id)))
+    .filter((x) => !q || pgKey([x.name, x.login_id, x.phone, x.rank, x.part, sfRole(x), x.left ? '제명' : ''].join(' ')).replace(/-/g, '').includes(q));
+  $('#sfList').innerHTML = rows.length ? pgTh([['이름'], ['직급'], ['전화번호'], ['권한']]) + rows.map(sfRowHtml).join('') : '';
+  $('#sfList').hidden = !rows.length;
+  $('#sfEmpty').hidden = rows.length > 0;
+  $('#sfEmptyMsg').textContent = SF.err ? sfWhy(SF.err) : !d ? '직원 명단을 불러오는 중…' : q ? `「${SF.q.trim()}」에 맞는 직원이 없습니다.` : SF.f === 'left' ? '제명한 직원이 없습니다.' : SF.f ? '조건에 맞는 직원이 없습니다. 모두 넣었습니다.' : '아직 직원이 없습니다.';
+  $('#sfReset').hidden = !(d && (q || SF.f || SF.part));
+  $('#sfReload').hidden = !SF.err;
+  sfMark();
+}
+function sfRowHtml(x) {
+  const nm = sfName(x), tel = String(x.phone || '').trim(), rk = String(x.rank || '').trim();
+  const sub = [x.login_id, x.left ? `${sfDay(x.left_at)} 제명` : x.chief ? '' : x.leader ? (x.leads ? `파트 ${x.leads}개` : '') : x.part || '파트 없음'].filter(Boolean).join(' · ');
+  return pgTr('data-sf-open', x.user_id, `${nm} 정보 열기`, `<span role="cell" class="lv-what lv-who"><span class="sf-ava${x.left ? ' off' : ''}" aria-hidden="true">${esc(nm.slice(0, 1))}</span><span><b>${esc(nm)}${x.me ? ' <i class="lv-me">나</i>' : ''}</b><small>${esc(sub)}</small></span></span>
+    <span role="cell" class="lv-day">${rk ? esc(rk) : '<span class="lv-x0">직급 없음</span>'}</span>
+    <span role="cell" class="lv-send sf-tel">${tel ? esc(tel) : '<span class="lv-x0">전화번호 없음</span>'}</span>
+    <span role="cell" class="lv-stc lv-badges">${sfBadges(x)}</span>`);
+}
+function sfMark() { const k = window.dwDrawer && window.dwDrawer.isOpen() ? window.dwDrawer.key() : ''; $$('#sfList .lv-tr[data-key]').forEach((r) => { const on = k === 'sf:' + r.dataset.key; r.classList.toggle('on', on); if (on) r.setAttribute('aria-current', 'true'); else r.removeAttribute('aria-current'); }); }
+
+/* ---- 직원 한 명 서랍 ---- */
+function sfDrawerData(x) {
+  const nm = sfName(x), adm = !!(SF.d && SF.d.admin), parts = (SF.d && SF.d.parts) || [], tel = String(x.phone || '').trim(), rk = String(x.rank || '').trim();
+  const row = (t, v, cls) => `<div><dt>${esc(t)}</dt><dd${cls ? ` class="${cls}"` : ''}>${v}</dd></div>`;
+  let body = `<section class="lvd-sec"><div class="sf-card"><span class="sf-ava lg${x.left ? ' off' : ''}" aria-hidden="true">${esc(nm.slice(0, 1))}</span><span class="sf-ct"><b>${esc(nm)}${rk ? ` <small>${esc(rk)}</small>` : ''}</b><small>${esc(x.login_id)}@dwfuneral.com · ${esc(sfDay(x.joined))} 가입</small></span></div>`
+    + (x.left ? `<p class="sf-left" role="status"><b>${esc(sfDay(x.left_at))} 제명</b> 로그인이 막혀 있고 명단 · 고르기에서 빠져 있습니다. 쓰던 기록은 서버에 그대로 있습니다.</p>` : '') + '</section>';
+  /* 기본 정보 */
+  if (x.can_edit) {
+    body += `<section class="lvd-sec"><h3>기본 정보</h3>
+      <label class="field"><span>이름</span><input class="input" id="sfName" maxlength="20" autocomplete="off" value="${esc(String(x.name || ''))}" placeholder="예: 홍길동"></label>
+      <div class="field"><label class="field-label" for="sfRank">직급</label><input class="input" id="sfRank" maxlength="20" autocomplete="off" value="${esc(rk)}" placeholder="예: 팀장">
+        <div class="sf-ranks" role="group" aria-label="직급 고르기">${SF_RANKS.map((r) => `<button type="button" data-sf-rank="${r}" aria-pressed="${r === rk}">${r}</button>`).join('')}</div></div>
+      <label class="field"><span>전화번호</span><input class="input" id="sfPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${esc(tel)}" placeholder="010-0000-0000"></label>
+      <p class="lvd-note">저장하면 ${esc(nm)}님 「내 정보」에도 바로 바뀝니다. 게시판 이름 · 장례일정표 문의 줄 · 수당 정산에 들어갑니다.</p></section>`;
+  } else {
+    body += `<section class="lvd-sec"><h3>기본 정보</h3><dl class="lvd-dl">${row('이름', esc(String(x.name || '').trim() || '-'))}${row('직급', rk ? esc(rk) : '<span class="lv-x0">없음</span>')}${row('전화번호', tel ? esc(tel) : '<span class="lv-x0">없음</span>', tel ? 'num' : '')}</dl>`
+      + (x.me ? '<p class="lvd-note">내 이름 · 직급 · 전화번호는 「내 정보」 창에서 고칩니다.</p><div><button class="btn" type="button" data-sf-me>내 정보 고치기</button></div>' : x.left ? '' : '<p class="lvd-note">이 직원 정보는 관리자가 고칠 수 있습니다.</p>') + '</section>';
+  }
+  /* 권한 · 파트 */
+  let rp = '';
+  if (x.can_role) {
+    const cur = x.chief ? 'chief' : x.leader ? 'leader' : 'member';
+    rp += `<div class="field"><span class="field-label" id="sfRoleL">권한</span><div class="seg sf-role" role="group" aria-labelledby="sfRoleL">${[['member', '직원'], ['leader', '파트장'], ['chief', '총괄실장']].map(([k, t]) => `<button type="button" data-sf-role="${k}" aria-pressed="${k === cur}">${t}</button>`).join('')}</div>
+      <p class="lvd-note">파트장: 서식 · 설정 · 회사 서류가 보이고 파트를 만듭니다. 총괄실장: 취합 · 서식 · 회사 서류만 보입니다.</p></div>`;
+  }
+  if (x.can_part) {
+    rp += `<label class="field"><span>파트</span><select class="input" id="sfPartPick">${[['', '파트 없음']].concat(parts.map((t) => [t.id, `${t.name} · ${t.leader_name}`])).map(([v, t]) => `<option value="${esc(v)}"${(x.part_id || '') === v ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
+  }
+  if (rp || !x.left) {
+    const info = [(!x.can_role && !x.left) ? row('권한', esc(sfRole(x)) + (x.admin ? ' · 관리자' : '')) : '', !x.can_part && !x.chief && !x.left ? row('파트', esc(x.leader ? (x.leads ? `파트 ${x.leads}개를 맡음` : '맡은 파트 없음') : x.part || '없음')) : '', x.left && x.left_part ? row('있던 파트', esc(x.left_part)) : ''].join('');
+    body += `<section class="lvd-sec"><h3>권한 · 파트</h3>${info ? `<dl class="lvd-dl">${info}</dl>` : ''}${rp}</section>`;
+  }
+  /* 계정 */
+  let ac = '';
+  if (x.can_pw) ac += `<div class="sf-act"><span><b>비밀번호 초기화</b><small>비밀번호를 잊었을 때 12345678a 로 바꿉니다. 다음 로그인 때 새 비밀번호를 정합니다.</small></span><button class="btn" type="button" data-pwreset="${esc(x.user_id)}" data-nm="${esc(nm)}">초기화</button></div>`;
+  if (x.can_kick && !x.left) ac += `<div class="sf-act"><span><b>제명</b><small>퇴사한 직원은 제명하십시오. 로그인이 막히고 명단 · 고르기에서 빠집니다. 기록은 남고 다시 들일 수 있습니다.</small></span><button class="btn sf-kick" type="button" data-sf-kick>제명</button></div>`;
+  if (x.can_kick && x.left) ac += `<div class="sf-act"><span><b>다시 들이기</b><small>다시 로그인할 수 있게 합니다.${x.left_part ? ` 원래 파트(${esc(x.left_part)})로 돌아갑니다.` : ''}</small></span><button class="btn" type="button" data-sf-back>다시 들이기</button></div>`;
+  if (ac) body += `<section class="lvd-sec"><h3>계정</h3>${ac}</section>`;
+  const foot = x.can_edit ? '<button class="btn" type="button" data-sf-close>닫기</button><span class="dwdr-sp"></span><button class="btn primary" type="button" data-sf-save>저장</button>' : '<span class="dwdr-sp"></span><button class="btn" type="button" data-sf-close>닫기</button>';
+  return { key: 'sf:' + x.user_id, title: nm, sub: `<span class="lv-badges">${sfBadges(x)}</span>`, back: '직원 명단', body, foot };
+}
+function sfOpen(id, from) {
+  const x = sfFind(id); if (!x || !window.dwDrawer) return;
+  SF.open = id; SF.dirty = false; const o = sfDrawerData(x);
+  if (window.dwDrawer.key() === o.key) window.dwDrawer.update(o); else window.dwDrawer.open(Object.assign(o, { from }));
+  sfMark();
+}
+function sfDrawerSync() {
+  const D = window.dwDrawer, k = D && D.isOpen() ? D.key() : ''; if (k.indexOf('sf:') !== 0) return;
+  if (S.tab !== 'settings' || S.setView !== 'staff') { D.close(); return; }
+  const x = sfFind(k.slice(3)); if (!x) { D.close(); return; }
+  if (!SF.dirty) D.update(sfDrawerData(x));
+  sfMark();
+}
+const sfVal = (id) => { const el = $('#dwDr #' + id); return el ? el.value : null; };
+async function sfSave(btn) {
+  const x = sfFind(SF.open); if (!x || !x.can_edit) return;
+  const name = String(sfVal('sfName') || '').trim(), rank = String(sfVal('sfRank') || '').trim(), phone = sfTel(sfVal('sfPhone'));
+  if (!name) { toast('이름을 입력하십시오'); const el = $('#dwDr #sfName'); if (el) el.focus(); return; }
+  if (name === String(x.name || '').trim() && rank === String(x.rank || '').trim() && phone === String(x.phone || '').trim()) { SF.dirty = false; toast('바뀐 것이 없습니다'); return; }
+  const d = await sfCall('dw_staff_set', { p: { user: x.user_id, name, rank, phone } }, btn); if (!d) return;
+  Object.assign(x, { name: d.name, rank: d.rank, phone: d.phone }); SF.dirty = false;
+  toast(`${sfName(x)}님 정보를 저장했습니다`); sfPaint(); sfDrawerSync(); sfLoad(true);
+}
+async function sfRoleTo(btn, to) {
+  const x = sfFind(SF.open); if (!x || !x.can_role) return;
+  const cur = x.chief ? 'chief' : x.leader ? 'leader' : 'member'; if (to === cur) return;
+  const nm = sfName(x), T = {
+    leader: ['파트장으로 정하시겠습니까?', '서식 · 설정 · 회사 서류가 보이고 파트를 만들어 파트원을 넣을 수 있습니다. 지금 들어가 있는 파트에서는 빠집니다.', '파트장으로', '파트장으로 정했습니다'],
+    chief: ['총괄실장으로 정하시겠습니까?', '회의록 · 주간보고 · 후기 · 탁송 · 회사 서류와 「취합」만 보입니다. 장례업무 · 게시판은 안 보입니다.', '총괄실장으로', '총괄실장으로 정했습니다'],
+    member: ['직원으로 바꾸시겠습니까?', x.chief ? '취합 · 서식 · 회사 서류가 안 보이게 됩니다.' : '서식 · 설정 · 회사 서류가 안 보이게 됩니다. 만든 파트는 그대로 남습니다.', '직원으로', '직원으로 바꿨습니다'] }[to];
+  if (!T) return;
+  const ok = window.dwConfirm ? await window.dwConfirm({ title: `${nm}님을 ${T[0]}`, body: T[1], ok: T[2], danger: to === 'member' }) : true;
+  if (!ok) return;
+  const d = await sfCall('dw_set_role_to', { p_user: x.user_id, p_role: to }, btn); if (!d) return;
+  toast(`${nm}님을 ${T[3]}. 그 직원이 앱을 다시 열면 바뀝니다`); PB.meAt = 0; sfLoad(true);
+}
+async function sfPartTo(sel) {
+  const x = sfFind(SF.open); if (!x || !x.can_part) return;
+  const v = sel.value, t = ((SF.d && SF.d.parts) || []).find((y) => y.id === v), prev = x.part_id || '';
+  const d = await sfCall('dw_staff_set', { p: { user: x.user_id, part: v } }, sel); if (!d) { sel.value = prev; return; }
+  undoOr(t ? `${sfName(x)}님을 ${t.name}에 넣었습니다` : `${sfName(x)}님을 파트에서 뺐습니다`, async () => { const r = await sfCall('dw_staff_set', { p: { user: x.user_id, part: prev } }); if (r) { toast('되돌렸습니다'); sfLoad(true); } });
+  PB.meAt = 0; PB.team = {}; sfLoad(true);
+}
+async function sfKick(btn) {
+  const x = sfFind(SF.open); if (!x || !x.can_kick || x.left) return;
+  const nm = sfName(x);
+  const ok = window.dwConfirm ? await window.dwConfirm({ title: `${nm}님을 제명하시겠습니까?`, ok: '제명', danger: true,
+    body: `퇴사한 직원에게만 하십시오.\n· ${nm}님은 로그인할 수 없고, 쓰고 있던 휴대폰도 곧 로그아웃됩니다.\n· 파트에서 빠지고, 명단 · 행사 넘기기 · 장례일정표 문의 담당에서 빠집니다.\n· 쓰던 행사 · 정산 기록은 서버에 그대로 남고, 「다시 들이기」로 되돌릴 수 있습니다.` }) : true;
+  if (!ok) return;
+  const d = await sfCall('dw_staff_kick', { p_user: x.user_id }, btn); if (!d) return;
+  toast(`${nm}님을 제명했습니다`); PB.meAt = 0; PB.team = {}; SF.f = ''; sfLoad(true);
+}
+async function sfRestore(btn) {
+  const x = sfFind(SF.open); if (!x || !x.left) return;
+  const d = await sfCall('dw_staff_restore', { p_user: x.user_id }, btn); if (!d) return;
+  toast(`${sfName(x)}님을 다시 들였습니다${d.part ? ` · ${d.part}` : ''}. 다시 로그인할 수 있습니다`); PB.meAt = 0; PB.team = {}; SF.f = ''; sfLoad(true);
+}
+function sfBind() {
+  const pg = $('#sfPage'); if (!pg || pg.__sf) return; pg.__sf = true;
+  pg.addEventListener('click', (e) => {
+    const c = e.target.closest('[data-sf-card]'); if (c) { const k = c.dataset.sfCard === 'all' ? '' : c.dataset.sfCard; SF.f = SF.f === k ? '' : k; sfPaint(); const f = $(`#sfKpi [data-sf-card="${c.dataset.sfCard}"]`); if (f) f.focus(); return; }
+    const id = pgOpenFrom(e, 'data-sf-open'); if (id) { sfOpen(id, e.target.closest('.lv-tr') && e.target.closest('.lv-tr').querySelector('.lv-ico')); return; }
+    if (e.target.closest('#sfReset')) { SF.f = ''; SF.q = ''; SF.part = ''; sfPaint(); return; }
+    if (e.target.closest('#sfReload')) sfLoad(true);
+  });
+  $('#sfQ').addEventListener('input', (e) => { SF.q = e.target.value; clearTimeout(SF.qT); SF.qT = setTimeout(sfPaint, 120); });
+  $('#sfPartSel').addEventListener('change', (e) => { SF.part = e.target.value; sfPaint(); });
+  /* 서랍 안 (서랍은 body 끝이라 document 에서 받음) */
+  const inSf = (e) => e.target.closest && e.target.closest('#dwDr') && window.dwDrawer && window.dwDrawer.key().indexOf('sf:') === 0;
+  document.addEventListener('click', (e) => {
+    if (!inSf(e)) return;
+    const rb = e.target.closest('[data-sf-rank]'); if (rb) { const el = $('#dwDr #sfRank'); el.value = rb.dataset.sfRank; SF.dirty = true; $$('#dwDr [data-sf-rank]').forEach((b) => b.setAttribute('aria-pressed', String(b === rb))); return; }
+    if (e.target.closest('[data-sf-save]')) { sfSave(e.target.closest('[data-sf-save]')); return; }
+    if (e.target.closest('[data-sf-close]')) { window.dwDrawer.close(); return; }
+    if (e.target.closest('[data-sf-me]')) { if (window.dwMe) window.dwMe.open(e.target.closest('[data-sf-me]')); return; }
+    const ro = e.target.closest('[data-sf-role]'); if (ro) { sfRoleTo(ro, ro.dataset.sfRole); return; }
+    if (e.target.closest('[data-sf-kick]')) { sfKick(e.target.closest('[data-sf-kick]')); return; }
+    if (e.target.closest('[data-sf-back]')) sfRestore(e.target.closest('[data-sf-back]'));
+  });
+  document.addEventListener('input', (e) => {
+    if (!inSf(e) || !/^sf(Name|Rank|Phone)$/.test(e.target.id || '')) return;
+    SF.dirty = true;
+    if (e.target.id === 'sfRank') { const v = e.target.value.trim(); $$('#dwDr [data-sf-rank]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sfRank === v))); }
+  });
+  document.addEventListener('change', (e) => { if (!inSf(e)) return; if (e.target.id === 'sfPhone') e.target.value = sfTel(e.target.value); if (e.target.id === 'sfPartPick') sfPartTo(e.target); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && inSf(e) && /^sf(Name|Rank|Phone)$/.test(e.target.id || '')) { e.preventDefault(); sfSave($('#dwDr [data-sf-save]')); } });
+  document.addEventListener('dw-drawer', (e) => { const d = e.detail || {}; if (!d.open && String(d.key || '').indexOf('sf:') === 0) { SF.open = ''; SF.dirty = false; } if (S.tab === 'settings') sfMark(); });
+  window.addEventListener('dw-me-load', () => { if (S.tab === 'settings' && S.setView === 'staff') sfLoad(true); });
+  /* 기본 파트원: 직원 명단에서 채우기 (내 파트원 이름 · 직급, 저장은 아래 「저장」) */
+  $('#rosterFill').addEventListener('click', async (e) => {
+    const b = e.currentTarget; let d = null;
+    b.disabled = true;
+    try { d = await window.dwAcct.rpc('dw_staff_list'); if (!d || !d.ok) throw { why: (d && d.why) || 'net' }; }
+    catch (err) { toast(sfWhy((err && err.why) || 'net').replace(/\.$/, '')); return; }
+    finally { b.disabled = false; }
+    const mem = (d.people || []).filter((x) => x.mine && !x.left);
+    if (!mem.length) { toast('내 파트에 들어간 직원이 없습니다. 게시판 → 파트원 관리에서 먼저 넣어 주십시오', 4000); return; }
+    const r = sdraft().roster; let add = 0, upd = 0;
+    mem.forEach((x) => { const nm = sfName(x), rk = String(x.rank || '').trim(), ex = r.find((y) => String(y.name || '').trim() === nm);
+      if (ex) { if (rk && String(ex.rank || '').trim() !== rk) { ex.rank = rk; upd++; } } else { r.push({ name: nm, rank: rk }); add++; } });
+    renderRoster(); renderSaveBar();
+    toast(add || upd ? `${[add ? `${add}명을 넣었습니다` : '', upd ? `직급 ${upd}명을 맞췄습니다` : ''].filter(Boolean).join(' · ')}. 아래 「저장」을 눌러 주십시오` : '이미 직원 명단과 같습니다', 3500);
+  });
+}
+/* 비밀번호 초기화 (2026.10.29): 관리자 · 파트장 → 직원 명단 서랍, 파트장 → 게시판 파트원 명단. 12345678a 로 바뀌고 그 직원은 다음 로그인 때 새 비밀번호를 정함 */
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('[data-pwreset]'); if (!b || !window.dwAcct || !window.dwAcct.resetPw) return;
   const nm = b.dataset.nm || '직원';
@@ -5387,29 +5632,6 @@ document.addEventListener('click', async (e) => {
   } catch (err) { toast(window.dwAcct.resetWhy(err)); }
   finally { if (b.isConnected) b.disabled = false; }
 });
-async function roleClick(e) {
-  const b = e.target.closest('[data-role]'); if (!b) return;
-  const x = (roleList || []).find((y) => y.user_id === b.dataset.role) || {}, to = b.dataset.to, nm = pName(x) || '직원';
-  const T = {
-    leader: ['파트장으로 정하시겠습니까?', '서식 · 설정 · 회사 서류가 보이고 파트를 만들 수 있습니다. 지금 들어가 있는 파트에서는 빠집니다.', '파트장으로', '파트장으로 정했습니다. 다음에 앱을 열면 서식 · 설정이 보입니다'],
-    chief: ['총괄실장으로 정하시겠습니까?', '회의록 · 주간보고 · 후기 · 탁송 · 회사 서류와 「취합」만 보입니다. 파트장님들이 올린 보고를 볼 수 있고(고치기 안 됨), 장례업무 · 게시판은 안 보입니다.', '총괄실장으로', '총괄실장으로 정했습니다. 다음에 앱을 열면 취합 · 서식이 보입니다'],
-    member: ['직원으로 바꾸시겠습니까?', x.chief ? '취합 · 서식 · 회사 서류가 안 보이게 됩니다.' : '서식 · 설정 · 회사 서류가 안 보이게 됩니다. 만든 파트는 그대로 남습니다.', '직원으로', '직원으로 바꿨습니다'],
-  }[to];
-  if (!T) return;
-  armConfirm(b, '한 번 더 누르면 ' + T[2], async () => {
-    b.disabled = true; let d = null;
-    try { d = await window.dwAcct.rpc('dw_set_role_to', { p_user: b.dataset.role, p_role: to }); }
-    catch (err) {
-      if (err && err.why === 'noserver' && to !== 'chief') d = await pbCall('dw_set_role', { p_user: b.dataset.role, p_leader: to === 'leader' });   /* 서버 준비 글을 다시 실행하기 전 (예전 함수) */
-      else { if (b.isConnected) b.disabled = false; toast(err && err.why === 'noserver' ? '총괄실장 기능이 서버에 아직 없습니다. 수파베이스 SQL Editor에서 tools/supabase-part.sql 을 한 번 다시 실행해 주십시오' : WHY_KO[(err && err.why) || ''] || pbWhyText((err && err.why) || 'net', true)); return; }
-    }
-    if (b.isConnected) b.disabled = false;
-    if (!d) return;
-    if (d.ok === false) { pbFail({ why: d.why }); return; }
-    toast(`${nm} 님을 ${T[3]}`);
-    roleList = null; PB.meAt = 0; roleLoad();
-  }, { title: `${pName(x) || '이 직원'} 님을 ${T[0]}`, body: T[1], ok: T[2], danger: to === 'member' });
-}
 
 /* ================= 취합 (총괄실장, 2026.10.26) =================
    파트장들이 서버에 올린 서식 기록(주간보고 · 회의록 · 후기 · 탁송)을 기간별로 받아서 보기만 하고, 한 장(이미지 · PDF) · 카톡 문구로 정리.
@@ -6120,6 +6342,7 @@ init();
     if (!join && !(u && u.email)) { var lid = ''; try { lid = localStorage.getItem(LIDK) || ''; } catch (e) {} if (lid) u = { email: lid }; }   /* 마지막으로 로그인한 아이디 (2026.10.29) */
     box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
       + (out && out.why === 'idle' && !join ? '<p class="gt-note" role="status">10분 동안 쓰지 않아서 로그아웃됐습니다. 다시 로그인해 주십시오.</p>' : '')
+      + (out && out.why === 'left' && !join ? '<p class="gt-note" role="status">사용이 중지된 계정이라 로그아웃됐습니다(제명). 관리자에게 말씀해 주십시오.</p>' : '')
       + '<input id="gtId" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="이메일 입력" aria-label="이메일">'
       + '<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '" placeholder="비밀번호 입력" aria-label="비밀번호">'
       + (join ? '<input id="gtPw2" type="password" autocomplete="new-password" placeholder="비밀번호 확인" aria-label="비밀번호 확인"><input id="gtName" autocomplete="name" placeholder="이름 입력" aria-label="이름">' : '')
@@ -6155,6 +6378,7 @@ init();
     if (c === 'email_address_not_authorized' || c === 'over_email_send_rate_limit' || /not authorized|email rate limit/i.test(m)) return '가입 확인 메일 설정 때문에 가입이 막혔습니다. 관리자에게 말씀해 주십시오. (이메일 확인 켜짐)';
     if (c === 'email_not_confirmed' || /not confirmed/i.test(m)) return '가입 확인이 안 된 계정입니다. 관리자에게 말씀해 주십시오. (이메일 확인 안 됨)';
     if (c === 'invalid_credentials' || /invalid login|credentials/i.test(m)) return '이메일이나 비밀번호가 맞지 않습니다.';
+    if (c === 'user_banned' || /banned/i.test(m)) return '사용이 중지된 계정입니다(제명). 관리자에게 말씀해 주십시오.';
     if (c === 'weak_password' || /password/i.test(m)) return '비밀번호를 더 어렵게 해 주십시오. (6자 이상, 영문과 숫자를 섞어서)';
     if (c === 'email_address_invalid' || c === 'validation_failed' || /invalid.*email|email.*invalid/i.test(m)) return '쓸 수 없는 이메일입니다. 다른 이메일로 해 주십시오.';
     if (c === 'over_request_rate_limit' || st === 429) return '잠깐 사이에 너무 많이 시도했습니다. 조금 뒤에 다시 해 주십시오.';
@@ -6220,7 +6444,7 @@ init();
         return wait(getClient().then(function (c) { return c.auth.signOut().catch(function () { return c.auth.signOut({ scope: 'local' }); }); }), 4000);
       }).then(function () {
         try { localStorage.removeItem(LK); localStorage.removeItem(CK); localStorage.removeItem(SK); localStorage.removeItem(IK); } catch (e) {}
-        try { sessionStorage.setItem(OUTK, JSON.stringify({ why: why === 'idle' ? 'idle' : 'out', email: u && u.email || '' })); sessionStorage.removeItem('dw-landed'); } catch (e) {}
+        try { sessionStorage.setItem(OUTK, JSON.stringify({ why: why === 'idle' || why === 'left' ? why : 'out', email: u && u.email || '' })); sessionStorage.removeItem('dw-landed'); } catch (e) {}
         location.reload();
       });
       return outBusy;
@@ -6275,6 +6499,7 @@ init();
   function meLoad() {
     if (!acct.user()) return Promise.resolve();
     return rpc('dw_me').then(function (d) {
+      if (d && d.why === 'left') { acct.logout('left'); return; }   /* 제명된 계정 (2026.11.14 직원 명단) → 로그아웃 */
       if (!d || !d.ok) return;
       ME.p = { name: d.name || '', phone: d.phone || '', rank: d.rank || '', info_at: Number(d.info_at) || 0, old: d.info_at === undefined };
       if (ME.el && !ME.el.hidden && !ME.edited) meFill();
@@ -6897,6 +7122,7 @@ init();
   .lv-table.t-docs .lv-tr{grid-template-columns:minmax(0,1fr) 96px 104px 160px 48px}
   .lv-table.t-cdocs .lv-tr{grid-template-columns:112px minmax(0,1fr) 112px 128px 48px}
   .lv-table.t-staff .lv-tr{grid-template-columns:minmax(0,1fr) 120px 148px 96px 48px}
+  .lv-table.t-people .lv-tr{grid-template-columns:minmax(0,1fr) 96px 140px 152px 48px}
   .lv-table.t-deliv .lv-tr{grid-template-columns:96px minmax(0,1fr) 128px minmax(0,.7fr) 48px}
   .lv-table.t-tm .lv-tr{grid-template-columns:minmax(0,1fr) 80px 96px 96px 120px 120px 48px}
 }

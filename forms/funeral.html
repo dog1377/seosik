@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.14-5">
+<meta name="app-version" content="2026.11.14-6">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -336,6 +336,8 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   /* 설정 한 곳 (2026.11.11) — 묶음 · 줄: [열쇠, 이름, 설명, 그림, 누구(L 파트장 · M 직원 · C 총괄실장 · A 관리자), 주소(forms/ 기준)]
      장례업무 설정 = funeral.html#admin:항목, 휴무 규칙 = funeral.html#duty:settings, 서식 설정 = ./#settings:항목, 회사 정보 = admin.html#settings */
   var SETS = [
+    { t: '직원', items: [   /* 직원 명단 (2026.11.14): 예전 「직원 권한」을 합침 — 관리자는 모든 직원, 파트장은 내 파트원 */
+      ['ad-staff', '직원 명단', '이름 · 직급 · 전화번호 · 권한 · 비밀번호 초기화 · 제명', 'people', 'LA', './#settings:staff']] },
     { t: '행사 업무', items: [
       ['ev-forms', '업체 양식', '밴드 · 회사 보고 양식 · 제공내역', 'doc', 'L', 'funeral.html#admin:forms'],
       ['ev-common', '배차 · 퇴근 양식', '모든 업체 공통 배차 · 퇴근 문자', 'truck', 'L', 'funeral.html#admin:common'],
@@ -350,13 +352,12 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
     { t: '회사 서류', items: [
       ['co-info', '회사 정보 · 직인', '재직증명서 · 공지 · 시말서에 들어가는 회사 정보', 'brief', 'LC', 'admin.html#settings']] },
     { t: '관리자', items: [
-      ['ad-roles', '직원 권한', '파트장 · 총괄실장 정하기 · 비밀번호 초기화', 'people', 'A', './#settings:roles'],
       ['ad-mix', '섞인 기록 정리', '예전에 다른 계정에 같이 올라간 기록 찾기', 'gather', 'A', './#settings:mix']] }
   ];
   function isAdmin() { try { var a = window.dwAcct && window.dwAcct.user(), m = a && a.app_metadata; return !!(m && m.dw_admin); } catch (e) { return false; } }
   function setItems() {
     var r = role(), c = r === 'chief' ? 'C' : r === 'leader' ? 'L' : 'M', ad = isAdmin();
-    return SETS.map(function (g) { return { t: g.t, items: g.items.filter(function (x) { return x[4].indexOf(c) >= 0 || (ad && x[4] === 'A'); }) }; }).filter(function (g) { return g.items.length; });
+    return SETS.map(function (g) { return { t: g.t, items: g.items.filter(function (x) { return x[4].indexOf(c) >= 0 || (ad && x[4].indexOf('A') >= 0); }) }; }).filter(function (g) { return g.items.length; });
   }
   function setFind(k) { for (var i = 0; i < SETS.length; i++) for (var j = 0; j < SETS[i].items.length; j++) if (SETS[i].items[j][0] === k) return SETS[i].items[j]; return null; }
   function ver() { var m = document.querySelector('meta[name="app-version"]'); return window.__APP_VERSION__ || (m && m.content) || ''; }
@@ -7649,6 +7650,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
     if (!join && !(u && u.email)) { var lid = ''; try { lid = localStorage.getItem(LIDK) || ''; } catch (e) {} if (lid) u = { email: lid }; }   /* 마지막으로 로그인한 아이디 (2026.10.29) */
     box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
       + (out && out.why === 'idle' && !join ? '<p class="gt-note" role="status">10분 동안 쓰지 않아서 로그아웃됐습니다. 다시 로그인해 주십시오.</p>' : '')
+      + (out && out.why === 'left' && !join ? '<p class="gt-note" role="status">사용이 중지된 계정이라 로그아웃됐습니다(제명). 관리자에게 말씀해 주십시오.</p>' : '')
       + '<input id="gtId" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="이메일 입력" aria-label="이메일">'
       + '<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '" placeholder="비밀번호 입력" aria-label="비밀번호">'
       + (join ? '<input id="gtPw2" type="password" autocomplete="new-password" placeholder="비밀번호 확인" aria-label="비밀번호 확인"><input id="gtName" autocomplete="name" placeholder="이름 입력" aria-label="이름">' : '')
@@ -7684,6 +7686,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
     if (c === 'email_address_not_authorized' || c === 'over_email_send_rate_limit' || /not authorized|email rate limit/i.test(m)) return '가입 확인 메일 설정 때문에 가입이 막혔습니다. 관리자에게 말씀해 주십시오. (이메일 확인 켜짐)';
     if (c === 'email_not_confirmed' || /not confirmed/i.test(m)) return '가입 확인이 안 된 계정입니다. 관리자에게 말씀해 주십시오. (이메일 확인 안 됨)';
     if (c === 'invalid_credentials' || /invalid login|credentials/i.test(m)) return '이메일이나 비밀번호가 맞지 않습니다.';
+    if (c === 'user_banned' || /banned/i.test(m)) return '사용이 중지된 계정입니다(제명). 관리자에게 말씀해 주십시오.';
     if (c === 'weak_password' || /password/i.test(m)) return '비밀번호를 더 어렵게 해 주십시오. (6자 이상, 영문과 숫자를 섞어서)';
     if (c === 'email_address_invalid' || c === 'validation_failed' || /invalid.*email|email.*invalid/i.test(m)) return '쓸 수 없는 이메일입니다. 다른 이메일로 해 주십시오.';
     if (c === 'over_request_rate_limit' || st === 429) return '잠깐 사이에 너무 많이 시도했습니다. 조금 뒤에 다시 해 주십시오.';
@@ -7749,7 +7752,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
         return wait(getClient().then(function (c) { return c.auth.signOut().catch(function () { return c.auth.signOut({ scope: 'local' }); }); }), 4000);
       }).then(function () {
         try { localStorage.removeItem(LK); localStorage.removeItem(CK); localStorage.removeItem(SK); localStorage.removeItem(IK); } catch (e) {}
-        try { sessionStorage.setItem(OUTK, JSON.stringify({ why: why === 'idle' ? 'idle' : 'out', email: u && u.email || '' })); sessionStorage.removeItem('dw-landed'); } catch (e) {}
+        try { sessionStorage.setItem(OUTK, JSON.stringify({ why: why === 'idle' || why === 'left' ? why : 'out', email: u && u.email || '' })); sessionStorage.removeItem('dw-landed'); } catch (e) {}
         location.reload();
       });
       return outBusy;
@@ -7804,6 +7807,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
   function meLoad() {
     if (!acct.user()) return Promise.resolve();
     return rpc('dw_me').then(function (d) {
+      if (d && d.why === 'left') { acct.logout('left'); return; }   /* 제명된 계정 (2026.11.14 직원 명단) → 로그아웃 */
       if (!d || !d.ok) return;
       ME.p = { name: d.name || '', phone: d.phone || '', rank: d.rank || '', info_at: Number(d.info_at) || 0, old: d.info_at === undefined };
       if (ME.el && !ME.el.hidden && !ME.edited) meFill();
@@ -8316,6 +8320,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
   .lv-table.t-docs .lv-tr{grid-template-columns:minmax(0,1fr) 96px 104px 160px 48px}
   .lv-table.t-cdocs .lv-tr{grid-template-columns:112px minmax(0,1fr) 112px 128px 48px}
   .lv-table.t-staff .lv-tr{grid-template-columns:minmax(0,1fr) 120px 148px 96px 48px}
+  .lv-table.t-people .lv-tr{grid-template-columns:minmax(0,1fr) 96px 140px 152px 48px}
   .lv-table.t-deliv .lv-tr{grid-template-columns:96px minmax(0,1fr) 128px minmax(0,.7fr) 48px}
   .lv-table.t-tm .lv-tr{grid-template-columns:minmax(0,1fr) 80px 96px 96px 120px 120px 48px}
 }

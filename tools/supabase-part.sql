@@ -5,7 +5,8 @@
 --   2026.10.28-21: 섞인 기록 정리 — 예전에 다른 계정으로 같이 올라간 기록을 관리자가 원래 주인 계정에만 남김,
 --   2026.10.29: 내 정보(이름 · 전화번호 · 직급)를 계정에 · 관리자 · 파트장이 직원 비밀번호 초기화(12345678a, 다음 로그인 때 새 비밀번호를 정함),
 --   2026.11.14: 행사 인수인계 — 파트장이 장례업무 행사(+ 봉투 기록)를 가입한 다른 직원에게 넘김, 넘긴 쪽에서는 없어짐,
---   2026.11.14: 장례일정표 문의 담당 고르기 — 파트장은 모든 직원, 직원은 같은 파트 사람의 이름 · 직급 · 전화번호)
+--   2026.11.14: 장례일정표 문의 담당 고르기 — 파트장은 모든 직원, 직원은 같은 파트 사람의 이름 · 직급 · 전화번호,
+--   2026.11.14: 직원 명단 — 설정 한곳에서 이름 · 직급 · 전화번호 · 권한 · 파트 · 비밀번호 초기화 · 제명(로그인 막기, 기록은 남음) · 다시 들이기)
 -- 수파베이스 화면 왼쪽 「SQL Editor」 → 「New query」 → 이 글 전체를 붙여 넣고 → 「Run」.
 -- 먼저 tools/supabase-setup.sql 을 실행해 둔 상태여야 합니다. 여러 번 실행해도 괜찮습니다.
 --
@@ -50,6 +51,10 @@ create index if not exists dw_part_members_user on public.dw_part_members (user_
 alter table public.dw_profiles add column if not exists phone   text   not null default '';
 alter table public.dw_profiles add column if not exists rank    text   not null default '';
 alter table public.dw_profiles add column if not exists info_at bigint not null default 0;
+-- 직원 명단 · 제명 (2026.11.14): 제명한 직원은 로그인이 막히고 명단 · 고르기에서 빠짐 (계정 · 기록은 남음)
+alter table public.dw_profiles add column if not exists left_at   timestamptz;   -- 제명한 때 (비어 있으면 재직)
+alter table public.dw_profiles add column if not exists left_by   uuid;
+alter table public.dw_profiles add column if not exists left_part uuid;          -- 제명할 때 있던 파트 (다시 들이면 그 파트로)
 
 -- 비밀번호 초기화에 씀 (수파베이스에는 이미 있음)
 create extension if not exists pgcrypto with schema extensions;
@@ -174,6 +179,7 @@ begin
   if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
   perform public.dw_profile_ensure(me);
   select * into p from public.dw_profiles where user_id = me;
+  if p.left_at is not null then return jsonb_build_object('ok', false, 'why', 'left'); end if;   -- 제명된 계정 → 앱이 로그아웃
   return jsonb_build_object(
     'ok', true, 'user_id', me, 'login_id', p.login_id, 'name', p.name, 'leader', public.dw_is_leader(me), 'admin', public.dw_is_admin(me), 'chief', public.dw_is_chief(me),
     'phone', p.phone, 'rank', p.rank, 'info_at', p.info_at,
@@ -277,6 +283,7 @@ begin
     return jsonb_build_object('ok', false, 'why', 'leader');   -- 파트장 계정은 파트원으로 못 넣음
   end if;
   if public.dw_is_chief(v) then return jsonb_build_object('ok', false, 'why', 'chief'); end if;   -- 총괄실장도 파트원으로 못 넣음
+  if exists (select 1 from public.dw_profiles p where p.user_id = v and p.left_at is not null) then return jsonb_build_object('ok', false, 'why', 'left'); end if;   -- 제명한 직원
   if exists (select 1 from public.dw_part_members m where m.user_id = v and m.part_id <> p_part) then
     return jsonb_build_object('ok', false, 'why', 'otherpart');   -- 한 직원은 한 파트에만
   end if;
@@ -563,7 +570,7 @@ begin
     select jsonb_agg(jsonb_build_object('user_id', p.user_id, 'login_id', p.login_id, 'name', p.name,
              'parts', coalesce((select jsonb_agg(t.name order by t.created_at) from public.dw_parts t where t.leader_id = p.user_id), '[]'::jsonb))
            order by coalesce(nullif(p.name, ''), p.login_id))
-    from public.dw_profiles p where public.dw_is_leader(p.user_id)
+    from public.dw_profiles p where public.dw_is_leader(p.user_id) and p.left_at is null
   ), '[]'::jsonb));
 end $$;
 
@@ -1041,7 +1048,7 @@ begin
       from public.dw_profiles p
       cross join lateral (select exists (select 1 from public.dw_part_members m join public.dw_parts t on t.id = m.part_id
                                          where m.user_id = p.user_id and t.leader_id = me) as mine) q
-      where p.user_id <> me and not public.dw_is_chief(p.user_id)
+      where p.user_id <> me and not public.dw_is_chief(p.user_id) and p.left_at is null
     ) x), '[]'::jsonb));
 end $$;
 
@@ -1061,7 +1068,7 @@ begin
   if not public.dw_is_leader(me) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
   if cid = '' then return jsonb_build_object('ok', false, 'why', 'nocase'); end if;
   begin tgt := nullif(btrim(coalesce(p ->> 'to', '')), '')::uuid; exception when others then tgt := null; end;
-  if tgt is null or not exists (select 1 from public.dw_profiles x where x.user_id = tgt) then return jsonb_build_object('ok', false, 'why', 'noone'); end if;
+  if tgt is null or not exists (select 1 from public.dw_profiles x where x.user_id = tgt and x.left_at is null) then return jsonb_build_object('ok', false, 'why', 'noone'); end if;
   if tgt = me then return jsonb_build_object('ok', false, 'why', 'self'); end if;
   if public.dw_is_chief(tgt) then return jsonb_build_object('ok', false, 'why', 'chief'); end if;
   perform 1 from public.dw_records r
@@ -1149,8 +1156,145 @@ begin
              or (m.user_id = me and (t.leader_id = p.user_id                                          -- 내 파트장 (직원)
                  or exists (select 1 from public.dw_part_members m2 where m2.part_id = t.id and m2.user_id = p.user_id)))   -- 같은 파트 직원
         ) as mine) q
-      where not public.dw_is_chief(p.user_id) and (lead or p.user_id = me or q.mine)
+      where not public.dw_is_chief(p.user_id) and p.left_at is null and (lead or p.user_id = me or q.mine)
     ) x), '[]'::jsonb));
+end $$;
+
+-- ---------- 직원 명단 (2026.11.14) ----------
+-- 설정 → 직원 명단 한곳에서: 이름 · 직급 · 전화번호 고치기 · 권한(직원 · 파트장 · 총괄실장) · 파트 · 비밀번호 초기화 · 제명(퇴사)
+--   · 관리자: 가입한 직원 모두 (제명한 직원 포함) — 모두 할 수 있음 (나 · 다른 관리자는 권한 · 제명 안 됨)
+--   · 파트장: 나 + 내 파트원 — 파트원의 이름 · 직급 · 전화번호 고치기 · 비밀번호 초기화 (권한 · 파트 · 제명은 관리자만)
+--   · 제명 = 로그인 막기(auth.users.banned_until) + 쓰던 로그인 끊기 + 파트에서 빼기. 계정 · 기록은 서버에 그대로 남고, 「다시 들이기」로 되돌림(원래 파트로)
+
+-- 이 직원을 내가 고칠 수 있는지 (이름 · 직급 · 전화번호 · 비밀번호 초기화): 관리자 = 나 빼고 모두, 파트장 = 내 파트원(파트장 · 총괄실장 · 관리자 아님)
+create or replace function public.dw_staff_can(p_me uuid, p_user uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select p_me is not null and p_user is not null and p_me <> p_user and (
+    public.dw_is_admin(p_me)
+    or (public.dw_is_leader(p_me)
+        and exists (select 1 from public.dw_part_members m join public.dw_parts t on t.id = m.part_id where t.leader_id = p_me and m.user_id = p_user)
+        and not public.dw_is_leader(p_user) and not public.dw_is_chief(p_user) and not public.dw_is_admin(p_user)))
+$$;
+
+create or replace function public.dw_staff_list() returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); adm boolean;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  adm := public.dw_is_admin(me);
+  if not adm and not public.dw_is_leader(me) then return jsonb_build_object('ok', false, 'why', 'denied'); end if;
+  if adm then
+    insert into public.dw_profiles (user_id, login_id, name)
+    select u.id, public.dw_login_of(u.email, u.id), left(btrim(coalesce(u.raw_user_meta_data ->> 'name', '')), 20) from auth.users u
+    on conflict do nothing;
+  else
+    perform public.dw_profile_ensure(me);
+  end if;
+  return jsonb_build_object('ok', true, 'admin', adm,
+    'parts', coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'name', t.name, 'leader_id', t.leader_id, 'leader_name', public.dw_name(t.leader_id)) order by t.created_at)
+                       from public.dw_parts t where adm or t.leader_id = me), '[]'::jsonb),
+    'people', coalesce((
+      select jsonb_agg(x.o order by x.gone, x.self desc, x.rk, x.nm, x.lid)
+      from (
+        select p.left_at is not null as gone, p.user_id = me as self,
+               case when public.dw_is_chief(p.user_id) then 0 when public.dw_is_leader(p.user_id) then 1 else 2 end as rk,
+               coalesce(nullif(btrim(p.name), ''), p.login_id) as nm, p.login_id as lid,
+               jsonb_build_object('user_id', p.user_id, 'login_id', p.login_id, 'name', p.name, 'rank', p.rank, 'phone', p.phone,
+                 'joined', (extract(epoch from coalesce(u.created_at, p.created_at)) * 1000)::bigint,
+                 'leader', public.dw_is_leader(p.user_id), 'chief', public.dw_is_chief(p.user_id), 'admin', public.dw_is_admin(p.user_id),
+                 'me', p.user_id = me, 'mine', pm.mine,
+                 'part_id', pt.id, 'part', pt.name,
+                 'leads', (select count(*) from public.dw_parts t where t.leader_id = p.user_id),
+                 'left', p.left_at is not null, 'left_at', case when p.left_at is null then null else (extract(epoch from p.left_at) * 1000)::bigint end,
+                 'left_part', (select t.name from public.dw_parts t where t.id = p.left_part),
+                 'can_edit', public.dw_staff_can(me, p.user_id) and p.left_at is null,
+                 'can_pw', public.dw_staff_can(me, p.user_id) and p.left_at is null,
+                 'can_role', adm and p.user_id <> me and not public.dw_is_admin(p.user_id) and p.left_at is null,
+                 'can_part', adm and p.user_id <> me and not public.dw_is_leader(p.user_id) and not public.dw_is_chief(p.user_id) and p.left_at is null,
+                 'can_kick', adm and p.user_id <> me and not public.dw_is_admin(p.user_id)) as o
+        from public.dw_profiles p
+        left join auth.users u on u.id = p.user_id
+        left join lateral (select t.id, t.name from public.dw_part_members m join public.dw_parts t on t.id = m.part_id
+                           where m.user_id = p.user_id order by t.created_at limit 1) pt on true
+        cross join lateral (select exists (select 1 from public.dw_part_members m join public.dw_parts t on t.id = m.part_id
+                                           where m.user_id = p.user_id and t.leader_id = me) as mine) pm
+        where adm or p.user_id = me or (pm.mine and p.left_at is null)
+      ) x), '[]'::jsonb));
+end $$;
+
+-- 고치기 (p = {user, name?, rank?, phone?, part?}) — 넣은 칸만 바꿈. part 는 관리자만 ('' = 파트 없음)
+create or replace function public.dw_staff_set(p jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  me uuid := auth.uid(); tgt uuid; r public.dw_profiles; pid uuid;
+  now_ms bigint := (extract(epoch from clock_timestamp()) * 1000)::bigint;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if p is null or jsonb_typeof(p) <> 'object' then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+  begin tgt := nullif(btrim(coalesce(p ->> 'user', '')), '')::uuid; exception when others then tgt := null; end;
+  if tgt is null or not exists (select 1 from public.dw_profiles x where x.user_id = tgt) then return jsonb_build_object('ok', false, 'why', 'nouser'); end if;
+  if tgt = me then return jsonb_build_object('ok', false, 'why', 'self'); end if;
+  if not public.dw_staff_can(me, tgt) then return jsonb_build_object('ok', false, 'why', 'deny'); end if;
+  if exists (select 1 from public.dw_profiles x where x.user_id = tgt and x.left_at is not null) then return jsonb_build_object('ok', false, 'why', 'left'); end if;
+  if p ? 'name' or p ? 'rank' or p ? 'phone' then
+    update public.dw_profiles set
+      name  = case when p ? 'name'  then left(btrim(coalesce(p ->> 'name', '')), 20)  else name  end,
+      rank  = case when p ? 'rank'  then left(btrim(coalesce(p ->> 'rank', '')), 20)  else rank  end,
+      phone = case when p ? 'phone' then left(btrim(coalesce(p ->> 'phone', '')), 20) else phone end,
+      info_at = greatest(info_at + 1, now_ms)   -- 그 직원 휴대폰의 예전 값보다 나중 → 이 값이 이김
+    where user_id = tgt;
+  end if;
+  if p ? 'part' then
+    if not public.dw_is_admin(me) then return jsonb_build_object('ok', false, 'why', 'deny'); end if;
+    if public.dw_is_leader(tgt) or public.dw_is_chief(tgt) then return jsonb_build_object('ok', false, 'why', 'leader'); end if;
+    begin pid := nullif(btrim(coalesce(p ->> 'part', '')), '')::uuid; exception when others then pid := null; end;
+    if nullif(btrim(coalesce(p ->> 'part', '')), '') is not null and (pid is null or not exists (select 1 from public.dw_parts t where t.id = pid)) then
+      return jsonb_build_object('ok', false, 'why', 'nopart'); end if;
+    delete from public.dw_part_members m where m.user_id = tgt and (pid is null or m.part_id <> pid);
+    if pid is not null then insert into public.dw_part_members (part_id, user_id) values (pid, tgt) on conflict do nothing; end if;
+  end if;
+  select * into r from public.dw_profiles where user_id = tgt;
+  return jsonb_build_object('ok', true, 'name', r.name, 'rank', r.rank, 'phone', r.phone,
+    'part', (select t.name from public.dw_part_members m join public.dw_parts t on t.id = m.part_id where m.user_id = tgt order by t.created_at limit 1));
+end $$;
+
+-- 제명 (관리자만, 나 · 다른 관리자는 안 됨): 로그인 막기 + 쓰던 로그인 끊기 + 파트에서 빼기. 계정 · 기록은 남음
+create or replace function public.dw_staff_kick(p_user uuid) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); pid uuid;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_is_admin(me) then return jsonb_build_object('ok', false, 'why', 'notadmin'); end if;
+  if p_user is null or p_user = me then return jsonb_build_object('ok', false, 'why', 'self'); end if;
+  if not exists (select 1 from auth.users u where u.id = p_user) then return jsonb_build_object('ok', false, 'why', 'nouser'); end if;
+  if public.dw_is_admin(p_user) then return jsonb_build_object('ok', false, 'why', 'admin'); end if;
+  perform public.dw_profile_ensure(p_user);
+  if exists (select 1 from public.dw_profiles x where x.user_id = p_user and x.left_at is not null) then return jsonb_build_object('ok', true, 'already', true, 'name', public.dw_name(p_user)); end if;
+  select m.part_id into pid from public.dw_part_members m join public.dw_parts t on t.id = m.part_id where m.user_id = p_user order by t.created_at limit 1;
+  update public.dw_profiles set left_at = now(), left_by = me, left_part = pid where user_id = p_user;
+  delete from public.dw_part_members where user_id = p_user;
+  update auth.users set banned_until = now() + interval '100 years' where id = p_user;
+  if to_regclass('auth.sessions') is not null then execute 'delete from auth.sessions where user_id = $1' using p_user; end if;
+  if to_regclass('auth.refresh_tokens') is not null then execute 'delete from auth.refresh_tokens where user_id = $1' using p_user::text; end if;
+  return jsonb_build_object('ok', true, 'name', public.dw_name(p_user));
+end $$;
+
+-- 다시 들이기 (관리자만): 로그인 다시 됨, 제명할 때 있던 파트로 (그 파트가 남아 있고 파트장 · 총괄실장이 아니면)
+create or replace function public.dw_staff_restore(p_user uuid) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); pid uuid; back boolean := false;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'why', 'login'); end if;
+  if not public.dw_is_admin(me) then return jsonb_build_object('ok', false, 'why', 'notadmin'); end if;
+  if not exists (select 1 from public.dw_profiles x where x.user_id = p_user) then return jsonb_build_object('ok', false, 'why', 'nouser'); end if;
+  select x.left_part into pid from public.dw_profiles x where x.user_id = p_user;
+  update public.dw_profiles set left_at = null, left_by = null, left_part = null where user_id = p_user;
+  update auth.users set banned_until = null where id = p_user;
+  if pid is not null and exists (select 1 from public.dw_parts t where t.id = pid) and not public.dw_is_leader(p_user) and not public.dw_is_chief(p_user)
+     and not exists (select 1 from public.dw_part_members m where m.user_id = p_user) then
+    insert into public.dw_part_members (part_id, user_id) values (pid, p_user) on conflict do nothing; back := true;
+  end if;
+  return jsonb_build_object('ok', true, 'name', public.dw_name(p_user), 'part', case when back then (select t.name from public.dw_parts t where t.id = pid) end);
 end $$;
 
 -- ---------- 누가 부를 수 있는지 ----------
@@ -1245,5 +1389,14 @@ grant execute on function public.dw_case_handover(jsonb)                     to 
 grant execute on function public.dw_case_handover_undo(jsonb)                to authenticated;
 revoke all on function public.dw_staff_contacts()              from public, anon;
 grant execute on function public.dw_staff_contacts()                         to authenticated;
+revoke all on function public.dw_staff_can(uuid, uuid)          from public, anon, authenticated;
+revoke all on function public.dw_staff_list()                  from public, anon;
+revoke all on function public.dw_staff_set(jsonb)              from public, anon;
+revoke all on function public.dw_staff_kick(uuid)              from public, anon;
+revoke all on function public.dw_staff_restore(uuid)           from public, anon;
+grant execute on function public.dw_staff_list()                             to authenticated;
+grant execute on function public.dw_staff_set(jsonb)                         to authenticated;
+grant execute on function public.dw_staff_kick(uuid)                         to authenticated;
+grant execute on function public.dw_staff_restore(uuid)                      to authenticated;
 
 select 'DW 파트 · 게시판 · 물품 장부 · 자료실 · 행사 인수인계 준비 끝' as result;

@@ -116,7 +116,7 @@ def main():
             p.goto(BASE + 'forms/#board'); login(p, 'seo', 'pw1111')
             p.wait_for_function("typeof showTab==='function' && typeof S!=='undefined'", timeout=15000)
             # 서식 설정은 한 가지씩 (2026.11.11 설정 한 곳 — 목록은 장례업무 설정, 서식 첫 화면 fhome 은 총괄실장만)
-            for t in ['board', 'docs', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings:info', 'settings:roster', 'settings:sig', 'settings:roles']:
+            for t in ['board', 'docs', 'weekly', 'minutes', 'review', 'ship', 'stock', 'consult', 'settings:info', 'settings:roster', 'settings:sig', 'settings:staff']:
                 p.evaluate(f"showTab('{t}')"); p.wait_for_timeout(500); look(p, f'forms_{t.replace(":", "_")}_{tag}')
                 want = 'event' if t in ('board', 'docs') else 'forms'
                 got = p.evaluate("[document.body.dataset.mode, (document.querySelector('#dwMode [aria-pressed=\"true\"]')||{getAttribute:()=>''}).getAttribute('data-dwmode')]")
@@ -166,7 +166,7 @@ def main():
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
                 p.locator('#p-home [data-dwh="admin"]').click(); p.wait_for_timeout(400)
                 got = p.evaluate("[db.tab, db.adminView, [...document.querySelectorAll('#setHub .dws-g h2')].map(x=>x.textContent).join(' '), !!document.querySelector('#setHub .dws-me')]")
-                if got != ['admin', 'hub', '행사 업무 서식 · 보고서 회사 서류 화면 · 계정', True]:
+                if got != ['admin', 'hub', '직원 행사 업무 서식 · 보고서 회사 서류 화면 · 계정', True]:   # 직원 명단 묶음 (2026.11.14)
                     problems.append(f'{tag}: 설정 목록이 다름 {got}')
                 p.locator('#setHub [data-dws="ev-rules"]').click(); p.wait_for_timeout(300)
                 if p.evaluate("[db.adminView, document.getElementById('setBack').hidden, !!document.getElementById('rAltar').offsetParent]") != ['rules', False, True]:
