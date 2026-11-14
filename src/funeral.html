@@ -1022,144 +1022,13 @@ body[data-tab="list"] .case-panel{display:none}
 body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!important}   /* 이 화면은 아래 제목 줄 하나 · 「새 행사」 하나 (2026.11.14) */
 /* 행사 목록 4단 구조 (2026.11.14): ① 위 제목 줄 ② 요약 카드 + 검색 · 필터 한 줄 ③ 핵심 목록 + 줄 끝 상세 아이콘 ④ 서랍(dwDrawer) — 색은 dw-theme3.html 토큰 */
 #p-list{display:grid;gap:24px}
-/* ① 위 제목 줄: 왼쪽 제목 · 건수 · 마감 · 봉투 합계 / 오른쪽 끝 「새 행사」 하나 */
-.pg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-.pg-h{min-width:0;display:grid;gap:6px}
-.pg-title{margin:0;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:28px;line-height:36px;font-weight:700;letter-spacing:-.025em;color:var(--ink)}
-.pg-count{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:var(--bg-selected,var(--accent-soft));color:var(--st-info,var(--ink));font-size:14px;font-weight:600;letter-spacing:0}
-.pg-sub{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 16px;font-size:14px;line-height:22px;color:var(--muted)}
-.pg-sub b{color:var(--ink);font-weight:700}
-.pg-link{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:36px;margin:0 -10px;padding:2px 10px;border:0;border-radius:8px;background:none;color:var(--muted);font:inherit;font-size:14px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.pg-link b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
-.pg-link small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.pg-link .ui-icon{width:16px;height:16px}
-@media (hover:hover){.pg-link:hover{background:var(--bg-hover,var(--field))}}
-.pg-link:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
-.pg-cta{flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 18px}
-.pg-cta .ui-icon{width:18px;height:18px}
-/* ② 요약 카드 4칸 (누르면 거르기 · aria-pressed) */
-.pg-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.kpi-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-width:0;min-height:96px;padding:16px 20px;border:0;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card,none),var(--card-edge,0 0 0 1px var(--line));color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 160ms var(--ease,ease),box-shadow 160ms var(--ease,ease)}
-.kpi-l{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:20px;font-weight:500;color:var(--muted)}
-.kpi-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--edge)}
-.kpi-dot.st-open{background:var(--st-warn,#8a5400)}
-.kpi-dot.st-minus{background:var(--st-bad,var(--warn))}
-.kpi-dot.st-sent{background:var(--st-ok,#216843)}
-.kpi-n{font-size:28px;line-height:36px;font-weight:700;color:var(--ink);font-variant-numeric:lining-nums tabular-nums;letter-spacing:0;white-space:nowrap}
-.kpi-n small{margin-left:2px;font-size:14px;font-weight:600;color:var(--ink-2)}
-.kpi-s{font-size:12px;line-height:18px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.kpi-card.on{background:var(--bg-selected,var(--accent-soft));box-shadow:inset 0 0 0 2px var(--brand,var(--accent))}
-.kpi-card.on .kpi-n,.kpi-card.on .kpi-n small{color:var(--brand,var(--accent))}
-@media (hover:hover){.kpi-card:not(.on):hover{background:var(--bg-hover,var(--field))}}
-.kpi-card:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
-/* 검색 · 필터 한 줄 */
-.pg-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:-8px}
-.pg-search{position:relative;display:block;flex:1 1 280px;min-width:0}
-.pg-search .ui-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
-.pg-search .input{padding-left:40px;width:100%}
-.pg-sel{display:flex;flex-wrap:wrap;gap:8px}
-.pg-sel .input{width:auto;min-width:132px}
-.pg-morebtn{display:none;flex:none;align-items:center;gap:6px}
-.pg-morebtn .ui-icon{width:18px;height:18px}
-.lv-nf{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand,var(--accent));color:var(--accent-ink);font-size:12px;font-weight:600}
-.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-/* ③ 핵심 목록: 흰 카드 안 표 — 번호 · 행사(두 줄) · 발인 · 정산 상태 · 보내는금액 · 상세 아이콘 */
-.lv-table{display:grid;background:var(--surface);border-radius:16px;overflow:hidden}
-.lv-tr{position:relative;display:grid;grid-template-columns:64px minmax(0,1fr) 104px 168px 140px 48px;align-items:center;column-gap:12px;padding:0 12px 0 20px;min-height:60px;border-bottom:1px solid var(--line);font-size:14px}
-.lv-tr:last-child{border-bottom:0}
-.lv-th{min-height:44px;font-size:13px;color:var(--ink-2);font-weight:500;background:var(--field)}
-.lv-tr .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.lv-tr.cur{background:var(--accent-soft)}
-.lv-tr.on{background:var(--bg-selected,var(--accent-soft));box-shadow:inset 3px 0 0 var(--brand,var(--accent))}
-.lv-open{position:absolute;inset:0;z-index:1;width:100%;border:0;background:none;padding:0;cursor:pointer}
-@media (hover:hover){.lv-tr:not(.lv-th):not(.on):hover{background:var(--bg-hover,var(--field))}.lv-tr:not(.lv-th):hover .lv-ico{color:var(--brand,var(--ink))}}
-.lv-no{font-weight:600;color:var(--ink)}
-.lv-no-m,.lv-day-m{display:none}
-.lv-what{display:flex;flex-direction:column;min-width:0;padding:10px 0}
-.lv-what b,.lv-what small{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lv-what b{font-weight:600;color:var(--ink);line-height:22px}
-.lv-what small{font-size:12px;line-height:18px;color:var(--muted)}
-.lv-day{color:var(--ink-2,var(--muted));white-space:nowrap}
-.lv-stc{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
-.lv-st{display:inline-flex;align-items:center;white-space:nowrap}
-.lv-send{font-weight:600;color:var(--ink)}
-.lv-send.minus{color:var(--warn)}
-.lv-act{display:flex;align-items:center;justify-content:flex-end}
-.lv-ico{position:relative;z-index:2;display:inline-grid;place-items:center;width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 160ms var(--ease,ease),color 160ms var(--ease,ease)}
-@media (hover:hover){.lv-ico:hover{background:var(--bg-hover,var(--field))}}
-.lv-ico:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
-.lv-ico .ui-icon{width:20px;height:20px}
-.pg-empty{display:grid;gap:10px;justify-items:start;padding:24px;border-radius:16px;background:var(--surface);color:var(--muted)}
-.pg-empty p{margin:0}
-@media (max-width:1100px){ .lv-tr{grid-template-columns:52px minmax(0,1fr) 88px 136px 120px 44px;column-gap:8px;padding-left:16px} .pg-sel .input{min-width:112px} }
-@media (max-width:899px){ .pg-kpi{gap:8px} .kpi-card{padding:14px 16px} }
-@media (max-width:699px){
-  #p-list{gap:16px;padding-bottom:24px}
-  .pg-head{align-items:center}
-  .pg-title{font-size:22px;line-height:30px;gap:8px}
-  .pg-count{height:24px;font-size:13px}
-  .pg-sub{font-size:13px}
-  .pg-cta{min-height:44px;padding:0 14px}
-  .pg-kpi{grid-template-columns:1fr 1fr;gap:8px}
-  .kpi-card{min-height:80px;padding:12px 14px}
-  .kpi-n{font-size:24px;line-height:30px}
-  .pg-tools{margin-top:0}
-  .pg-search{flex:1 1 0}
-  .pg-morebtn{display:inline-flex}
-  .pg-sel{display:none;flex-basis:100%}
-  .pg-tools.more .pg-sel{display:grid;grid-template-columns:1fr 1fr}
-  .pg-sel .input{min-width:0;width:100%}
-  .lv-th{display:none}
-  .lv-tr{grid-template-columns:minmax(0,1fr) auto 40px;grid-template-areas:"what stc act" "day send act";row-gap:4px;column-gap:10px;padding:14px 8px 14px 16px;min-height:0;align-items:start}
-  .lv-no{display:none}
-  .lv-no-m{display:inline}
-  .lv-what{grid-area:what;padding:0}
-  .lv-what b,.lv-what small{white-space:normal}
-  .lv-what b{line-height:1.45}
-  .lv-day{grid-area:day;font-size:13px;color:var(--muted);align-self:end}
-  .lv-day-m{display:inline}
-  .lv-send{grid-area:send;font-weight:700;align-self:end}
-  .lv-stc{grid-area:stc;justify-content:flex-end}
-  .lv-act{grid-area:act;align-self:center}
-  .lv-ico{width:40px;height:44px}
-}
+/* 공통 틀(제목 줄 · 요약 카드 · 검색 · 목록 · 서랍 내용)은 src/list-kit.html (2026.11.14, 세 화면이 같이 씀) */
+@media (max-width:699px){ #p-list{gap:16px;padding-bottom:24px} }
 /* 정산 화면 「보냄」 줄 (정산 확인 화면) */
 .wz-sent-btn{min-height:50px;font-size:15px}
 .wz-sent{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-weight:600}
 .wz-sent.warn{border-color:var(--warn);color:var(--warn);background:var(--warn-soft)}
 .wz-sent-note{margin:0;font-size:13.5px;color:var(--muted);text-align:center}
-/* 행사 상세 패널 내용 (dwDrawer 안, 2026.11.13) */
-.lvd-sec{display:grid;gap:12px}
-.lvd-sec+.lvd-sec{margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
-.lvd-sec h3{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--ink)}
-.lvd-money{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:16px;border-radius:12px;background:var(--field)}
-.lvd-money span{font-size:13px;font-weight:500;color:var(--muted)}
-.lvd-money b{font-size:28px;line-height:36px;font-weight:700;color:var(--ink);font-variant-numeric:lining-nums tabular-nums;letter-spacing:0;white-space:nowrap}
-.lvd-money.minus b{color:var(--warn)}
-.lvd-money.none b{font-size:16px;line-height:24px;font-weight:600;color:var(--muted)}
-.lvd-dl{margin:0;display:grid}
-.lvd-dl>div{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:22px}
-.lvd-dl>div:last-child{border-bottom:0}
-.lvd-dl dt{color:var(--muted);font-weight:500}
-.lvd-dl dd{margin:0;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
-.lvd-dl dd.num{font-variant-numeric:tabular-nums}
-.lvd-dl dd.warn{color:var(--warn);font-weight:600}
-.lvd-at{font-size:12px;color:var(--muted)}
-.lvd-note{margin:0;font-size:13px;color:var(--muted)}
-.lvd-act{display:flex;justify-content:flex-end}
-.lvd-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.lvd-step{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;border:0;border-radius:12px;background:var(--field);color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 160ms var(--ease,ease)}
-@media (hover:hover){.lvd-step:hover{background:var(--btn2-hover,var(--accent-soft))}}
-.lvd-step:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
-.lvd-step .st-no{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--edge);font-size:13px;font-weight:600;color:var(--ink-2)}
-.lvd-step.done .st-no{border-color:var(--st-ok,#216843);background:var(--st-ok-bg,#eaf5ef);color:var(--st-ok,#216843)}
-.lvd-sn{flex:1;min-width:0;display:flex;flex-direction:column;font-size:14px;font-weight:600;line-height:20px}
-.lvd-sn small{font-size:12px;font-weight:400;line-height:18px;color:var(--muted)}
-.lvd-ss{font-size:12px;font-weight:600;color:var(--muted)}
-.lvd-step.done .lvd-ss{color:var(--st-ok,#216843)}
-.lvd-step .ui-icon{width:18px;height:18px;color:var(--muted)}
-.lvd-del{color:var(--warn)!important}
-@media (max-width:699px){ .lvd-dl>div{grid-template-columns:84px minmax(0,1fr)} .lvd-money b{font-size:24px;line-height:32px} }
 </style>
 </head>
 <body>
@@ -1338,9 +1207,7 @@ body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!im
   <div class="cp-month"><button class="cm-nav" id="cmPrev" type="button" aria-label="이전 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button><div class="cm-label"><b id="cmLabel">-</b><span id="cmCount"></span></div><button class="cm-nav" id="cmNext" type="button" aria-label="다음 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button></div>
   <div class="cp-list" id="cpList" role="listbox" aria-labelledby="cpTitle"></div>
   <div class="cp-foot"><button class="btn" type="button" data-cp-list>행사 목록 화면</button><button class="btn danger" id="delCase" type="button">이 행사 삭제</button></div></div></div>
-<div class="csheet-bg" id="dvBg" hidden><div class="csheet cp-sheet" role="dialog" aria-modal="true" aria-labelledby="dvTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="dvTitle">배송 선택</b><button class="x" type="button" id="dvClose" aria-label="닫기">✕</button></div>
-  <div class="cp-list" id="dvList" role="listbox" aria-labelledby="dvTitle"></div>
-  <div class="cp-foot"><button class="btn" type="button" data-dv-new>새 배송</button><button class="btn danger" id="dvDel" type="button">이 배송 삭제</button></div></div></div>
+
 <div class="csheet-bg" id="tpBg" hidden><div class="csheet tp-sheet" role="dialog" aria-modal="true" aria-labelledby="tpTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="tpTitle">시간</b><span class="tp-now" id="tpNow" aria-live="polite"></span><button class="x" type="button" id="tpClose" aria-label="닫기">✕</button></div>
   <div class="tp-body">
     <div class="tp-cap"><span>시</span><small>24시간제</small></div>
@@ -3137,7 +3004,7 @@ function sbAfterApply(){
 }
 function sbRefresh(){
   sbNeedRender=false; const y=window.scrollY;
-  try{ const t=db.tab; if(t==='input') renderInput(); else if(t==='out') renderOut(); else if(t==='settle') renderSettle(); else if(t==='envelopes') renderEnvelopes(); else if(t==='sched') renderSched(); else if(t==='home') renderHome(); else if(t==='admin'&&db.adminView==='hub') renderSetHub(); }catch(e){}
+  try{ const t=db.tab; if(t==='input') renderInput(); else if(t==='out') renderOut(); else if(t==='settle') renderSettle(); else if(t==='envelopes') renderEnvelopes(); else if(t==='sched') renderSched(); else if(t==='home') renderHome(); else if(t==='deliv') renderDeliv(); else if(t==='admin'&&db.adminView==='hub') renderSetHub(); }catch(e){}
   window.scrollTo(0,y);
 }
 document.addEventListener('focusout',()=>{ if(sbNeedRender) setTimeout(()=>{ const a=document.activeElement; if(!(a&&a.closest&&a.closest('#mainContent')&&a.matches('input,textarea,select'))) sbRefresh(); },250); });
@@ -4385,24 +4252,79 @@ function dvSubHtml(r){
   const hasCar=(r.subs||[]).some(sb=>sb.what==='car');
   return `<div class="stack dv-rows">${rows}</div><div class="row"><button class="btn sm" type="button" data-dv-sub-add>+ 대체 추가</button>${hasCar?'':'<button class="btn sm" type="button" data-dv-car-add>+ 차량 추가</button>'}</div>`;
 }
-function renderDeliv(){
-  const el=$('#p-deliv'); if(!el) return; const list=dvList(); let r=dvCur();
-  if(!r&&list.length){ r=[...list].sort((a,b)=>(b.updated||0)-(a.updated||0))[0]; db.shipCur=r.id; }
-  if(!r){ el.innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>배송</h2></div><p class="note">현진시닝 단순용품 · 인력지원 · 인력+차량 · 인력+대체 양식을 만듭니다. 행사 기록 · 정산과는 따로 저장됩니다.</p><div class="row"><button class="btn primary" type="button" data-dv-new>새 배송 시작</button></div></div>`; return; }
-  const k=r.kind||'goods', v=r.veh||{}, needVeh=k==='veh'||(k==='sub'&&(r.subs||[]).some(sb=>['veh','car'].includes(sb.what||'veh')));
-  el.innerHTML=`<div class="case-panel dv-panel"><button type="button" class="case-pick" id="dvPick" aria-haspopup="dialog" aria-controls="dvBg"><span class="cp-main"><b class="cp-t" id="dvT"></b><span class="cp-s" id="dvS"></span></span><span class="cp-go">변경${CHEV}</span></button></div>
-  <div class="px-page"><div class="px-form stack">
-    <div class="sec"><div class="sec-head"><h2>양식</h2></div><div class="fields"><div class="seg dv-kinds" role="group" aria-label="배송 양식">${DV_KINDS.map(([id,l])=>`<button type="button" data-dv-kind="${id}" aria-pressed="${id===k}">${l}</button>`).join('')}</div><p class="note">${DV_NOTE[k]}</p></div></div>
-    <div class="sec"><div class="sec-head"><h2>기본 정보</h2></div><div class="fields">
+/* 배송 기록 4단 구조 (2026.11.14 사용자 「같은 구조로」): ① 제목 줄 · 「새 배송」 하나 ② 요약 카드(누르면 거르기) + 검색 · 기간 한 줄
+   ③ 목록(일자 · 고객사 / 고인 · 양식 · 관리사 · 차량 + 끝에 상세 아이콘) ④ 서랍(dwDrawer 열쇠 「dv:배송id」) 안에 입력 칸 · 양식 · 복사 · 삭제.
+   기록 · 양식 계산(dvText …)은 그대로, 화면 껍데기만. DVF · DVQ · DVM 은 화면 표시만(저장 안 함). 예전 배송 고르기 창(#dvBg)은 없앰 */
+let DVF='', DVQ='', DVM='', dvOpenId=null;   /* DVF '' | 'goods' | 'help' | 'vs'(인력+차량 · 인력+대체) · DVQ 찾는 글 · DVM 기간 'YYYY-MM'('' 전체) · dvOpenId 다음에 그릴 때 서랍으로 열 배송 */
+const dvYMD=r=>{ const m=(r.mgr||[]).map(x=>x&&x.date).filter(Boolean).sort()[0]; if(m) return String(m).slice(0,10); const d=String((r.veh||{}).depart||'').slice(0,10); return /^\d{4}-\d{2}-\d{2}$/.test(d)?d:kstDay(Number(r.created)||Date.now()); };
+const dvMgrN=r=>(r.mgr||[]).reduce((s,m)=>s+(Number(String((m&&m.n)||'').replace(/[^\d.]/g,''))||0),0);
+const dvHasVeh=r=>r.kind==='veh'||(r.kind==='sub'&&(r.subs||[]).some(sb=>['veh','car'].includes(sb.what||'veh')));
+function dvBrief(r){ const k=r.kind||'goods';
+  if(k==='goods') return [String(r.staffOrg||'').trim(),String(r.staff||'').trim()].filter(Boolean).join(' ')||String(r.prog||'').trim();
+  const n=dvMgrN(r), vt=String((r.veh||{}).type||'').trim(), sb=k==='sub'?(r.subs||[]).filter(x=>x.what!=='car').length:0;
+  return [n?`관리사 ${n}명`:'', dvHasVeh(r)&&vt?vt:'', sb?`대체 ${sb}건`:''].filter(Boolean).join(' · '); }
+const dvKindOk=(r,f)=>!f||(f==='vs'?['veh','sub'].includes(r.kind):(r.kind||'goods')===f);
+const dvKey=v=>String(v||'').toLowerCase().replace(/\s+/g,'');
+function dvRowsOf(noKind){
+  const q=dvKey(DVQ);
+  return dvList().filter(r=>r&&(!DVM||dvYMD(r).slice(0,7)===DVM)&&(noKind||dvKindOk(r,DVF))
+      &&(!q||dvKey([r.co,r.name,r.place,r.custName,r.staffOrg,r.staff,r.prog,r.progStaff,dvKindL(r.kind),(r.veh||{}).type,(r.veh||{}).co].join(' ')).includes(q)))
+    .sort((a,b)=>dvYMD(b).localeCompare(dvYMD(a))||(b.updated||0)-(a.updated||0));
+}
+function dvRenderPage(){
+  const el=$('#p-deliv'); if(!el) return; const all=dvList();
+  const ae=document.activeElement, hadQ=ae&&ae.id==='dvQ', hadCard=ae&&ae.dataset&&ae.dataset.dvCard;
+  const months=[...new Set(all.map(r=>dvYMD(r).slice(0,7)))].sort().reverse();
+  if(DVM&&!months.includes(DVM)) months.unshift(DVM);
+  const base=dvRowsOf(true), rows=base.filter(r=>dvKindOk(r,DVF)), n=f=>base.filter(r=>dvKindOk(r,f)).length;
+  const opt=(v,t)=>`<option value="${esc(v)}"${v===DVM?' selected':''}>${esc(t)}</option>`;
+  /* ① 제목 줄 */
+  let h=`<header class="pg-head"><div class="pg-h"><h1 class="pg-title">배송 기록<span class="pg-count num">${all.length}건</span></h1>
+      <p class="pg-sub"><span>${DV_HQ} 단순용품 · 인력지원 · 인력+차량 · 인력+대체 양식<span class="pg-hint"> · 행사 기록 · 정산과 따로 저장됩니다</span></span></p></div>
+    <button class="btn primary pg-cta" type="button" data-dv-new>${uiIcon('plus')}새 배송</button></header>`;
+  /* ② 요약 카드 4칸 + 검색 · 기간 */
+  const help=base.filter(r=>r.kind!=='goods'), vs=base.filter(r=>['veh','sub'].includes(r.kind));
+  const CARDS=[['','전체',n(''),DVM?monthLabel(DVM):'전체 기간'],['goods','단순용품',n('goods'),'용품 배송'],
+    ['help','인력지원',n('help'),(m=>m?`관리사 ${m}명`:'관리사 배치')(help.filter(r=>r.kind==='help').reduce((s,r)=>s+dvMgrN(r),0))],
+    ['vs','인력+차량 · 대체',n('vs'),`차량 ${vs.filter(dvHasVeh).length}건 · 대체 ${vs.filter(r=>r.kind==='sub').length}건`]];
+  h+=`<section class="pg-kpi" role="group" aria-label="배송 거르기">${CARDS.map(([k,t,c,sub])=>{ const on=DVF===k;
+      return `<button type="button" class="kpi-card${on?' on':''}" aria-pressed="${on}" data-dv-card="${k||'all'}"><span class="kpi-l">${t}</span><b class="kpi-n num">${c}<small>건</small></b><span class="kpi-s">${esc(sub)}</span></button>`; }).join('')}</section>`;
+  h+=`<div class="pg-tools keep">
+      <label class="pg-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="dvQ" type="search" value="${esc(DVQ)}" placeholder="고객사 · 고인 · 빈소 · 담당 검색" aria-label="배송 검색" enterkeyhint="search"></label>
+      <div class="pg-sel"><select class="input" id="dvMonth" aria-label="기간">${opt('','전체 기간')}${months.map(m=>opt(m,monthLabel(m))).join('')}</select></div></div>`;
+  /* ③ 목록 */
+  if(!rows.length) h+=`<section class="pg-list pg-empty"><p>${all.length?'조건에 맞는 배송이 없습니다.':'배송 기록이 없습니다. 위 「새 배송」을 누르면 현진시닝 배송 양식을 만들 수 있습니다.'}</p>${all.length&&(DVF||DVQ||DVM)?'<button class="btn" type="button" data-dv-reset>모든 배송 보기</button>':''}</section>`;
+  else h+=`<section class="pg-list lv-table t-deliv" role="table" aria-label="배송 목록"><div class="lv-tr lv-th" role="row"><span role="columnheader">일자</span><span role="columnheader">고객사 · 고인</span><span role="columnheader">양식</span><span role="columnheader">관리사 · 차량 · 담당</span><span role="columnheader" class="lv-act"><span class="sr-only">상세</span></span></div>`
+    +rows.map(r=>{ const id=esc(r.id), k=r.kind||'goods', place=String(r.place||'').trim(), br=dvBrief(r);
+      return `<div class="lv-tr" role="row" data-key="dv:${id}"><button class="lv-open" type="button" data-dv-open="${id}" tabindex="-1" aria-hidden="true"></button>
+        <span role="cell" class="lv-day">${esc(dvDay(r))}</span>
+        <span role="cell" class="lv-what"><b>${esc(dvTitle(r))}</b>${place?`<small>${esc(place)}</small>`:''}</span>
+        <span role="cell" class="lv-stc"><span class="lv-badge${k==='goods'?'':' info'}">${esc(dvKindL(k))}</span></span>
+        <span role="cell" class="lv-x${br?'':' lv-x0'}">${esc(br||'–')}</span>
+        <span role="cell" class="lv-act"><button class="lv-ico" type="button" data-dv-open="${id}" data-dwdr-from="dv:${id}" aria-haspopup="dialog" aria-label="${esc(dvTitle(r))} 상세 · 수정">${LV_ICO_EDIT}</button></span></div>`; }).join('')+'</section>';
+  el.innerHTML=h;
+  if(hadQ){ const q=$('#dvQ'); q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
+  else if(hadCard){ const b=el.querySelector(`[data-dv-card="${hadCard}"]`); if(b) b.focus({preventScroll:true}); }
+  dvMark();
+}
+function renderDeliv(){ dvRenderPage(); dvDrawerSync(); }
+/* 칸에 쓰는 동안 목록 · 요약 카드는 조금 뒤에 한 번만 (서랍은 건드리지 않음) */
+function dvListSoon(){ clearTimeout(dvListSoon._t); dvListSoon._t=setTimeout(()=>{ if(db.tab==='deliv') dvRenderPage(); },220); }
+/* ④ 서랍 내용 = 예전 배송 화면의 입력 칸 + 양식 */
+function dvDrawerData(r){
+  const k=r.kind||'goods', v=r.veh||{}, id=esc(r.id), kl=esc(dvKindL(k));
+  const body=`<div class="dv-dr" data-dv-id="${id}">
+    <section class="lvd-sec"><h3>양식</h3><div class="seg dv-kinds" role="group" aria-label="배송 양식">${DV_KINDS.map(([x,l])=>`<button type="button" data-dv-kind="${x}" aria-pressed="${x===k}">${l}</button>`).join('')}</div><p class="note">${DV_NOTE[k]}</p></section>
+    <section class="lvd-sec"><h3>기본 정보</h3><div class="fields">
       <div class="pair">${dvIn('co','고객사','예: KOS')}${dvIn('place','빈소','예: 양산농협 VIP2')}</div>
       ${k==='goods'?`<div class="pair">${dvIn('custName','직원','예: 유경재')}${dvIn('custTel','전화','예: 010-0000-0000',{tel:1})}</div>
       <div class="dv-trio">${dvIn('name','고인','예: 양영택')}${dvIn('mourn','상 구분','예: 장인상')}${dvSuf('age','나이','세','')}</div>
       <div class="pair">${dvIn('staffOrg','담당 소속','예: 부산본부')}${dvIn('staff','담당','예: 이기현')}</div>
       <div class="pair"><div class="f-wrap"><span class="field-label">진행</span>${chooser({scope:'dv',key:'prog',options:DV_PROG,label:'진행'})}</div>${dvIn('progStaff','진행 담당','모르면 비워 두십시오')}</div>`:''}
-    </div></div>
-    ${k!=='goods'?`<div class="sec"><div class="sec-head"><h2>관리사 배치</h2></div><div class="fields">${dvMgrHtml(r)}</div></div>`:''}
-    ${k==='sub'?`<div class="sec"><div class="sec-head"><h2>대체 · 차량</h2></div><div class="fields">${dvSubHtml(r)}</div></div>`:''}
-    ${needVeh?`<div class="sec"><div class="sec-head"><h2>장의차량</h2></div><div class="fields">
+    </div></section>
+    ${k!=='goods'?`<section class="lvd-sec"><h3>관리사 배치</h3><div class="fields">${dvMgrHtml(r)}</div></section>`:''}
+    ${k==='sub'?`<section class="lvd-sec"><h3>대체 · 차량</h3><div class="fields">${dvSubHtml(r)}</div></section>`:''}
+    ${dvHasVeh(r)?`<section class="lvd-sec"><h3>장의차량</h3><div class="fields">
       <div class="pair"><div class="f-wrap"><span class="field-label">차종</span>${chooser({scope:'dv',key:'veh.type',options:db.lists.vehTypes||[],label:'차종'})}</div>${dvSuf('veh.km','운행 거리','km','예: 200')}</div>
       <div class="f-wrap" id="dvCremWrap"${dvSplitOn(r)?'':' hidden'}><span class="field-label">화장장</span>${chooser({scope:'dv',key:'veh.crem',options:db.lists.crems||[],label:'화장장'})}
         <p class="note">리무진은 화장장까지, 장의버스는 화장장-장지-장례식장으로 따로 나갑니다. 운행 거리는 장의버스 줄에 붙습니다.</p></div>
@@ -4410,38 +4332,54 @@ function renderDeliv(){
       <div class="f-wrap"><label class="f">발인</label>${dtCtl('dvDepart',v.depart||'','발인')}</div>
       <div class="f-wrap"><label class="f">배차 <span class="lbl-sub">비우면 발인 30분 전</span></label>${dtCtl('dvDisp',v.disp||'','배차')}</div>
       <div class="f-wrap"><span class="field-label">장의차 업체</span>${chooser({scope:'dv',key:'veh.co',options:db.lists.vehCos||[],label:'장의차 업체'})}</div>
-    </div></div>`:''}
-  </div>
-  <div class="px-side stack"><div class="out"><div class="out-head"><h2>${esc(dvKindL(k))} 양식<small>${DV_HQ} · 고쳐서 복사할 수 있습니다</small></h2><button class="btn primary" type="button" data-dv-copy>복사</button></div>
-    <textarea class="text-out" id="dvText" rows="14" aria-label="배송 양식"></textarea></div></div></div>`;
-  dvPaint();
+    </div></section>`:''}
+    <section class="lvd-sec dv-out"><div class="out-head"><h3>${kl} 양식<small>${DV_HQ} · 고쳐서 복사할 수 있습니다</small></h3><button class="btn sm" type="button" data-dv-copy>복사</button></div>
+      <textarea class="text-out" id="dvText" rows="14" aria-label="배송 양식">${esc(dvText(r))}</textarea></section>
+  </div>`;
+  return {key:'dv:'+r.id, title:dvTitle(r), sub:`<span class="lv-badge${k==='goods'?'':' info'}">${kl}</span>`, back:'목록', body,
+    foot:`<button class="btn link lvd-del" type="button" data-dv-del="${id}">삭제</button><span class="dwdr-sp"></span><button class="btn primary" type="button" data-dv-copy>양식 복사</button>`};
 }
-function dvPaint(){ const r=dvCur(); if(!r) return; const t=$('#dvT'), s2=$('#dvS'), ta=$('#dvText'), cw=$('#dvCremWrap'); if(t) t.textContent=dvTitle(r); if(s2) s2.textContent=dvSub(r); if(ta&&document.activeElement!==ta) ta.value=dvText(r); if(cw) cw.hidden=!dvSplitOn(r); }
+function dvOpen(id,from){
+  const D=window.dwDrawer, r=dvList().find(x=>x&&x.id===id); if(!D||!r) return;
+  db.shipCur=r.id; save(); const d=dvDrawerData(r);
+  if(D.isOpen()&&D.key()===d.key) D.update(d); else D.open(Object.assign(d,{from:from||document.activeElement}));
+  dvMark();
+}
+function dvMark(){ const k=window.dwDrawer&&window.dwDrawer.isOpen()?window.dwDrawer.key():'';
+  document.querySelectorAll('#p-deliv .lv-tr[data-key]').forEach(r=>{ const on=!!k&&r.dataset.key===k; r.classList.toggle('on',on); if(on) r.setAttribute('aria-current','true'); else r.removeAttribute('aria-current'); }); }
+document.addEventListener('dw-drawer',e=>{ if(/^dv:/.test(String((e.detail||{}).key||''))) dvMark(); });
+/* 다시 그릴 때 서랍도 맞춤: 열 배송이 있으면 열고, 없어진 것은 닫고, 칸에 쓰는 중이면 글자만 바꿈(초점 유지) */
+function dvDrawerSync(){
+  const D=window.dwDrawer; if(!D) return;
+  if(dvOpenId){ const id=dvOpenId; dvOpenId=null; if(db.tab==='deliv'&&dvList().some(x=>x&&x.id===id)){ dvOpen(id); return; } }
+  const k=D.isOpen()?D.key():''; if(!/^dv:/.test(k)) return;
+  const r=dvList().find(x=>x&&x.id===k.slice(3));
+  if(db.tab!=='deliv'||!r){ D.close(); return; }
+  db.shipCur=r.id;
+  const ae=document.activeElement; if(ae&&ae.closest&&ae.closest('#dwDr')&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)){ dvPaint(); return; }
+  D.update(dvDrawerData(r));
+}
+/* 구조가 바뀌는 수정(양식 종류 · 줄 더하기 · 빼기) → 서랍을 다시 그리고 목록도 */
+function dvRepaint(){ const r=dvCur(), D=window.dwDrawer; if(r&&D&&D.key()==='dv:'+r.id) D.update(dvDrawerData(r)); if(db.tab==='deliv') dvRenderPage(); }
+function dvPaint(){ const r=dvCur(), D=window.dwDrawer; if(!r||!D||D.key()!=='dv:'+r.id) return;
+  const t=$('#dwDrTitle'), ta=$('#dvText'), cw=$('#dvCremWrap'); if(t) t.textContent=dvTitle(r); if(ta&&document.activeElement!==ta) ta.value=dvText(r); if(cw) cw.hidden=!dvSplitOn(r); dvListSoon(); }
 function dvTouched(){ const r=dvCur(); if(r) r.updated=Date.now(); markUnsaved(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),400); dvPaint(); }
 const dvId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function dvNew(){
   const last=[...dvList()].sort((a,b)=>(b.updated||0)-(a.updated||0))[0];
   const r={id:dvId('dv_'),kind:(last&&last.kind)||'goods',mgr:[],veh:{},subs:[],created:Date.now(),updated:Date.now()};
-  dvList().push(r); db.shipCur=r.id; dvClose(false); save(); dirty=true;
-  if(db.tab!=='deliv') setTab('deliv'); else { renderDeliv(); window.scrollTo(0,0); }
-  toast('새 배송을 시작했습니다'); const f=$('#p-deliv [data-dv="co"]'); if(f) f.focus();
+  if(r.kind!=='goods') r.mgr=[{id:dvId('m'),date:'',n:''}]; if(r.kind==='sub') r.subs=[{id:dvId('s'),n:'',what:'veh'}];
+  dvList().push(r); db.shipCur=r.id; DVF=''; DVQ=''; DVM=''; dvOpenId=r.id; save(); dirty=true;
+  if(db.tab!=='deliv') setTab('deliv'); else renderDeliv();
+  toast('새 배송을 시작했습니다'); const f=$('#dwDr [data-dv="co"]'); if(f) f.focus();
 }
-function dvRows(){
-  const list=[...dvList()].sort((a,b)=>(b.updated||0)-(a.updated||0));
-  $('#dvList').innerHTML=list.length?list.map(r=>`<button type="button" role="option" class="cp-row" data-dvpick="${esc(r.id)}" aria-selected="${r.id===db.shipCur}"><span class="cp-no">${esc(dvDay(r).replace(' ',' '))}</span><span class="cp-rm"><b>${esc(dvTitle(r))}</b><small>${esc([String(r.place||'').trim(),dvKindL(r.kind)].filter(Boolean).join(' · '))}</small></span><span class="cp-st2"></span></button>`).join('')
-    :'<p class="note cp-empty">배송 기록이 없습니다.</p>';
-  $('#dvDel').disabled=!dvCur();
+function dvResume(){ const r=dvCur(); if(r) dvOpenId=r.id; if(db.tab!=='deliv') setTab('deliv'); else renderDeliv(); }
+function dvDel(r,btn){
+  arm(btn,'배송 삭제',()=>{ const l=dvList(), i=l.findIndex(x=>x.id===r.id); if(i<0) return; l.splice(i,1); if(db.shipCur===r.id) db.shipCur=null; save(); dirty=true;
+    if(window.dwDrawer&&window.dwDrawer.key()==='dv:'+r.id) window.dwDrawer.close(); renderDeliv();
+    const undo=()=>{ if(dvList().some(x=>x.id===r.id)) return; dvList().splice(Math.min(i,dvList().length),0,r); db.shipCur=r.id; save(); dirty=true; if(db.tab==='deliv') renderDeliv(); toast('배송 기록을 복원했습니다'); };
+    if(window.dwUndo) window.dwUndo('배송 기록을 삭제했습니다',undo); else toast('삭제했습니다'); },{title:'이 배송 기록을 삭제하시겠습니까?',body:dvTitle(r)+'\n'+dvSub(r),ok:'삭제'});
 }
-function dvOpen(){ if(window.dwHist) window.dwHist.push('dv'); dvRows(); const bg=$('#dvBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show')); setTimeout(()=>{ const sel=$('#dvList [aria-selected="true"]'); (sel||$('#dvClose')).focus(); if(sel) sel.scrollIntoView({block:'nearest'}); },60); }
-function dvClose(back){ const bg=$('#dvBg'); if(!bg||bg.hidden) return; bg.classList.remove('show'); setTimeout(()=>{ bg.hidden=true; },200); if(back!==false){ const b=$('#dvPick'); if(b) b.focus(); } }
-$('#dvClose').onclick=()=>dvClose();
-$('#dvBg').addEventListener('click',e=>{ if(e.target.id==='dvBg') dvClose(); });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#dvBg').hidden) dvClose(); });
-$('#dvList').addEventListener('click',e=>{ const b=e.target.closest('[data-dvpick]'); if(!b) return; dvClose(); if(b.dataset.dvpick===db.shipCur) return; db.shipCur=b.dataset.dvpick; save(); renderDeliv(); window.scrollTo(0,0); });
-$('#dvDel').onclick=()=>{ const r=dvCur(); if(!r) return; dvClose(false);
-  arm($('#dvDel'),'배송 삭제',()=>{ const l=dvList(), i=l.findIndex(x=>x.id===r.id); if(i<0) return; l.splice(i,1); db.shipCur=null; save(); dirty=true; renderDeliv();
-    const undo=()=>{ if(dvList().some(x=>x.id===r.id)) return; dvList().splice(Math.min(i,dvList().length),0,r); db.shipCur=r.id; save(); dirty=true; renderDeliv(); toast('배송 기록을 복원했습니다'); };
-    if(window.dwUndo) window.dwUndo('배송 기록을 삭제했습니다',undo); else toast('삭제했습니다'); },{title:'이 배송 기록을 삭제하시겠습니까?',body:dvTitle(r)+'\n'+dvSub(r),ok:'삭제'}); };
 document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[data-dv-new]')) dvNew(); });
 function dvField(t){
   const r=dvCur(); if(!r) return false;
@@ -4450,21 +4388,36 @@ function dvField(t){
   if(t.dataset.dvs){ const sb=(r.subs||[]).find(x=>x.id===t.dataset.dvs); if(sb){ sb[t.dataset.dvsf]=t.value; return true; } }
   return false;
 }
-$('#p-deliv').addEventListener('input',e=>{ if(dvField(e.target)) dvTouched(); });
-$('#p-deliv').addEventListener('change',e=>{ const t=e.target, dt=t.closest('[data-dt]');
+/* 손잡이: 배송 화면(#p-deliv) + 배송 서랍(#dwDr, 열쇠 dv:) — 서랍은 body 끝에 있어서 document 에서 받음 */
+function dvScope(e){ const t=e.target; if(!t||!t.closest) return false; if(t.closest('#p-deliv')) return true;
+  return !!t.closest('#dwDr')&&!!window.dwDrawer&&/^dv:/.test(window.dwDrawer.key()); }
+const dvInDr=e=>!!(e.target.closest&&e.target.closest('#dwDr'));
+document.addEventListener('input',e=>{ if(!dvScope(e)) return; const t=e.target;
+  if(t.id==='dvQ'){ DVQ=t.value; clearTimeout(dvRenderPage._t); dvRenderPage._t=setTimeout(dvRenderPage,160); return; }
+  if(dvInDr(e)&&dvField(t)) dvTouched(); });
+document.addEventListener('change',e=>{ if(!dvScope(e)) return; const t=e.target;
+  if(t.id==='dvMonth'){ DVM=t.value; dvRenderPage(); return; }
+  if(!dvInDr(e)) return;
+  const dt=t.closest('[data-dt]');
   if(dt){ const map={dvDisp:'veh.disp',dvDepart:'veh.depart'}, k=map[dt.dataset.dt]; if(k){ dvSet(k,composeDT(dt)); dvTouched(); } return; }
   if(dvField(t)) dvTouched(); });
-$('#p-deliv').addEventListener('click',e=>{
-  const r=dvCur(); if(e.target.closest('#dvPick')){ dvOpen(); return; } if(!r) return;
-  const kb=e.target.closest('[data-dv-kind]'); if(kb){ if(r.kind!==kb.dataset.dvKind){ r.kind=kb.dataset.dvKind; if(r.kind==='sub'&&!(r.subs||[]).length) r.subs=[{id:dvId('s'),n:'',what:'veh'}]; if(r.kind!=='goods'&&!(r.mgr||[]).length) r.mgr=[{id:dvId('m'),date:'',n:''}]; dvTouched(); renderDeliv(); } return; }
-  if(e.target.closest('[data-dv-mgr-add]')){ if(!r.mgr) r.mgr=[]; r.mgr.push({id:dvId('m'),date:'',n:''}); dvTouched(); renderDeliv(); return; }
-  if(e.target.closest('[data-dv-sub-add]')){ if(!r.subs) r.subs=[]; r.subs.push({id:dvId('s'),n:'',what:r.subs.some(x=>['veh','car'].includes(x.what||'veh'))?'mourn':'veh'}); dvTouched(); renderDeliv(); return; }
-  if(e.target.closest('[data-dv-car-add]')){ if(!r.subs) r.subs=[]; if(!r.subs.some(x=>x.what==='car')) r.subs.push({id:dvId('s'),what:'car'}); dvTouched(); renderDeliv(); return; }
-  const md=e.target.closest('[data-dvm-del]'), sd=e.target.closest('[data-dvs-del]');
-  if(md||sd){ const key=md?'mgr':'subs', id=md?md.dataset.dvmDel:sd.dataset.dvsDel, arr=r[key]||[], i=arr.findIndex(x=>x.id===id); if(i<0) return; const gone=arr[i]; r[key]=arr.filter(x=>x.id!==id); dvTouched(); renderDeliv();
-    if(window.dwUndo) window.dwUndo(`${md?'관리사 배치':gone.what==='car'?'장의차량 지원':'대체'} 한 줄을 삭제했습니다`,()=>{ const a=r[key]||(r[key]=[]); if(a.some(x=>x.id===gone.id)) return; a.splice(Math.min(i,a.length),0,gone); dvTouched(); if(db.tab==='deliv'&&dvCur()===r) renderDeliv(); }); return; }
-  const sw=e.target.closest('[data-dvs-what]'); if(sw){ const sb=(r.subs||[]).find(x=>x.id===sw.dataset.dvsWhat); if(sb&&sb.what!==sw.dataset.v){ sb.what=sw.dataset.v; dvTouched(); renderDeliv(); } return; }
+document.addEventListener('click',e=>{
+  if(!dvScope(e)) return;
+  const card=e.target.closest('[data-dv-card]'); if(card){ const v=card.dataset.dvCard==='all'?'':card.dataset.dvCard; DVF=DVF===v?'':v; dvRenderPage(); return; }
+  if(e.target.closest('[data-dv-reset]')){ DVF=''; DVQ=''; DVM=''; dvRenderPage(); return; }
+  const o=e.target.closest('[data-dv-open]'); if(o){ dvOpen(o.dataset.dvOpen,o.classList.contains('lv-ico')?o:o.closest('.lv-tr').querySelector('.lv-ico')); return; }
+  if(!dvInDr(e)) return;
+  const r=dvCur(); if(!r) return;
   if(e.target.closest('[data-dv-copy]')){ copyFrom($('#dvText'),'배송 양식을 복사했습니다'); return; }
+  { const db_=e.target.closest('[data-dv-del]'); if(db_){ dvDel(r,db_); return; } }
+  const kb=e.target.closest('[data-dv-kind]'); if(kb){ if(r.kind!==kb.dataset.dvKind){ r.kind=kb.dataset.dvKind; if(r.kind==='sub'&&!(r.subs||[]).length) r.subs=[{id:dvId('s'),n:'',what:'veh'}]; if(r.kind!=='goods'&&!(r.mgr||[]).length) r.mgr=[{id:dvId('m'),date:'',n:''}]; dvTouched(); dvRepaint(); } return; }
+  if(e.target.closest('[data-dv-mgr-add]')){ if(!r.mgr) r.mgr=[]; r.mgr.push({id:dvId('m'),date:'',n:''}); dvTouched(); dvRepaint(); return; }
+  if(e.target.closest('[data-dv-sub-add]')){ if(!r.subs) r.subs=[]; r.subs.push({id:dvId('s'),n:'',what:r.subs.some(x=>['veh','car'].includes(x.what||'veh'))?'mourn':'veh'}); dvTouched(); dvRepaint(); return; }
+  if(e.target.closest('[data-dv-car-add]')){ if(!r.subs) r.subs=[]; if(!r.subs.some(x=>x.what==='car')) r.subs.push({id:dvId('s'),what:'car'}); dvTouched(); dvRepaint(); return; }
+  const md=e.target.closest('[data-dvm-del]'), sd=e.target.closest('[data-dvs-del]');
+  if(md||sd){ const key=md?'mgr':'subs', id=md?md.dataset.dvmDel:sd.dataset.dvsDel, arr=r[key]||[], i=arr.findIndex(x=>x.id===id); if(i<0) return; const gone=arr[i]; r[key]=arr.filter(x=>x.id!==id); dvTouched(); dvRepaint();
+    if(window.dwUndo) window.dwUndo(`${md?'관리사 배치':gone.what==='car'?'장의차량 지원':'대체'} 한 줄을 삭제했습니다`,()=>{ const a=r[key]||(r[key]=[]); if(a.some(x=>x.id===gone.id)) return; a.splice(Math.min(i,a.length),0,gone); dvTouched(); if(dvCur()===r) dvRepaint(); }); return; }
+  const sw=e.target.closest('[data-dvs-what]'); if(sw){ const sb=(r.subs||[]).find(x=>x.id===sw.dataset.dvsWhat); if(sb&&sb.what!==sw.dataset.v){ sb.what=sw.dataset.v; dvTouched(); dvRepaint(); } return; }
 });
 function pxTouched(){ markUnsaved(); dirty=true; updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>save(),400); pxPaintSoon(); }
 $('#p-poster').addEventListener('input',e=>{ const t=e.target; if(!t.dataset||!t.dataset.pxd) return; pxDoc()[t.dataset.pxd]=t.value;
@@ -5841,7 +5794,7 @@ function adminGo(v){   /* 설정 안에서 항목만 바꿈 (고치던 칸은 �
   window.scrollTo(0,0); }
 window.addEventListener('dw-role',()=>{ if(db.tab!=='admin') return; applyAdminView(); $('#abTitle').textContent=ADMIN_TITLES[db.adminView]; });
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정'};   /* 데이터 관리(백업 · 가져오기 · 엑셀 · 초기화)는 2026.11.11 없앰 */
-const TAB_TITLES={home:['','DW장례업무'],deliv:['배송','배송 양식'],list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','양식 · 복사'],sched:['장례 행사','행사 보고서'],poster:['장례 행사','장례일정표'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['','설정']};
+const TAB_TITLES={home:['','DW장례업무'],deliv:['배송','배송 기록'],list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','양식 · 복사'],sched:['장례 행사','행사 보고서'],poster:['장례 행사','장례일정표'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['','설정']};
 /* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
 const isSplit=()=>document.body.classList.contains('split');
 function applySplit(){
@@ -5860,7 +5813,7 @@ window.addEventListener('resize',()=>{ clearTimeout(splitT); splitT=setTimeout(c
 let outT=null;
 function liveOut(){ if(!isSplit()||db.tab!=='input') return; clearTimeout(outT); outT=setTimeout(()=>{ if(isSplit()&&db.tab==='input') renderOut(); },220); }
 function setTab(t,sub){
-  { const dk=window.dwDrawer?window.dwDrawer.key():''; if(dk&&!((t==='list'&&dk.indexOf('case:')===0)||(t==='envelopes'&&/^env/.test(dk)))) window.dwDrawer.close(); }   /* 화면마다 서랍 — 행사 목록 case: · 봉투정리 env (2026.11.13 · 11.14) */
+  { const dk=window.dwDrawer?window.dwDrawer.key():''; if(dk&&!((t==='list'&&dk.indexOf('case:')===0)||(t==='envelopes'&&/^env/.test(dk))||(t==='deliv'&&dk.indexOf('dv:')===0))) window.dwDrawer.close(); }   /* 화면마다 서랍 — 행사 목록 case: · 봉투정리 env · 배송 기록 dv: (2026.11.13 · 11.14) */
   if(t==='duty'){ db.dutyView=DUTY_TITLES[sub]?sub:DUTY_TITLES[db.dutyView]?db.dutyView:'calendar'; }
   if(t==='admin'){ db.adminView=adminViewFix(sub&&ADMIN_TITLES[sub]?sub:'hub'); }   /* 설정을 열면 설정 목록부터 */
   db.tab=t; save();
@@ -6024,8 +5977,8 @@ function renderHome(){
     if(k==='t-cur'){ setTab(homeT.cur||'input'); return; }
     if(k==='board'){ goBoard(); return; }
     if(k==='d-new'){ dvNew(); return; }
-    if(k==='d-resume'){ setTab('deliv'); return; }
-    if(k==='d-log'){ setTab('deliv'); dvOpen(); return; }
+    if(k==='d-resume'){ dvResume(); return; }
+    if(k==='d-log'){ DVF=''; DVQ=''; setTab('deliv'); return; }
     const f=FORM_TILES.find(x=>x[0]===k); if(f){ try{ save(); }catch(e){} try{ localStorage.setItem('mf.lastApp','forms'); }catch(e){} location.replace(f[3]?'./#'+f[3]:'admin.html'); return; }
     if(ALL_TABS.includes(k)) setTab(k); },renderHome);
 }
@@ -6094,7 +6047,7 @@ window.DW_GO=v=>{ const [t,sub]=String(v).split(':'); setTab(t,sub); };
 window.DW_HOMEV=()=>window.dwPhone&&window.dwPhone()?'home':'';
 window.DW_CLOSE_TOP=()=>{ const on=id=>{ const el=$(id); return !!el&&!el.hidden; };
   if(on('#tpBg')){ tpClose(); return true; } if(on('#chBg')){ chClose(); return true; } if(on('#cpBg')){ cpClose(false); return true; } if(on('#psBg')){ psClose(); return true; }
-  if(on('#dvBg')){ dvClose(false); return true; } if(on('#picker')){ closePicker(); return true; }
+  if(on('#picker')){ closePicker(); return true; }
   if($('#sideNav')&&$('#sideNav').classList.contains('show')){ closeNav(); return true; } return false; };
 if(window.dwHist) window.dwHist.init();
 $('#snFoot').addEventListener('click',e=>{ if(e.target.closest('[data-sbout]')){ e.stopPropagation(); sbLogout(); return; } setTab('admin'); closeNav(); });

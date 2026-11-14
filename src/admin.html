@@ -137,7 +137,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 .sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 -4px}
 .sec-h h2{margin:0;font-size:16px}
 .member{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px 14px;display:grid;gap:10px}
-.num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.r-head .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
 .member textarea{min-height:58px}
 .danger-zone{display:flex;justify-content:center;padding-top:4px}
 
@@ -196,7 +196,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 @media (min-width:1000px){
   .appbar-in,.wrap,.tabbar-in{max-width:1220px}
   .wrap{padding-inline:28px}
-  .wrap>.banner,.wrap>.install-card,.wrap>.update-bar,#tab-docs,#tab-staff,#tab-settings{width:100%;max-width:860px;margin-inline:auto}
+  .wrap>.banner,.wrap>.install-card,.wrap>.update-bar,#tab-settings{width:100%;max-width:860px;margin-inline:auto}   /* 서류 · 직원 목록은 4단 구조로 넓게 (2026.11.14) */
   .wrap .type-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .live-pv{display:grid;gap:10px;min-width:0;position:sticky;top:0}
   #docEditor .screen-body,#staffEditor .screen-body{display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr);column-gap:32px;align-items:start;padding-inline:max(24px,calc((100vw - 1320px) / 2))}
@@ -211,18 +211,6 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 .type-card b{font-size:16px}
 .type-card span{font-size:12.5px;color:var(--muted);line-height:1.45}
 .type-card:active{background:var(--surface-2)}
-#docFilter{overflow-x:auto;scrollbar-width:none}
-#docFilter::-webkit-scrollbar{display:none}
-#docFilter button{flex:none;padding:0 12px;min-height:38px;font-size:14px}
-.d-card{display:grid;gap:4px;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--ink)}
-.d-top{display:flex;align-items:center;gap:8px;min-width:0}
-.d-title{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.d-sub{font-size:13px;color:var(--muted)}
-.st-card{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px 10px 10px;color:var(--ink)}
-.st-photo{width:52px;height:64px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;overflow:hidden;color:var(--muted);font-weight:700}
-.st-photo img{width:100%;height:100%;object-fit:cover}
-.st-name{font-weight:700;font-size:16px}
-.st-sub{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .form-sec{display:grid;gap:12px}
 .form-sec>h2{margin:6px 0 0;font-size:16px}
 .staff-pick{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--accent-soft);border-radius:12px;padding:10px 10px 10px 14px}
@@ -261,7 +249,7 @@ select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);b
 .seg button[aria-pressed="true"]{box-shadow:0 0 0 1px var(--ink)}
 input[type="text"],input[type="number"],input[type="date"],select,input:not([type]),textarea{border-radius:4px}
 input[type="text"]:focus,input[type="number"]:focus,input[type="date"]:focus,select:focus,input:not([type]):focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
-.card,.w-card,.sample,.weekpick,.member,.install-card,.save-bar,.rv-day,.rv-preview,.switch.boxed,.stat,.s-row,.period,.qr-box,.sig-box,.pv-sign,.live-doc,.rv-recent button,.d-card,.r-card,.st-card,.type-card,.staff-pick,.seal-box,.sig-prev,.sig-wrap{border-radius:6px}
+.card,.sample,.weekpick,.member,.install-card,.save-bar,.rv-day,.rv-preview,.switch.boxed,.stat,.s-row,.period,.qr-box,.sig-box,.pv-sign,.live-doc,.rv-recent button,.r-card,.type-card,.staff-pick,.seal-box,.sig-prev,.sig-wrap{border-radius:6px}
 .sheet{border-radius:10px 10px 0 0}
 .card h2{font-family:var(--font-display);font-weight:700}
 /* 모서리 · 그림자 통일 (디자인 통일 점검 2026.10.16): 상자 · 창 6px, 버튼 · 칸 · 작은 아이콘 4px, 그림자 대신 선 */
@@ -293,7 +281,7 @@ p{text-wrap:pretty}
 .ftabs button{flex:1 0 auto;min-height:46px;padding:0 12px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;color:var(--muted);font-size:15px;font-weight:500;white-space:nowrap}
 .ftabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
 @media (hover:hover){.ftabs button:hover{color:var(--ink)}}
-@media (min-width:1000px){.ftabs{width:100%;max-width:860px;margin-inline:auto;margin-bottom:16px}}
+@media (min-width:1000px){.ftabs{width:100%;margin-bottom:16px}}   /* 2026.11.14 서류 · 직원 목록이 넓어져서 860px 제한 없앰 */
 .tabbar-in{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
 .tabbar button svg{width:22px;height:22px}
 @media (min-width:700px){
@@ -347,31 +335,24 @@ p{text-wrap:pretty}
     <button type="button" data-ctab="docs" aria-current="page">서류</button>
     <button type="button" data-ctab="staff" aria-current="false">직원</button>
   </nav>
-  <section class="tab" id="tab-docs">
-    <div class="tab-head">
-      <h1>인사 · 총무 서식</h1>
-      <p>회사 공통 서식을 작성해 이미지와 PDF로 저장하거나 카톡으로 보냅니다.</p>
-    </div>
-    <div class="type-grid" id="typeGrid"></div>
-    <div class="sec-h"><h2>작성한 문서</h2><span class="muted small-t" id="docCount"></span></div>
-    <div class="seg" id="docFilter" role="group" aria-label="문서 종류"></div>
-    <div class="list" id="docList"></div>
-    <p class="empty-msg" id="docEmpty" hidden>아직 작성한 문서가 없습니다. 위에서 서식을 고르면 바로 작성할 수 있습니다.</p>
+  <section class="tab pg-page" id="tab-docs">   <!-- 4단 구조 (2026.11.14): 제목 줄(「새 서류」 하나 → 서랍에서 서식 고르기) · 요약 카드 · 검색 + 종류 · 표 + 연필 → 작성 서랍 -->
+    <header class="pg-head"><div class="pg-h"><h1 class="pg-title">인사 · 총무 서식<span class="pg-count num" id="docCount">0건</span></h1><p class="pg-sub">회사 공통 서식을 작성해 이미지와 PDF로 저장하거나 카톡으로 보냅니다.</p></div>
+      <button class="btn primary pg-cta" type="button" id="newDoc" aria-haspopup="dialog"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새 서류</button></header>
+    <div class="type-grid" id="typeGrid" hidden></div>
+    <section class="pg-kpi" id="docKpi" role="group" aria-label="서류 거르기"></section>
+    <div class="pg-tools keep"><label class="pg-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="docQ" type="search" placeholder="제목 · 이름 · 문서번호 검색" aria-label="서류 검색" enterkeyhint="search" autocomplete="off"></label><div class="pg-sel"><select class="input sel" id="docFilter" aria-label="서식 종류"></select></div></div>
+    <section class="pg-list lv-table t-cdocs" id="docList" role="table" aria-label="작성한 서류"></section>
+    <div class="pg-empty" id="docEmpty" hidden><p id="docEmptyMsg">아직 작성한 문서가 없습니다. 위 「새 서류」에서 서식을 고르면 바로 작성할 수 있습니다.</p><button class="btn" type="button" id="docReset" hidden>모든 서류 보기</button></div>
   </section>
 
   <!-- ===== 직원 ===== -->
-  <section class="tab" id="tab-staff" hidden>
-    <div class="tab-head">
-      <h1>직원 · 인사기록카드</h1>
-      <p>등록한 직원 정보는 재직증명서, 사직서, 시말서, 인사발령에 자동으로 채워집니다.</p>
-    </div>
-    <button class="btn primary block" type="button" id="newStaff">+ 직원 등록</button>
-    <div class="seg" id="staffSeg" role="group" aria-label="재직 구분">
-      <button type="button" data-v="active" aria-pressed="true">재직</button>
-      <button type="button" data-v="left" aria-pressed="false">퇴사</button>
-    </div>
-    <div class="list" id="staffList"></div>
-    <p class="empty-msg" id="staffEmpty" hidden></p>
+  <section class="tab pg-page" id="tab-staff" hidden>   <!-- 4단 구조 (2026.11.14): 제목 줄(「직원 등록」) · 요약 카드(전체 · 재직 · 퇴사 · 입사일 없음) · 검색 · 표 + 연필 → 인사기록카드 서랍 -->
+    <header class="pg-head"><div class="pg-h"><h1 class="pg-title">직원 · 인사기록카드<span class="pg-count num" id="staffCount">0명</span></h1><p class="pg-sub">등록한 직원 정보는 재직증명서, 사직서, 시말서, 인사발령에 자동으로 채워집니다.</p></div>
+      <button class="btn primary pg-cta" type="button" id="newStaff"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>직원 등록</button></header>
+    <section class="pg-kpi" id="staffSeg" role="group" aria-label="직원 거르기"></section>
+    <div class="pg-tools keep"><label class="pg-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="staffQ" type="search" placeholder="이름 · 부서 · 직위 · 연락처 검색" aria-label="직원 검색" enterkeyhint="search" autocomplete="off"></label></div>
+    <section class="pg-list lv-table t-staff" id="staffList" role="table" aria-label="직원 목록"></section>
+    <div class="pg-empty" id="staffEmpty" hidden><p id="staffEmptyMsg"></p></div>
   </section>
 
   <!-- ===== 설정 ===== -->
@@ -1107,10 +1088,12 @@ async function sealFromFile(file) {
 }
 
 /* ================= 화면 · 탭 ================= */
-function openScreen(id) { const el = $('#' + id); if (el.hidden && window.dwHist) window.dwHist.push('scr:' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
-function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
+let scrFrom = null;   /* 서랍(편집 화면)을 연 버튼 — 닫으면 그리로 초점, 목록 줄은 열린 동안 표시 (2026.11.14) */
+function openScreen(id) { const el = $('#' + id); if (!$$('.screen').some((x) => !x.hidden)) { scrFrom = document.activeElement; const tr = scrFrom && scrFrom.closest && scrFrom.closest('.lv-tr'); $$('.lv-tr.on').forEach((r) => r.classList.remove('on')); if (tr) tr.classList.add('on'); } if (el.hidden && window.dwHist) window.dwHist.push('scr:' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; if (window.dwScr) window.dwScr(); }
+function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) { document.body.classList.remove('locked'); $$('.lv-tr.on').forEach((r) => r.classList.remove('on')); const f = scrFrom; scrFrom = null; if (f && f.isConnected && f.offsetParent) { try { f.focus({ preventScroll: true }); } catch (e) { /* ignore */ } } } if (window.dwScr) window.dwScr(); }
 function showTab(t) {
   if (S.tab === 'settings' && t !== 'settings' && S.cd) toast('설정을 아직 저장하지 않았습니다. 설정 탭에서 저장을 눌러 주십시오.');
+  if (t !== 'docs' && window.dwDrawer && window.dwDrawer.key() === 'newdoc') window.dwDrawer.close();   /* 새 서류 고르기 서랍은 서류 화면에서만 (2026.11.14) */
   S.tab = t;
   ['docs', 'staff', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
   $$('#coTabs [data-ctab]').forEach((b) => b.setAttribute('aria-current', b.dataset.ctab === t ? 'page' : 'false'));
@@ -1139,20 +1122,52 @@ function docTitle(d) {
 function renderTypeGrid() {
   $('#typeGrid').innerHTML = Object.entries(TYPES).map(([k, t]) => `<button class="type-card" type="button" data-type="${k}"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg></span><b>${t.label}</b><span>${t.desc}</span></button>`).join('');
 }
-function renderDocList() {
+/* ================= 목록 4단 틀 (2026.11.14) — list-kit.html 모양, 서식 · 장례업무 목록과 같은 틀 (거르기 · 찾기는 화면 표시만) ================= */
+const PG = { dq: '', sq: '' };
+const PG_ICO_EDIT = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z"/><path d="m13.5 6.5 3 3"/></svg>';
+const pgKey = (t) => String(t || '').toLowerCase().replace(/\s+/g, '');
+const pgN = (n, u) => `${n}<small>${u || '건'}</small>`;
+function pgCards(cards, cur, attr) {
+  return cards.map(([k, t, n, sub, dot]) => { const on = cur === k;
+    return `<button type="button" class="kpi-card${on ? ' on' : ''}" aria-pressed="${on}" ${attr}="${k || 'all'}"><span class="kpi-l">${dot ? `<i class="kpi-dot ${dot}" aria-hidden="true"></i>` : ''}${esc(t)}</span><b class="kpi-n num">${n}</b><span class="kpi-s num">${esc(sub || '')}</span></button>`; }).join('');
+}
+const pgTh = (cols) => `<div class="lv-tr lv-th" role="row">${cols.map(([t, c]) => `<span role="columnheader"${c ? ` class="${c}"` : ''}>${esc(t)}</span>`).join('')}<span role="columnheader" class="lv-act"><span class="sr-only">상세</span></span></div>`;
+const pgTr = (attr, id, label, cells) => `<div class="lv-tr" role="row" data-key="${esc(id)}"><button class="lv-open" type="button" ${attr}="${esc(id)}" tabindex="-1" aria-hidden="true"></button>${cells}<span role="cell" class="lv-act"><button class="lv-ico" type="button" ${attr}="${esc(id)}" aria-haspopup="dialog" aria-label="${esc(label)}">${PG_ICO_EDIT}</button></span></div>`;
+const pgBadge = (t, k) => `<span class="lv-badge${k ? ' ' + k : ''}">${esc(t)}</span>`;
+function pgSync(sel, v) { const el = $(sel); if (el && document.activeElement !== el && el.value !== v) el.value = v; }
+function pgOpenFrom(e, attr) { const o = e.target.closest(`[${attr}]`); if (!o) return null; if (!o.classList.contains('lv-ico')) { const ic = o.closest('.lv-tr') && o.closest('.lv-tr').querySelector('.lv-ico'); if (ic) try { ic.focus({ preventScroll: true }); } catch (err) { /* ignore */ } } return o.getAttribute(attr); }
+const DOC_GROUP = { person: ['employ', 'apology', 'resign'] };   /* 요약 카드 「증명 · 신청서」 = 재직증명서 · 시말서 · 사직서 */
+function docKindOk(d, f) { return f === 'all' || d.type === f || (DOC_GROUP[f] || []).includes(d.type); }
+function renderDocList() {   /* 4단 구조 (2026.11.14): 요약 카드(전체 · 공지사항 · 인사발령 · 증명 · 신청서) = 고르는 칸 「서식 종류」와 같은 값 S.docFilter */
   const all = [...S.docs.values()].sort((a, b) => b.updatedAt - a.updatedAt);
   const counts = {}; all.forEach((d) => { counts[d.type] = (counts[d.type] || 0) + 1; });
-  const filters = [['all', `전체 ${all.length}`], ...DOC_TYPES.filter((t) => counts[t]).map((t) => [t, `${TYPES[t].label} ${counts[t]}`])];
-  if (!filters.some(([k]) => k === S.docFilter)) S.docFilter = 'all';
-  $('#docFilter').innerHTML = filters.map(([k, l]) => `<button type="button" data-v="${k}" aria-pressed="${k === S.docFilter}">${l}</button>`).join('');
-  $('#docFilter').hidden = all.length === 0;
-  const list = S.docFilter === 'all' ? all : all.filter((d) => d.type === S.docFilter);
-  $('#docCount').textContent = all.length ? `${all.length}건` : '';
-  $('#docList').innerHTML = list.map((d) => `<button class="d-card" type="button" data-id="${esc(d.id)}">
-    <div class="d-top"><span class="chip kind">${TYPES[d.type].label}</span><span class="d-title">${esc(docTitle(d))}</span></div>
-    <div class="d-sub">${d.f.date ? esc(dotDate(d.f.date)) + ' · ' : ''}수정 ${fmtDT(d.updatedAt)}${d.sig ? ' · 서명 완료' : ''}</div>
-  </button>`).join('');
-  $('#docEmpty').hidden = all.length > 0;
+  const keys = ['all', 'notice', 'appoint', 'person', ...DOC_TYPES.filter((t) => DOC_GROUP.person.includes(t))];
+  if (!keys.includes(S.docFilter)) S.docFilter = 'all';
+  pgSync('#docQ', PG.dq);
+  const q = pgKey(PG.dq), base = all.filter((d) => !q || pgKey([docTitle(d), TYPES[d.type].label, d.f.docNo, d.f.name, d.f.title, d.f.to, d.f.dept].join(' ')).includes(q));
+  const n = (k) => base.filter((d) => docKindOk(d, k)).length;
+  $('#docKpi').innerHTML = pgCards([['all', '전체', pgN(n('all')), `작성한 서류 ${all.length}건`], ['notice', '공지사항', pgN(n('notice')), '카톡 문구 함께'], ['appoint', '인사발령', pgN(n('appoint')), '발령 표'], ['person', '증명 · 신청서', pgN(n('person')), '재직증명 · 시말 · 사직']], S.docFilter === 'employ' || S.docFilter === 'apology' || S.docFilter === 'resign' ? '' : S.docFilter, 'data-doc-card');
+  $('#docFilter').innerHTML = [['all', '모든 서식'], ['notice', '공지사항'], ['appoint', '인사발령'], ['person', '증명 · 신청서 전체'], ...DOC_GROUP.person.map((t) => [t, `　${TYPES[t].label}`])].map(([k, l]) => `<option value="${k}"${k === S.docFilter ? ' selected' : ''}>${esc(l)}${k === 'all' ? '' : ` (${n(k)})`}</option>`).join('');
+  $('#docCount').textContent = `${all.length}건`;
+  const list = base.filter((d) => docKindOk(d, S.docFilter));
+  $('#docList').innerHTML = list.length ? pgTh([['종류'], ['서류'], ['날짜', 'lv-x num'], ['고친 때']]) + list.map((d) => {
+    const t = TYPES[d.type], sub = [d.f.docNo, d.sig ? '서명 완료' : t.sign ? '서명 전' : ''].filter(Boolean).join(' · ');
+    return pgTr('data-doc-open', d.id, `${docTitle(d)} 열기`, `<span role="cell" class="lv-stc lv-badges">${pgBadge(t.label, d.type === 'notice' ? 'info' : d.type === 'appoint' ? 'ok' : t.sign ? 'warn' : '')}</span>
+      <span role="cell" class="lv-what"><b>${esc(docTitle(d))}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span>
+      <span role="cell" class="lv-x num">${d.f.date ? esc(dotDate(d.f.date)) : '-'}</span>
+      <span role="cell" class="lv-day num">${esc(fmtDT(d.updatedAt))}</span>`);
+  }).join('') : '';
+  $('#docList').hidden = !list.length;
+  $('#docEmpty').hidden = list.length > 0;
+  $('#docEmptyMsg').textContent = all.length ? '조건에 맞는 서류가 없습니다.' : '아직 작성한 문서가 없습니다. 위 「새 서류」에서 서식을 고르면 바로 작성할 수 있습니다.';
+  $('#docReset').hidden = !all.length;
+}
+/* 「새 서류」 = 서랍(dwDrawer 열쇠 newdoc)에서 서식 고르기 — 예전 화면 위 서식 카드 6개를 여기로 */
+function newDocDrawer(from) {
+  if (!window.dwDrawer) return;
+  renderTypeGrid();
+  window.dwDrawer.open({ key: 'newdoc', title: '새 서류 · 서식 고르기', back: '목록', from,
+    body: `<section class="lvd-sec"><p class="lvd-note">서식을 고르면 바로 작성 화면이 열립니다. 직원을 고르면 인적사항이 자동으로 채워집니다.</p><div class="type-grid dr-types">${$('#typeGrid').innerHTML}</div></section>` });
 }
 
 /* ================= 문서 작성 ================= */
@@ -1318,18 +1333,26 @@ function openPick(onPick) {
 function closePick() { $('#pickSheet').hidden = true; S.pick = null; }
 
 /* ================= 직원 (인사기록카드) ================= */
-function renderStaffList() {
-  const all = [...S.staff.values()];
-  const active = all.filter((s) => s.f.status !== '퇴사'), left = all.filter((s) => s.f.status === '퇴사');
-  $$('#staffSeg button').forEach((b) => { const v = b.dataset.v; b.setAttribute('aria-pressed', String(v === S.staffView)); b.textContent = v === 'active' ? `재직 ${active.length}` : `퇴사 ${left.length}`; });
-  const list = (S.staffView === 'active' ? active : left).sort((a, b) => String(a.f.name || '').localeCompare(String(b.f.name || ''), 'ko'));
-  $('#staffList').innerHTML = list.map((s) => `<button class="st-card" type="button" data-id="${esc(s.id)}">
-    <span class="st-photo" data-photo="${esc(s.photo || '')}">${esc((s.f.name || '?').slice(0, 1))}</span>
-    <span style="min-width:0"><span class="st-name">${esc(s.f.name || '(이름 없음)')}</span><span class="st-sub" style="display:block">${esc([s.f.dept, s.f.position].filter(Boolean).join(' · ') || '소속 미입력')}</span></span>
-    <span class="chip">${s.f.joinDate ? '입사 ' + esc(dotDate(s.f.joinDate).slice(0, -1)) : '입사일 없음'}</span>
-  </button>`).join('');
+function renderStaffList() {   /* 4단 구조 (2026.11.14): 요약 카드(전체 · 재직 · 퇴사 · 입사일 없음 — 기본 재직) · 검색 · 표(이름 · 입사일 · 연락처 · 상태) */
+  const all = [...S.staff.values()].sort((a, b) => String(a.f.name || '').localeCompare(String(b.f.name || ''), 'ko'));
+  const F = { all: () => true, active: (s) => s.f.status !== '퇴사', left: (s) => s.f.status === '퇴사', nojoin: (s) => s.f.status !== '퇴사' && !s.f.joinDate };
+  if (!F[S.staffView]) S.staffView = 'active';
+  pgSync('#staffQ', PG.sq);
+  const q = pgKey(PG.sq), base = all.filter((s) => !q || pgKey([s.f.name, s.f.dept, s.f.position, s.f.phone, s.f.email].join(' ')).includes(q));
+  const n = (k) => base.filter(F[k]).length;
+  $('#staffSeg').innerHTML = pgCards([['all', '전체', pgN(n('all'), '명'), `등록 ${all.length}명`], ['active', '재직', pgN(n('active'), '명'), '서류에 고를 수 있는 직원'], ['left', '퇴사', pgN(n('left'), '명'), '퇴사 처리한 직원'], ['nojoin', '입사일 없음', pgN(n('nojoin'), '명'), '재직증명서에 필요', n('nojoin') ? 'st-open' : '']], S.staffView, 'data-v');
+  $('#staffCount').textContent = `${all.length}명`;
+  const list = base.filter(F[S.staffView]);
+  $('#staffList').innerHTML = list.length ? pgTh([['이름'], ['입사일'], ['연락처', 'lv-x num'], ['상태']]) + list.map((s) => {
+    const tel = s.f.phone || '', left = s.f.status === '퇴사';
+    return pgTr('data-staff-open', s.id, `${s.f.name || '이름 없음'} 인사기록카드 열기`, `<span role="cell" class="lv-what lv-who"><span class="lv-ava" data-photo="${esc(s.photo || '')}">${esc((s.f.name || '?').slice(0, 1))}</span><span><b>${esc(s.f.name || '(이름 없음)')}</b><small>${esc([s.f.dept, s.f.position].filter(Boolean).join(' · ') || '소속 미입력')}</small></span></span>
+      <span role="cell" class="lv-day num">${s.f.joinDate ? '입사 ' + esc(dotDate(s.f.joinDate).slice(0, -1)) : '<span class="lv-x0">입사일 없음</span>'}</span>
+      <span role="cell" class="lv-x num">${esc(tel || '-')}</span>
+      <span role="cell" class="lv-stc lv-badges">${pgBadge(left ? '퇴사' : '재직', left ? '' : 'ok')}</span>`);
+  }).join('') : '';
+  $('#staffList').hidden = !list.length;
   $('#staffEmpty').hidden = list.length > 0;
-  $('#staffEmpty').textContent = S.staffView === 'active' ? '아직 등록한 직원이 없습니다. 「+ 직원 등록」으로 인사기록카드를 만들어 주십시오.' : '퇴사한 직원이 없습니다.';
+  $('#staffEmptyMsg').textContent = !all.length ? '아직 등록한 직원이 없습니다. 위 「직원 등록」으로 인사기록카드를 만들어 주십시오.' : q ? `「${PG.sq}」에 맞는 직원이 없습니다.` : S.staffView === 'left' ? '퇴사한 직원이 없습니다.' : S.staffView === 'nojoin' ? '입사일이 빠진 직원이 없습니다.' : '조건에 맞는 직원이 없습니다.';
   $$('#staffList [data-photo]').forEach(async (el) => { const id = el.dataset.photo; if (!id) return; const d = await imgData(id); if (d) el.innerHTML = `<img src="${d}" alt="">`; });
 }
 const newStaff = () => ({ id: uid(), photo: null, f: { status: '재직' }, edu: [], career: [], license: [], family: [], createdAt: Date.now(), updatedAt: Date.now() });
@@ -1810,8 +1833,19 @@ function bind() {
     if (c.dataset.type === 'card') { showTab('staff'); if (!S.staff.size) openStaff(null); return; }
     openDoc(null, c.dataset.type);
   });
-  $('#docFilter').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.docFilter = b.dataset.v; renderDocList(); });
-  $('#docList').addEventListener('click', (e) => { const c = e.target.closest('.d-card'); if (c) openDoc(c.dataset.id); });
+  $('#docFilter').addEventListener('change', (e) => { S.docFilter = e.target.value || 'all'; renderDocList(); });
+  $('#docKpi').addEventListener('click', (e) => { const c = e.target.closest('[data-doc-card]'); if (!c) return; const v = c.dataset.docCard; S.docFilter = S.docFilter === v && v !== 'all' ? 'all' : v; renderDocList(); $(`#docKpi [data-doc-card="${v}"]`).focus(); });
+  $('#docQ').addEventListener('input', (e) => { PG.dq = e.target.value; renderDocList(); });
+  $('#docReset').addEventListener('click', () => { PG.dq = ''; S.docFilter = 'all'; renderDocList(); });
+  $('#docList').addEventListener('click', (e) => { const id = pgOpenFrom(e, 'data-doc-open'); if (id) openDoc(id); });
+  $('#newDoc').addEventListener('click', (e) => newDocDrawer(e.currentTarget));
+  /* 「새 서류」 서랍 안 서식 카드 (서랍은 body 끝이라 document 에서 받음) */
+  document.addEventListener('click', (e) => {
+    const c = e.target.closest && e.target.closest('#dwDr [data-type]'); if (!c || !window.dwDrawer || window.dwDrawer.key() !== 'newdoc') return;
+    window.dwDrawer.close();
+    if (c.dataset.type === 'card') { showTab('staff'); openStaff(null); return; }
+    openDoc(null, c.dataset.type);
+  });
   // 문서 작성
   $('#dBack').addEventListener('click', async () => { await saveDocNow(); S.ed = null; closeScreen('docEditor'); });
   $('#dForm').addEventListener('input', (e) => {
@@ -1844,8 +1878,9 @@ function bind() {
   $('#pickSheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closePick(); });
   // 직원
   $('#newStaff').addEventListener('click', () => openStaff(null));
-  $('#staffSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.staffView = b.dataset.v; renderStaffList(); });
-  $('#staffList').addEventListener('click', (e) => { const c = e.target.closest('.st-card'); if (c) openStaff(c.dataset.id); });
+  $('#staffSeg').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (!b) return; const v = b.dataset.v; S.staffView = S.staffView === v && v !== 'active' ? 'active' : v; renderStaffList(); $(`#staffSeg [data-v="${v}"]`).focus(); });
+  $('#staffQ').addEventListener('input', (e) => { PG.sq = e.target.value; renderStaffList(); });
+  $('#staffList').addEventListener('click', (e) => { const id = pgOpenFrom(e, 'data-staff-open'); if (id) openStaff(id); });
   $('#sBack').addEventListener('click', async () => { await saveStaffNow(); S.se = null; closeScreen('staffEditor'); });
   $('#sForm').addEventListener('input', (e) => {
     const t = e.target, s = S.se; if (!s) return;

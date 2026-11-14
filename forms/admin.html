@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.14-1"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.14-2"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <title>회사 서류 · DW장례업무</title>
@@ -156,7 +156,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 .sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 -4px}
 .sec-h h2{margin:0;font-size:16px}
 .member{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px 14px;display:grid;gap:10px}
-.num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.r-head .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
 .member textarea{min-height:58px}
 .danger-zone{display:flex;justify-content:center;padding-top:4px}
 
@@ -215,7 +215,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 @media (min-width:1000px){
   .appbar-in,.wrap,.tabbar-in{max-width:1220px}
   .wrap{padding-inline:28px}
-  .wrap>.banner,.wrap>.install-card,.wrap>.update-bar,#tab-docs,#tab-staff,#tab-settings{width:100%;max-width:860px;margin-inline:auto}
+  .wrap>.banner,.wrap>.install-card,.wrap>.update-bar,#tab-settings{width:100%;max-width:860px;margin-inline:auto}   /* 서류 · 직원 목록은 4단 구조로 넓게 (2026.11.14) */
   .wrap .type-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .live-pv{display:grid;gap:10px;min-width:0;position:sticky;top:0}
   #docEditor .screen-body,#staffEditor .screen-body{display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr);column-gap:32px;align-items:start;padding-inline:max(24px,calc((100vw - 1320px) / 2))}
@@ -230,18 +230,6 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.82}
 .type-card b{font-size:16px}
 .type-card span{font-size:12.5px;color:var(--muted);line-height:1.45}
 .type-card:active{background:var(--surface-2)}
-#docFilter{overflow-x:auto;scrollbar-width:none}
-#docFilter::-webkit-scrollbar{display:none}
-#docFilter button{flex:none;padding:0 12px;min-height:38px;font-size:14px}
-.d-card{display:grid;gap:4px;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--ink)}
-.d-top{display:flex;align-items:center;gap:8px;min-width:0}
-.d-title{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.d-sub{font-size:13px;color:var(--muted)}
-.st-card{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px 10px 10px;color:var(--ink)}
-.st-photo{width:52px;height:64px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;overflow:hidden;color:var(--muted);font-weight:700}
-.st-photo img{width:100%;height:100%;object-fit:cover}
-.st-name{font-weight:700;font-size:16px}
-.st-sub{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .form-sec{display:grid;gap:12px}
 .form-sec>h2{margin:6px 0 0;font-size:16px}
 .staff-pick{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--accent-soft);border-radius:12px;padding:10px 10px 10px 14px}
@@ -280,7 +268,7 @@ select.sel{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);b
 .seg button[aria-pressed="true"]{box-shadow:0 0 0 1px var(--ink)}
 input[type="text"],input[type="number"],input[type="date"],select,input:not([type]),textarea{border-radius:4px}
 input[type="text"]:focus,input[type="number"]:focus,input[type="date"]:focus,select:focus,input:not([type]):focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
-.card,.w-card,.sample,.weekpick,.member,.install-card,.save-bar,.rv-day,.rv-preview,.switch.boxed,.stat,.s-row,.period,.qr-box,.sig-box,.pv-sign,.live-doc,.rv-recent button,.d-card,.r-card,.st-card,.type-card,.staff-pick,.seal-box,.sig-prev,.sig-wrap{border-radius:6px}
+.card,.sample,.weekpick,.member,.install-card,.save-bar,.rv-day,.rv-preview,.switch.boxed,.stat,.s-row,.period,.qr-box,.sig-box,.pv-sign,.live-doc,.rv-recent button,.r-card,.type-card,.staff-pick,.seal-box,.sig-prev,.sig-wrap{border-radius:6px}
 .sheet{border-radius:10px 10px 0 0}
 .card h2{font-family:var(--font-display);font-weight:700}
 /* 모서리 · 그림자 통일 (디자인 통일 점검 2026.10.16): 상자 · 창 6px, 버튼 · 칸 · 작은 아이콘 4px, 그림자 대신 선 */
@@ -312,7 +300,7 @@ p{text-wrap:pretty}
 .ftabs button{flex:1 0 auto;min-height:46px;padding:0 12px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;color:var(--muted);font-size:15px;font-weight:500;white-space:nowrap}
 .ftabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
 @media (hover:hover){.ftabs button:hover{color:var(--ink)}}
-@media (min-width:1000px){.ftabs{width:100%;max-width:860px;margin-inline:auto;margin-bottom:16px}}
+@media (min-width:1000px){.ftabs{width:100%;margin-bottom:16px}}   /* 2026.11.14 서류 · 직원 목록이 넓어져서 860px 제한 없앰 */
 .tabbar-in{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
 .tabbar button svg{width:22px;height:22px}
 @media (min-width:700px){
@@ -1028,7 +1016,7 @@ window.dwDrawer = (function () {
     el.innerHTML = '<div class="dwdr-head"><button class="dwdr-back" type="button" data-dwdr-close>' + BK + '<span>목록</span></button><div class="dwdr-ttl"><h2 id="dwDrTitle" tabindex="-1"></h2><span class="dwdr-sub"></span></div><button class="dwdr-x" type="button" data-dwdr-close aria-label="닫기">' + X + '</button></div><div class="dwdr-body"></div><div class="dwdr-foot"></div>';
     el.addEventListener('click', function (e) { if (e.target.closest('[data-dwdr-close]')) close(); });
     el.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !document.querySelector('.dwc-bg')) { e.stopPropagation(); close(); return; }
+      if (e.key === 'Escape') { if (!document.querySelector('.dwc-bg,.csheet-bg:not([hidden]),#picker:not([hidden])')) { e.stopPropagation(); close(); } return; }   /* 시간 · 고르기 창이 위에 있으면 그 창 먼저 */
       if (e.key === 'Tab' && mode !== 'push') {   /* 덮는 패널: Tab 이 패널 안에서만 */
         var f = [].slice.call(el.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter(function (x) { return !x.disabled && x.offsetParent !== null; });
         if (!f.length) return; var a = f[0], z = f[f.length - 1];
@@ -1090,6 +1078,36 @@ window.dwDrawer = (function () {
 })();
 </script>
 
+<script>
+/* 편집 · 상세 화면(.screen — 서식 · 회사 서류)을 오른쪽 서랍으로 (2026.11.14): 모양은 list-kit.html, 여기서는 뒤 덮개(흐림)와 Esc 만.
+   화면마다 openScreen · closeScreen 이 dwScr() 를 부름. 덮개를 누르거나 Esc = 맨 위 서랍의 「‹」(.back) 버튼을 누른 것과 같음 → 저장 안 한 내용 확인 그대로.
+   미리보기 · 서명 화면(#previewScreen · #sigScreen)은 전체 화면이라 덮개를 안 씀. 휴대폰(699px 이하)은 서랍이 전체 화면이라 덮개도 안 보임. */
+window.dwScr = (function () {
+  var scrim = null, mq = window.matchMedia ? window.matchMedia('(min-width:700px)') : { matches: true };
+  function tops() { return Array.prototype.filter.call(document.querySelectorAll('.screen'), function (s) { return !s.hidden && s.id !== 'previewScreen' && s.id !== 'sigScreen'; }); }
+  function top() { var a = tops(); return a[a.length - 1] || null; }
+  function busy() { return document.querySelector('.dwc-bg:not([hidden])') || Array.prototype.some.call(document.querySelectorAll('#sheet,#pickSheet,#previewScreen,#sigScreen'), function (x) { return !x.hidden; }); }
+  function closeTop() { var t = top(), b = t && t.querySelector('.back'); if (b) { b.click(); return true; } return false; }
+  function sync() {
+    if (!scrim) {
+      scrim = document.createElement('div'); scrim.className = 'dw-scr-scrim'; scrim.hidden = true; scrim.setAttribute('aria-hidden', 'true');
+      scrim.addEventListener('click', function () { if (!busy()) closeTop(); });
+      document.body.appendChild(scrim);
+    }
+    var on = !!top() && mq.matches;
+    scrim.hidden = !on;
+    document.documentElement.classList.toggle('dw-scr-on', !!top());
+    tops().forEach(function (s) { s.setAttribute('role', 'dialog'); s.setAttribute('aria-modal', 'true'); var t = s.querySelector('.screen-title'); if (t) { if (!t.id) t.id = s.id + 'Ttl'; s.setAttribute('aria-labelledby', t.id); } });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || e.defaultPrevented || !top() || busy()) return;
+    if (window.dwDrawer && window.dwDrawer.isOpen()) return;
+    if (closeTop()) e.preventDefault();
+  });
+  if (mq.addEventListener) mq.addEventListener('change', function () { if (scrim) sync(); });
+  return sync;
+})();
+</script>
 
 </head>
 <body>
@@ -1131,31 +1149,24 @@ window.dwDrawer = (function () {
     <button type="button" data-ctab="docs" aria-current="page">서류</button>
     <button type="button" data-ctab="staff" aria-current="false">직원</button>
   </nav>
-  <section class="tab" id="tab-docs">
-    <div class="tab-head">
-      <h1>인사 · 총무 서식</h1>
-      <p>회사 공통 서식을 작성해 이미지와 PDF로 저장하거나 카톡으로 보냅니다.</p>
-    </div>
-    <div class="type-grid" id="typeGrid"></div>
-    <div class="sec-h"><h2>작성한 문서</h2><span class="muted small-t" id="docCount"></span></div>
-    <div class="seg" id="docFilter" role="group" aria-label="문서 종류"></div>
-    <div class="list" id="docList"></div>
-    <p class="empty-msg" id="docEmpty" hidden>아직 작성한 문서가 없습니다. 위에서 서식을 고르면 바로 작성할 수 있습니다.</p>
+  <section class="tab pg-page" id="tab-docs">   <!-- 4단 구조 (2026.11.14): 제목 줄(「새 서류」 하나 → 서랍에서 서식 고르기) · 요약 카드 · 검색 + 종류 · 표 + 연필 → 작성 서랍 -->
+    <header class="pg-head"><div class="pg-h"><h1 class="pg-title">인사 · 총무 서식<span class="pg-count num" id="docCount">0건</span></h1><p class="pg-sub">회사 공통 서식을 작성해 이미지와 PDF로 저장하거나 카톡으로 보냅니다.</p></div>
+      <button class="btn primary pg-cta" type="button" id="newDoc" aria-haspopup="dialog"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새 서류</button></header>
+    <div class="type-grid" id="typeGrid" hidden></div>
+    <section class="pg-kpi" id="docKpi" role="group" aria-label="서류 거르기"></section>
+    <div class="pg-tools keep"><label class="pg-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="docQ" type="search" placeholder="제목 · 이름 · 문서번호 검색" aria-label="서류 검색" enterkeyhint="search" autocomplete="off"></label><div class="pg-sel"><select class="input sel" id="docFilter" aria-label="서식 종류"></select></div></div>
+    <section class="pg-list lv-table t-cdocs" id="docList" role="table" aria-label="작성한 서류"></section>
+    <div class="pg-empty" id="docEmpty" hidden><p id="docEmptyMsg">아직 작성한 문서가 없습니다. 위 「새 서류」에서 서식을 고르면 바로 작성할 수 있습니다.</p><button class="btn" type="button" id="docReset" hidden>모든 서류 보기</button></div>
   </section>
 
   <!-- ===== 직원 ===== -->
-  <section class="tab" id="tab-staff" hidden>
-    <div class="tab-head">
-      <h1>직원 · 인사기록카드</h1>
-      <p>등록한 직원 정보는 재직증명서, 사직서, 시말서, 인사발령에 자동으로 채워집니다.</p>
-    </div>
-    <button class="btn primary block" type="button" id="newStaff">+ 직원 등록</button>
-    <div class="seg" id="staffSeg" role="group" aria-label="재직 구분">
-      <button type="button" data-v="active" aria-pressed="true">재직</button>
-      <button type="button" data-v="left" aria-pressed="false">퇴사</button>
-    </div>
-    <div class="list" id="staffList"></div>
-    <p class="empty-msg" id="staffEmpty" hidden></p>
+  <section class="tab pg-page" id="tab-staff" hidden>   <!-- 4단 구조 (2026.11.14): 제목 줄(「직원 등록」) · 요약 카드(전체 · 재직 · 퇴사 · 입사일 없음) · 검색 · 표 + 연필 → 인사기록카드 서랍 -->
+    <header class="pg-head"><div class="pg-h"><h1 class="pg-title">직원 · 인사기록카드<span class="pg-count num" id="staffCount">0명</span></h1><p class="pg-sub">등록한 직원 정보는 재직증명서, 사직서, 시말서, 인사발령에 자동으로 채워집니다.</p></div>
+      <button class="btn primary pg-cta" type="button" id="newStaff"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>직원 등록</button></header>
+    <section class="pg-kpi" id="staffSeg" role="group" aria-label="직원 거르기"></section>
+    <div class="pg-tools keep"><label class="pg-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="staffQ" type="search" placeholder="이름 · 부서 · 직위 · 연락처 검색" aria-label="직원 검색" enterkeyhint="search" autocomplete="off"></label></div>
+    <section class="pg-list lv-table t-staff" id="staffList" role="table" aria-label="직원 목록"></section>
+    <div class="pg-empty" id="staffEmpty" hidden><p id="staffEmptyMsg"></p></div>
   </section>
 
   <!-- ===== 설정 ===== -->
@@ -1891,10 +1902,12 @@ async function sealFromFile(file) {
 }
 
 /* ================= 화면 · 탭 ================= */
-function openScreen(id) { const el = $('#' + id); if (el.hidden && window.dwHist) window.dwHist.push('scr:' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; }
-function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) document.body.classList.remove('locked'); }
+let scrFrom = null;   /* 서랍(편집 화면)을 연 버튼 — 닫으면 그리로 초점, 목록 줄은 열린 동안 표시 (2026.11.14) */
+function openScreen(id) { const el = $('#' + id); if (!$$('.screen').some((x) => !x.hidden)) { scrFrom = document.activeElement; const tr = scrFrom && scrFrom.closest && scrFrom.closest('.lv-tr'); $$('.lv-tr.on').forEach((r) => r.classList.remove('on')); if (tr) tr.classList.add('on'); } if (el.hidden && window.dwHist) window.dwHist.push('scr:' + id); el.hidden = false; document.body.classList.add('locked'); const b = $('.screen-body', el); if (b) b.scrollTop = 0; if (window.dwScr) window.dwScr(); }
+function closeScreen(id) { $('#' + id).hidden = true; if (!$$('.screen').some((s) => !s.hidden)) { document.body.classList.remove('locked'); $$('.lv-tr.on').forEach((r) => r.classList.remove('on')); const f = scrFrom; scrFrom = null; if (f && f.isConnected && f.offsetParent) { try { f.focus({ preventScroll: true }); } catch (e) { /* ignore */ } } } if (window.dwScr) window.dwScr(); }
 function showTab(t) {
   if (S.tab === 'settings' && t !== 'settings' && S.cd) toast('설정을 아직 저장하지 않았습니다. 설정 탭에서 저장을 눌러 주십시오.');
+  if (t !== 'docs' && window.dwDrawer && window.dwDrawer.key() === 'newdoc') window.dwDrawer.close();   /* 새 서류 고르기 서랍은 서류 화면에서만 (2026.11.14) */
   S.tab = t;
   ['docs', 'staff', 'settings'].forEach((k) => { $('#tab-' + k).hidden = k !== t; });
   $$('#coTabs [data-ctab]').forEach((b) => b.setAttribute('aria-current', b.dataset.ctab === t ? 'page' : 'false'));
@@ -1923,20 +1936,52 @@ function docTitle(d) {
 function renderTypeGrid() {
   $('#typeGrid').innerHTML = Object.entries(TYPES).map(([k, t]) => `<button class="type-card" type="button" data-type="${k}"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg></span><b>${t.label}</b><span>${t.desc}</span></button>`).join('');
 }
-function renderDocList() {
+/* ================= 목록 4단 틀 (2026.11.14) — list-kit.html 모양, 서식 · 장례업무 목록과 같은 틀 (거르기 · 찾기는 화면 표시만) ================= */
+const PG = { dq: '', sq: '' };
+const PG_ICO_EDIT = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z"/><path d="m13.5 6.5 3 3"/></svg>';
+const pgKey = (t) => String(t || '').toLowerCase().replace(/\s+/g, '');
+const pgN = (n, u) => `${n}<small>${u || '건'}</small>`;
+function pgCards(cards, cur, attr) {
+  return cards.map(([k, t, n, sub, dot]) => { const on = cur === k;
+    return `<button type="button" class="kpi-card${on ? ' on' : ''}" aria-pressed="${on}" ${attr}="${k || 'all'}"><span class="kpi-l">${dot ? `<i class="kpi-dot ${dot}" aria-hidden="true"></i>` : ''}${esc(t)}</span><b class="kpi-n num">${n}</b><span class="kpi-s num">${esc(sub || '')}</span></button>`; }).join('');
+}
+const pgTh = (cols) => `<div class="lv-tr lv-th" role="row">${cols.map(([t, c]) => `<span role="columnheader"${c ? ` class="${c}"` : ''}>${esc(t)}</span>`).join('')}<span role="columnheader" class="lv-act"><span class="sr-only">상세</span></span></div>`;
+const pgTr = (attr, id, label, cells) => `<div class="lv-tr" role="row" data-key="${esc(id)}"><button class="lv-open" type="button" ${attr}="${esc(id)}" tabindex="-1" aria-hidden="true"></button>${cells}<span role="cell" class="lv-act"><button class="lv-ico" type="button" ${attr}="${esc(id)}" aria-haspopup="dialog" aria-label="${esc(label)}">${PG_ICO_EDIT}</button></span></div>`;
+const pgBadge = (t, k) => `<span class="lv-badge${k ? ' ' + k : ''}">${esc(t)}</span>`;
+function pgSync(sel, v) { const el = $(sel); if (el && document.activeElement !== el && el.value !== v) el.value = v; }
+function pgOpenFrom(e, attr) { const o = e.target.closest(`[${attr}]`); if (!o) return null; if (!o.classList.contains('lv-ico')) { const ic = o.closest('.lv-tr') && o.closest('.lv-tr').querySelector('.lv-ico'); if (ic) try { ic.focus({ preventScroll: true }); } catch (err) { /* ignore */ } } return o.getAttribute(attr); }
+const DOC_GROUP = { person: ['employ', 'apology', 'resign'] };   /* 요약 카드 「증명 · 신청서」 = 재직증명서 · 시말서 · 사직서 */
+function docKindOk(d, f) { return f === 'all' || d.type === f || (DOC_GROUP[f] || []).includes(d.type); }
+function renderDocList() {   /* 4단 구조 (2026.11.14): 요약 카드(전체 · 공지사항 · 인사발령 · 증명 · 신청서) = 고르는 칸 「서식 종류」와 같은 값 S.docFilter */
   const all = [...S.docs.values()].sort((a, b) => b.updatedAt - a.updatedAt);
   const counts = {}; all.forEach((d) => { counts[d.type] = (counts[d.type] || 0) + 1; });
-  const filters = [['all', `전체 ${all.length}`], ...DOC_TYPES.filter((t) => counts[t]).map((t) => [t, `${TYPES[t].label} ${counts[t]}`])];
-  if (!filters.some(([k]) => k === S.docFilter)) S.docFilter = 'all';
-  $('#docFilter').innerHTML = filters.map(([k, l]) => `<button type="button" data-v="${k}" aria-pressed="${k === S.docFilter}">${l}</button>`).join('');
-  $('#docFilter').hidden = all.length === 0;
-  const list = S.docFilter === 'all' ? all : all.filter((d) => d.type === S.docFilter);
-  $('#docCount').textContent = all.length ? `${all.length}건` : '';
-  $('#docList').innerHTML = list.map((d) => `<button class="d-card" type="button" data-id="${esc(d.id)}">
-    <div class="d-top"><span class="chip kind">${TYPES[d.type].label}</span><span class="d-title">${esc(docTitle(d))}</span></div>
-    <div class="d-sub">${d.f.date ? esc(dotDate(d.f.date)) + ' · ' : ''}수정 ${fmtDT(d.updatedAt)}${d.sig ? ' · 서명 완료' : ''}</div>
-  </button>`).join('');
-  $('#docEmpty').hidden = all.length > 0;
+  const keys = ['all', 'notice', 'appoint', 'person', ...DOC_TYPES.filter((t) => DOC_GROUP.person.includes(t))];
+  if (!keys.includes(S.docFilter)) S.docFilter = 'all';
+  pgSync('#docQ', PG.dq);
+  const q = pgKey(PG.dq), base = all.filter((d) => !q || pgKey([docTitle(d), TYPES[d.type].label, d.f.docNo, d.f.name, d.f.title, d.f.to, d.f.dept].join(' ')).includes(q));
+  const n = (k) => base.filter((d) => docKindOk(d, k)).length;
+  $('#docKpi').innerHTML = pgCards([['all', '전체', pgN(n('all')), `작성한 서류 ${all.length}건`], ['notice', '공지사항', pgN(n('notice')), '카톡 문구 함께'], ['appoint', '인사발령', pgN(n('appoint')), '발령 표'], ['person', '증명 · 신청서', pgN(n('person')), '재직증명 · 시말 · 사직']], S.docFilter === 'employ' || S.docFilter === 'apology' || S.docFilter === 'resign' ? '' : S.docFilter, 'data-doc-card');
+  $('#docFilter').innerHTML = [['all', '모든 서식'], ['notice', '공지사항'], ['appoint', '인사발령'], ['person', '증명 · 신청서 전체'], ...DOC_GROUP.person.map((t) => [t, `　${TYPES[t].label}`])].map(([k, l]) => `<option value="${k}"${k === S.docFilter ? ' selected' : ''}>${esc(l)}${k === 'all' ? '' : ` (${n(k)})`}</option>`).join('');
+  $('#docCount').textContent = `${all.length}건`;
+  const list = base.filter((d) => docKindOk(d, S.docFilter));
+  $('#docList').innerHTML = list.length ? pgTh([['종류'], ['서류'], ['날짜', 'lv-x num'], ['고친 때']]) + list.map((d) => {
+    const t = TYPES[d.type], sub = [d.f.docNo, d.sig ? '서명 완료' : t.sign ? '서명 전' : ''].filter(Boolean).join(' · ');
+    return pgTr('data-doc-open', d.id, `${docTitle(d)} 열기`, `<span role="cell" class="lv-stc lv-badges">${pgBadge(t.label, d.type === 'notice' ? 'info' : d.type === 'appoint' ? 'ok' : t.sign ? 'warn' : '')}</span>
+      <span role="cell" class="lv-what"><b>${esc(docTitle(d))}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span>
+      <span role="cell" class="lv-x num">${d.f.date ? esc(dotDate(d.f.date)) : '-'}</span>
+      <span role="cell" class="lv-day num">${esc(fmtDT(d.updatedAt))}</span>`);
+  }).join('') : '';
+  $('#docList').hidden = !list.length;
+  $('#docEmpty').hidden = list.length > 0;
+  $('#docEmptyMsg').textContent = all.length ? '조건에 맞는 서류가 없습니다.' : '아직 작성한 문서가 없습니다. 위 「새 서류」에서 서식을 고르면 바로 작성할 수 있습니다.';
+  $('#docReset').hidden = !all.length;
+}
+/* 「새 서류」 = 서랍(dwDrawer 열쇠 newdoc)에서 서식 고르기 — 예전 화면 위 서식 카드 6개를 여기로 */
+function newDocDrawer(from) {
+  if (!window.dwDrawer) return;
+  renderTypeGrid();
+  window.dwDrawer.open({ key: 'newdoc', title: '새 서류 · 서식 고르기', back: '목록', from,
+    body: `<section class="lvd-sec"><p class="lvd-note">서식을 고르면 바로 작성 화면이 열립니다. 직원을 고르면 인적사항이 자동으로 채워집니다.</p><div class="type-grid dr-types">${$('#typeGrid').innerHTML}</div></section>` });
 }
 
 /* ================= 문서 작성 ================= */
@@ -2102,18 +2147,26 @@ function openPick(onPick) {
 function closePick() { $('#pickSheet').hidden = true; S.pick = null; }
 
 /* ================= 직원 (인사기록카드) ================= */
-function renderStaffList() {
-  const all = [...S.staff.values()];
-  const active = all.filter((s) => s.f.status !== '퇴사'), left = all.filter((s) => s.f.status === '퇴사');
-  $$('#staffSeg button').forEach((b) => { const v = b.dataset.v; b.setAttribute('aria-pressed', String(v === S.staffView)); b.textContent = v === 'active' ? `재직 ${active.length}` : `퇴사 ${left.length}`; });
-  const list = (S.staffView === 'active' ? active : left).sort((a, b) => String(a.f.name || '').localeCompare(String(b.f.name || ''), 'ko'));
-  $('#staffList').innerHTML = list.map((s) => `<button class="st-card" type="button" data-id="${esc(s.id)}">
-    <span class="st-photo" data-photo="${esc(s.photo || '')}">${esc((s.f.name || '?').slice(0, 1))}</span>
-    <span style="min-width:0"><span class="st-name">${esc(s.f.name || '(이름 없음)')}</span><span class="st-sub" style="display:block">${esc([s.f.dept, s.f.position].filter(Boolean).join(' · ') || '소속 미입력')}</span></span>
-    <span class="chip">${s.f.joinDate ? '입사 ' + esc(dotDate(s.f.joinDate).slice(0, -1)) : '입사일 없음'}</span>
-  </button>`).join('');
+function renderStaffList() {   /* 4단 구조 (2026.11.14): 요약 카드(전체 · 재직 · 퇴사 · 입사일 없음 — 기본 재직) · 검색 · 표(이름 · 입사일 · 연락처 · 상태) */
+  const all = [...S.staff.values()].sort((a, b) => String(a.f.name || '').localeCompare(String(b.f.name || ''), 'ko'));
+  const F = { all: () => true, active: (s) => s.f.status !== '퇴사', left: (s) => s.f.status === '퇴사', nojoin: (s) => s.f.status !== '퇴사' && !s.f.joinDate };
+  if (!F[S.staffView]) S.staffView = 'active';
+  pgSync('#staffQ', PG.sq);
+  const q = pgKey(PG.sq), base = all.filter((s) => !q || pgKey([s.f.name, s.f.dept, s.f.position, s.f.phone, s.f.email].join(' ')).includes(q));
+  const n = (k) => base.filter(F[k]).length;
+  $('#staffSeg').innerHTML = pgCards([['all', '전체', pgN(n('all'), '명'), `등록 ${all.length}명`], ['active', '재직', pgN(n('active'), '명'), '서류에 고를 수 있는 직원'], ['left', '퇴사', pgN(n('left'), '명'), '퇴사 처리한 직원'], ['nojoin', '입사일 없음', pgN(n('nojoin'), '명'), '재직증명서에 필요', n('nojoin') ? 'st-open' : '']], S.staffView, 'data-v');
+  $('#staffCount').textContent = `${all.length}명`;
+  const list = base.filter(F[S.staffView]);
+  $('#staffList').innerHTML = list.length ? pgTh([['이름'], ['입사일'], ['연락처', 'lv-x num'], ['상태']]) + list.map((s) => {
+    const tel = s.f.phone || '', left = s.f.status === '퇴사';
+    return pgTr('data-staff-open', s.id, `${s.f.name || '이름 없음'} 인사기록카드 열기`, `<span role="cell" class="lv-what lv-who"><span class="lv-ava" data-photo="${esc(s.photo || '')}">${esc((s.f.name || '?').slice(0, 1))}</span><span><b>${esc(s.f.name || '(이름 없음)')}</b><small>${esc([s.f.dept, s.f.position].filter(Boolean).join(' · ') || '소속 미입력')}</small></span></span>
+      <span role="cell" class="lv-day num">${s.f.joinDate ? '입사 ' + esc(dotDate(s.f.joinDate).slice(0, -1)) : '<span class="lv-x0">입사일 없음</span>'}</span>
+      <span role="cell" class="lv-x num">${esc(tel || '-')}</span>
+      <span role="cell" class="lv-stc lv-badges">${pgBadge(left ? '퇴사' : '재직', left ? '' : 'ok')}</span>`);
+  }).join('') : '';
+  $('#staffList').hidden = !list.length;
   $('#staffEmpty').hidden = list.length > 0;
-  $('#staffEmpty').textContent = S.staffView === 'active' ? '아직 등록한 직원이 없습니다. 「+ 직원 등록」으로 인사기록카드를 만들어 주십시오.' : '퇴사한 직원이 없습니다.';
+  $('#staffEmptyMsg').textContent = !all.length ? '아직 등록한 직원이 없습니다. 위 「직원 등록」으로 인사기록카드를 만들어 주십시오.' : q ? `「${PG.sq}」에 맞는 직원이 없습니다.` : S.staffView === 'left' ? '퇴사한 직원이 없습니다.' : S.staffView === 'nojoin' ? '입사일이 빠진 직원이 없습니다.' : '조건에 맞는 직원이 없습니다.';
   $$('#staffList [data-photo]').forEach(async (el) => { const id = el.dataset.photo; if (!id) return; const d = await imgData(id); if (d) el.innerHTML = `<img src="${d}" alt="">`; });
 }
 const newStaff = () => ({ id: uid(), photo: null, f: { status: '재직' }, edu: [], career: [], license: [], family: [], createdAt: Date.now(), updatedAt: Date.now() });
@@ -2594,8 +2647,19 @@ function bind() {
     if (c.dataset.type === 'card') { showTab('staff'); if (!S.staff.size) openStaff(null); return; }
     openDoc(null, c.dataset.type);
   });
-  $('#docFilter').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.docFilter = b.dataset.v; renderDocList(); });
-  $('#docList').addEventListener('click', (e) => { const c = e.target.closest('.d-card'); if (c) openDoc(c.dataset.id); });
+  $('#docFilter').addEventListener('change', (e) => { S.docFilter = e.target.value || 'all'; renderDocList(); });
+  $('#docKpi').addEventListener('click', (e) => { const c = e.target.closest('[data-doc-card]'); if (!c) return; const v = c.dataset.docCard; S.docFilter = S.docFilter === v && v !== 'all' ? 'all' : v; renderDocList(); $(`#docKpi [data-doc-card="${v}"]`).focus(); });
+  $('#docQ').addEventListener('input', (e) => { PG.dq = e.target.value; renderDocList(); });
+  $('#docReset').addEventListener('click', () => { PG.dq = ''; S.docFilter = 'all'; renderDocList(); });
+  $('#docList').addEventListener('click', (e) => { const id = pgOpenFrom(e, 'data-doc-open'); if (id) openDoc(id); });
+  $('#newDoc').addEventListener('click', (e) => newDocDrawer(e.currentTarget));
+  /* 「새 서류」 서랍 안 서식 카드 (서랍은 body 끝이라 document 에서 받음) */
+  document.addEventListener('click', (e) => {
+    const c = e.target.closest && e.target.closest('#dwDr [data-type]'); if (!c || !window.dwDrawer || window.dwDrawer.key() !== 'newdoc') return;
+    window.dwDrawer.close();
+    if (c.dataset.type === 'card') { showTab('staff'); openStaff(null); return; }
+    openDoc(null, c.dataset.type);
+  });
   // 문서 작성
   $('#dBack').addEventListener('click', async () => { await saveDocNow(); S.ed = null; closeScreen('docEditor'); });
   $('#dForm').addEventListener('input', (e) => {
@@ -2628,8 +2692,9 @@ function bind() {
   $('#pickSheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closePick(); });
   // 직원
   $('#newStaff').addEventListener('click', () => openStaff(null));
-  $('#staffSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.staffView = b.dataset.v; renderStaffList(); });
-  $('#staffList').addEventListener('click', (e) => { const c = e.target.closest('.st-card'); if (c) openStaff(c.dataset.id); });
+  $('#staffSeg').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (!b) return; const v = b.dataset.v; S.staffView = S.staffView === v && v !== 'active' ? 'active' : v; renderStaffList(); $(`#staffSeg [data-v="${v}"]`).focus(); });
+  $('#staffQ').addEventListener('input', (e) => { PG.sq = e.target.value; renderStaffList(); });
+  $('#staffList').addEventListener('click', (e) => { const id = pgOpenFrom(e, 'data-staff-open'); if (id) openStaff(id); });
   $('#sBack').addEventListener('click', async () => { await saveStaffNow(); S.se = null; closeScreen('staffEditor'); });
   $('#sForm').addEventListener('input', (e) => {
     const t = e.target, s = S.se; if (!s) return;
@@ -3575,6 +3640,213 @@ init();
   schedule(1200);
 })();
 </script>
+
+<!-- 목록 4단 틀 · 편집 화면 서랍 (2026.11.14 사용자: 「① 위 제목 줄(제목 · 건수 / 오른쪽 끝 생성 버튼 하나) ② 요약 카드 3~4칸(누르면 거르기) + 검색 · 필터 한 줄 ③ 핵심 4~5칸 목록 + 줄 끝 상세 아이콘 ④ 오른쪽 서랍(고정 480px · 뒤 흐림)」)
+     세 화면(장례업무 · 서식 · 회사 서류)이 같이 쓰는 모양 — build.py 가 dw-theme3.html 바로 앞에 넣음. 색은 dw-theme3.html 토큰.
+     목록 화면: 행사 목록 · 봉투정리 · 배송 기록(장례업무) / 주간보고 · 회의록 · 탁송 · 물품 · 파트 게시판 · 자료실(서식) / 서류 · 직원(회사 서류).
+     표 칸 너비는 화면마다 .lv-table.t-○○ (700px 이상), 휴대폰은 두 줄 카드(.lv-what · .lv-stc / .lv-day · .lv-send, 나머지 .lv-x 는 숨김). -->
+<style id="list-kit">
+:where(svg.ui-icon){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+/* ① 위 제목 줄: 왼쪽 제목 · 건수 · 마감 · 봉투 합계 / 오른쪽 끝 「새 행사」 하나 */
+.pg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.pg-h{min-width:0;display:grid;gap:6px}
+.pg-title{margin:0;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:28px;line-height:36px;font-weight:700;letter-spacing:-.025em;color:var(--ink)}
+.pg-count{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:var(--bg-selected,var(--accent-soft));color:var(--st-info,var(--ink));font-size:14px;font-weight:600;letter-spacing:0}
+.pg-sub{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 16px;font-size:14px;line-height:22px;color:var(--muted)}
+.pg-sub b{color:var(--ink);font-weight:700}
+.pg-link{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:36px;margin:0 -10px;padding:2px 10px;border:0;border-radius:8px;background:none;color:var(--muted);font:inherit;font-size:14px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pg-link b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.pg-link small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pg-link .ui-icon{width:16px;height:16px}
+@media (hover:hover){.pg-link:hover{background:var(--bg-hover,var(--field))}}
+.pg-link:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
+.pg-cta{flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 18px}
+.pg-cta .ui-icon{width:18px;height:18px}
+/* ② 요약 카드 4칸 (누르면 거르기 · aria-pressed) */
+.pg-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpi-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-width:0;min-height:96px;padding:16px 20px;border:0;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card,none),var(--card-edge,0 0 0 1px var(--line));color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 160ms var(--ease,ease),box-shadow 160ms var(--ease,ease)}
+.kpi-l{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:20px;font-weight:500;color:var(--muted)}
+.kpi-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--edge)}
+.kpi-dot.st-open{background:var(--st-warn,#8a5400)}
+.kpi-dot.st-minus{background:var(--st-bad,var(--warn))}
+.kpi-dot.st-sent{background:var(--st-ok,#216843)}
+.kpi-n{font-size:28px;line-height:36px;font-weight:700;color:var(--ink);font-variant-numeric:lining-nums tabular-nums;letter-spacing:0;white-space:nowrap}
+.kpi-n small{margin-left:2px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.kpi-s{font-size:12px;line-height:18px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.kpi-card.on{background:var(--bg-selected,var(--accent-soft));box-shadow:inset 0 0 0 2px var(--brand,var(--accent))}
+.kpi-card.on .kpi-n,.kpi-card.on .kpi-n small{color:var(--brand,var(--accent))}
+@media (hover:hover){.kpi-card:not(.on):hover{background:var(--bg-hover,var(--field))}}
+.kpi-card:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
+/* 검색 · 필터 한 줄 */
+.pg-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:-8px}
+.pg-search{position:relative;display:block;flex:1 1 280px;min-width:0}
+.pg-search .ui-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.pg-search .input{padding-left:40px;width:100%}
+.pg-sel{display:flex;flex-wrap:wrap;gap:8px}
+.pg-sel .input{width:auto;min-width:132px}
+.pg-morebtn{display:none;flex:none;align-items:center;gap:6px}
+.pg-morebtn .ui-icon{width:18px;height:18px}
+.lv-nf{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand,var(--accent));color:var(--accent-ink);font-size:12px;font-weight:600}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* ③ 핵심 목록: 흰 카드 안 표 — 번호 · 행사(두 줄) · 발인 · 정산 상태 · 보내는금액 · 상세 아이콘 */
+.lv-table{display:grid;background:var(--surface);border-radius:16px;overflow:hidden}
+.lv-tr{position:relative;display:grid;grid-template-columns:64px minmax(0,1fr) 104px 168px 140px 48px;align-items:center;column-gap:12px;padding:0 12px 0 20px;min-height:60px;border-bottom:1px solid var(--line);font-size:14px}
+.lv-tr:last-child{border-bottom:0}
+.lv-th{min-height:44px;font-size:13px;color:var(--ink-2);font-weight:500;background:var(--field)}
+.lv-tr .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lv-tr.cur{background:var(--accent-soft)}
+.lv-tr.on{background:var(--bg-selected,var(--accent-soft));box-shadow:inset 3px 0 0 var(--brand,var(--accent))}
+.lv-open{position:absolute;inset:0;z-index:1;width:100%;border:0;background:none;padding:0;cursor:pointer}
+@media (hover:hover){.lv-tr:not(.lv-th):not(.on):hover{background:var(--bg-hover,var(--field))}.lv-tr:not(.lv-th):hover .lv-ico{color:var(--brand,var(--ink))}}
+.lv-no{font-weight:600;color:var(--ink)}
+.lv-no-m,.lv-day-m{display:none}
+.lv-what{display:flex;flex-direction:column;min-width:0;padding:10px 0}
+.lv-what b,.lv-what small{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv-what b{font-weight:600;color:var(--ink);line-height:22px}
+.lv-what small{font-size:12px;line-height:18px;color:var(--muted)}
+.lv-day{color:var(--ink-2,var(--muted));white-space:nowrap}
+.lv-tr .lv-day{text-align:left}   /* 날짜는 머리줄처럼 왼쪽 */
+.lv-stc{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.lv-st{display:inline-flex;align-items:center;white-space:nowrap}
+.lv-send{font-weight:600;color:var(--ink)}
+.lv-send.minus{color:var(--warn)}
+.lv-act{display:flex;align-items:center;justify-content:flex-end}
+.lv-ico{position:relative;z-index:2;display:inline-grid;place-items:center;width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 160ms var(--ease,ease),color 160ms var(--ease,ease)}
+@media (hover:hover){.lv-ico:hover{background:var(--bg-hover,var(--field))}}
+.lv-ico:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
+.lv-ico .ui-icon{width:20px;height:20px}
+.pg-empty{display:grid;gap:10px;justify-items:start;padding:24px;border-radius:16px;background:var(--surface);color:var(--muted)}
+.pg-empty p{margin:0}
+@media (max-width:1100px){ .lv-tr{grid-template-columns:52px minmax(0,1fr) 88px 136px 120px 44px;column-gap:8px;padding-left:16px} .pg-sel .input{min-width:112px} }
+@media (max-width:899px){ .pg-kpi{gap:8px} .kpi-card{padding:14px 16px} }
+@media (max-width:699px){
+  .pg-head{align-items:center;flex-wrap:wrap;row-gap:12px}
+  .pg-h{flex:999 1 200px}   /* 생성 버튼이 짧으면 제목 옆, 길면 다음 줄에 꽉 차게 */
+  .pg-cta{flex:1 0 auto;justify-content:center;max-width:100%}
+  .pg-title{font-size:22px;line-height:30px;gap:8px}
+  .pg-count{height:24px;font-size:13px}
+  .pg-sub{font-size:13px}
+  .pg-cta{min-height:44px;padding:0 14px}
+  .pg-kpi{grid-template-columns:1fr 1fr;gap:8px}
+  .kpi-card{min-height:80px;padding:12px 14px}
+  .kpi-n{font-size:24px;line-height:30px}
+  .pg-tools{margin-top:0}
+  .pg-search{flex:1 1 0}
+  .pg-morebtn{display:inline-flex}
+  .pg-sel{display:none;flex-basis:100%}
+  .pg-tools.more .pg-sel{display:grid;grid-template-columns:1fr 1fr}
+  .pg-sel .input{min-width:0;width:100%}
+  .lv-th{display:none}
+  .lv-tr{grid-template-columns:minmax(0,1fr) auto 40px;grid-template-areas:"what stc act" "day send act";row-gap:4px;column-gap:10px;padding:14px 8px 14px 16px;min-height:0;align-items:start}
+  .lv-no{display:none}
+  .lv-no-m{display:inline}
+  .lv-what{grid-area:what;padding:0}
+  .lv-what b,.lv-what small{white-space:normal}
+  .lv-what b{line-height:1.45}
+  .lv-day{grid-area:day;font-size:13px;color:var(--muted);align-self:end}
+  .lv-day-m{display:inline}
+  .lv-send{grid-area:send;font-weight:700;align-self:end}
+  .lv-stc{grid-area:stc;justify-content:flex-end}
+  .lv-act{grid-area:act;align-self:center}
+  .lv-ico{width:40px;height:44px}
+}
+/* ④ 서랍(dwDrawer · 편집 화면) 안 내용 */
+.lvd-sec{display:grid;gap:12px}
+.lvd-sec+.lvd-sec{margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
+.lvd-sec h3{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--ink)}
+.lvd-money{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:16px;border-radius:12px;background:var(--field)}
+.lvd-money span{font-size:13px;font-weight:500;color:var(--muted)}
+.lvd-money b{font-size:28px;line-height:36px;font-weight:700;color:var(--ink);font-variant-numeric:lining-nums tabular-nums;letter-spacing:0;white-space:nowrap}
+.lvd-money.minus b{color:var(--warn)}
+.lvd-money.none b{font-size:16px;line-height:24px;font-weight:600;color:var(--muted)}
+.lvd-dl{margin:0;display:grid}
+.lvd-dl>div{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:22px}
+.lvd-dl>div:last-child{border-bottom:0}
+.lvd-dl dt{color:var(--muted);font-weight:500}
+.lvd-dl dd{margin:0;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
+.lvd-dl dd.num{font-variant-numeric:tabular-nums}
+.lvd-dl dd.warn{color:var(--warn);font-weight:600}
+.lvd-at{font-size:12px;color:var(--muted)}
+.lvd-note{margin:0;font-size:13px;color:var(--muted)}
+.lvd-act{display:flex;justify-content:flex-end}
+.lvd-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lvd-step{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;border:0;border-radius:12px;background:var(--field);color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 160ms var(--ease,ease)}
+@media (hover:hover){.lvd-step:hover{background:var(--btn2-hover,var(--accent-soft))}}
+.lvd-step:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
+.lvd-step .st-no{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--edge);font-size:13px;font-weight:600;color:var(--ink-2)}
+.lvd-step.done .st-no{border-color:var(--st-ok,#216843);background:var(--st-ok-bg,#eaf5ef);color:var(--st-ok,#216843)}
+.lvd-sn{flex:1;min-width:0;display:flex;flex-direction:column;font-size:14px;font-weight:600;line-height:20px}
+.lvd-sn small{font-size:12px;font-weight:400;line-height:18px;color:var(--muted)}
+.lvd-ss{font-size:12px;font-weight:600;color:var(--muted)}
+.lvd-step.done .lvd-ss{color:var(--st-ok,#216843)}
+.lvd-step .ui-icon{width:18px;height:18px;color:var(--muted)}
+.lvd-del{color:var(--warn)!important}
+@media (max-width:699px){ .lvd-dl>div{grid-template-columns:84px minmax(0,1fr)} .lvd-money b{font-size:24px;line-height:32px} }
+/* 서식 · 회사 서류 화면에서 목록 화면은 넓게 (예전 760px 제한 대신) */
+.pg-page{display:grid;gap:24px;min-width:0}
+.pg-page[hidden]{display:none!important}
+@media (min-width:1000px){ :root body .wrap>.pg-page,:root body .wrap .pg-page{width:100%;max-width:none;margin-inline:0} }
+.pg-tools input.input,.pg-tools select.input{min-height:44px;font-size:15px;line-height:22px;padding:10px 12px;border-radius:10px}
+.pg-tools .pg-search input.input{width:100%}
+@media (min-width:700px){ .pg-tools .pg-sel .input{width:auto;flex:none} }
+.pg-tools .pg-search input.input{padding-left:40px}
+.pg-tools select.input{padding-right:32px}
+.pg-note{margin:-12px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:13px;color:var(--muted)}
+.pg-status{font-size:13px;color:var(--muted)}
+.pg-status.warn{color:var(--warn)}
+.pg-tabs{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 -8px}
+.lv-x{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2,var(--muted))}
+.lv-badges{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+.lv-badge{display:inline-flex;align-items:center;min-height:24px;padding:2px 8px;border-radius:6px;background:var(--btn2,var(--field));color:var(--ink-2,var(--ink));font-size:12px;font-weight:600;line-height:18px;white-space:nowrap}
+.lv-badge.info{background:var(--st-info-bg,var(--accent-soft));color:var(--st-info,var(--ink))}
+.lv-badge.ok{background:var(--st-ok-bg,#eaf5ef);color:var(--st-ok,#216843)}
+.lv-badge.warn{background:var(--st-warn-bg,#fff3dd);color:var(--st-warn,#8a5400)}
+.lv-badge.bad{background:var(--st-bad-bg,var(--warn-soft));color:var(--st-bad,var(--warn))}
+.lv-who{flex-direction:row!important;align-items:center;gap:12px}
+.lv-who>span:last-child{display:flex;flex-direction:column;min-width:0}
+.lv-ava{flex:none;width:36px;height:44px;border-radius:8px;background:var(--btn2,var(--field));display:grid;place-items:center;overflow:hidden;font-weight:700;color:var(--muted)}
+.lv-ava img{width:100%;height:100%;object-fit:cover}
+.lv-x0{color:var(--muted)}
+.lv-more,.lv-me{font-size:12px;font-weight:500;color:var(--muted)}
+.dr-types{grid-template-columns:1fr 1fr!important}
+@media (min-width:700px){
+  .lv-table.t-weekly .lv-tr{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 96px 120px 128px 48px}
+  .lv-table.t-minutes .lv-tr{grid-template-columns:120px minmax(0,1fr) 120px 128px 48px}
+  .lv-table.t-ship .lv-tr{grid-template-columns:96px minmax(0,1fr) 136px 136px 48px}
+  .lv-table.t-stock .lv-tr{grid-template-columns:96px minmax(0,1fr) 96px 96px 48px}
+  .lv-table.t-board .lv-tr{grid-template-columns:minmax(0,1fr) 128px 136px 80px 48px}
+  .lv-table.t-docs .lv-tr{grid-template-columns:minmax(0,1fr) 96px 104px 160px 48px}
+  .lv-table.t-cdocs .lv-tr{grid-template-columns:112px minmax(0,1fr) 112px 128px 48px}
+  .lv-table.t-staff .lv-tr{grid-template-columns:minmax(0,1fr) 120px 148px 96px 48px}
+  .lv-table.t-deliv .lv-tr{grid-template-columns:96px minmax(0,1fr) 128px minmax(0,.7fr) 48px}
+  .lv-table.t-tm .lv-tr{grid-template-columns:minmax(0,1fr) 80px 96px 96px 120px 120px 48px}
+}
+@media (max-width:1100px) and (min-width:700px){ .lv-table.t-weekly .lv-tr{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 80px 104px 112px 44px} }
+@media (max-width:699px){
+  .pg-page{gap:16px}
+  .lv-x{display:none}
+  .pg-tools.keep .pg-sel{display:flex;flex-basis:100%}   /* 고르는 칸이 1~2개면 휴대폰에서도 늘 보이게 */
+  .pg-tools.keep .pg-sel .input{flex:1 1 0;min-width:0;width:auto}
+}
+
+/* ===== 편집 · 상세 화면(.screen — 서식 · 회사 서류) = 오른쪽 서랍 (700px 이상): 고정 480px · 뒤 흐림 · 누르면 닫힘. 휴대폰은 예전처럼 전체 화면 =====
+   미리보기 · 서명 화면은 크게 봐야 해서 서랍 위 전체 화면 그대로(z-index 49). 뒤 덮개 = leader-gate-head.html window.dwScr */
+.dw-scr-scrim{position:fixed;inset:0;z-index:46;background:var(--overlay,rgb(15 23 42 / 22%));-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);animation:dwscr-fade 200ms var(--ease,ease) both}
+.dw-scr-scrim[hidden]{display:none}
+@keyframes dwscr-fade{from{opacity:0}to{opacity:1}}
+@keyframes dwscr-in{from{transform:translateX(100%)}to{transform:none}}
+:root body #previewScreen,:root body #sigScreen{z-index:49}
+@media (min-width:700px){
+  :root body .screen:not(#previewScreen):not(#sigScreen){left:auto;right:0;top:0;bottom:0;width:min(480px,100vw);z-index:47;border-radius:20px 0 0 20px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow-modal,0 24px 64px -16px rgb(15 23 42 / 18%));animation:dwscr-in 200ms var(--ease,cubic-bezier(.2,0,0,1)) both}
+  :root body .screen:not(#previewScreen):not(#sigScreen) .screen-bar{min-height:64px;padding:8px 12px 8px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+  :root body .screen:not(#previewScreen):not(#sigScreen) .screen-body{display:block!important;padding:20px 24px 28px!important;background:var(--surface)}
+  :root body .screen:not(#previewScreen):not(#sigScreen) .screen-body>.inner{max-width:none!important;margin:0!important}
+  :root body .screen:not(#previewScreen):not(#sigScreen) .screen-actions{background:var(--surface)}
+  :root body .screen:not(#previewScreen):not(#sigScreen) .screen-actions .inner{max-width:none!important}
+  :root body .screen:not(#previewScreen):not(#sigScreen) .live-pv{position:static!important;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){ .dw-scr-scrim,:root body .screen{animation:none!important} }
+</style>
 
 <!-- 디자인 「파란 업무용」 (2026.11.13 사용자가 파란색 명세를 고름 — 프로젝트 문서 claude/UI_UX_개편_지침서.md 2~8장. 예전 3안 「큰 글씨 · 한 화면 한 일」 먹색 · 원티드 산스를 바꿈)
      세 화면(장례업무 · 서식 첫 화면 · 회사 서류)의 맨 마지막에 build.py 가 넣음 → 색 · 글꼴 · 모서리 · 버튼 · 칸 · 카드 · 배지 · 표를 여기 한 곳에서 덮어씀.

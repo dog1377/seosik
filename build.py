@@ -41,7 +41,7 @@ GATE_BODY = (ROOT / 'src' / 'leader-gate.html').read_text(encoding='utf-8')
 SYNC_KIT = (ROOT / 'src' / 'sync-kit.html').read_text(encoding='utf-8')
 # 확인 창 · 되돌리기 (세 화면 공통)
 CONFIRM_KIT = (ROOT / 'src' / 'confirm-kit.html').read_text(encoding='utf-8')
-THEME3 = (ROOT / 'src' / 'dw-theme3.html').read_text(encoding='utf-8')   # 디자인 3안 (2026.10.30): 세 화면 맨 끝에 — 색 · 글꼴 · 모서리 · 주 버튼
+THEME3 = (ROOT / 'src' / 'list-kit.html').read_text(encoding='utf-8') + '\n' + (ROOT / 'src' / 'dw-theme3.html').read_text(encoding='utf-8')   # 목록 4단 틀 · 편집 화면 서랍 (2026.11.14, list-kit.html) + 디자인   # 디자인 3안 (2026.10.30): 세 화면 맨 끝에 — 색 · 글꼴 · 모서리 · 주 버튼
 
 
 def lock_html(cfg):

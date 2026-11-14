@@ -608,7 +608,7 @@ window.dwDrawer = (function () {
     el.innerHTML = '<div class="dwdr-head"><button class="dwdr-back" type="button" data-dwdr-close>' + BK + '<span>목록</span></button><div class="dwdr-ttl"><h2 id="dwDrTitle" tabindex="-1"></h2><span class="dwdr-sub"></span></div><button class="dwdr-x" type="button" data-dwdr-close aria-label="닫기">' + X + '</button></div><div class="dwdr-body"></div><div class="dwdr-foot"></div>';
     el.addEventListener('click', function (e) { if (e.target.closest('[data-dwdr-close]')) close(); });
     el.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !document.querySelector('.dwc-bg')) { e.stopPropagation(); close(); return; }
+      if (e.key === 'Escape') { if (!document.querySelector('.dwc-bg,.csheet-bg:not([hidden]),#picker:not([hidden])')) { e.stopPropagation(); close(); } return; }   /* 시간 · 고르기 창이 위에 있으면 그 창 먼저 */
       if (e.key === 'Tab' && mode !== 'push') {   /* 덮는 패널: Tab 이 패널 안에서만 */
         var f = [].slice.call(el.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter(function (x) { return !x.disabled && x.offsetParent !== null; });
         if (!f.length) return; var a = f[0], z = f[f.length - 1];
@@ -670,3 +670,33 @@ window.dwDrawer = (function () {
 })();
 </script>
 
+<script>
+/* 편집 · 상세 화면(.screen — 서식 · 회사 서류)을 오른쪽 서랍으로 (2026.11.14): 모양은 list-kit.html, 여기서는 뒤 덮개(흐림)와 Esc 만.
+   화면마다 openScreen · closeScreen 이 dwScr() 를 부름. 덮개를 누르거나 Esc = 맨 위 서랍의 「‹」(.back) 버튼을 누른 것과 같음 → 저장 안 한 내용 확인 그대로.
+   미리보기 · 서명 화면(#previewScreen · #sigScreen)은 전체 화면이라 덮개를 안 씀. 휴대폰(699px 이하)은 서랍이 전체 화면이라 덮개도 안 보임. */
+window.dwScr = (function () {
+  var scrim = null, mq = window.matchMedia ? window.matchMedia('(min-width:700px)') : { matches: true };
+  function tops() { return Array.prototype.filter.call(document.querySelectorAll('.screen'), function (s) { return !s.hidden && s.id !== 'previewScreen' && s.id !== 'sigScreen'; }); }
+  function top() { var a = tops(); return a[a.length - 1] || null; }
+  function busy() { return document.querySelector('.dwc-bg:not([hidden])') || Array.prototype.some.call(document.querySelectorAll('#sheet,#pickSheet,#previewScreen,#sigScreen'), function (x) { return !x.hidden; }); }
+  function closeTop() { var t = top(), b = t && t.querySelector('.back'); if (b) { b.click(); return true; } return false; }
+  function sync() {
+    if (!scrim) {
+      scrim = document.createElement('div'); scrim.className = 'dw-scr-scrim'; scrim.hidden = true; scrim.setAttribute('aria-hidden', 'true');
+      scrim.addEventListener('click', function () { if (!busy()) closeTop(); });
+      document.body.appendChild(scrim);
+    }
+    var on = !!top() && mq.matches;
+    scrim.hidden = !on;
+    document.documentElement.classList.toggle('dw-scr-on', !!top());
+    tops().forEach(function (s) { s.setAttribute('role', 'dialog'); s.setAttribute('aria-modal', 'true'); var t = s.querySelector('.screen-title'); if (t) { if (!t.id) t.id = s.id + 'Ttl'; s.setAttribute('aria-labelledby', t.id); } });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || e.defaultPrevented || !top() || busy()) return;
+    if (window.dwDrawer && window.dwDrawer.isOpen()) return;
+    if (closeTop()) e.preventDefault();
+  });
+  if (mq.addEventListener) mq.addEventListener('change', function () { if (scrim) sync(); });
+  return sync;
+})();
+</script>

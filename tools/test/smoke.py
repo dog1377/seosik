@@ -159,9 +159,9 @@ def main():
                     problems.append(f'{tag}: 행사를 골랐는데 행사 보고서로 안 감')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
                 p.locator('#p-home [data-dwh="d-new"]').click(); p.wait_for_timeout(300)
-                if p.evaluate("[db.tab, !!dvCur()]") != ['deliv', True]:
+                if p.evaluate("[db.tab, !!dvCur(), window.dwDrawer.key()==='dv:'+db.shipCur]") != ['deliv', True, True]:   # 새 배송 = 서랍이 열림 (2026.11.14)
                     problems.append(f'{tag}: 첫 화면 「새 배송」 칸을 눌렀는데 새 배송이 안 됨')
-                p.evaluate("db.ships=[]; db.shipCur=null; save()")
+                p.evaluate("window.dwDrawer.close(); db.ships=[]; db.shipCur=null; save()"); p.wait_for_timeout(250)
                 # 설정 한 곳 (2026.11.11): 첫 화면 「설정」 → 설정 목록 → 한 가지 → 「‹ 설정」
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
                 p.locator('#p-home [data-dwh="admin"]').click(); p.wait_for_timeout(400)
@@ -178,7 +178,10 @@ def main():
                 if t == 'deliv':   # 배송 (2026.10.30): 인력+대체 한 건을 넣고 양식 줄 확인
                     p.evaluate("db.ships=[{id:'t1',kind:'sub',co:'삼성SDS',place:'부산대동 VIP실',mgr:[{id:'m1',date:'2026-10-13',sh:'10',sm:'00',eh:'20',em:'00',n:'1'}],veh:{type:'리무진',km:'200',burial:'김해추모',depart:'2026-10-14T06:30',co:'한맥장의차'},subs:[{id:'s1',n:'4',what:'veh'},{id:'s2',n:'3',what:'mourn',m:'5',w:'1'}],updated:1}]; db.shipCur='t1'")
                 p.evaluate(f"setTab('{t}')"); look(p, f'funeral_{t}_{tag}')
-                if t == 'deliv':
+                if t == 'deliv':   # 2026.11.14: 배송 기록 목록 → 줄을 누르면 서랍(입력 칸 · 양식)
+                    if p.evaluate("[document.querySelectorAll('#p-deliv .lv-tr[data-key]').length, document.querySelectorAll('#p-deliv .kpi-card').length]") != [1, 4]:
+                        problems.append(f'{tag}: 배송 기록 목록 · 요약 카드가 다름')
+                    p.locator('#p-deliv .lv-tr[data-key] .lv-ico').first.click(); p.wait_for_timeout(350); look(p, f'funeral_deliv_drawer_{tag}')
                     got = p.evaluate("document.getElementById('dvText').value")
                     want = '회사명 : 현진시닝\n업체명 : 삼성SDS\n부산대동 VIP실\n13일 : 10시-20시 1명\n관리사 배치완료.\n\n관리사 4명 대체\n리무진 200km 장지(김해추모)\n14일 06시 배차\n14일 06시 30분 발인\n차량배차완료(한맥장의차)\n\n관리사 3명 대체\n남상복 5세트 여상복 1벌 제공'
                     if got != want:
