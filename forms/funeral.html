@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.14-2">
+<meta name="app-version" content="2026.11.14-3">
 <script>window.DW_STAFF_ONLY = true;</script>
 <!-- DW장례업무 · 로그인 (2026.10.23-6): 로그인해야 열림. 파트장 계정(수파베이스 app_metadata.dw_role = 'leader')이면 모든 메뉴,
      아니면 관리자 기능([data-admin]: 서식 · 설정)만 숨김 → html.dw-member. window.DW_LEADER_ONLY 인 화면(회사 서류)은 파트장 · 총괄실장이 아니면 홈으로.
@@ -1676,6 +1676,7 @@ body.split #p-settle .wz{max-width:none}
 .out-tabs button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
 @media (hover:hover){.out-tabs button:hover{color:var(--ink)}}
 #p-out .ov-off,#p-admin .ov-off,#p-settle .ov-off{display:none!important}
+#bandAll[hidden]{display:none}
 .out-tabs.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
 .out-tabs.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
 .out-tabs.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
@@ -1773,9 +1774,13 @@ body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!im
     <div class="missing" id="missing"></div>
     <div class="out-tabs" id="outTabs" role="tablist" aria-label="보고 양식 고르기"></div>
     <div class="out" data-ov="band">
-      <div class="out-head"><h2>밴드 양식<small id="bandTag"></small></h2><button class="btn" id="copyBand" type="button">전체 복사</button></div>
-      <textarea class="text-out" id="bandText" rows="20" aria-label="밴드 양식"></textarea>
-      <div class="pair"><button class="btn primary" id="copySched" type="button">일정표 복사</button><button class="btn primary" id="copyProv" type="button">제공내역 복사</button></div>
+      <div class="out-head"><h2 id="bandH">밴드 일정</h2><button class="btn primary" id="copySched" type="button">복사</button></div>
+      <textarea class="text-out" id="bandText" rows="18" aria-label="밴드 일정"></textarea>
+      <div class="row" id="bandAll"><button class="btn" id="copyBand" type="button">밴드 전체 복사 (일정 + 제공내역)</button></div>
+    </div>
+    <div class="out" data-ov="prov">
+      <div class="out-head"><h2>제공내역<small id="provTag"></small></h2><button class="btn primary" id="copyProv" type="button">복사</button></div>
+      <textarea class="text-out" id="provText" rows="14" aria-label="밴드 제공내역"></textarea>
     </div>
     <div id="reportCards" class="stack"></div>
     <p class="note">결과 칸에서 바로 고쳐서 복사할 수 있습니다. 여기서 고친 내용은 입력 화면을 바꾸면 다시 만들어집니다.</p>
@@ -3832,11 +3837,18 @@ function tbScroll(b){ const el=b&&b.parentElement; if(!el) return; const L=b.off
   if(L<el.scrollLeft+8) el.scrollLeft=Math.max(0,L-24); else if(R>el.scrollLeft+el.clientWidth-8) el.scrollLeft=R-el.clientWidth+24; tabsFade(el); }
 document.addEventListener('scroll',e=>{ const t=e.target; if(t&&t.classList&&t.classList.contains('out-tabs')) tabsFade(t); },true);
 window.addEventListener('resize',()=>document.querySelectorAll('.out-tabs').forEach(tabsFade));
-/* 보고서 화면: 위쪽 줄에서 양식 하나를 골라 그것만 보여 줌 (2026.10.22 정리) */
-function outViews(c){ return [['band','밴드'],...activeReports(coById(c.companyId)).map((r,i)=>['rep'+i,r.name]),['disp','배차'],['off','퇴근'],['xl','행사 일정표']]; }
+/* 보고서 화면: 위쪽 줄에서 양식 하나를 골라 그것만 보여 줌 (2026.10.22 정리)
+   순서 (2026.11.14 사용자 「회사보고-밴드일정-제공내역-도우미-배차, 현진시닝은 회사보고를 앞으로 다」): 회사 보고(업체 보고 양식, 설정 순서) → 밴드 일정 → 제공내역 → 도우미(관리사 시간배치 양식) → 배차 → 퇴근 → 행사 일정표.
+   밴드 양식은 「○○ 제공내역」 줄에서 둘로 나눔(splitBand) — 그 줄이 없는 양식이면 밴드 한 칸. 행사를 바꾸면 맨 앞(회사 보고)부터 */
+const isHelpRep=r=>/\{관리사배치\}/.test(String(r.body||''))||/관리사|도우미/.test(String(r.name||''));
+function outViews(c){
+  const reps=activeReports(coById(c.companyId)).map((r,i)=>({k:'rep'+i,l:r.name,h:isHelpRep(r)})), prov=!!splitBand(bandOut(c)).prov;
+  return [...reps.filter(x=>!x.h).map(x=>[x.k,x.l]),['band',prov?'밴드 일정':'밴드'],...(prov?[['prov','제공내역']]:[]),...reps.filter(x=>x.h).map(x=>[x.k,x.l]),['disp','배차'],['off','퇴근'],['xl','행사 일정표']];
+}
+let outCase=null;
 function applyOutView(){
   const btns=[...document.querySelectorAll('#outTabs [data-ov-tab]')]; let v=db.outView;
-  if(!btns.some(b=>b.dataset.ovTab===v)) v='band';
+  if(!btns.some(b=>b.dataset.ovTab===v)) v=btns.length?btns[0].dataset.ovTab:'band';
   btns.forEach(b=>{ const on=b.dataset.ovTab===v; b.setAttribute('aria-selected',String(on)); b.tabIndex=on?0:-1; });
   document.querySelectorAll('#p-out [data-ov]').forEach(el=>el.classList.toggle('ov-off',el.dataset.ov!==v));
   tbScroll(btns.find(b=>b.dataset.ovTab===v)); tabsFade($('#outTabs'));
@@ -3849,11 +3861,13 @@ $('#outTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='
   const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
 function renderOut(){
   const c=curCase();
-  if(!c){ $('#bandText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; $('#outTabs').innerHTML=''; $('#outNext').innerHTML=''; return; }
+  if(!c){ $('#bandText').value=''; $('#provText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; $('#outTabs').innerHTML=''; $('#outNext').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
-  $('#bandText').value=bandOut(c); $('#bandTag').textContent=`${caseCoName(c)} 양식`;
+  { const bo=bandOut(c), sp=splitBand(bo); $('#bandText').value=sp.prov?sp.sched:bo; $('#provText').value=sp.prov; $('#bandAll').hidden=!sp.prov;
+    $('#bandH').innerHTML=`${sp.prov?'밴드 일정':'밴드 양식'}<small>${esc(caseCoName(c))} 양식</small>`; $('#provTag').textContent=`${caseCoName(c)} 양식`; }
   $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
-  $('#outTabs').innerHTML=outViews(c).map(([k,l])=>`<button type="button" role="tab" data-ov-tab="${k}">${esc(l)}</button>`).join(''); applyOutView();
+  { const ov=outViews(c); if(outCase!==c.id){ outCase=c.id; db.outView=ov[0][0]; }   /* 행사를 바꾸면 맨 앞(회사 보고)부터 */
+    $('#outTabs').innerHTML=ov.map(([k,l])=>`<button type="button" role="tab" data-ov-tab="${k}">${esc(l)}</button>`).join(''); applyOutView(); }
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c,{'업체명':dispCoName(c)});   /* 배차는 업체별 배차 회사명 (대한선진(국향) → 대한항공노동조합) */
   { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없습니다':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워집니다. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 입력하십시오. 미리보기를 누르면 크게 보입니다.';
@@ -6452,7 +6466,7 @@ async function copyFrom(el,msg){
   if(await doCopy(el.value)) toast(msg);
   else { el.focus(); el.select(); toast('이 화면에서는 복사가 막혀 있습니다. 선택된 글을 길게 눌러 복사하십시오'); }
 }
-$('#copyBand').onclick=()=>copyFrom($('#bandText'),'밴드 양식 전체를 복사했습니다');
+$('#copyBand').onclick=()=>copyText([$('#bandText').value,$('#provText').value].map(x=>x.replace(/^\s*\n+|\n+\s*$/g,'')).filter(x=>x.trim()).join('\n\n'),'밴드 양식 전체를 복사했습니다',$('#bandText'));
 // 밴드 양식을 "○○ 제공내역" 줄 기준으로 일정표 / 제공내역으로 나눔
 function splitBand(text){
   const lines=text.split('\n'), i=lines.findIndex(l=>/제공내역\s*$/.test(l));
@@ -6464,8 +6478,8 @@ async function copyText(text,msg,fallbackEl){
   if(await doCopy(text)){ toast(msg); return; }
   { const e=null; const el=fallbackEl, v=el.value, s=v.indexOf(text); el.focus(); if(s>=0) el.setSelectionRange(s,s+text.length); else el.select(); toast('자동 복사가 막혀 있습니다. 선택된 글을 복사하십시오'); }
 }
-$('#copySched').onclick=()=>copyText(splitBand($('#bandText').value).sched,'일정표를 복사했습니다',$('#bandText'));
-$('#copyProv').onclick=()=>{ const s=splitBand($('#bandText').value); if(!s.prov){ toast('양식에 "제공내역" 줄이 없습니다'); return; } copyText(s.prov,'제공내역을 복사했습니다',$('#bandText')); };
+$('#copySched').onclick=()=>copyFrom($('#bandText'),$('#provText').value.trim()?'밴드 일정을 복사했습니다':'밴드 양식을 복사했습니다');
+$('#copyProv').onclick=()=>copyFrom($('#provText'),'제공내역을 복사했습니다');
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-crempick]'); if(!b) return; const inp=$('#f_cremName'); if(!inp) return;
   inp.value=b.dataset.crempick; inp.dispatchEvent(new Event('input',{bubbles:true})); document.querySelectorAll('[data-crempick]').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); });
 var offShown='';
