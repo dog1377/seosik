@@ -1,0 +1,23 @@
+<!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
+     원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
+     고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
+     다 읽고(DOMContentLoaded) · 첫 화면을 그리고 · 글꼴이 준비되면(늦어도 0.5초) 한 번에 보임. 화면이 더 기다릴 것은 window.dwBootWait(약속)
+     (서식 · 회사 서류: 이 기기 보관함에서 기록 읽기). 기다리는 건 늦어도 1.2초, 무슨 일이 있어도 3초 뒤에는 보임. 바탕색은 그동안에도 새 디자인 색. -->
+<style id="dw-boot">html.dw-boot body{opacity:0!important}html.dw-boot{background:#F8FAFC}@media (prefers-color-scheme:dark){html.dw-boot:not([data-theme="light"]){background:#0E131B}}html.dw-boot[data-theme="dark"]{background:#0E131B}</style>
+<script>
+(function () {
+  var r = document.documentElement, waits = [], done = false;
+  r.classList.add('dw-boot');
+  function off() { if (done) return; done = true; r.classList.remove('dw-boot'); }
+  function cap(p, ms) { return Promise.race([Promise.resolve(p).then(null, function () {}), new Promise(function (res) { setTimeout(res, ms); })]); }
+  window.dwBootWait = function (p) { if (!done && p && typeof p.then === 'function') waits.push(p); };
+  window.dwBootShow = off;
+  setTimeout(off, 3000);
+  document.addEventListener('DOMContentLoaded', function () {
+    var all = [cap(Promise.all(waits.map(function (p) { return p.then(null, function () {}); })), 1200)];
+    try { if (document.fonts && document.fonts.ready) all.push(cap(document.fonts.ready, 500)); } catch (e) {}
+    Promise.all(all).then(function () { requestAnimationFrame(off); });
+  });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) off(); });
+})();
+</script>

@@ -5405,5 +5405,5 @@ async function init() {
   setTimeout(renderSamples, 200);
   fsReady = true; if (window.dwSync) window.dwSync.schedule(800);   /* 서버 자동 저장 시작 (불러오기 끝난 뒤) */
 }
-init();
+{ const p = init(); if (window.dwBootWait) window.dwBootWait(p); }   /* 첫 화면 가림: 기기 기록을 다 그린 뒤 보임 (늦어도 1.2초) */
 </script>

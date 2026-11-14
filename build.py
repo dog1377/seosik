@@ -42,6 +42,17 @@ SYNC_KIT = (ROOT / 'src' / 'sync-kit.html').read_text(encoding='utf-8')
 # 확인 창 · 되돌리기 (세 화면 공통)
 CONFIRM_KIT = (ROOT / 'src' / 'confirm-kit.html').read_text(encoding='utf-8')
 THEME3 = (ROOT / 'src' / 'list-kit.html').read_text(encoding='utf-8') + '\n' + (ROOT / 'src' / 'dw-theme3.html').read_text(encoding='utf-8')   # 목록 4단 틀 · 편집 화면 서랍 (2026.11.14, list-kit.html) + 디자인   # 디자인 3안 (2026.10.30): 세 화면 맨 끝에 — 색 · 글꼴 · 모서리 · 주 버튼
+# 첫 화면 가림 (2026.11.14, 사용자 「새로고침하면 예전 UI 가 0.1초 정도 나왔다가 지금 화면」): <head> 맨 앞에 넣음
+BOOT = (ROOT / 'src' / 'boot-guard.html').read_text(encoding='utf-8')
+import re as _re
+_STYLE_RE = _re.compile(r'<style\b[^>]*>.*?</style>\s*', _re.S)
+
+
+def hoist(*parts):
+    """조각들에서 <style> 을 빼서 (스타일 글, 나머지 조각들) — 스타일은 </head> 앞으로 올림.
+    body 끝에 있으면 브라우저가 화면을 다 읽기 전에 예전 모양으로 먼저 그림. 순서는 그대로라 꾸밈이 이기는 순서도 같음."""
+    css = ''.join(m.group(0) for p in parts for m in _STYLE_RE.finditer(p))
+    return css, [_STYLE_RE.sub('', p) for p in parts]
 
 
 def lock_html(cfg):
@@ -54,6 +65,8 @@ if CDN_JSPDF not in body_part:
     raise SystemExit('jsPDF script tag not found in src/app.html')
 body_part = body_part.replace(CDN_JSPDF, LOCAL_JSPDF)
 
+app_css, _tail = hoist(CONFIRM_KIT, GATE_BODY, SYNC_KIT, THEME3)
+app_tail = '\n'.join(_tail)
 html = f"""<!doctype html>
 <html lang="ko">
 <head>
@@ -71,16 +84,15 @@ html = f"""<!doctype html>
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}";</script>
 <style>:root{{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
+{BOOT}
 {head_part}
 {lock_html({'hash': LOCKS.get('forms', ''), 'key': 'mf', 'title': 'DW장례업무', 'who': '파트장', 'remember': True, 'relockMin': 0, 'alt': ''})}
 {GATE_HEAD}
+{app_css}
 </head>
 <body>
 {body_part}
-{CONFIRM_KIT}
-{GATE_BODY}
-{SYNC_KIT}
-{THEME3}
+{app_tail}
 </body>
 </html>
 """
@@ -148,7 +160,7 @@ def make_funeral(title, extras, share_title=None, page_title=None, manifest_href
         '<meta name="mobile-web-app-capable" content="yes">\n'
         '<meta name="apple-mobile-web-app-capable" content="yes">\n'
         '<meta name="app-version" content="' + version + '">\n'
-    ) + head_extra
+    ) + BOOT + head_extra
     fsrc = re.sub(r'<link rel="(?:icon|apple-touch-icon)"[^>]*>\s*', '', fsrc)
     fsrc = re.sub(r'<meta name="apple-mobile-web-app-title"[^>]*>', '<meta name="apple-mobile-web-app-title" content="' + title + '">', fsrc)
     fsrc = re.sub(r'(<meta name="viewport"[^>]*>\s*)', lambda m: m.group(1) + head, fsrc, count=1)
@@ -156,10 +168,15 @@ def make_funeral(title, extras, share_title=None, page_title=None, manifest_href
     fsrc = fsrc.replace("location.pathname.replace(/index\\.html$/,'')", "location.pathname.replace(/(index|funeral)\\.html$/,'')")
     if share_title:
         fsrc = fsrc.replace("navigator.share({title:'장례 일정 작성기',url})", "navigator.share({title:'" + share_title + "',url})")
+    css, tail = hoist(THEME, *extras)   # 꾸밈은 </head> 앞으로 (첫 번째 </head> = 진짜, 뒤의 것은 스크립트 글 안)
+    hd = fsrc.find('</head>')
+    if hd < 0:
+        raise SystemExit('</head> not found in src/funeral.html')
+    fsrc = fsrc[:hd] + css + fsrc[hd:]
     cut = fsrc.rfind('</body>')
     if cut < 0:
         raise SystemExit('</body> not found in src/funeral.html')
-    return fsrc[:cut] + THEME + ''.join(extras) + '\n' + fsrc[cut:]
+    return fsrc[:cut] + ''.join(tail) + '\n' + fsrc[cut:]
 
 
 def make_sw(prefix, core):
@@ -219,6 +236,8 @@ if CDN_JSPDF not in abody:
     raise SystemExit('jsPDF script tag not found in src/admin.html')
 abody = abody.replace(CDN_JSPDF, LOCAL_JSPDF)
 ADMIN_BRIDGE = (ROOT / 'src' / 'admin-bridge.html').read_text(encoding='utf-8')
+admin_css, _tail = hoist(ADMIN_BRIDGE, CONFIRM_KIT, GATE_BODY, SYNC_KIT, THEME3)
+admin_tail = '\n'.join(_tail)
 admin_html = f"""<!doctype html>
 <html lang="ko">
 <head>
@@ -238,17 +257,15 @@ admin_html = f"""<!doctype html>
 <script>window.__PWA__ = true; window.__APP_VERSION__ = "{version}"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 <script>window.__LOCK_STATE__ = {json.dumps({k: bool(v) for k, v in LOCKS.items()})};</script>
+{BOOT}
 {ahead}
 {lock_html({'hash': LOCKS.get('admin', ''), 'key': 'ca', 'title': '회사 서류', 'who': '관리자', 'remember': False, 'relockMin': 10, 'alt': ''})}
 {GATE_HEAD}
+{admin_css}
 </head>
 <body>
 {abody}
-{ADMIN_BRIDGE}
-{CONFIRM_KIT}
-{GATE_BODY}
-{SYNC_KIT}
-{THEME3}
+{admin_tail}
 </body>
 </html>
 """
