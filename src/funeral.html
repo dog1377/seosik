@@ -217,6 +217,15 @@ body.duty-mode .wrap{max-width:none;padding-inline:0;padding-block:0}
 .dd .dd-amt{grid-column:2;margin-top:-4px;font-size:13px;line-height:1.4;color:var(--muted)}
 .dd .dd-amt:empty{display:none}
 .dd .no{font-weight:700;color:var(--bronze);text-align:right;font-variant-numeric:tabular-nums}
+.cert-q{display:grid;gap:12px;margin:0 0 14px;padding:0 0 14px;border-bottom:1px solid var(--line)}
+.cert-q .cq{display:grid;gap:8px}
+.cert-q .cq-h{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
+.cert-q .cq-h .field-label{flex:1 1 150px;margin:0;font-weight:600;color:var(--ink)}
+.cert-q .cq-h .seg{flex:none;width:156px}
+.cert-q .note{margin:0}
+.cert-q .note.warn{color:var(--warn)}
+.dd-cert .dd-fixed{min-height:44px;display:flex;align-items:center;padding:0 14px;border-radius:10px;background:var(--field);color:var(--ink);font-weight:600;word-break:keep-all}
+.dd-cert .dd-tag{font-size:12px;color:var(--muted);text-align:center}
 
 /* 결과 */
 .out{background:var(--surface);border-radius:14px;padding:16px;display:grid;gap:12px}
@@ -1878,8 +1887,8 @@ function vals(c){
     '도착':dayTime(f.arrive), '통화':dayTime(f.callAt), '출발':dayTime(f.leaveAt), '상담':dayTime(f.consultAt), '이송':g('transport'), '나이성별':[g('age')?g('age')+'세':'',genderShort(g('gender'))].filter(Boolean).join('/'), '발생':dayTime(f.death), '접수':dayTime(f.recv||f.death), '본관':g('origin'),
     '사망사유':g('cause'), '제단지원':g('altarSup'), '할인권사용':g('coupon'), '회원증회수':g('cardBack'), '확인서대체':g('certSub'),
     '계열사':g('affiliate'), '직급':g('rank'), '주소':g('addr'), '장법':g('method'),
-    '대체공제':(c.deductions||[]).filter(d=>d.text.trim()).map((d,i)=>`${i+1}. ${d.text.trim()}`).join('\n'),
-    '공제항목':(c.deductions||[]).filter(d=>d.text.trim()).map((d,i)=>`${i+1}.${d.text.trim()}`).join('\n'),
+    '대체공제':dedTexts(c).map((t,i)=>`${i+1}. ${t}`).join('\n'),
+    '공제항목':dedTexts(c).map((t,i)=>`${i+1}.${t}`).join('\n'),
     '화장':isBurial(f)?'':cremStr(f), '화장장':isBurial(f)?'':cremName(f), '하관':hagwanStr(f),
     '장례기간':daysSpan(f), '고인성별나이':deceasedShort(f), '장법화장장':methodPlace(f), '추가금':money(f.extraAmt), '총수금액':money(f.totalAmt), '담당팀장':staffRank(f.staff),
   };
@@ -2280,9 +2289,21 @@ function mgrRows(c){
     const d=`${pad(parseDT(m.date).d)}일`, s=mgrHm(m.sh,m.sm), e=mgrHm(m.eh,m.em);
     return {d,s,e,n:m.n?`${m.n}명`:'',line:`${d} : ${[s,e].filter(Boolean).join('-')}${m.n?' '+m.n+'명':''}`.trim()}; });
 }
+function certHtml(c){   /* 고이장례연구소 이행완료확인서 질문 (2026.11.14) */
+  const f=c.f||{}, q=(k,amtK,label,name,ph)=>{ const v=f[k]||''; return `<div class="cq"><div class="cq-h"><span class="field-label">${label}</span><div class="seg" role="group" aria-label="${name}"><button type="button" data-cert="${k}" data-v="yes" aria-pressed="${v==='yes'}">있음</button><button type="button" data-cert="${k}" data-v="no" aria-pressed="${v==='no'}">없음</button></div></div><label class="f cq-amt" ${v==='yes'?'':'hidden'}><span class="field-label">${name} · 얼마입니까?</span>${amtIn(`data-k="${amtK}" aria-label="${name}"`,f[amtK],ph)}</label></div>`; };
+  return `<div class="cert-q">${q('paidAsk','paid','기존 납입금이 있습니까?','기존 납입금','예: 1')}${q('discAsk','certDisc','할인 금액이 있습니까?','할인 금액','예: 10')}
+    <p class="note">「있음」인 금액을 더해 아래 1번 줄 「이행완료확인서 11만원 공제」로 넣고 수금액에서 뺍니다. 기존 납입금은 밴드 「납입」 칸과 같은 값입니다.</p><p class="note warn" id="certWarn" ${certSkip(c)?'':'hidden'}>직접 적은 「이행완료확인서」 줄이 있어 자동 줄은 넣지 않습니다.</p></div>`;
+}
+function certRowHtml(c){ const L=certLine(c); return `<div class="dd dd-cert" id="certRow" ${L?'':'hidden'}><span class="no">1.</span><div class="dd-fixed">${esc(L?L.text:'')}</div><span class="dd-tag">자동</span><small class="dd-amt">${L&&dedOn(c)?esc(`수금액에서 ${wonStr(L.won)} 뺍니다`):''}</small></div>`; }
+function certPaint(c){   /* 질문 칸에 쓰는 동안: 자동 줄 · 번호만 바꿈(다시 그리지 않음) */
+  const row=document.getElementById('certRow'); if(!row) return; const L=certLine(c);
+  row.hidden=!L; row.querySelector('.dd-fixed').textContent=L?L.text:''; row.querySelector('.dd-amt').textContent=L&&dedOn(c)?`수금액에서 ${wonStr(L.won)} 뺍니다`:'';
+  document.querySelectorAll('#p-input .dd:not(.dd-cert) .no').forEach((n,i)=>{ n.textContent=`${i+1+(L?1:0)}.`; });
+  const w=document.getElementById('certWarn'); if(w) w.hidden=!certSkip(c);
+}
 function deductHtml(c){
-  const co=coById(c.companyId), have=new Set((c.deductions||[]).map(d=>d.text.trim()));
-  return `<div class="items">${(c.deductions||[]).map((d,i)=>`<div class="dd"><span class="no">${i+1}.</span><input class="input" data-dd="${d.id}" value="${esc(d.text)}" placeholder="예: 헌화 30송이 5만원 공제" aria-label="공제 · 추가 항목"><button class="x" type="button" data-dddel="${d.id}" aria-label="항목 삭제">✕</button><small class="dd-amt" data-dd-amt="${d.id}">${esc(dedAmtText(c,d))}</small></div>`).join('')}</div>
+  const co=coById(c.companyId), goi=isGoi(co), off=goi&&certLine(c)?1:0;
+  return `${goi?certHtml(c):''}<div class="items">${goi?certRowHtml(c):''}${(c.deductions||[]).map((d,i)=>`<div class="dd"><span class="no">${i+1+off}.</span><input class="input" data-dd="${d.id}" value="${esc(d.text)}" placeholder="예: 헌화 30송이 5만원 공제" aria-label="공제 · 추가 항목"><button class="x" type="button" data-dddel="${d.id}" aria-label="항목 삭제">✕</button><small class="dd-amt" data-dd-amt="${d.id}">${esc(dedAmtText(c,d))}</small></div>`).join('')}</div>
     <button class="btn sm" type="button" data-act="addDeduct">+ 항목 추가</button>
     <p class="note">예: 헌화 30송이 5만원 공제 · 넣은 순서대로 번호가 붙습니다.${isGoi(co)?' 「공제」 · 「할인」이 들어간 줄은 수금액에서 빼고, 「추가」가 들어간 줄은 더합니다(금액은 「5만원」처럼). 수금액 칸에는 공제 · 추가 전 상품 금액을 넣으십시오.':''}</p>`;
 }
@@ -2361,7 +2382,11 @@ $('#p-input').addEventListener('input',e=>{
   if(t.dataset.k && t.tagName!=='SELECT'){ c.f[t.dataset.k]=t.value; if(Object.values(SAME_MAP).includes(t.dataset.k)) syncChief(c); if(['death','casket','depart','cremDate'].includes(t.dataset.k)) schedInfo(); if(t.dataset.k.startsWith('crem')) updCremPreview(); touched(); }
   if(t.dataset.it && t.dataset.itf==='text'){ const it=c.items.find(x=>x.id===t.dataset.it); if(it){ it.text=t.value; if(t.tagName==='TEXTAREA') fitItemText(t); renumber(); touched(); } }
   if(t.dataset.mgf==='n'){ const m=(c.mgr||[]).find(x=>x.id===t.dataset.mg); if(m){ m.n=t.value; touched(); } }
-  if(t.dataset.dd){ const d=(c.deductions||[]).find(x=>x.id===t.dataset.dd); if(d){ d.text=t.value; c.dedNet=true; const a=document.querySelector(`[data-dd-amt="${d.id}"]`); if(a) a.textContent=dedAmtText(c,d); updAltarNotes(); touched(); } }
+  if(t.dataset.dd){ const d=(c.deductions||[]).find(x=>x.id===t.dataset.dd); if(d){ d.text=t.value; c.dedNet=true; const a=document.querySelector(`[data-dd-amt="${d.id}"]`); if(a) a.textContent=dedAmtText(c,d); certPaint(c); updAltarNotes(); touched(); } }
+  if(t.dataset.k==='paid'||t.dataset.k==='certDisc'){   /* 이행완료확인서 금액 (기존 납입금은 밴드 「납입」 칸과 같은 값 → 다른 칸도 맞춤) */
+    document.querySelectorAll(`#p-input [data-k="${t.dataset.k}"]`).forEach(x=>{ if(x===t) return; x.value=t.value; const bx=x.closest('.amt'); if(bx){ bx.querySelector('.amt-u').textContent=amtUnit(t.value); const r=bx.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); } });
+    if(c.f.paidAsk==='yes'||c.f.discAsk==='yes'){ if(t.closest('.cert-q')) c.dedNet=true; certPaint(c); updAltarNotes(); }
+  }
   if(t.dataset.k==='burial1'||t.dataset.k==='burial2'){ const bp=$('#f_burial'); if(bp) bp.placeholder=[c.f.burial1,c.f.burial2].filter(Boolean).join('-')||'비우면 1차-2차 장지로 채움'; }
 });
 function composeDT(box){
@@ -2400,6 +2425,14 @@ $('#p-input').addEventListener('click',e=>{
   if(!c.deductions) c.deductions=[];
   if(b.dataset.dddel){ c.dedNet=true; delRow(c,'deductions',b.dataset.dddel,renderInput,'공제'); return; }
   if(b.dataset.ddadd){ c.dedNet=true; c.deductions.push({id:uid(),text:b.dataset.ddadd}); touched(); renderInput(); return; }
+  if(b.dataset.cert){   /* 이행완료확인서: 기존 납입금 · 할인 금액 있음/없음 (2026.11.14) */
+    const k=b.dataset.cert, amtK=k==='paidAsk'?'paid':'certDisc', v=b.dataset.v, pa=c.f[k], pv=c.f[amtK], name=k==='paidAsk'?'기존 납입금':'할인 금액';
+    const focusAmt=()=>{ const el=document.querySelector(`#p-input .cert-q [data-k="${amtK}"]`); if(el) el.focus(); };
+    if(pa===v){ if(v==='yes') focusAmt(); return; }
+    c.f[k]=v; c.dedNet=true;
+    if(v==='no'&&String(pv||'').trim()){ c.f[amtK]=''; if(window.dwUndo) window.dwUndo(`${name}을 지웠습니다`,()=>{ c.f[k]=pa; c.f[amtK]=pv; touched(); renderInput(); }); }
+    touched(); renderInput(); if(v==='yes') focusAmt(); return;
+  }
   if(!c.mgr) c.mgr=[];
   if(b.dataset.mgdel){ delRow(c,'mgr',b.dataset.mgdel,renderInput,'도우미 시간대'); return; }
   if(a==='mgrAdd'){ const last=c.mgr[c.mgr.length-1]; const next=last&&last.date?addDaysAt(last.date,1,0,0).slice(0,10):((c.f.recv||c.f.death||'').slice(0,10)); c.mgr.push({id:uid(),date:next,sh:last?last.sh:'',sm:last?last.sm:'',eh:last?last.eh:'',em:last?last.em:'',n:last?last.n:'2'}); touched(); renderInput(); return; }
@@ -3275,7 +3308,14 @@ function bandOut(c){ const co=coById(c.companyId); return fillTpl(co.band,c,{'�
    새로 만든 행사 · 공제 칸을 고친 행사만(c.dedNet, 추가만 · 이전 코드 없음). 예전 행사는 그대로(두 번 빠지지 않게). */
 function dedLine(t){ t=String(t||''); const sign=/공제|차감|할인/.test(t)?-1:/추가/.test(t)?1:0, m=[...t.matchAll(/\d[\d,]*(?:\.\d+)?\s*(?:만\s*원?|원)/g)], won=m.length?Math.abs(toWon(m[m.length-1][0])):0; return {sign,won,adj:sign*won}; }
 function dedOn(c){ return !!(c&&c.dedNet&&isGoi(coById(c.companyId))); }   /* function: 위쪽(PH_KEYS = vals(...))에서 먼저 불림 */
-function dedAdjWon(c){ return dedOn(c)?(c.deductions||[]).reduce((a,d)=>a+dedLine(d.text).adj,0):0; }
+function dedAdjWon(c){ return dedOn(c)?dedTexts(c).reduce((a,t)=>a+dedLine(t).adj,0):0; }
+/* 고이장례연구소 이행완료확인서 (2026.11.14 사용자 「기존납입금이 있나요? 얼마? 할인금액이 있나요? 얼마? → 합친 금액을 공제 · 추가 내역에 「이행완료확인서 11만원 공제」」)
+   공제 · 추가 항목 카드 맨 위 질문: 기존 납입금(f.paidAsk 'yes'|'no' + 금액은 예전 칸 f.paid = 밴드 「납입」 · 일정표 납입금) · 할인 금액(f.discAsk + f.certDisc) — 새 칸, 추가만 · 이전 코드 없음.
+   「있음」인 금액을 더해 공제 · 추가 항목 1번 줄로(기록에는 안 넣고 그때그때 만듦) → {공제항목} · 수금액(dedAdjWon)에 그대로. 직접 적은 「이행완료확인서 …」 줄이 있으면 그 줄만 씀(두 번 빠지지 않게). */
+function certRaw(c){ const f=(c&&c.f)||{}; if(!isGoi(coById(c.companyId))) return 0; return (f.paidAsk==='yes'?Math.abs(toWon(f.paid)):0)+(f.discAsk==='yes'?Math.abs(toWon(f.certDisc)):0); }
+function certSkip(c){ return certRaw(c)>0&&(c.deductions||[]).some(d=>/^\s*이행완료확인서/.test(d.text||'')); }
+function certLine(c){ const won=certRaw(c); return won&&!certSkip(c)?{won,text:`이행완료확인서 ${wonStr(won)} 공제`}:null; }
+function dedTexts(c){ const L=certLine(c); return [...(L?[L.text]:[]),...(c.deductions||[]).map(d=>String(d.text||'').trim()).filter(Boolean)]; }
 function dedAmtText(c,d){ if(!dedOn(c)||!String(d.text||'').trim()) return ''; const L=dedLine(d.text); if(!L.sign) return ''; if(!L.won) return '금액을 못 읽었습니다 (예: 5만원)'; return L.sign<0?`수금액에서 ${wonStr(L.won)} 뺍니다`:`수금액에 ${wonStr(L.won)} 더합니다`; }
 function signedWon(w){ return w>0?'+'+wonStr(w):wonStr(w); }
 function collectNetWon(c){ const w=toWon((c&&c.f||{}).collect); return w ? w-altarDeductWon(c)+dedAdjWon(c) : 0; }
