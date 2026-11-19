@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.14-9">
+<meta name="app-version" content="2026.11.19-1">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -176,6 +176,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
 .dwg-b{position:absolute;top:-5px;left:50%;margin-left:18px;min-width:24px;height:24px;padding:0 7px;box-sizing:border-box;display:grid;place-items:center;border-radius:12px;background:var(--warn,#a43c1c);color:var(--surface,#fff);font-size:13px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .dwg-t:active .dwg-i{transform:scale(.95)}
 .dwg-t:focus-visible{outline:2px solid var(--ink,#191b1f);outline-offset:2px}
+a.dwg-t{text-decoration:none}
 .dwh-box{border-radius:18px;background:var(--surface,#fff);overflow:hidden}
 .dwh-row{display:flex;align-items:center;gap:14px;width:100%;min-height:66px;padding:11px 16px;box-sizing:border-box;border:0;background:transparent;color:var(--ink,#191b1f);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .12s ease}
 .dwh-row:active{background:var(--accent-soft,#eef0f3)}
@@ -272,6 +273,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
     out: I('<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>'),
     sched: I('<path d="M9 4h6v3H9zM9 5.5H6a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6.5a1 1 0 0 0-1-1h-3M8.5 14l2.5 2.5 4.5-5"/>'),
     poster: I('<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7.5h6M8.5 11.5h7M8.5 15h7M8.5 18h4"/>'),
+    crem: I('<rect x="3" y="4.5" width="14" height="13" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/><circle cx="16.5" cy="16.5" r="3.5"/><path d="m19 19 2.5 2.5"/>'),   /* 화장예약 조회 (달력 + 돋보기) */
     settle: I('<rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 8h18M21 12h-6v5h6M17 14.5h.01"/>'),
     envelopes: I('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/>'),
     duty: I('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2"/>'),
@@ -327,7 +329,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
   }
   window.dwPhone = function () { return !!(window.matchMedia && matchMedia('(max-width:699px)').matches); };
   /* 휴대폰 첫 화면 (2026.11.11 바둑판 3안) — 장례업무 첫 화면(파트장 · 직원)과 서식 첫 화면(총괄실장)이 같이 씀.
-     dwHome.grid({todo:[{k, l, s, ic, tone:'ink'|'warn', warn}], groups:[{t, right(글자 그대로), tiles:[{k, l, ic, pri, badge}]}]}) → 첫 화면 글,
+     dwHome.grid({todo:[{k, l, s, ic, tone:'ink'|'warn', warn}], groups:[{t, right(글자 그대로), tiles:[{k, l, ic, pri, badge, href, aria}]}]}) → 첫 화면 글 (href 가 있는 칸 = 바깥 주소를 새 창으로 바로 엶, 2026.11.19 화장예약 조회),
      dwHome.at(첫 화면?), dwHome.bind(el, go, redraw) → 칸 · 할 일을 누르면 go(k), 「할 일 N건」은 할 일 상자를 펼침 · 접음, 권한 · 내 정보가 바뀌면 redraw */
   window.dwHome = {
     grid: function (o) {
@@ -338,6 +340,7 @@ html:not(.dw-leader) .dw-mode [data-dwmode="forms"]{display:none!important}
       (o.groups || []).forEach(function (g) {
         out += '<section class="dwg-sec" aria-label="' + esc(g.t) + '"><div class="dwg-sh"><h2>' + esc(g.t) + '</h2>' + (g.right ? '<span>' + g.right + '</span>' : '') + '</div><div class="dwg-grid">'
           + g.tiles.map(function (t) {
+            if (t.href) return '<a class="dwg-t" href="' + esc(t.href) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(t.aria || t.l) + ' (새 창)"><span class="dwg-i" aria-hidden="true">' + (IC[t.ic] || '') + '</span><span class="dwg-l">' + esc(t.l) + '</span></a>';
             return '<button type="button" class="dwg-t' + (t.pri ? ' pri' : '') + '" data-dwh="' + esc(t.k) + '"' + (t.badge ? ' aria-label="' + esc(t.l) + ' · 할 일 ' + esc(t.badge) + '건"' : '') + '><span class="dwg-i" aria-hidden="true">' + (IC[t.ic] || '') + '</span><span class="dwg-l">' + esc(t.l) + '</span>'
               + (t.badge ? '<span class="dwg-b" aria-hidden="true">' + esc(t.badge) + '</span>' : '') + '</button>';
           }).join('') + '</div></section>';
@@ -2288,6 +2291,8 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .pg-link .ui-icon{width:16px;height:16px}
 @media (hover:hover){.pg-link:hover{background:var(--bg-hover,var(--field))}}
 .pg-link:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}
+a.pg-link{text-decoration:none}
+@media (max-width:699px){.pg-ext{display:none}}   /* 화장예약 조회 바로가기: 휴대폰은 첫 화면 칸으로 (2026.11.19) */
 .pg-cta{flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 18px}
 .pg-cta .ui-icon{width:18px;height:18px}
 /* ② 요약 카드 4칸 (누르면 거르기 · aria-pressed) */
@@ -3534,7 +3539,10 @@ function fillTpl(body,c,over){
 }
 
 
-const UI_ICONS={"calendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"3\"/><path d=\"M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2\"/>", "edit": "<path d=\"m16 3 5 5-12 12-6 1 1-6zM13 6l5 5M3 6V3h5\"/>", "report": "<path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5\"/>", "wallet": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"3\"/><path d=\"M3 8h18M21 12h-6v5h6M17 14.5h.01\"/>", "settings": "<path d=\"M4 7h10M18 7h2M4 17h4M12 17h8\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"10\" cy=\"17\" r=\"2\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "building": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5\"/>", "right": "<path d=\"M5 12h14m-5-5 5 5-5 5\"/>", "left": "<path d=\"M19 12H5m5-5-5 5 5 5\"/>", "lock": "<rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V6a4 4 0 0 1 8 0v4M12 14v3\"/>"};
+/* 화장예약 간편조회 (2026.11.19 사용자: 「어플메인에 화장예약간편조회서비스 · E하늘 공식 서비스 · 누르면 바로 연결」)
+   e하늘 장사정보시스템 첫 화면 「시신 화장예약정보 간편조회 서비스」 버튼이 여는 주소 그대로(사망자 성명으로 당일~5일 예약 조회, 로그인 없음). 개장유골은 total_search2.do */
+const CREM_URL='https://15774129.go.kr/info/total_search.do';
+const UI_ICONS={"calendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"3\"/><path d=\"M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2\"/>", "edit": "<path d=\"m16 3 5 5-12 12-6 1 1-6zM13 6l5 5M3 6V3h5\"/>", "report": "<path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5\"/>", "wallet": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"3\"/><path d=\"M3 8h18M21 12h-6v5h6M17 14.5h.01\"/>", "settings": "<path d=\"M4 7h10M18 7h2M4 17h4M12 17h8\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"10\" cy=\"17\" r=\"2\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "building": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5\"/>", "right": "<path d=\"M5 12h14m-5-5 5 5-5 5\"/>", "left": "<path d=\"M19 12H5m5-5-5 5 5 5\"/>", "lock": "<rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V6a4 4 0 0 1 8 0v4M12 14v3\"/>", "ext": "<path d=\"M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5\"/>"};
 const uiIcon=k=>`<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">${UI_ICONS[k]||''}</svg>`;
 const INPUT_GROUPS=[{id:'basic',label:'기본 정보'},{id:'schedule',label:'장례 일정'},{id:'service',label:'상품·제공'},{id:'staff',label:'담당·배치'}];
 let inputGroup='basic';
@@ -5295,7 +5303,7 @@ function renderList(){
   const {mm,lastD,left,wd,dday}=ddInfo();
   /* ① 위 제목 줄 */
   let h=`<header class="pg-head"><div class="pg-h"><h1 class="pg-title">행사 목록<span class="pg-count num">${all.length}건</span></h1>
-      <p class="pg-sub"><span>${mm}월 마감 <b>${dday}</b> · ${left===0?'오늘이 마감일입니다':`${mm}월 ${lastD}일(${wd(lastD)})까지`}</span><button class="pg-link" type="button" data-lv-env="${esc(envM)}">${envMo}월 봉투 합계 <b class="num">${w(envS.all.total)}</b><small>본부장 ${w(envS.part.total)} · 실장 ${w(envS.manager.total)}</small>${uiIcon('right')}</button></p></div>
+      <p class="pg-sub"><span>${mm}월 마감 <b>${dday}</b> · ${left===0?'오늘이 마감일입니다':`${mm}월 ${lastD}일(${wd(lastD)})까지`}</span><button class="pg-link" type="button" data-lv-env="${esc(envM)}">${envMo}월 봉투 합계 <b class="num">${w(envS.all.total)}</b><small>본부장 ${w(envS.part.total)} · 실장 ${w(envS.manager.total)}</small>${uiIcon('right')}</button><a class="pg-link pg-ext" href="${CREM_URL}" target="_blank" rel="noopener noreferrer" aria-label="화장예약 간편조회 · e하늘 (새 창)">화장예약 조회<small>e하늘</small>${uiIcon('ext')}</a></p></div>
     <button class="btn primary pg-cta" type="button" data-lv-new>${uiIcon('plus')}새 행사</button></header>`;
   /* ② 요약 카드 4칸 (누르면 거르기 — 도구 줄 상태 고르기와 같은 값 LV.st) + 검색 · 필터 한 줄 */
   const CARDS=[['','전체',list=>{ const n=cnt('none').length; return n?`입력 전 ${n}건`:''; }],['open','미정산',list=>list.length?w(sumWon(list)):''],['minus','마이너스',list=>list.length?'− '+w(Math.abs(sumWon(list))):''],['sent','보냄',list=>list.length?w(sumWon(list)):'']];
@@ -7823,7 +7831,7 @@ function renderHome(){
   groups.push({t:'행사',right:left===0?`오늘이 <b>${mm}월 마감일</b>`:`${mm}월 마감까지 <b>${left}일</b>`,tiles:[
     {k:'new',l:'새 행사',ic:'plus',pri:true},{k:'list',l:'행사 목록',ic:'list'},{k:'p-input',l:'행사 입력',ic:'input'},{k:'p-out',l:'양식',ic:'out'},
     {k:'p-sched',l:'행사 보고서',ic:'sched'},{k:'p-settle',l:'정산',ic:'settle',badge:nSt||''},{k:'envelopes',l:'봉투',ic:'envelopes'},{k:'poster',l:'장례일정표',ic:'poster'},
-    {k:'duty',l:'휴무 · 당직',ic:'duty'},{k:'board',l:'게시판',ic:'board'},{k:'admin',l:'설정',ic:'set'}]});   /* 2026.11.13 사용자 「주요 기능은 바로바로」: 1~5단계 칸 — 누르면 이번 달 행사 고르기 → 그 화면 */
+    {k:'x-crem',l:'화장예약 조회',ic:'crem',href:CREM_URL,aria:'화장예약 간편조회 · e하늘'},{k:'duty',l:'휴무 · 당직',ic:'duty'},{k:'board',l:'게시판',ic:'board'},{k:'admin',l:'설정',ic:'set'}]});   /* 2026.11.13 사용자 「주요 기능은 바로바로」: 1~5단계 칸 — 누르면 이번 달 행사 고르기 → 그 화면 */
   if(document.documentElement.classList.contains('dw-leader')) groups.push({t:'서식',tiles:FORM_TILES.map(x=>({k:x[0],l:x[1],ic:x[2]}))});
   groups.push({t:'배송',right:`전체 ${dvList().length}건`,tiles:[{k:'d-new',l:'새 배송',ic:'plus',pri:true}].concat(dv?[{k:'d-resume',l:'이어서 작성',ic:'input'}]:[],[{k:'d-log',l:'배송 기록',ic:'list'}])});
   el.innerHTML=window.dwHome.grid({todo,groups});

@@ -139,8 +139,11 @@ def main():
                     problems.append(f'{tag}: 행사 입력 화면에 「‹ 홈」 버튼이 안 보임')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
                 got = p.evaluate("[db.tab, [...document.querySelectorAll('#p-home .dwg-sec h2')].map(x=>x.textContent).join(' '), document.querySelectorAll('#p-home .dwg-t').length, document.querySelector('#p-home .dwg-todo')?.textContent||'', !!(document.getElementById('dwHomeBtn')||{}).offsetParent]")
-                if got != ['home', '행사 서식 배송', 21, '할 일 3건', False]:
+                if got != ['home', '행사 서식 배송', 22, '할 일 3건', False]:   # 2026.11.19 화장예약 조회 칸 더함
                     problems.append(f'{tag}: 첫 화면이 다름 [탭, 묶음, 칸 수, 할 일, 홈 버튼 보임] = {got}')
+                crem = p.evaluate("(a=>a&&[a.getAttribute('href'),a.target,a.rel,a.textContent])(document.querySelector('#p-home a.dwg-t'))")   # 화장예약 조회 = e하늘 새 창
+                if crem != ['https://15774129.go.kr/info/total_search.do', '_blank', 'noopener noreferrer', '화장예약 조회']:
+                    problems.append(f'{tag}: 첫 화면 「화장예약 조회」 칸이 다름 {crem}')
                 p.click('#p-home [data-dwg-todo]'); p.wait_for_timeout(200)
                 if p.evaluate("document.getElementById('dwgTodo').hidden || document.querySelectorAll('#dwgTodo .dwh-row').length!==3"):
                     problems.append(f'{tag}: 첫 화면 「할 일 3건」을 눌러도 할 일이 안 펼쳐짐')
