@@ -518,3 +518,144 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .ep-later{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;padding:10px 12px;border:1px dashed var(--edge);border-radius:12px;font-size:14px;color:var(--ink-2)}
 .lv-later{display:inline-block;margin-left:6px;font-size:12px;font-weight:600;color:var(--warn);white-space:nowrap}
 </style>
+<!-- 휴대폰 첫 화면 대시보드 (2026.11.19 사용자: 「단순 4열 아이콘 그리드(런처형) → 토스 · 카카오뱅크 스타일 모던 핀테크/엔터프라이즈 대시보드로 전면 개편」)
+     바탕 #F4F6F9 · 흰 카드(16px 둥근 모서리 · 그림자 0 2px 12px rgba(0,0,0,.03) · 테두리 없음) · 숫자 tabular-nums · 누르면 scale(.98).
+     요약 카드(네이비) · 진행 중인 행사 · 2×2 퀵 카드(파스텔 그림 바탕) · 서식 1열 목록 · 떠 있는 「+ 새 행사」 · 아래 탭 바(64px · 반투명 흐림).
+     코드: src/funeral.html renderHome · renderFhub · renderMore · tbPaint · homeGo · acOpen. 휴대폰(699px 이하)만 — 태블릿 · PC 는 위 메뉴 줄 그대로 -->
+<style id="dsh-css">
+:root{--dsh-bg:#F4F6F9;--dsh-card:#FFFFFF;--dsh-shadow:0 2px 12px rgba(0,0,0,.03);--dsh-line:#EEF1F5;--dsh-sub:#6B7684;--dsh-chev:#B0B8C1;
+  --dsh-hero:#1B2A4A;--dsh-hero-2:rgba(255,255,255,.1);--dsh-hero-sub:rgba(255,255,255,.72);--dsh-bar:#6EA0FF;--dsh-bar-bg:rgba(255,255,255,.16);
+  --dsh-blue:#EAF1FF;--dsh-blue-i:#2457D6;--dsh-mint:#E3F6EE;--dsh-mint-i:#0F8A5F;--dsh-amber:#FFF2DC;--dsh-amber-i:#B26A00;--dsh-purple:#F0EBFF;--dsh-purple-i:#6B46C1;
+  --dsh-red:#FDECEE;--dsh-red-i:#C2343F;--dsh-slate:#F1F3F6;--dsh-slate-i:#4E5968;
+  --dsh-tab:rgba(255,255,255,.9);--dsh-tab-edge:rgba(15,23,42,.06);--dsh-tab-off:#8B95A1;--dsh-fab-shadow:0 8px 20px rgba(36,87,214,.28)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--dsh-bg:#0E131B;--dsh-card:#161D28;--dsh-shadow:0 0 0 1px #212B3A;--dsh-line:#212B3A;--dsh-sub:#97A3B6;--dsh-chev:#5F6B7E;
+  --dsh-hero:#1A2C55;--dsh-hero-2:rgba(255,255,255,.09);--dsh-bar:#7FA6FF;
+  --dsh-blue:rgba(127,166,255,.15);--dsh-blue-i:#8FB2FF;--dsh-mint:rgba(64,201,152,.15);--dsh-mint-i:#5BD3A9;--dsh-amber:rgba(255,184,77,.15);--dsh-amber-i:#FFC266;--dsh-purple:rgba(167,139,250,.17);--dsh-purple-i:#BBA6FF;
+  --dsh-red:rgba(242,148,155,.15);--dsh-red-i:#F2949B;--dsh-slate:rgba(151,163,182,.14);--dsh-slate-i:#B9C3D2;
+  --dsh-tab:rgba(22,29,40,.9);--dsh-tab-edge:rgba(255,255,255,.06);--dsh-tab-off:#8C99AD;--dsh-fab-shadow:0 8px 20px rgba(0,0,0,.45)}}
+:root[data-theme="dark"]{--dsh-bg:#0E131B;--dsh-card:#161D28;--dsh-shadow:0 0 0 1px #212B3A;--dsh-line:#212B3A;--dsh-sub:#97A3B6;--dsh-chev:#5F6B7E;
+  --dsh-hero:#1A2C55;--dsh-hero-2:rgba(255,255,255,.09);--dsh-bar:#7FA6FF;
+  --dsh-blue:rgba(127,166,255,.15);--dsh-blue-i:#8FB2FF;--dsh-mint:rgba(64,201,152,.15);--dsh-mint-i:#5BD3A9;--dsh-amber:rgba(255,184,77,.15);--dsh-amber-i:#FFC266;--dsh-purple:rgba(167,139,250,.17);--dsh-purple-i:#BBA6FF;
+  --dsh-red:rgba(242,148,155,.15);--dsh-red-i:#F2949B;--dsh-slate:rgba(151,163,182,.14);--dsh-slate-i:#B9C3D2;
+  --dsh-tab:rgba(22,29,40,.9);--dsh-tab-edge:rgba(255,255,255,.06);--dsh-tab-off:#8C99AD;--dsh-fab-shadow:0 8px 20px rgba(0,0,0,.45)}
+
+/* 화면 틀 */
+.dsh{display:grid;gap:24px;width:100%;box-sizing:border-box;max-width:560px;margin:0 auto;padding:4px 0 24px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.dsh .num{font-variant-numeric:tabular-nums}
+.dsh-sec{display:grid;gap:10px}
+.dsh-sh{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px;padding:0 4px}
+.dsh-sh h2{margin:0;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.35}
+.dsh-more{display:inline-flex;align-items:center;gap:2px;min-height:44px;margin:-6px -8px -6px 0;padding:0 6px 0 10px;border:0;border-radius:10px;background:none;color:var(--dsh-sub);font:inherit;font-size:14px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsh-more svg.dsh-chev{width:16px;height:16px}
+.dsh-card{border:0;border-radius:16px;background:var(--dsh-card);box-shadow:var(--dsh-shadow)}
+.dsh-note{margin:0 4px;font-size:13px;line-height:1.5;color:var(--dsh-sub);word-break:keep-all}
+.dsh-press{transition:transform .12s ease,background-color .12s ease;-webkit-tap-highlight-color:transparent}
+.dsh-press:active{transform:scale(.98)}
+.dsh svg.dsh-chev,.ac-list svg.dsh-chev{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;color:var(--dsh-chev);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.dsh button:focus-visible,.dsh a:focus-visible,.dw-tabbar button:focus-visible,.dw-fab:focus-visible,.ac-list :focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:2px}
+
+/* ② 요약 카드 (네이비) */
+.dsh-hero{display:grid;gap:0;padding:22px 20px 16px;border-radius:16px;background:var(--dsh-hero);color:#fff;box-shadow:var(--dsh-shadow)}
+.dsh-hi{margin:0;font-size:15px;font-weight:600;color:var(--dsh-hero-sub);letter-spacing:-.01em}
+.dsh-dd{margin:6px 0 16px;font-size:22px;font-weight:700;line-height:1.35;letter-spacing:-.025em;word-break:keep-all}
+.dsh-dd b{color:#9CC0FF;font-weight:800}
+.dsh-bar{position:relative;height:8px;border-radius:4px;background:var(--dsh-bar-bg);overflow:hidden}
+.dsh-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--dsh-bar)}
+.dsh-bar-l{display:flex;justify-content:space-between;gap:8px;margin:8px 0 16px;font-size:12.5px;color:var(--dsh-hero-sub)}
+.dsh-todo{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:12px 12px 12px 14px;box-sizing:border-box;border:0;border-radius:12px;background:var(--dsh-hero-2);color:#fff;font:inherit;text-align:left;cursor:pointer}
+.dsh-todo.none{cursor:default}
+.dsh-todo-i{position:relative;width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;background:rgba(255,255,255,.14)}
+.dsh-todo-i svg{width:21px;height:21px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.dsh-todo-i i{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#FF6B5F;box-shadow:0 0 0 2px var(--dsh-hero)}
+.dsh-todo-t{flex:1;min-width:0;display:grid;gap:2px}
+.dsh-todo-t b{font-size:16px;font-weight:700;line-height:1.35}
+.dsh-todo-t em{font-style:normal;color:#9CC0FF}
+.dsh-todo-t small{font-size:13px;line-height:1.4;color:var(--dsh-hero-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsh-todo svg.dsh-chev{color:rgba(255,255,255,.7)}
+.dsh-todo.none .dsh-todo-t small{white-space:normal}
+
+/* ③ 진행 중인 행사 · ⑤ 1열 목록 */
+.dsh-list{overflow:hidden}
+.dsh-row,.dsh-case,.dsh-me{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;padding:10px 16px;box-sizing:border-box;border:0;border-radius:0;background:none;color:var(--ink);font:inherit;text-align:left;text-decoration:none;cursor:pointer}
+.dsh-case{min-height:72px;gap:12px}
+.dsh-row+.dsh-row,.dsh-case+.dsh-case{box-shadow:inset 0 1px 0 var(--dsh-line)}
+.dsh-me{min-height:76px;border-radius:16px;background:var(--dsh-card);box-shadow:var(--dsh-shadow)}
+@media (hover:hover){.dsh-row:hover,.dsh-case:hover{background:var(--bg-hover,#F6F8FB)}}
+.dsh-row:active,.dsh-case:active{background:var(--bg-hover,#F6F8FB)}
+.dsh-list .dsh-row:first-child,.dsh-cases .dsh-case:first-child{border-radius:16px 16px 0 0}
+.dsh-list .dsh-row:last-child,.dsh-cases .dsh-case:last-child{border-radius:0 0 16px 16px}
+.dsh-list .dsh-row:only-child,.dsh-cases .dsh-case:only-child{border-radius:16px}
+.dsh-ri{width:36px;height:36px;flex:none;display:grid;place-items:center;border-radius:10px;background:var(--dsh-slate);color:var(--dsh-slate-i)}
+.dsh-me .dsh-ri{width:44px;height:44px;border-radius:50%}
+.dsh-ri svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.dsh-rt{flex:1;min-width:0;display:grid;gap:2px}
+.dsh-rt b{font-size:16px;font-weight:600;line-height:1.4;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsh-rt small{font-size:13px;line-height:1.4;color:var(--dsh-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsh-rt small.warn{color:var(--dsh-red-i)}
+.dsh-ext{flex:none;display:grid;place-items:center;color:var(--dsh-chev)}
+.dsh-ext svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dsh-no{width:36px;height:36px;flex:none;display:grid;place-items:center;border-radius:12px;background:var(--dsh-blue);color:var(--dsh-blue-i);font-size:15px;font-weight:800}
+.dsh-chip{flex:none;display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 6px;border-radius:14px;background:var(--dsh-blue);color:var(--dsh-blue-i);font-size:13px;font-weight:700;white-space:nowrap}
+.dsh-chip i{width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:var(--dsh-blue-i);color:var(--dsh-card);font-style:normal;font-size:11.5px;font-weight:800}
+.dsh-chip.done,.dsh-chip.st-sent,.dsh-chip.st-cleared{padding:0 10px;background:var(--dsh-mint);color:var(--dsh-mint-i)}
+.dsh-chip.st-minus{padding:0 10px;background:var(--dsh-red);color:var(--dsh-red-i)}
+.dsh-chip.st-open,.dsh-chip.st-changed{padding:0 10px;background:var(--dsh-amber);color:var(--dsh-amber-i)}
+.dsh-empty{display:grid;gap:4px;padding:22px 20px;text-align:center}
+.dsh-empty b{font-size:16px;font-weight:600}
+.dsh-empty small{font-size:13.5px;color:var(--dsh-sub)}
+
+/* ④ 자주 쓰는 업무 2×2 */
+.dsh-qgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dsh-q{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:0;min-height:128px;padding:16px;box-sizing:border-box;border:0;border-radius:16px;background:var(--dsh-card);box-shadow:var(--dsh-shadow);color:var(--ink);font:inherit;text-align:left;text-decoration:none;cursor:pointer}
+.dsh-qi{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;margin-bottom:14px}
+.dsh-qi svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.dsh-qx{position:absolute;top:16px;right:14px;color:var(--dsh-chev)}
+.dsh-qx svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dsh-ql{font-size:16px;font-weight:700;line-height:1.35;letter-spacing:-.02em;word-break:keep-all}
+.dsh-qs{margin-top:3px;font-size:13px;line-height:1.4;color:var(--dsh-sub);word-break:keep-all}
+.dsh-qs.warn{color:var(--dsh-amber-i);font-weight:600}
+.t-blue{background:var(--dsh-blue)!important;color:var(--dsh-blue-i)!important}
+.t-mint{background:var(--dsh-mint)!important;color:var(--dsh-mint-i)!important}
+.t-amber{background:var(--dsh-amber)!important;color:var(--dsh-amber-i)!important}
+.t-purple{background:var(--dsh-purple)!important;color:var(--dsh-purple-i)!important}
+.t-red{background:var(--dsh-red)!important;color:var(--dsh-red-i)!important}
+.t-slate{background:var(--dsh-slate)!important;color:var(--dsh-slate-i)!important}
+
+/* 고르기 창 (할 일 · 알림 · 정산 · 봉투) */
+.ac-list{overflow:auto;overscroll-behavior:contain;padding:2px 8px 14px}
+.ac-list .dsh-row{border-radius:12px!important;box-shadow:none!important}
+.ac-empty{padding:12px 10px 18px}
+
+/* 위 막대 알림 종 (휴대폰 첫 화면만) */
+.ab-bell{display:none;position:relative;flex:none;width:44px;height:44px;place-items:center;border:0;border-radius:10px;background:var(--btn2,#F1F5F9);color:var(--ink-2,#4C596D);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ab-bell svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ab-bell-n{position:absolute;top:4px;right:3px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;display:grid;place-items:center;border-radius:9px;background:#E5484D;color:#fff;font-size:12px;font-weight:700;line-height:1;box-shadow:0 0 0 2px var(--surface,#fff)}
+.ab-bell-n[hidden]{display:none}
+
+/* 아래 탭 바 · 떠 있는 「+ 새 행사」 */
+.dw-tabbar,.dw-fab{display:none}
+@media (max-width:699px){
+  html.dw-root body{background:var(--dsh-bg)}
+  html.dw-at-home .ab-bell{display:inline-grid}
+  html.dw-root .dw-home-btn{display:none!important}   /* 아래 탭 바가 있는 화면은 「‹ 홈」 없음 */
+  html.dw-root .dw-tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;height:calc(64px + env(safe-area-inset-bottom,0px));padding:0 6px env(safe-area-inset-bottom,0px);box-sizing:border-box;background:var(--dsh-tab);-webkit-backdrop-filter:saturate(1.6) blur(12px);backdrop-filter:saturate(1.6) blur(12px);box-shadow:0 -1px 0 var(--dsh-tab-edge)}
+  .dw-tabbar button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:none;color:var(--dsh-tab-off);font:inherit;font-size:12px;font-weight:600;letter-spacing:-.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+  .dw-tabbar button:active{transform:scale(.98)}
+  .dw-tabbar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .dw-tabbar button[aria-current="page"]{color:var(--brand,#2457D6)}
+  .dw-tabbar button[aria-current="page"] svg{stroke-width:2.2}
+  html.dw-root.dw-fab-on .dw-fab{display:inline-flex;position:fixed;right:16px;bottom:calc(64px + 16px + env(safe-area-inset-bottom,0px));z-index:41;align-items:center;gap:6px;height:52px;padding:0 22px 0 18px;border:0;border-radius:26px;background:var(--brand,#2457D6);color:var(--accent-ink,#fff);font:inherit;font-size:16px;font-weight:700;letter-spacing:-.01em;box-shadow:var(--dsh-fab-shadow);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+  .dw-fab:active{transform:scale(.98)}
+  .dw-fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+  html.dw-gated .dw-tabbar,html.dw-gated .dw-fab,html.dw-dr-lock .dw-fab{display:none!important}
+  html.dw-root #p-home,html.dw-root #p-fhub,html.dw-root #p-more{padding-top:12px}
+  html.dw-root #p-fhub,html.dw-root #p-more{padding-bottom:calc(64px + 12px + env(safe-area-inset-bottom,0px))}
+  html.dw-root.dw-fab-on #p-home,html.dw-root.dw-fab-on #p-list{padding-bottom:calc(64px + 84px + env(safe-area-inset-bottom,0px))}
+  html.dw-root.dw-fab-on #p-list .pg-cta{display:none}   /* 행사 목록: 「새 행사」는 떠 있는 버튼 하나로 */
+  html.dw-root.dw-root body .toast{bottom:calc(64px + 16px + env(safe-area-inset-bottom,0px))}
+  html.dw-root.dw-fab-on body .toast{bottom:calc(64px + 84px + env(safe-area-inset-bottom,0px))}
+  body[data-tab="fhub"] .wrap>.top,body[data-tab="more"] .wrap>.top{display:none}
+}
+body[data-tab="fhub"] #newCase,body[data-tab="fhub"] #saveNow,body[data-tab="fhub"] #saveState,body[data-tab="more"] #newCase,body[data-tab="more"] #saveNow,body[data-tab="more"] #saveState{display:none}
+@media (prefers-reduced-motion:reduce){.dsh-press,.dw-tabbar button,.dw-fab{transition:none}.dsh-press:active,.dw-tabbar button:active,.dw-fab:active{transform:none}}
+</style>

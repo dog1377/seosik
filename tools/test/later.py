@@ -60,7 +60,7 @@ def main():
         want('보내는금액 그대로', p.evaluate('settleCalc(curCase()).sendWon'), 0)
         p.evaluate("setTab('home')")
         p.wait_for_timeout(300)
-        want('첫 화면 할 일', p.evaluate("[homeT.later.length, document.querySelector('#p-home').innerHTML.includes('장지 추후입금 1건')]"), [1, True])
+        want('첫 화면 할 일', p.evaluate("[homeT.later.length, homeTodo.some(t=>t.l==='장지 추후입금 1건')]"), [1, True])
         p.evaluate("LV.month='';LV.st='later';setTab('list')")
         p.wait_for_timeout(300)
         want('행사 목록 (추후입금만)', p.evaluate("[document.querySelectorAll('.lv-tr:not(.lv-th):not(.lv-tf)').length, !!document.querySelector('.lv-later')]"), [1, True])
