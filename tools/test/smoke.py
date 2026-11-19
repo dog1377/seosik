@@ -140,9 +140,16 @@ def main():
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
                 # 첫 화면 대시보드 (2026.11.19): 요약 카드 · 진행 중인 행사 · 자주 쓰는 업무 2×2 · 서식 1열 · 떠 있는 「+ 새 행사」 · 아래 탭 바
                 vis = "(id=>{const e=document.getElementById(id);return !!e&&getComputedStyle(e).display!=='none'})"
+                p.evaluate("db.homeQuick=[]; save(); renderHome()")   # 같은 계정으로 화면 크기마다 다시 들어오므로 처음 상태로
                 got = p.evaluate(f"[db.tab, [...document.querySelectorAll('#p-home .dsh-sec h2')].map(x=>x.textContent).join(' '), document.querySelectorAll('#p-home .dsh-q').length, (document.querySelector('#p-home .dsh-todo b')||{{}}).textContent||'', !!(document.getElementById('dwHomeBtn')||{{}}).offsetParent, {vis}('dwTabbar'), {vis}('dwFab'), document.querySelectorAll('#dwTabbar [data-tb]').length]")
-                if got != ['home', '진행 중인 행사 자주 쓰는 업무 서식', 4, '오늘 할 일 3건', False, True, True, 4]:
+                if got != ['home', '진행 중인 행사 자주 쓰는 기능 서식', 0, '오늘 할 일 3건', False, True, True, 4]:   # 자주 쓰는 기능은 처음엔 비어 있음 (2026.11.19)
                     problems.append(f'{tag}: 첫 화면이 다름 [탭, 묶음, 퀵 카드, 할 일, 홈 버튼 보임, 탭 바, 새 행사 버튼, 탭 수] = {got}')
+                if p.evaluate("document.querySelectorAll('#p-home .dsh-case').length"):   # 시험 행사는 발인일(10월)이 지남 → 진행 중 아님
+                    problems.append(f'{tag}: 발인일이 지난 행사가 「진행 중인 행사」에 보임')
+                p.click('#p-home .dsh-qempty'); p.wait_for_timeout(300)   # 자주 쓰는 기능 고르기 → 화장예약 조회 · 정산
+                p.click('#acList [data-qe="crem"]'); p.click('#acList [data-qe="p-settle"]'); p.click('#acFoot [data-qe-done]'); p.wait_for_timeout(300)
+                if p.evaluate("[db.homeQuick, 'homeQuick' in sbSettings(), [...document.querySelectorAll('#p-home .dsh-q .dsh-ql')].map(x=>x.textContent)]") != [['crem', 'p-settle'], True, ['화장예약 조회', '정산', '추가']]:
+                    problems.append(f'{tag}: 자주 쓰는 기능을 골랐는데 첫 화면 카드가 다름')
                 crem = p.evaluate("(a=>a&&[a.getAttribute('href'),a.target,a.rel,a.querySelector('.dsh-ql').textContent])(document.querySelector('#p-home a.dsh-q'))")   # 화장예약 조회 = e하늘 새 창
                 if crem != ['https://15774129.go.kr/info/total_search.do', '_blank', 'noopener noreferrer', '화장예약 조회']:
                     problems.append(f'{tag}: 첫 화면 「화장예약 조회」 카드가 다름 {crem}')
@@ -225,7 +232,7 @@ def main():
             if w < 700:
                 if p.evaluate('db.tab') != 'home':
                     problems.append(f'member {tag}: 휴대폰에서 앱을 열었는데 첫 화면이 아님')
-                elif p.evaluate("[...document.querySelectorAll('#p-home .dsh-sec h2')].map(x=>x.textContent).join(' ')") != '진행 중인 행사 자주 쓰는 업무':
+                elif p.evaluate("[...document.querySelectorAll('#p-home .dsh-sec h2')].map(x=>x.textContent).join(' ')") != '진행 중인 행사 자주 쓰는 기능':
                     problems.append(f'member {tag}: 직원 첫 화면에 서식 묶음이 보이거나 묶음이 다름')
                 p.evaluate("setTab('admin')"); look(p, f'member_settings_{tag}')
                 if p.evaluate("[...document.querySelectorAll('#setHub [data-dws]')].map(b=>b.dataset.dws).filter(k=>k.startsWith('ev-')||k.startsWith('fm-')||k.startsWith('co-')).join(',')") != 'ev-rules,ev-lists,ev-keep':

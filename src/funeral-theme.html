@@ -614,6 +614,25 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .dsh-ql{font-size:16px;font-weight:700;line-height:1.35;letter-spacing:-.02em;word-break:keep-all}
 .dsh-qs{margin-top:3px;font-size:13px;line-height:1.4;color:var(--dsh-sub);word-break:keep-all}
 .dsh-qs.warn{color:var(--dsh-amber-i);font-weight:600}
+.dsh-qadd{background:transparent;box-shadow:none;border:1.5px dashed var(--dsh-chev)}
+.dsh-qadd .dsh-qi{background:var(--dsh-slate);color:var(--dsh-slate-i)}
+.dsh-qempty{display:flex;align-items:center;gap:14px;width:100%;min-height:84px;padding:14px 16px;box-sizing:border-box;border:1.5px dashed var(--dsh-chev);border-radius:16px;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.dsh-qempty .dsh-qi{margin:0;flex:none}
+.dsh-qempty .dsh-rt small{white-space:normal}
+/* 자주 쓰는 기능 고르기 창 */
+.qe-help{margin:2px 10px 6px;font-size:13.5px;line-height:1.5;color:var(--dsh-sub);word-break:keep-all}
+.qe-help b{margin-left:4px;color:var(--brand,#2457D6)}
+.qe-help.warn{color:var(--dsh-red-i)}
+.qe-g h3{margin:14px 10px 4px;font-size:13px;font-weight:700;color:var(--dsh-sub)}
+.qe-row{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:8px 10px;box-sizing:border-box;border:0;border-radius:12px;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.qe-row[aria-pressed="true"]{background:var(--bg-selected,#EDF2FF)}
+@media (hover:hover){.qe-row:hover{background:var(--bg-hover,#F6F8FB)}.qe-row[aria-pressed="true"]:hover{background:var(--bg-selected,#EDF2FF)}}
+.qe-ck{width:24px;height:24px;flex:none;box-sizing:border-box;display:grid;place-items:center;border:2px solid var(--dsh-chev);border-radius:50%}
+.qe-row[aria-pressed="true"] .qe-ck{border-color:var(--brand,#2457D6);background:var(--brand,#2457D6)}
+.qe-ck i{font-style:normal;font-size:12.5px;font-weight:800;color:var(--accent-ink,#fff)}
+.ac-foot{flex:none;display:flex;justify-content:flex-end;padding:12px 16px 12px;box-shadow:0 -1px 0 var(--dsh-line)}
+.ac-foot[hidden]{display:none}
+.ac-foot .btn{min-width:120px;min-height:48px}
 .t-blue{background:var(--dsh-blue)!important;color:var(--dsh-blue-i)!important}
 .t-mint{background:var(--dsh-mint)!important;color:var(--dsh-mint-i)!important}
 .t-amber{background:var(--dsh-amber)!important;color:var(--dsh-amber-i)!important}

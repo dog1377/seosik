@@ -1226,7 +1226,7 @@ body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!im
   <button type="button" data-tb="more"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/></svg><span>전체</span></button>
 </nav>
 <button type="button" class="dw-fab" id="dwFab" data-hk="new"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새 행사</button>
-<div class="csheet-bg" id="acBg" hidden><div class="csheet ac-sheet" role="dialog" aria-modal="true" aria-labelledby="acTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="acTitle"></b><button class="x" type="button" id="acClose" aria-label="닫기">✕</button></div><div class="ac-list" id="acList"></div></div></div>
+<div class="csheet-bg" id="acBg" hidden><div class="csheet ac-sheet" role="dialog" aria-modal="true" aria-labelledby="acTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="acTitle"></b><button class="x" type="button" id="acClose" aria-label="닫기">✕</button></div><div class="ac-list" id="acList"></div><div class="ac-foot" id="acFoot" hidden></div></div></div>
 <div class="csheet-bg" id="chBg" hidden><div class="csheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="chTitle"></b><button class="x" type="button" id="chClose" aria-label="닫기">✕</button></div><div class="csheet-list" id="chList" role="listbox"></div></div></div>
 <div class="csheet-bg" id="psBg" hidden><div class="csheet pz-sheet" role="dialog" aria-modal="true" aria-labelledby="psTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="psTitle">복사한 글로 새 행사</b><button class="x" type="button" id="psClose" aria-label="닫기">✕</button></div><div class="pz-body" id="psBody"></div></div></div>
 <div class="csheet-bg" id="cpBg" hidden><div class="csheet cp-sheet" role="dialog" aria-modal="true" aria-labelledby="cpTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="cpTitle">행사 선택</b><button class="x" type="button" id="cpClose" aria-label="닫기">✕</button></div>
@@ -1957,7 +1957,7 @@ function fillTpl(body,c,over){
 
 /* 화장예약 간편조회 (2026.11.19 사용자: 「어플메인에 화장예약간편조회서비스 · E하늘 공식 서비스 · 누르면 바로 연결」)
    e하늘 장사정보시스템 첫 화면 「시신 화장예약정보 간편조회 서비스」 버튼이 여는 주소 그대로(사망자 성명으로 당일~5일 예약 조회, 로그인 없음). 개장유골은 total_search2.do */
-const CREM_URL='https://15774129.go.kr/info/total_search.do';
+const CREM_URL='https://15774129.go.kr/info/total_search.do', CREM_URL2='https://15774129.go.kr/info/total_search2.do';   /* 2 = 개장유골 */
 const UI_ICONS={"calendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"3\"/><path d=\"M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2\"/>", "edit": "<path d=\"m16 3 5 5-12 12-6 1 1-6zM13 6l5 5M3 6V3h5\"/>", "report": "<path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5\"/>", "wallet": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"3\"/><path d=\"M3 8h18M21 12h-6v5h6M17 14.5h.01\"/>", "settings": "<path d=\"M4 7h10M18 7h2M4 17h4M12 17h8\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"10\" cy=\"17\" r=\"2\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "building": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5\"/>", "right": "<path d=\"M5 12h14m-5-5 5 5-5 5\"/>", "left": "<path d=\"M19 12H5m5-5-5 5 5 5\"/>", "lock": "<rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V6a4 4 0 0 1 8 0v4M12 14v3\"/>", "ext": "<path d=\"M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5\"/>"};
 const uiIcon=k=>`<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">${UI_ICONS[k]||''}</svg>`;
 const INPUT_GROUPS=[{id:'basic',label:'기본 정보'},{id:'schedule',label:'장례 일정'},{id:'service',label:'상품·제공'},{id:'staff',label:'담당·배치'}];
@@ -2949,7 +2949,7 @@ function renderKeep(){
    이 기기 저장값: dw-sb-auth(로그인), dw-sb-meta(무엇을 올렸는지), dw-sb-dev(기기 번호). */
 const SB_URL='https://bruqeidlbougfdveomag.supabase.co', SB_KEY='sb_publishable_nA1F7Ye-9e5Xy6Zj4xTQjg_J56YLY2P';
 const SB_APP='funeral', SB_DOMAIN='dwfuneral.com', SB_AUTH='dw-sb-auth', SB_META='dw-sb-meta', SB_DEV='dw-sb-dev';
-const SB_SET_KEYS=['companies','lists','crems','defaultItems','settleRules','me','dispatchTpl','offTpl','envelopeSkipped','ships'];   /* ships = 배송 기록 (2026.10.30) */
+const SB_SET_KEYS=['companies','lists','crems','defaultItems','settleRules','me','dispatchTpl','offTpl','envelopeSkipped','ships','homeQuick'];   /* ships = 배송 기록 (2026.10.30), homeQuick = 첫 화면 자주 쓰는 기능 (2026.11.19) */
 var sbc=null, sbUser=null, sbChan=null, sbBusy=false, sbAgain=false, sbTimer=0, sbState='off', sbRt='', sbNeedRender=false, sbBooting=false;
 const sbDev=(()=>{ try{ let d=localStorage.getItem(SB_DEV); if(!d){ d=Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem(SB_DEV,d); } return d; }catch(e){ return 'x'+Math.random().toString(36).slice(2,10); } })();
 function sbLoadMeta(){ let m={}; try{ m=JSON.parse(localStorage.getItem(SB_META)||'{}')||{}; }catch(e){} ['h','up','known'].forEach(k=>{ if(!m[k]||typeof m[k]!=='object') m[k]={}; }); return m; }
@@ -6236,8 +6236,8 @@ let homeT={}, homeTodo=[];   /* 첫 화면 할 일이 가리키는 행사 (누�
 /* 휴대폰 첫 화면 — 대시보드 (2026.11.19 사용자: 「4열 아이콘 그리드(런처형)에서 토스 · 카카오뱅크 스타일 대시보드로 전면 개편, 라우팅 · 데이터 상태는 유지」)
    ① 위 막대: DW장례업무 · 알림 종(할 일 수) · 로그아웃
    ② 요약 카드(네이비): 「서영우 파트장님」 · 「11월 마감까지 11일 남았어요」 · 이번 달 진행 막대 · 「오늘 할 일 N건 ›」 배너(1건이면 바로 그 일, 여러 건이면 고르기 창)
-   ③ 진행 중인 행사(최대 3건, 최근 고친 순 — 누르면 그 행사의 다음 단계) + 「전체보기 ›」(행사 목록)  — 예전 「새 행사 · 행사 목록 · 행사 입력」 칸을 합침
-   ④ 자주 쓰는 업무 2×2 카드(장례일정표 · 화장예약 조회 · 정산 · 봉투 · 배송 관리, 파스텔 그림 바탕)
+   ③ 진행 중인 행사(발인일이 안 지난 행사 caseLive, 발인 가까운 순 3건 — 누르면 그 행사의 다음 단계) + 「전체보기 ›」(행사 목록)  — 예전 「새 행사 · 행사 목록 · 행사 입력」 칸을 합침
+   ④ 자주 쓰는 기능 2열 카드 — 처음엔 비어 있고 직접 고름(최대 6개, db.homeQuick · qkCatalog · qkEditOpen, 파스텔 그림 바탕)
    ⑤ 서식(파트장) 1열 목록: 주간보고 · 회의록 · 후기보고 · 상담서
    + 떠 있는 「+ 새 행사」(#dwFab) + 아래 탭 바(#dwTabbar: 홈 · 행사 · 서식 · 자료 · 전체). 휴무 · 당직 · 게시판 · 설정 · 자료실은 「전체」 탭으로.
    모양은 src/funeral-theme.html 「첫 화면 대시보드」(.dsh-*). 예전 바둑판(dwHome.grid)은 총괄실장 서식 첫 화면(app.html)만 씀 */
@@ -6271,6 +6271,51 @@ const dshSec=(t,body,right)=>`<section class="dsh-sec" aria-label="${esc(t)}"><d
 const dshMore=(k,l)=>`<button type="button" class="dsh-more" data-hk="${k}">${esc(l)}${dshChev()}</button>`;
 const formRows=keys=>FORM_TILES.filter(x=>keys.includes(x[0])).map(x=>({k:x[0],l:x[1],ic:x[2],tone:'slate'}));
 const CREM_ROW={k:'crem',l:'화장예약 조회',s:'e하늘 간편조회',ic:'crem',tone:'mint',href:CREM_URL,aria:'화장예약 간편조회 · e하늘'};
+function caseLive(c){   /* 진행 중 = 종결 안 함 + 발인일이 오늘이거나 아직 안 옴. 발인일이 없으면 만든 지 3일 안(정산만 행사는 뺌) */
+  if(!c||c.closed) return false; const d=String((c.f||{}).depart||'').slice(0,10);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return d>=seoulToday();
+  return !c.quick&&Date.now()-(c.created||0)<3*864e5;
+}
+/* 자주 쓰는 기능 고를 수 있는 것 (g = 고르기 창 묶음). 설명(s)은 그때그때 숫자 */
+const QK_MAX=6;
+function qkCatalog(){
+  const {opens,minus}=homeTodos(), mm=Number(seoulToday().slice(5,7)), env=envelopeSummary(seoulToday().slice(0,7)), dvN=dvList().length, nSt=opens.length+minus.length;
+  const L=[
+    {g:'행사 업무',k:'list',l:'행사 목록',s:`${mm}월 ${db.cases.filter(c=>caseMonth(c)===seoulToday().slice(0,7)).length}건`,ic:'list',tone:'blue'},
+    {g:'행사 업무',k:'p-input',l:'행사 입력',s:'행사 골라 입력',ic:'input',tone:'blue'},
+    {g:'행사 업무',k:'p-out',l:'양식',s:'밴드 · 회사 보고 복사',ic:'out',tone:'blue'},
+    {g:'행사 업무',k:'p-sched',l:'행사 보고서',s:'장례행사 일정표',ic:'sched',tone:'blue'},
+    {g:'행사 업무',k:'p-settle',l:'정산',s:nSt?[opens.length&&`보내기 전 ${opens.length}건`,minus.length&&`마이너스 ${minus.length}건`].filter(Boolean).join(' · '):'행사 골라 정산',ic:'settle',tone:'amber',warn:nSt>0},
+    {g:'행사 업무',k:'envelopes',l:'봉투정리',s:`${mm}월 봉투 ${wonStr(env.all.total)||'0원'}`,ic:'envelopes',tone:'amber'},
+    {g:'행사 업무',k:'q-poster',l:'장례일정표',s:'빈소 게시용 출력',ic:'poster',tone:'mint'},
+    Object.assign({g:'행사 업무'},CREM_ROW),
+    {g:'행사 업무',k:'crem2',l:'개장유골 화장예약',s:'e하늘 간편조회',ic:'crem',tone:'mint',href:CREM_URL2,aria:'개장유골 화장예약 간편조회 · e하늘'},
+    {g:'배송',k:'d-new',l:'새 배송',s:'배송 양식 작성',ic:'plus',tone:'purple'},
+    {g:'배송',k:'q-deliv',l:'배송 기록',s:dvCur()?`작성 중 · 전체 ${dvN}건`:`전체 ${dvN}건`,ic:'truck',tone:'purple'},
+    {g:'함께 쓰기',k:'duty',l:'휴무 · 당직',s:'일정 달력',ic:'duty',tone:'mint'},
+    {g:'함께 쓰기',k:'board',l:'게시판',s:'파트 공지 · 글',ic:'board',tone:'mint'},
+    {g:'함께 쓰기',k:'f-docs',l:'자료실',s:'회사 기본 서류',ic:'folder',tone:'mint'}];
+  if(isLeaderNow()) [['f-weekly','blue','이번 주 보고'],['f-minutes','mint','회의 기록'],['f-review','amber','출상 후기'],['f-consult','purple','장례 상담서'],['f-ship','blue','용품 · 근조기'],['f-stock','amber','입고 · 불출'],['f-company','slate','공지 · 증명서']]
+    .forEach(([k,tone,sub])=>{ const x=FORM_TILES.find(y=>y[0]===k); if(x) L.push({g:'서식',k,l:x[1],s:sub,ic:x[2],tone}); });
+  L.push({g:'계정',k:'admin',l:'설정',s:'양식 · 정산 기준',ic:'set',tone:'slate'});
+  return L;
+}
+function qkEditOpen(){ if(window.dwHist) window.dwHist.push('ac'); acMode='qk'; $('#acTitle').textContent='자주 쓰는 기능'; qkEditPaint();
+  const bg=$('#acBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show')); setTimeout(()=>{ const f=$('#acList [data-qe]'); if(f) f.focus(); },60); }
+function qkEditPaint(warn,keep){
+  const cat=qkCatalog(), sel=Array.isArray(db.homeQuick)?db.homeQuick.filter(k=>cat.some(x=>x.k===k)):[], groups=[...new Set(cat.map(x=>x.g))];
+  $('#acList').innerHTML=`<p class="qe-help${warn?' warn':''}">${warn?`최대 ${QK_MAX}개까지 고를 수 있습니다. 하나를 빼고 고르십시오.`:'첫 화면에 둘 기능을 누르십시오. 누른 순서대로 놓입니다.'} <b class="num">${sel.length} / ${QK_MAX}</b></p>`
+    +groups.map(g=>`<div class="qe-g" role="group" aria-label="${esc(g)}"><h3>${esc(g)}</h3>${cat.filter(x=>x.g===g).map(x=>{ const i=sel.indexOf(x.k), on=i>=0;
+      return `<button type="button" class="qe-row" data-qe="${esc(x.k)}" aria-pressed="${on}"><span class="dsh-ri t-${x.tone}" aria-hidden="true">${HIC(x.ic)}</span><span class="dsh-rt"><b>${esc(x.l)}</b></span><span class="qe-ck" aria-hidden="true">${on?`<i class="num">${i+1}</i>`:''}</span></button>`; }).join('')}</div>`).join('')
+  ;
+  const ft=$('#acFoot'); ft.hidden=false; ft.innerHTML='<button type="button" class="btn primary" data-qe-done>완료</button>';
+  if(keep){ const b=$(`#acList [data-qe="${CSS.escape(keep)}"]`); if(b) b.focus({preventScroll:true}); }
+}
+function qkToggle(k){
+  const cat=qkCatalog(), sel=(Array.isArray(db.homeQuick)?db.homeQuick:[]).filter(x=>cat.some(y=>y.k===x)), i=sel.indexOf(k);
+  if(i>=0) sel.splice(i,1); else { if(sel.length>=QK_MAX){ qkEditPaint(true,k); return; } sel.push(k); }
+  db.homeQuick=sel; save(); qkEditPaint(false,k);
+}
 function dshCaseRow(c,used){   /* 진행 중인 행사 한 줄: 번호 · 故 이름 / 장소 · 업체 · 발인 · 다음 단계 */
   const si=STEP_KEYS.findIndex(k=>!stepDone(c,k)), no=caseNoKey(c), st=caseStShort(c,used);
   const chip=si>=0?`<span class="dsh-chip"><i class="num">${si+1}</i>${esc(STEPS[si][2])}</span>`
@@ -6294,24 +6339,21 @@ function renderHome(){
       <div class="dsh-bar-l num"><span>오늘 ${mm}월 ${dd}일</span><span>${mm}월 ${lastD}일 마감</span></div>
       ${banner}
     </section>`;
-  /* ③ 진행 중인 행사 (없으면 최근 행사) */
-  const byUpd=(a,b)=>(b.updated||0)-(a.updated||0);
-  const prog=db.cases.filter(c=>!c.closed&&STEP_KEYS.some(k=>!stepDone(c,k))).sort(byUpd), shown=(prog.length?prog:[...db.cases].sort(byUpd)).slice(0,3);
-  h+=dshSec(prog.length||!db.cases.length?'진행 중인 행사':'최근 행사',
-    shown.length?`<div class="dsh-card dsh-cases">${shown.map(c=>dshCaseRow(c,used)).join('')}</div>`
-      :`<div class="dsh-card dsh-empty"><b>진행 중인 행사가 없어요</b><small>오른쪽 아래 「+ 새 행사」로 시작하십시오.</small></div>`,
+  /* ③ 진행 중인 행사 = 종결 안 했고 발인일이 아직 안 지난 행사 (2026.11.19 사용자 「발인일이 넘어가면 진행 중인 행사가 아님」) — 발인이 가까운 순 3건 */
+  const prog=db.cases.filter(caseLive).sort((a,b)=>{ const da=String((a.f||{}).depart||'')||'9', dbb=String((b.f||{}).depart||'')||'9'; return da<dbb?-1:da>dbb?1:(b.updated||0)-(a.updated||0); });
+  h+=dshSec(prog.length>3?`진행 중인 행사 ${prog.length}건`:'진행 중인 행사',
+    prog.length?`<div class="dsh-card dsh-cases">${prog.slice(0,3).map(c=>dshCaseRow(c,used)).join('')}</div>`
+      :`<div class="dsh-card dsh-empty"><b>진행 중인 행사가 없어요</b><small>발인일이 지난 행사는 「전체보기」에서 볼 수 있어요.</small></div>`,
     dshMore('list','전체보기'));
-  /* ④ 자주 쓰는 업무 2×2 */
-  const envS=envelopeSummary(seoulToday().slice(0,7)), nSt=opens.length+minus.length, dvN=dvList().length;
-  const QK=[
-    {k:'q-poster',l:'장례일정표',s:'빈소 게시용 출력',ic:'poster',tone:'blue'},
-    Object.assign({},CREM_ROW),
-    {k:'q-money',l:'정산 · 봉투',s:nSt?[opens.length&&`보내기 전 ${opens.length}건`,minus.length&&`마이너스 ${minus.length}건`].filter(Boolean).join(' · '):`${mm}월 봉투 ${wonStr(envS.all.total)||'0원'}`,ic:'settle',tone:'amber',warn:nSt>0},
-    {k:'q-deliv',l:'배송 관리',s:dvCur()?`작성 중 · 전체 ${dvN}건`:`전체 ${dvN}건`,ic:'truck',tone:'purple'}];
-  const qk=q=>{ const inner=`<span class="dsh-qi t-${q.tone}" aria-hidden="true">${HIC(q.ic)}</span>${q.href?`<span class="dsh-qx" aria-hidden="true">${HIC('ext')}</span>`:''}<b class="dsh-ql">${esc(q.l)}</b><small class="dsh-qs num${q.warn?' warn':''}">${esc(q.s)}</small>`;
+  /* ④ 자주 쓰는 기능 — 처음엔 비어 있고 직접 고름 (2026.11.19 사용자 「자주 쓰는 기능은 직접 설정할 수 있게 비워 둬야지」, 고른 것 db.homeQuick · 내 계정 설정에 같이 저장) */
+  const cat=qkCatalog(), sel=(Array.isArray(db.homeQuick)?db.homeQuick:[]).map(k=>cat.find(x=>x.k===k)).filter(Boolean).slice(0,QK_MAX);
+  const qk=q=>{ const inner=`<span class="dsh-qi t-${q.tone}" aria-hidden="true">${HIC(q.ic)}</span>${q.href?`<span class="dsh-qx" aria-hidden="true">${HIC('ext')}</span>`:''}<b class="dsh-ql">${esc(q.l)}</b>${q.s?`<small class="dsh-qs num${q.warn?' warn':''}">${esc(q.s)}</small>`:''}`;
     return q.href?`<a class="dsh-q dsh-press" href="${esc(q.href)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(q.aria||q.l)} (새 창)">${inner}</a>`
-      :`<button type="button" class="dsh-q dsh-press" data-hk="${q.k}" aria-label="${esc(q.l)} · ${esc(q.s)}">${inner}</button>`; };
-  h+=dshSec('자주 쓰는 업무',`<div class="dsh-qgrid">${QK.map(qk).join('')}</div>`);
+      :`<button type="button" class="dsh-q dsh-press" data-hk="${q.k}" aria-label="${esc(q.l)}${q.s?' · '+esc(q.s):''}">${inner}</button>`; };
+  h+=dshSec('자주 쓰는 기능',sel.length
+    ?`<div class="dsh-qgrid">${sel.map(qk).join('')}${sel.length<QK_MAX?`<button type="button" class="dsh-q dsh-qadd dsh-press" data-hk="qk-edit"><span class="dsh-qi" aria-hidden="true">${HIC('plus')}</span><b class="dsh-ql">추가</b><small class="dsh-qs">기능 더 고르기</small></button>`:''}</div>`
+    :`<button type="button" class="dsh-qempty dsh-press" data-hk="qk-edit"><span class="dsh-qi t-blue" aria-hidden="true">${HIC('plus')}</span><span class="dsh-rt"><b>자주 쓰는 기능 추가</b><small>많이 쓰는 기능을 골라 첫 화면에 두세요 · 최대 ${QK_MAX}개</small></span>${dshChev()}</button>`,
+    sel.length?`<button type="button" class="dsh-more" data-hk="qk-edit">편집${dshChev()}</button>`:'');
   /* ⑤ 서식 (파트장) */
   if(isLeaderNow()) h+=dshSec('서식',dshList(formRows(HOME_FORMS)),dshMore('fhub','서식 · 자료'));
   el.innerHTML=h+'</div>';
@@ -6337,7 +6379,7 @@ function renderMore(){
   h+=dshSec('배송',dshList([{k:'d-new',l:'새 배송',ic:'plus',tone:'purple'},{k:'q-deliv',l:'배송 기록',ic:'truck',tone:'purple'}]));
   h+=dshSec('함께 쓰기',dshList([{k:'duty',l:'휴무 · 당직',ic:'duty',tone:'mint'},{k:'board',l:'게시판',ic:'board',tone:'mint'},{k:'f-docs',l:'자료실',ic:'folder',tone:'mint'}]));
   if(isLeaderNow()) h+=dshSec('서식',dshList(formRows(['f-weekly','f-minutes','f-review','f-consult','f-ship','f-stock','f-company'])));
-  h+=dshSec('계정',dshList([{k:'admin',l:'설정',s:'업체 양식 · 정산 기준 · 선택 목록',ic:'set',tone:'slate'},{k:'logout',l:'로그아웃',ic:'logout',tone:'slate'}]));
+  h+=dshSec('계정',dshList([{k:'qk-edit',l:'첫 화면 자주 쓰는 기능',s:'첫 화면에 둘 기능 고르기',ic:'grid',tone:'blue'},{k:'admin',l:'설정',s:'업체 양식 · 정산 기준 · 선택 목록',ic:'set',tone:'slate'},{k:'logout',l:'로그아웃',ic:'logout',tone:'slate'}]));
   const ver=(document.querySelector('meta[name="app-version"]')||{}).content||window.__APP_VERSION__||'';
   el.innerHTML=h+`<p class="dsh-note">모든 기록은 내 계정에 자동으로 저장됩니다.${ver?` · 앱 버전 ${esc(ver)}`:''}</p></div>`;
 }
@@ -6347,21 +6389,20 @@ function tbPaint(t){
   r.classList.toggle('dw-root',root); r.classList.toggle('dw-fab-on',t==='home'||t==='list');
   document.querySelectorAll('#dwTabbar [data-tb]').forEach(b=>{ if(b.dataset.tb===t) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
 }
-/* 첫 화면 고르기 창 (#acBg — 할 일 · 알림 · 정산 · 봉투) */
+/* 첫 화면 고르기 창 (#acBg — 할 일 · 알림 · 자주 쓰는 기능 고르기) */
+let acMode='';   /* 'qk' = 자주 쓰는 기능 고르기 */
 function acOpen(title,items,empty){
-  if(window.dwHist) window.dwHist.push('ac');
+  if(window.dwHist) window.dwHist.push('ac'); acMode=''; $('#acFoot').hidden=true;
   $('#acTitle').textContent=title;
   $('#acList').innerHTML=items.length?`<div class="dsh-list">${items.map(dshRow).join('')}</div>`:`<p class="dsh-note ac-empty">${esc(empty||'')}</p>`;
   const bg=$('#acBg'); bg.hidden=false; requestAnimationFrame(()=>bg.classList.add('show')); setTimeout(()=>{ const f=$('#acList [data-hk],#acList a'); (f||$('#acClose')).focus(); },60);
 }
-function acClose(){ const bg=$('#acBg'); if(bg.hidden) return; bg.classList.remove('show'); setTimeout(()=>{ bg.hidden=true; },200); }
+function acClose(){ const bg=$('#acBg'); if(bg.hidden) return; bg.classList.remove('show'); setTimeout(()=>{ bg.hidden=true; },200); if(acMode==='qk'){ acMode=''; if(db.tab==='home') renderHome(); } }
 $('#acClose').addEventListener('click',acClose);
 $('#acBg').addEventListener('click',e=>{ if(e.target.id==='acBg') acClose(); });
 function homeGo(k,btn){
   if(k==='todo'||k==='bell'){ if(k==='todo'&&homeTodo.length===1) return homeGo(homeTodo[0].k); acOpen(k==='bell'?'알림':'오늘 할 일',homeTodo,'새 알림이 없습니다. 할 일이 모두 정리되었습니다.'); return; }
-  if(k==='q-money'){ const {opens,minus}=homeTodos(), m=seoulToday().slice(0,7), e=envelopeSummary(m), w=v=>wonStr(v)||'0원';
-    acOpen('정산 · 봉투',[{k:'p-settle',l:'정산',s:opens.length||minus.length?[opens.length&&`보내기 전 ${opens.length}건`,minus.length&&`마이너스 ${minus.length}건`].filter(Boolean).join(' · '):'행사를 골라 정산합니다',ic:'settle',tone:'amber',warn:minus.length>0},
-      {k:'envelopes',l:'봉투정리',s:`${Number(m.slice(5))}월 합계 ${w(e.all.total)} · 본부장 ${w(e.part.total)} · 실장 ${w(e.manager.total)}`,ic:'envelopes',tone:'amber'}]); return; }
+  if(k==='qk-edit'){ qkEditOpen(); return; }
   if(k.startsWith('c:')){ const c=db.cases.find(x=>x.id===k.slice(2)); if(!c) return; db.cur=c.id; save(); renderCaseSel();
     const si=STEP_KEYS.findIndex(s=>!stepDone(c,s)); if(si>=0){ setTab(STEP_KEYS[si]); return; }
     LV.month=null; LV.st=''; LV.q=''; setTab('list'); lvOpen(c); return; }   /* 다 끝낸 행사 = 행사 목록 상세 */
@@ -6388,6 +6429,8 @@ function homeGo(k,btn){
 }
 document.addEventListener('click',e=>{
   const tb=e.target.closest('#dwTabbar [data-tb]'); if(tb){ const t=tb.dataset.tb; if(t==='list'){ LV.month=null; LV.st=''; LV.q=''; } setTab(t); return; }
+  if(e.target.closest('#acBg')){ const q=e.target.closest('[data-qe]'); if(q){ qkToggle(q.dataset.qe); return; }
+    if(e.target.closest('[data-qe-done]')){ acClose(); return; } }
   const b=e.target.closest('[data-hk]'); if(!b||!b.closest('#p-home,#p-fhub,#p-more,#acBg,#dwFab,#homeBell')) return;
   if(b.closest('#acBg')) acClose();
   homeGo(b.dataset.hk,b);
