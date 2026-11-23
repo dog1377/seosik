@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.24-3">
+<meta name="app-version" content="2026.11.24-4">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -3505,7 +3505,7 @@ if(!db.v5){
   db.v5=true;
 }
 if(!db.v6){ db.companies.forEach(x=>{ x.deduct=[]; }); db.v6=true; }
-const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],crems:['부산영락','마산화장','창원상복','김해추모'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],baskets:['영호 4만원','현장결제'],basketPays:['월말 법카결제','현장결제'],urnTypes:[],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
+const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],crems:['부산영락','마산화장','창원상복','김해추모'],cremFull:['부산영락 = 부산영락공원','김해추모 = 김해추모의공원','창원상복 = 창원상복공원','마산화장 = 마산화장장'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],baskets:['영호 4만원','현장결제'],basketPays:['월말 법카결제','현장결제'],urnTypes:[],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
 if(!db.lists) db.lists=JSON.parse(JSON.stringify(DEFAULT_LISTS));
 Object.keys(DEFAULT_LISTS).forEach(k=>{ if(!db.lists[k]) db.lists[k]=DEFAULT_LISTS[k].slice(); });
 // 공통 기본 선택지만 한 번 제거한다. 기존 행사의 유골함 기록은 그대로 둔다.
@@ -3521,7 +3521,7 @@ if(!db.vVeh){ db.lists.vehTypes=[...new Set((db.lists.vehTypes||[]).map(noPlus))
 if(db.lists && db.lists.tributes && !db.v9){ if(!db.lists.tributes.includes('영호 5만원')){ const i=db.lists.tributes.indexOf('영호 3만원'); db.lists.tributes.splice(i<0?db.lists.tributes.length:i+1,0,'영호 5만원'); } db.v9=true; }
 if(!db.vCremGimhae){ const L=db.lists.crems; if(Array.isArray(L)&&!L.some(v=>/^김해추모/.test(coKey(v)))) L.push('김해추모'); db.vCremGimhae=true; }   /* 화장장 고르기에 김해추모 (2026.10.28) */
 if(!db.vCremGimhae2){ const L=db.lists.crems; if(Array.isArray(L)) db.lists.crems=[...new Set(L.map(v=>coKey(v)==='김해추모의공원'?'김해추모':v))]; db.vCremGimhae2=true; }   /* 어제 넣은 「김해추모의공원」 버튼 → 「김해추모」 */
-const LIST_LABEL={crems:'화장장 (화장장명 고르기)',causes:'사망 사유',helpers:'도우미',mournBrands:'상복 업체',vehCos:'장의차 업체',vehTypes:'차종',productShorts:'상품 약칭',flowers:'입관꽃장식 (업체 금액)',flowerPays:'입관꽃장식 결제',tributes:'헌화 (업체 금액)',tributePays:'헌화 결제',baskets:'꽃바구니 (업체 금액)',basketPays:'꽃바구니 결제',urnTypes:'유골함 종류',cardCos:'카드사 (카드결제 양식)'};
+const LIST_LABEL={crems:'화장장 (화장장명 고르기)',cremFull:'화장장 정식 이름 (짧은 이름 = 정식 이름)',causes:'사망 사유',helpers:'도우미',mournBrands:'상복 업체',vehCos:'장의차 업체',vehTypes:'차종',productShorts:'상품 약칭',flowers:'입관꽃장식 (업체 금액)',flowerPays:'입관꽃장식 결제',tributes:'헌화 (업체 금액)',tributePays:'헌화 결제',baskets:'꽃바구니 (업체 금액)',basketPays:'꽃바구니 결제',urnTypes:'유골함 종류',cardCos:'카드사 (카드결제 양식)'};
 function addVendorsV8(){
   const add=(name,report,extra={})=>{ if(db.companies.some(x=>x.name===name)) return; db.companies.push({id:uid(),name,band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:report}],items:GOI_ITEMS.slice(),deduct:[],...extra}); };
   add('The자빈',JABIN_REPORT,{labels:{custRel:'회원과의 관계 (예: 모)',customer:'회원명'}});
@@ -3613,10 +3613,27 @@ function period(a,b){ const p=parseDT(a), q=parseDT(b); if(!p||!q) return ''; co
 /* 배차 양식용 */
 function dispatchDT(f){ if(String(f.dispatchAt||'').trim()) return f.dispatchAt; const p=parseDT(f.depart); if(!p||p.h==null) return ''; const t=new Date(p.y,p.mo-1,p.d,p.h,p.mi||0); t.setMinutes(t.getMinutes()-30); return `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}`; }
 function departDay(f){ const p=parseDT(f.depart); if(!p) return ''; return `${p.mo}월 ${p.d}일 ${'일월화수목금토'[new Date(p.y,p.mo-1,p.d).getDay()]}요일`; }
-const CREM_FULL={'부산':'부산영락','마산':'마산화장','창원':'창원상복','김해':'김해추모','김해추모의공원':'김해추모','김해추모공원':'김해추모'};   /* 2026.10.28 사용자 「김해도 김해추모 이렇게만」 */   /* 배차 양식에는 화장장을 「부산영락 · 마산화장 · 창원상복」처럼 */
-const cremDispName=f=>{ const n=String(cremReportLabel(f)||'').trim(); return CREM_FULL[n.replace(/\s/g,'')]||n; };
-function cremWithRound(f){ if(isBurial(f)) return ''; const n=cremDispName(f); return [n, f.cremRound?`(${pad(f.cremRound)}회차)`:''].filter(Boolean).join(' '); }
-function cremOrHagwan(f){ if(isBurial(f)){ const hs=hagwanStr(f); return hs?`하관 : ${hs}`:'하관 : '; } return `화장 : ${cremWithRound(f)}`; }
+/* 화장장 이름표 (2026.11.24 사용자: 「모든 회사 양식은 화장장 이름을 너무 축약해서 넣으면 안 됨 · 부산영락 → 부산영락공원 · 김해추모 → 김해추모의공원」)
+   같은 화장장을 부르는 이름 묶음(맨 앞 = 짧은 이름). 정식 이름은 설정 → 선택 목록 「화장장 정식 이름」(db.lists.cremFull 「짧은 이름 = 정식 이름」).
+   회사 보고 양식에만 정식 이름(reportFill) · 밴드 「화장」 줄 · 배차 문자 · 운행 경로는 짧게(2026.10.28 「김해도 김해추모 이렇게만」) */
+const CREM_ALIAS=[['부산영락','부산','영락','영락공원','부산영락공원','부산시립영락공원'],['김해추모','김해','김해추모공원','김해추모의공원'],['창원상복','창원','상복','상복공원','창원상복공원','창원시립상복공원'],['마산화장','마산','마산화장장','창원시립마산화장장']];
+const cremGroup=k=>CREM_ALIAS.find(g=>g.includes(k));
+function cremTable(){   /* {full:{이름 → 정식 이름}, short:{이름 → 짧은 이름}} */
+  const L=Array.isArray(db.lists&&db.lists.cremFull)?db.lists.cremFull:DEFAULT_LISTS.cremFull, full={}, short={};
+  L.forEach(line=>{ const p=String(line||'').split(/\s*(?:=|→|->)\s*/).map(x=>x.trim()).filter(Boolean); if(!p.length) return;
+    const a=p[0], b=p[p.length-1]; [...(cremGroup(coKey(a))||[coKey(a)]),coKey(b)].forEach(k=>{ if(!(k in full)) full[k]=b; if(!(k in short)) short[k]=a; }); });
+  return {full,short};
+}
+function cremFormal(v,strict){   /* 정식 이름. strict = 장지 · 경로 글 속 이름(4글자 이상만 · 「부산」 같은 지역 이름은 그대로) */
+  const n=String(v||'').trim(), k=coKey(n); if(!k||(strict&&k.length<4)) return n;
+  const T=cremTable(); if(T.full[k]) return T.full[k];
+  const x=LEGACY_CREMS.find(c=>coKey(c.name)===k||coKey(c.name)===k+'공원'||c.short===k); return x?x.name:n;
+}
+function cremShort(v,strict){ const n=String(v||'').trim(), k=coKey(n); if(!k||(strict&&k.length<4)) return n; const g=cremGroup(k); return cremTable().short[k]||(g&&g[0])||n; }
+const cremText=(v,fn)=>String(v||'').replace(/[^-→\n]+/g,t=>{ const m=t.match(/^(\s*)(.*?)(\s*(?:\([^)]*\))?\s*)$/); return m&&m[2]?m[1]+fn(m[2],true)+m[3]:t; });   /* 「창원상복-부산추모(벽식)」 이름마다 */
+const cremDispName=f=>cremShort(cremReportLabel(f));
+function cremWithRound(f,nm){ if(isBurial(f)) return ''; const n=nm??cremDispName(f); return [n, f.cremRound?`(${pad(f.cremRound)}회차)`:''].filter(Boolean).join(' '); }
+function cremOrHagwan(f,nm){ if(isBurial(f)){ const hs=hagwanStr(f); return hs?`하관 : ${hs}`:'하관 : '; } return `화장 : ${cremWithRound(f,nm)}`; }
 /* 경로 잇기: (평장) 같은 괄호는 빼고 · 같은 이름이 이어지면 하나만 · 끝에 「장례식장」 자동 — 직접 적었으면 한 번만 (2026.10.30 사용자: 「장례식장은 자동으로 붙게 하되, 직접 입력하면 한 번만」) */
 function routeJoin(stops){ const strip=s=>String(s||'').replace(/\s|\(.*?\)/g,''), out=[];
   stops.map(s=>String(s||'').replace(/\s*\([^)]*\)\s*/g,'').trim()).filter(Boolean).forEach(s=>{ if(!out.length||strip(out[out.length-1])!==strip(s)) out.push(s); });
@@ -3637,14 +3654,15 @@ function limoRoute(f,full){
 }
 /* 배차 양식 차량 줄: 「버스 리무진」이면 한 줄에 한 대씩, 리무진은 화장장까지 */
 const gimhaeShort=v=>String(v||'').replace(/김해\s*추모\s*(의\s*)?공원/g,'김해추모');   /* 「김해추모의공원」 → 「김해추모」 */
+const routeShort=v=>cremText(gimhaeShort(v),cremShort);   /* 운행 경로 속 화장장도 짧게 (부산영락공원 → 부산영락) */
 function vehRouteLines(f){
-  const full=gimhaeShort(String(f.route||'').trim()||autoRoute(f)), vt=vehSplit(f.vehType);
+  const full=routeShort(String(f.route||'').trim()||autoRoute(f)), vt=vehSplit(f.vehType);
   if(!vt.length) return full;
   return vt.map(v=>[v,/리무진/.test(v)?limoRoute(f,full):full].filter(Boolean).join(' ')).join('\n');
 }
-function cremStr(f){
+function cremStr(f,nm){
   if(!f.cremDate) return ''; const p=parseDT(f.cremDate+(f.cremTime?'T'+f.cremTime:'')); if(!p) return '';
-  const ex=[(n=>/^김해추모(의)?공원$/.test(coKey(n))?'김해추모':n)(cremReportLabel(f)), f.cremRound?pad(f.cremRound)+'회차':''].filter(Boolean).join(' ');
+  const ex=[nm??cremShort(cremReportLabel(f)), f.cremRound?pad(f.cremRound)+'회차':''].filter(Boolean).join(' ');
   return `${pad(p.mo)}월 ${pad(p.d)}일${p.h!=null?' '+hm(p):''}${ex?` (${ex})`:''}`;
 }
 // 숫자만 넣으면: 1000 미만은 만원 단위(70 → 70만원), 1000 이상은 원 단위(2880100 → 2,880,100원)
@@ -3743,8 +3761,8 @@ function deceasedShort(f){   /* 김영진(남,70세) */
   const g=genderShort(gd), inner=[g,age?age+'세':''].filter(Boolean).join(',');
   return name+(inner?`(${inner})`:'');
 }
-function methodPlace(f){   /* 화장(김해추모) · 매장 */
-  const m=String(f.method||'').trim(), n0=cremName(f), n=CREM_FULL[n0.replace(/\s/g,'')]||n0;
+function methodPlace(f,formal){   /* 화장(김해추모) · 매장 — 회사 보고 양식은 화장(김해추모의공원) */
+  const m=String(f.method||'').trim(), n0=cremName(f), n=formal?cremFormal(n0):cremShort(n0);
   if(m==='매장') return '매장';
   const mm=m||(n?'화장':'');
   return n?`${mm}(${n})`:mm;
@@ -3770,6 +3788,11 @@ function fmtAs(v,fm){
   if(fm==='kr') return `${M}월${D}일${p.h==null?'':` ${pad(p.h)}시${pad(p.mi)}분`}`;   /* 10월31일 14시30분 (산림조합라이프) */
   return dayTime(v);
 }
+function formalOver(c){   /* 회사 보고 양식: 화장장은 정식 이름 (화장 · 화장장 · 장법 · 장지 · 경로) */
+  const f=c.f||{}, v=vals(c), nm=cremFormal(cremName(f)||cremReportLabel(f)), F=x=>cremText(x,cremFormal), bur=isBurial(f);
+  return {'화장':bur?'':cremStr(f,nm),'화장장':bur?'':nm,'화장장회차':cremWithRound(f,nm),'화장하관':cremOrHagwan(f,nm),'장법화장장':methodPlace(f,true),'장지':F(v['장지']),'1차장지':F(v['1차장지']),'2차장지':F(v['2차장지']),'운행경로':F(v['운행경로'])};
+}
+const reportFill=(body,c)=>fillTpl(body,c,formalOver(c));
 function fillTpl(body,c,over){
   const v={...vals(c),...(over||{})}, burial=isBurial(c.f||{});
   return String(body||'').split('\n').flatMap(line=>{
@@ -4222,7 +4245,7 @@ function schedInfo(){
 function updCremPreview(){
   const f=curCase().f||{}, hg=$('#hagwanPreview');
   if(hg){ const s=hagwanStr(f); hg.textContent=s?'하 관 : '+s:'하관 날짜와 시간을 선택하십시오'; }
-  const el=$('#cremPreview'); if(!el) return; const s=cremStr(f); el.textContent=s?'화장 : '+s:'화장장 · 날짜 · 회차 · 시간을 입력하십시오';
+  const el=$('#cremPreview'); if(!el) return; const s=cremStr(f), nm=cremName(f), full=cremFormal(nm); el.textContent=(s?'화장 : '+s:'화장장 · 날짜 · 회차 · 시간을 입력하십시오')+(full&&coKey(full)!==coKey(nm)?` · 회사 보고에는 「${full}」`:'');   /* 정식 이름 미리 보기 */
 }
 let saveT=null, dirty=true;
 function touched(){ markUnsaved(); const c=curCase(); c.updated=Date.now(); dirty=true; liveOut(); updateSaveState('pending'); clearTimeout(saveT); saveT=setTimeout(()=>{ save(); renderCaseSel(); paintSteps(); },300); }
@@ -4509,9 +4532,9 @@ function psPut(R,key,raw){
       if(m&&/^\d/.test(m[1])&&toWon(m[1])){ psSet(R,'altar',psMoneyIn(toWon(m[1]))); if(m[2]==='법인카드결제') psSet(R,'altarCard',true); return; }
       psSet(R,'altar',v.replace(/\s*\(법인카드결제\)$/,'')); if(card) psSet(R,'altarCard',true); return; }
     case '장법': { const m=v.match(/화장|매장|수목장/); psSet(R,'method',m?m[0]:v); return; }
-    case '장법화장장': { const m=v.match(/^(화장|매장|수목장)?\s*(?:\(([^)]*)\))?$/); if(!m){ psSet(R,'method',v); return; } psSet(R,'method',m[1]||''); psSet(R,'cremName',m[2]||''); return; }
+    case '장법화장장': { const m=v.match(/^(화장|매장|수목장)?\s*(?:\(([^)]*)\))?$/); if(!m){ psSet(R,'method',v); return; } psSet(R,'method',m[1]||''); psSet(R,'cremName',cremShort(m[2]||'')); return; }
     case '화장': { const m=v.match(/^(.*?)(?:\s*\(([^)]*)\))?$/); psDate(R,'crem',m[1],2); const ex=String(m[2]||'').trim();
-      if(ex){ const r=ex.match(/^(.*?)\s*(\d+)\s*회차$/); psSet(R,'cremName',(r?r[1]:ex).trim()); if(r) psSet(R,'cremRound',String(+r[2])); } return; }
+      if(ex){ const r=ex.match(/^(.*?)\s*(\d+)\s*회차$/); psSet(R,'cremName',cremShort((r?r[1]:ex).trim())); if(r) psSet(R,'cremRound',String(+r[2])); } return; }
     case '하관': { psSet(R,'method','매장'); const m=v.match(/^(.*?)(?:\s*\(([^)]*)\))?$/); let head=m[1]; const si=SIJIN.find(s=>head.includes(s[0])); if(si){ psSet(R,'hagwanSi',si[0]); head=head.replace(si[0],' '); }
       const p=psDT(head.replace(/\d{1,2}\s*시.*$/,'')); if(p) (R.dt.hagwan=R.dt.hagwan||[]).push({...p,h:null,rank:2});
       const span=String(m[2]||''), a=span.match(/(\d{1,2})\s*시\s*~/)||span.match(/^(\d{1,2})\s*시/), b=span.match(/~\s*(\d{1,2})\s*시/);
@@ -5073,7 +5096,7 @@ function renderOut(){
   { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없습니다':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워집니다. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 입력하십시오. 미리보기를 누르면 크게 보입니다.';
   { const cv=$('#xlCanvas'); szPaint(cv,c); szWhenFonts(()=>{ if(db.tab==='out'||isSplit()) szPaint($('#xlCanvas'),curCase()); }); }
-  reports.forEach((r,i)=>{ $('#rep_'+i).value=fillTpl(r.body,c); });
+  reports.forEach((r,i)=>{ $('#rep_'+i).value=reportFill(r.body,c); });   /* 회사 보고 = 화장장 정식 이름 */
   const miss=c.closed?[]:inputMiss(c);   /* 종결한 행사는 「비어 있음」을 띄우지 않음 */
   const ml=(k,l)=>String((co.labels||{})[k]||'').replace(/\s*\([^)]*\)\s*$/,'').trim()||l;   /* 업체 칸 이름대로 (대한선진 → 조합원 · 장례담당자) */
   $('#outNext').innerHTML=stepNextHTML('out');
@@ -5147,7 +5170,7 @@ $('#coDel').onclick=()=>arm($('#coDel'),'한 번 더 누르면 삭제',()=>{
 
 $('#saveRules').onclick=()=>{ const R=rules(); R.altarFixed=Number($('#rAltar').value)||0; R.urnShare=Number($('#rUrn').value)||0; const fo=Number($('#rFlower').value); R.flowerPct=Number.isFinite(fo)&&$('#rFlower').value!==''?Math.min(100,Math.max(0,fo)):60; const bf=Number($('#rBurial').value); R.burialFee=Number.isFinite(bf)&&$('#rBurial').value!==''?Math.max(0,bf):5; save(); toast('정산 기준을 저장했습니다'); };
 /* ---------- 관리: 선택 목록 ---------- */
-const LIST_USE={crems:'행사 입력 · 화장장명 아래 버튼',causes:'행사 입력 · 고인 정보',helpers:'행사 입력 · 제공내역 · 정산 카톡',mournBrands:'행사 입력 · 제공내역',vehCos:'행사 입력 · 제공내역 · 배차',vehTypes:'행사 입력 · 제공내역 · 배차',productShorts:'행사 입력 · 상품 (현진시닝 보고)',flowers:'정산 · 꽃장식',flowerPays:'정산 · 꽃장식',tributes:'정산 · 헌화',tributePays:'정산 · 헌화',baskets:'정산 · 꽃바구니',basketPays:'정산 · 꽃바구니',urnTypes:'정산 · 유골함',cardCos:'정산 · 카드결제 양식'};
+const LIST_USE={crems:'행사 입력 · 화장장명 아래 버튼',cremFull:'회사 보고 양식 (부산 · 부산영락 · 영락공원 어떻게 적어도 정식 이름으로)',causes:'행사 입력 · 고인 정보',helpers:'행사 입력 · 제공내역 · 정산 카톡',mournBrands:'행사 입력 · 제공내역',vehCos:'행사 입력 · 제공내역 · 배차',vehTypes:'행사 입력 · 제공내역 · 배차',productShorts:'행사 입력 · 상품 (현진시닝 보고)',flowers:'정산 · 꽃장식',flowerPays:'정산 · 꽃장식',tributes:'정산 · 헌화',tributePays:'정산 · 헌화',baskets:'정산 · 꽃바구니',basketPays:'정산 · 꽃바구니',urnTypes:'정산 · 유골함',cardCos:'정산 · 카드결제 양식'};
 function renderLists(){ $('#listEdit').innerHTML=Object.keys(LIST_LABEL).map(k=>`<label class="f">${LIST_LABEL[k]}${LIST_USE[k]?`<span class="field-hint list-use">쓰이는 곳: ${LIST_USE[k]}</span>`:''}<textarea class="input" data-list="${k}" rows="4">${esc(db.lists[k].join('\n'))}</textarea></label>`).join(''); }
 $('#saveLists').onclick=()=>{ document.querySelectorAll('[data-list]').forEach(t=>{ db.lists[t.dataset.list]=t.value.split('\n').map(s=>s.trim()).filter(Boolean); }); save(); toast('선택 목록을 저장했습니다'); };
 
@@ -5948,7 +5971,7 @@ function schedAuto(c){   /* 행사 입력 · 정산에서 자동으로 만드는
   [['mournM',29,'남상복'],['mournW',30,'여상복']].forEach(([k,row,item])=>{ const v=String(f[k]||'').trim(); if(!v||f.mournNone) return;
     set('D'+row,f.mournBrand); set('F'+row,item); const n=v.match(/^(\d+)\s*(세트|벌)?$/); if(n) set('J'+row,Number(n[1])); else add('K'+row,v); });
   // 장의차량 — 「버스 리무진」처럼 두 대면 한 줄에 한 대씩 (2026.10.27)
-  if(!f.vehNone&&(f.vehType||f.vehCo||f.route)){ const vt=vehSplit(f.vehType), co=szCoShort(f.vehCo), rt=gimhaeShort(String(f.route||'').trim()||autoRoute(f)), dt=dispatchDT(f);
+  if(!f.vehNone&&(f.vehType||f.vehCo||f.route)){ const vt=vehSplit(f.vehType), co=szCoShort(f.vehCo), rt=routeShort(String(f.route||'').trim()||autoRoute(f)), dt=dispatchDT(f);
     const rtOf=v=>/리무진/.test(v||'')?limoRoute(f,rt):rt;   /* 리무진은 화장장(1차 장지)까지만 */
     set('C32',vt[0]||''); set('E32',co); set('F32',rtOf(vt[0])); if(dt) set('Q32','배차 '+schedDT(dt));
     if(vt.length>1){ const v2=vt.slice(1).join(' '); set('C33',v2); set('E33',co); set('F33',rtOf(v2)); if(dt) set('Q33','배차 '+schedDT(dt)); } }
@@ -6379,7 +6402,7 @@ function dvMgrLines(r){ let last='';
     const body=[span,String(m.n||'').trim()&&String(m.n).trim()+'명'].filter(Boolean).join(' '), head=last===m.date?DV_IND:`${pad(p.d)}일 : `; last=m.date; return (head+body).trimEnd(); }); }
 /* 장의차량 줄. 차종이 「버스 리무진」처럼 두 대 이상이면 차마다 따로 (2026.10.30 사용자: 「버스 리무진 붙이면 안 됨, 리무진은 화장장까지만」 → 고른 답: 리무진 먼저 · 차마다 따로)
    리무진 = 「리무진 부산영락」(화장장까지), 장의버스 = 「장의버스 200km 부산영락-부산추모-장례식장」(운행 거리는 버스 줄), 배차 · 발인 · 배차완료 줄은 차마다. 한 대면 예전 그대로 */
-const dvCremName=v=>{ const n=gimhaeShort(String(v||'').trim()); return CREM_FULL[n.replace(/\s/g,'')]||n; };
+const dvCremName=v=>cremShort(gimhaeShort(String(v||'').trim()));
 const dvSplitOn=r=>vehSplit((r.veh||{}).type).length>1;
 const dvRoute=(crem,bur)=>routeJoin([crem,...String(bur||'').split('-')].map(gimhaeShort));   /* 화장장-장지-장례식장 (routeJoin) */
 function dvVehBlocks(r){ const v=r.veh||{}; if(!['type','km','crem','burial','disp','depart','co'].some(k=>String(v[k]||'').trim())) return [];
