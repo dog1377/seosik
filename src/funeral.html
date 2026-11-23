@@ -1681,7 +1681,7 @@ if(!db.v5){
   db.v5=true;
 }
 if(!db.v6){ db.companies.forEach(x=>{ x.deduct=[]; }); db.v6=true; }
-const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],crems:['부산영락','마산화장','창원상복','김해추모'],cremFull:['부산영락 = 부산영락공원','김해추모 = 김해추모의공원','창원상복 = 창원상복공원','마산화장 = 마산화장장'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],baskets:['영호 4만원','현장결제'],basketPays:['월말 법카결제','현장결제'],urnTypes:[],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
+const DEFAULT_LISTS={causes:['병사','외인사'],helpers:['김정단','홍성묵','이은화','배경연'],mournBrands:['한맥','삼미','신진','해우'],vehCos:['한맥장의차','한국장의차'],vehTypes:['버스','리무진','버스 리무진'],crems:['부산영락','마산화장','창원상복','김해추모'],cremFull:['부산영락 = 부산영락공원','김해추모 = 김해추모의공원','창원상복 = 창원상복공원','마산화장 = 마산화장장'],burialMarks:['봉안','벽담','평장','산골','수목','자차'],productShorts:['절약형','일반형','고급형'],flowers:['경북 5만원','네잎 5만원','삼미 5만원'],flowerPays:['장례식장 법카결제','월말 법카결제'],tributes:['영호 3만원','영호 5만원'],tributePays:['장례식장 법카결제','월말 법카결제'],baskets:['영호 4만원','현장결제'],basketPays:['월말 법카결제','현장결제'],urnTypes:[],cardCos:['하나카드','신한카드','KB국민카드','삼성카드','현대카드','롯데카드','우리카드','BC카드','NH농협카드']};
 if(!db.lists) db.lists=JSON.parse(JSON.stringify(DEFAULT_LISTS));
 Object.keys(DEFAULT_LISTS).forEach(k=>{ if(!db.lists[k]) db.lists[k]=DEFAULT_LISTS[k].slice(); });
 // 공통 기본 선택지만 한 번 제거한다. 기존 행사의 유골함 기록은 그대로 둔다.
@@ -1697,7 +1697,7 @@ if(!db.vVeh){ db.lists.vehTypes=[...new Set((db.lists.vehTypes||[]).map(noPlus))
 if(db.lists && db.lists.tributes && !db.v9){ if(!db.lists.tributes.includes('영호 5만원')){ const i=db.lists.tributes.indexOf('영호 3만원'); db.lists.tributes.splice(i<0?db.lists.tributes.length:i+1,0,'영호 5만원'); } db.v9=true; }
 if(!db.vCremGimhae){ const L=db.lists.crems; if(Array.isArray(L)&&!L.some(v=>/^김해추모/.test(coKey(v)))) L.push('김해추모'); db.vCremGimhae=true; }   /* 화장장 고르기에 김해추모 (2026.10.28) */
 if(!db.vCremGimhae2){ const L=db.lists.crems; if(Array.isArray(L)) db.lists.crems=[...new Set(L.map(v=>coKey(v)==='김해추모의공원'?'김해추모':v))]; db.vCremGimhae2=true; }   /* 어제 넣은 「김해추모의공원」 버튼 → 「김해추모」 */
-const LIST_LABEL={crems:'화장장 (화장장명 고르기)',cremFull:'화장장 정식 이름 (짧은 이름 = 정식 이름)',causes:'사망 사유',helpers:'도우미',mournBrands:'상복 업체',vehCos:'장의차 업체',vehTypes:'차종',productShorts:'상품 약칭',flowers:'입관꽃장식 (업체 금액)',flowerPays:'입관꽃장식 결제',tributes:'헌화 (업체 금액)',tributePays:'헌화 결제',baskets:'꽃바구니 (업체 금액)',basketPays:'꽃바구니 결제',urnTypes:'유골함 종류',cardCos:'카드사 (카드결제 양식)'};
+const LIST_LABEL={crems:'화장장 (화장장명 고르기)',cremFull:'화장장 정식 이름 (짧은 이름 = 정식 이름)',burialMarks:'장법 (밴드 장지 괄호)',causes:'사망 사유',helpers:'도우미',mournBrands:'상복 업체',vehCos:'장의차 업체',vehTypes:'차종',productShorts:'상품 약칭',flowers:'입관꽃장식 (업체 금액)',flowerPays:'입관꽃장식 결제',tributes:'헌화 (업체 금액)',tributePays:'헌화 결제',baskets:'꽃바구니 (업체 금액)',basketPays:'꽃바구니 결제',urnTypes:'유골함 종류',cardCos:'카드사 (카드결제 양식)'};
 function addVendorsV8(){
   const add=(name,report,extra={})=>{ if(db.companies.some(x=>x.name===name)) return; db.companies.push({id:uid(),name,band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:report}],items:GOI_ITEMS.slice(),deduct:[],...extra}); };
   add('The자빈',JABIN_REPORT,{labels:{custRel:'회원과의 관계 (예: 모)',customer:'회원명'}});
@@ -1808,6 +1808,20 @@ function cremFormal(v,strict){   /* 정식 이름. strict = 장지 · 경로 글
 function cremShort(v,strict){ const n=String(v||'').trim(), k=coKey(n); if(!k||(strict&&k.length<4)) return n; const g=cremGroup(k); return cremTable().short[k]||(g&&g[0])||n; }
 const cremText=(v,fn)=>String(v||'').replace(/[^-→\n]+/g,t=>{ const m=t.match(/^(\s*)(.*?)(\s*(?:\([^)]*\))?\s*)$/); return m&&m[2]?m[1]+fn(m[2],true)+m[3]:t; });   /* 「창원상복-부산추모(벽식)」 이름마다 */
 const cremDispName=f=>cremShort(cremReportLabel(f));
+/* 장법 표시 (2026.11.24 사용자: 「밴드는 우리가 보기 쉽게 부산추모(봉안) · 부산추모(벽담) · 산청선영(평장) · 해양장(산골) · 만어추모(수목) · 안동선영(산골,자차) — 자차 = 화장 뒤 유가족이 자차로 이동 · 밴드 양식에만 · 장법 체크도」)
+   f.burialMark = '산골,자차' (목록 순서). 밴드 {장지}에만 마지막 장지 뒤 괄호로 붙음(이미 괄호가 있으면 합침). 회사 보고 {장지} · {1차장지} · {2차장지}는 장법 괄호를 뺌(noMarks) */
+const markList=()=>Array.isArray(db.lists&&db.lists.burialMarks)?db.lists.burialMarks:DEFAULT_LISTS.burialMarks;
+const bMarks=f=>String((f||{}).burialMark||'').split(',').map(x=>x.trim()).filter(Boolean);
+const burialBase=f=>String((f||{}).burial||'').trim()||[f.burial1,f.burial2].map(v=>String(v||'').trim()).filter(Boolean).join('-');
+function bandBurial(f){
+  const base=burialBase(f), mk=bMarks(f); if(!mk.length||!base) return base;
+  const m=base.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+  return m?`${m[1]}(${[...new Set([...m[2].split(',').map(x=>x.trim()).filter(Boolean),...mk])].join(',')})`:`${base}(${mk.join(',')})`;
+}
+function noMarks(v){   /* 「부산추모(봉안)」 → 「부산추모」 · 장법 말만 든 괄호만 뺌 (「(기장)」 같은 건 그대로) */
+  const W=new Set([...markList(),'봉안','벽담','벽식','평장','산골','수목','수목장','자차','자차이동','봉분']);
+  return String(v||'').replace(/\s*\(([^()]*)\)/g,(all,inner)=>{ const ws=inner.split(/[,·\s]+/).filter(Boolean); return ws.length&&ws.every(w=>W.has(w))?'':all; });
+}
 function cremWithRound(f,nm){ if(isBurial(f)) return ''; const n=nm??cremDispName(f); return [n, f.cremRound?`(${pad(f.cremRound)}회차)`:''].filter(Boolean).join(' '); }
 function cremOrHagwan(f,nm){ if(isBurial(f)){ const hs=hagwanStr(f); return hs?`하관 : ${hs}`:'하관 : '; } return `화장 : ${cremWithRound(f,nm)}`; }
 /* 경로 잇기: (평장) 같은 괄호는 빼고 · 같은 이름이 이어지면 하나만 · 끝에 「장례식장」 자동 — 직접 적었으면 한 번만 (2026.10.30 사용자: 「장례식장은 자동으로 붙게 하되, 직접 입력하면 한 번만」) */
@@ -1966,7 +1980,7 @@ function fmtAs(v,fm){
 }
 function formalOver(c){   /* 회사 보고 양식: 화장장은 정식 이름 (화장 · 화장장 · 장법 · 장지 · 경로) */
   const f=c.f||{}, v=vals(c), nm=cremFormal(cremName(f)||cremReportLabel(f)), F=x=>cremText(x,cremFormal), bur=isBurial(f);
-  return {'화장':bur?'':cremStr(f,nm),'화장장':bur?'':nm,'화장장회차':cremWithRound(f,nm),'화장하관':cremOrHagwan(f,nm),'장법화장장':methodPlace(f,true),'장지':F(v['장지']),'1차장지':F(v['1차장지']),'2차장지':F(v['2차장지']),'운행경로':F(v['운행경로'])};
+  return {'화장':bur?'':cremStr(f,nm),'화장장':bur?'':nm,'화장장회차':cremWithRound(f,nm),'화장하관':cremOrHagwan(f,nm),'장법화장장':methodPlace(f,true),'장지':F(noMarks(v['장지'])),'1차장지':F(noMarks(v['1차장지'])),'2차장지':F(noMarks(v['2차장지'])),'운행경로':F(v['운행경로'])};
 }
 const reportFill=(body,c)=>fillTpl(body,c,formalOver(c));
 function fillTpl(body,c,over){
@@ -2384,6 +2398,7 @@ function renderInput(){
     else if(sectionKey==='product'&&isGoi(co)){   /* 고이: 납입 칸은 이행완료확인서 질문 안으로, 수금액 칸 = 상품금액(공제 전), 잔액은 자동(직접 넣어 둔 값이 있을 때만 칸), 아래에 납입 · 잔액 · 수금액 실시간 (2026.11.24) */
       const rs=rows.map(r=>r.filter(fd=>fd.k!=='paid'&&(fd.k!=='balance'||filled('balance'))).map(fd=>fd.k==='collect'?{...fd,l:'상품금액 (공제 전)'}:fd)).filter(r=>r.length), at=rs.findIndex(r=>r.some(fd=>fd.k==='balance'||fd.k==='collect'));
       rs.forEach((r,i)=>{ if(i===at) h+=certHtml(c); h+=fieldRow(r); if(i===at) h+=goiSumHtml(c); }); if(at<0) h+=certHtml(c)+goiSumHtml(c); }
+    else if(sectionKey==='method'){ const at=rows.findIndex(r=>r.some(fd=>fd.k==='burial1'||fd.k==='burial2')); rows.forEach((r,i)=>{ h+=fieldRow(r); if(i===at) h+=bMarkHtml(c); }); if(at<0) h+=bMarkHtml(c); }   /* 1차 · 2차 장지 바로 아래 밴드 장법 */
     else h+=rows.map(fieldRow).join('');
     if(s.key==='sched') h+=`<div id="schedInfo" class="fields"></div>`;
     if(s.key==='cust') h+=`<label class="check"><input type="checkbox" id="sameChief" ${c.f.sameChief?'checked':''}> ${esc(custWord(c))}과 상주가 같은 사람</label>`;
@@ -2406,8 +2421,17 @@ function renderInput(){
   const product=$('#f_product');if(product)product.closest('label').insertAdjacentHTML('afterend','<p class="note" style="grid-column:1/-1">금액은 숫자만 넣으면 만원입니다. 120 → 120만원 · 120.5 → 1,205,000원</p>');
   applyInputGroup();
   lockPaint();
-  const bp=$('#f_burial'); if(bp) bp.placeholder=[c.f.burial1,c.f.burial2].filter(Boolean).join('-')||'비우면 1차-2차 장지로 채움';
+  bMarkPaint(c);
   schedInfo(); updCremPreview();
+}
+function bMarkHtml(c){   /* 장법 버튼 (여러 개 · 다시 누르면 빠짐) */
+  const on=new Set(bMarks(c.f)), L=[...markList(),...bMarks(c.f).filter(w=>!markList().includes(w))];
+  return `<div class="f f-wrap bmark"><span class="field-label">밴드 장법 <span class="lbl-sub">장지 뒤 괄호 · 여러 개 · 자차 = 화장 뒤 유가족 자차 이동</span></span><span class="crem-picks bmark-picks" role="group" aria-label="장법">${L.map(w=>`<button type="button" class="chip" data-bmark="${esc(w)}" aria-pressed="${on.has(w)}">${esc(w)}</button>`).join('')}</span><p class="calc bmark-preview" id="bmarkPreview" aria-live="polite"></p></div>`;
+}
+function bMarkPaint(c){
+  const f=c.f||{}, bp=$('#f_burial'); if(bp) bp.placeholder=bandBurial({...f,burial:''})||'비우면 1차-2차 장지로 채움';
+  const el=$('#bmarkPreview'); if(!el) return; const band=bandBurial(f), co=cremText(noMarks(burialBase(f)),cremFormal);
+  el.textContent=band?`밴드 : ${band}${co&&co!==band?` · 회사 보고 : ${co}`:''}`:'장지를 넣고 장법을 고르면 밴드에 「부산추모(봉안)」처럼 들어갑니다';
 }
 function schedInfo(){
   const c=curCase(); if(!c) return; const f=c.f, el=$('#schedInfo'); if(!el) return;
@@ -2452,7 +2476,7 @@ $('#p-input').addEventListener('input',e=>{
     if(t.closest('.cert-q')){ if(c.f.certAsk==null) certFromOld(c,'yes'); c.dedNet=true; }
     if(certOn(c.f)){ certPaint(c); updAltarNotes(); }
   }
-  if(t.dataset.k==='burial1'||t.dataset.k==='burial2'){ const bp=$('#f_burial'); if(bp) bp.placeholder=[c.f.burial1,c.f.burial2].filter(Boolean).join('-')||'비우면 1차-2차 장지로 채움'; }
+  if(['burial1','burial2','burial'].includes(t.dataset.k)) bMarkPaint(c);
 });
 function composeDT(box){
   const d=box.querySelector('[data-dtp="d"]').value, hh=box.querySelector('[data-dtp="h"]').value, mm=box.querySelector('[data-dtp="m"]').value;
@@ -2486,6 +2510,9 @@ $('#p-input').addEventListener('click',e=>{
   if(a==='new'){ openPicker('new'); return; }
   if(!c) return;
   if(b.dataset.burial){ setBurial(c,b.dataset.burial); return; }
+  if(b.dataset.bmark!=null){ const w=b.dataset.bmark, cur=new Set(bMarks(c.f)); cur.has(w)?cur.delete(w):cur.add(w);
+    c.f.burialMark=[...markList().filter(x=>cur.has(x)),...[...cur].filter(x=>!markList().includes(x))].join(',');
+    b.setAttribute('aria-pressed',String(cur.has(w))); bMarkPaint(c); touched(); return; }
   if(b.dataset.itdel){ delRow(c,'items',b.dataset.itdel,renderInput,'제공 항목'); return; }
   if(!c.deductions) c.deductions=[];
   if(b.dataset.dddel){ c.dedNet=true; delRow(c,'deductions',b.dataset.dddel,renderInput,'공제'); return; }
@@ -3086,7 +3113,8 @@ function sbApply(r){
     if(up<=(Number(SBM.up[key])||0)) return false;
     const cur=r.id==='settings'?sbSettings():r.id==='duty'?sbDuty():null; if(!cur) return false;
     if(SBM.h[key]&&sbHash(JSON.stringify(cur))!==SBM.h[key]) return false;   // 이 기기에서 방금 고친 게 아직 안 올라감 → 이 기기 것을 올림
-    if(r.id==='settings'){ SB_SET_KEYS.forEach(k=>{ if(k in r.data) db[k]=r.data[k]; }); SBM.h[key]=sbHash(JSON.stringify(sbSettings())); }
+    if(r.id==='settings'){ SB_SET_KEYS.forEach(k=>{ if(k in r.data) db[k]=r.data[k]; }); if(db.lists&&typeof db.lists==='object') Object.keys(DEFAULT_LISTS).forEach(k=>{ if(!Array.isArray(db.lists[k])) db.lists[k]=DEFAULT_LISTS[k].slice(); });   /* 예전 기기가 올린 설정엔 새 목록이 없음 */
+      SBM.h[key]=sbHash(JSON.stringify(sbSettings())); }
     else { Object.entries(r.data).forEach(([k,v])=>{ if(/^hyumu-/.test(k)&&typeof v==='string'){ try{ localStorage.setItem(k,v); }catch(e){} } }); SBM.h[key]=sbHash(JSON.stringify(sbDuty())); sbDutyReload(); }
     SBM.up[key]=up; return true;
   }
@@ -3346,8 +3374,8 @@ $('#coDel').onclick=()=>arm($('#coDel'),'한 번 더 누르면 삭제',()=>{
 
 $('#saveRules').onclick=()=>{ const R=rules(); R.altarFixed=Number($('#rAltar').value)||0; R.urnShare=Number($('#rUrn').value)||0; const fo=Number($('#rFlower').value); R.flowerPct=Number.isFinite(fo)&&$('#rFlower').value!==''?Math.min(100,Math.max(0,fo)):60; const bf=Number($('#rBurial').value); R.burialFee=Number.isFinite(bf)&&$('#rBurial').value!==''?Math.max(0,bf):5; save(); toast('정산 기준을 저장했습니다'); };
 /* ---------- 관리: 선택 목록 ---------- */
-const LIST_USE={crems:'행사 입력 · 화장장명 아래 버튼',cremFull:'회사 보고 양식 (부산 · 부산영락 · 영락공원 어떻게 적어도 정식 이름으로)',causes:'행사 입력 · 고인 정보',helpers:'행사 입력 · 제공내역 · 정산 카톡',mournBrands:'행사 입력 · 제공내역',vehCos:'행사 입력 · 제공내역 · 배차',vehTypes:'행사 입력 · 제공내역 · 배차',productShorts:'행사 입력 · 상품 (현진시닝 보고)',flowers:'정산 · 꽃장식',flowerPays:'정산 · 꽃장식',tributes:'정산 · 헌화',tributePays:'정산 · 헌화',baskets:'정산 · 꽃바구니',basketPays:'정산 · 꽃바구니',urnTypes:'정산 · 유골함',cardCos:'정산 · 카드결제 양식'};
-function renderLists(){ $('#listEdit').innerHTML=Object.keys(LIST_LABEL).map(k=>`<label class="f">${LIST_LABEL[k]}${LIST_USE[k]?`<span class="field-hint list-use">쓰이는 곳: ${LIST_USE[k]}</span>`:''}<textarea class="input" data-list="${k}" rows="4">${esc(db.lists[k].join('\n'))}</textarea></label>`).join(''); }
+const LIST_USE={crems:'행사 입력 · 화장장명 아래 버튼',cremFull:'회사 보고 양식 (부산 · 부산영락 · 영락공원 어떻게 적어도 정식 이름으로)',burialMarks:'행사 입력 · 장지 아래 버튼 → 밴드 장지 「부산추모(봉안)」 (회사 보고에는 안 들어감)',causes:'행사 입력 · 고인 정보',helpers:'행사 입력 · 제공내역 · 정산 카톡',mournBrands:'행사 입력 · 제공내역',vehCos:'행사 입력 · 제공내역 · 배차',vehTypes:'행사 입력 · 제공내역 · 배차',productShorts:'행사 입력 · 상품 (현진시닝 보고)',flowers:'정산 · 꽃장식',flowerPays:'정산 · 꽃장식',tributes:'정산 · 헌화',tributePays:'정산 · 헌화',baskets:'정산 · 꽃바구니',basketPays:'정산 · 꽃바구니',urnTypes:'정산 · 유골함',cardCos:'정산 · 카드결제 양식'};
+function renderLists(){ $('#listEdit').innerHTML=Object.keys(LIST_LABEL).map(k=>`<label class="f">${LIST_LABEL[k]}${LIST_USE[k]?`<span class="field-hint list-use">쓰이는 곳: ${LIST_USE[k]}</span>`:''}<textarea class="input" data-list="${k}" rows="4">${esc((db.lists[k]||DEFAULT_LISTS[k]||[]).join('\n'))}</textarea></label>`).join(''); }
 $('#saveLists').onclick=()=>{ document.querySelectorAll('[data-list]').forEach(t=>{ db.lists[t.dataset.list]=t.value.split('\n').map(s=>s.trim()).filter(Boolean); }); save(); toast('선택 목록을 저장했습니다'); };
 
 /* ---------- 정산 보고 ---------- */
@@ -3372,7 +3400,7 @@ function altarText(v,card){ const t=String(v??'').trim(); if(!t) return ''; if(/
 function altarDeductWon(c){ if(!c||!c.altarNet||(c.f||{}).altarCard) return 0; const t=String((c.f||{}).altar||'').trim(); return t?Math.abs(toWon(t)):0; }
 /* 밴드 양식은 법인카드결제를 켜도 「카드결제」 글자 없이 평소처럼 「20만원 공제」 (2026.10.29 사용자: 「법카결제 체크해도 카드결제라고 밴드 양식에는 입력되지 않게」).
    업체 보고 양식 · 일정표 등 다른 양식은 그대로 「20만원 법인카드결제」. 수금액 줄은 실제 금액(법인카드결제면 빼지 않은 금액) */
-function bandOut(c){ const co=coById(c.companyId); return fillTpl(co.band,c,{'제단공제':altarText((c.f||{}).altar,false)}); }
+function bandOut(c){ const co=coById(c.companyId); return fillTpl(co.band,c,{'제단공제':altarText((c.f||{}).altar,false),'장지':bandBurial(c.f||{})}); }   /* 밴드 장지 = 장법 괄호 (부산추모(봉안)) */
 /* 고이장례연구소 「공제 · 추가 항목」 금액 (2026.11.01 사용자 「공제항목 기입 시 자동으로 인식해서 금액 공제 · 추가 · 밴드 수금액에도」 → 「공제 · 추가 모두 정산까지」)
    줄에 「공제」 · 「할인」(차감)이 있으면 빼고(할인은 2026.11.14 사용자 「공제 말고 할인이라고 넣어도 금액 빠지게」), 「추가」가 있으면 더함. 금액 = 「만」 · 「원」이 붙은 숫자 중 마지막 것(헌화30송이 5만원공제 → −5만원). 못 읽은 줄은 계산에 안 넣음.
    제단공제처럼 수금액(collectNetWon)에 반영 → 밴드 수금액 · 정산 상품 수금 · 보내는금액 · 정산 카톡 · 영수증 · 일정표 모두.
