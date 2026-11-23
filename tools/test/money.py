@@ -48,6 +48,15 @@ SETUP = r"""(()=>{
      const r=[vals(g)['공제항목'], collectNetWon(g)];
      g.f.discAsk='no'; r.push(vals(g)['공제항목'].split('\n')[0], collectNetWon(g)); g.f.discAsk='yes';
      g.deductions.push({id:'d2',text:'이행완료확인서 11만원 공제'}); r.push(collectNetWon(g)); return r; })(),
+   basket:(()=>{ startCase(co('디더블유')); const b=curCase();   // 2026.11.24 꽃바구니 줄 · 입관꽃장식 제공
+     Object.assign(b.f,{eventNo:'9',place:'양산농협 VIP1호',depart:'2026-11-20T07:00',collect:'250',helper:'김정단',helperHours:'20',vehType:'버스 리무진',vehCo:'한맥장의차',mournBrand:'한맥',burial:'진주화장-양산선영(평장)'});
+     Object.assign(S(b),{pay:'현금',altarAmt:'38',altarPay:'현금',extras:[{id:'x1',text:'여상복 1벌',amt:'3',pay:'현금'}],flower:'경북 5만원',flowerPay:'월말 법카결제',basket:'영호 2만원',basketPay:'월말 법카결제'});
+     const t1=settleText(b).split('\n').slice(-6).join('\n'), w1=settleCalc(b).sendWon;
+     S(b).basketPay='현장결제'; const w2=settleCalc(b).sendWon;
+     S(b).basket=''; S(b).basketPay=''; const t3=settleText(b), none=!/꽃바구니/.test(t3);
+     S(b).basket='영호 2만원'; S(b).basketPay='월말 법카결제'; const ck=checkSettleKakao(settleText(b)); const ckOk=!ck.money.length&&!ck.form.length;
+     S(b).flowerFree='yes'; const skip=!scrOn(b,SCR[SCR_I('fsAsk')]); S(b).flowerFree=''; const ask=scrOn(b,SCR[SCR_I('fsAsk')]);
+     return [t1,w1,w2,none,ckOk,skip,ask]; })(),
    hq:(()=>{ const p0=S(c1).pay; S(c1).pay='본사송금'; const t=settleText(c1), r=[settleCalc(c1).sendWon, t.split('\n').find(l=>/^수금 :/.test(l)), rcptSums(c1).cash]; S(c1).pay=p0; return r; })()};   // 2026.11.13 상품 수금 본사송금
 })()"""
 
@@ -55,6 +64,7 @@ EXPECT = [
     ('제단공제 20 · 수금 300 현금 → 공제 / 법인카드결제(공제 안 함, 밴드 양식은 「20만원 공제」)', 'altar', [2800000, 3000000, '20만원 법인카드결제', '제단공제 : 20만원 공제']),
     ('고이 공제 · 추가 항목 (5만원공제 · 할인 10만원 · 추가 12만원, 수금 300 현금)', 'goiDed', [2970000, 2970000, '수금액에서 10만원 뺍니다']),
     ('고이 이행완료확인서 (납입 1 + 할인 10 → 1번 「이행완료확인서 11만원 공제」, 할인 없음 → 1만원, 직접 적은 줄이 있으면 두 번 안 뺌)', 'goiCert', ['1.이행완료확인서 11만원 공제\n2.헌화30송이 5만원공제', 2840000, '1.이행완료확인서 1만원 공제', 2940000, 2840000]),
+    ('꽃바구니 줄 (헌화 다음, 법카 · 현장결제는 안 더함, 없으면 줄 없음, 카톡 검사 통과) · 입관꽃장식 제공이면 추가 판매 안 물음', 'basket', ['기타추가 : 여상복 1벌 3만원(현금)\n이송 :\n입관꽃장식 : 경북 5만원(월말 법카결제)\n헌화 :\n꽃바구니 : 영호 2만원(월말 법카결제)\n보내는금액 : 277만원', 2770000, 2770000, True, True, True, True]),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시1 상품 수금 본사송금 → 보내는금액 · 현금영수증에서 빠짐', 'hq', [1380000, '수금 : 2,575,000원(본사송금)', 1620000]),
     ('예시2 보내는금액', 'ex2', -180000),
