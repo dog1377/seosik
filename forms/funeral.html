@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.24-1">
+<meta name="app-version" content="2026.11.24-2">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -3702,7 +3702,7 @@ function vals(c){
     '성별':g('gender'), '나이':g('age'), '상주관계':g('chiefRel'),
     '임종':dayTime(f.death), '입관':dayTime(f.casket), '발인':dayTime(f.depart), '장지':g('burial')||[g('burial1'),g('burial2')].filter(Boolean).join('-'), '배차':f.vehNone?'미사용':dayTime(dispatchDT(f)), '운행경로':g('route')||autoRoute(f), '발인날짜':departDay(f), '화장장회차':cremWithRound(f), '화장하관':cremOrHagwan(f), '차량경로':f.vehNone?'':vehRouteLines(f), '상품':g('product'),
     '접수일시':longDT(f.recv||f.death), '입관일시':longDT(f.casket), '발인일시':longDT(f.depart), '1차장지':g('burial1'), '2차장지':g('burial2'),
-    '납입':money(f.paid), '잔액':money(f.balance),
+    '납입':goiPaid(c)??money(f.paid), '잔액':(b=>b==null?money(f.balance):(wonStr(b)||'0원'))(goiBalance(c)),
     '회사지원':money(f.support), '수금액':((altarDeductWon(c)||dedAdjWon(c))&&toWon(f.collect))?(wonStr(collectNetWon(c))||'0원'):money(f.collect), '담당':g('staff'), '담당연락처':g('staffTel'), '특이사항':g('note'),
     '도우미':f.helperNone?'미사용':[g('helper'), g('helperHours')?g('helperHours')+'시간':''].filter(Boolean).join(' '), '상복':f.mournNone?'미사용':(g('mournM')||g('mournW')||g('mournBrand'))?[g('mournM')?`남 ${cntText(g('mournM'),'세트')}`:'', g('mournW')?`여 ${cntText(g('mournW'),'벌')}`:'', g('mournBrand')].filter(Boolean).join(' '):g('mourning'),
     '차량':f.vehNone?'미사용':(g('vehType')||g('vehCo'))?[noPlus(g('vehType')),g('vehCo')].filter(Boolean).join(' '):g('vehicle'),
@@ -4119,23 +4119,35 @@ function mgrRows(c){
     const d=`${pad(parseDT(m.date).d)}일`, s=mgrHm(m.sh,m.sm), e=mgrHm(m.eh,m.em);
     return {d,s,e,n:m.n?`${m.n}명`:'',line:`${d} : ${[s,e].filter(Boolean).join('-')}${m.n?' '+m.n+'명':''}`.trim()}; });
 }
-function certHtml(c){   /* 고이장례연구소 이행완료확인서 질문 (2026.11.14) */
-  const f=c.f||{}, q=(k,amtK,label,name,ph)=>{ const v=f[k]||''; return `<div class="cq"><div class="cq-h"><span class="field-label">${label}</span><div class="seg" role="group" aria-label="${name}"><button type="button" data-cert="${k}" data-v="yes" aria-pressed="${v==='yes'}">있음</button><button type="button" data-cert="${k}" data-v="no" aria-pressed="${v==='no'}">없음</button></div></div><label class="f cq-amt" ${v==='yes'?'':'hidden'}><span class="field-label">${name} · 얼마입니까?</span>${amtIn(`data-k="${amtK}" aria-label="${name}"`,f[amtK],ph)}</label></div>`; };
-  return `<div class="cert-q">${q('paidAsk','paid','기존 납입금이 있습니까?','기존 납입금','예: 1')}${q('discAsk','certDisc','할인 금액이 있습니까?','할인 금액','예: 10')}
-    <p class="note">「있음」인 금액을 더해 아래 1번 줄 「이행완료확인서 11만원 공제」로 넣고 수금액에서 뺍니다. 기존 납입금은 밴드 「납입」 칸과 같은 값입니다.</p><p class="note warn" id="certWarn" ${certSkip(c)?'':'hidden'}>직접 적은 「이행완료확인서」 줄이 있어 자동 줄은 넣지 않습니다.</p></div>`;
+function certHtml(c){   /* 고이장례연구소 이행완료확인서 질문 — 상품 · 금액 카드 (2026.11.14, 2026.11.24 「이행완료확인서가 있습니까?」 하나로) */
+  const f=c.f||{}, ask=f.certAsk||(certOn(f)?'yes':'');
+  return `<div class="cert-q"><div class="cq"><div class="cq-h"><span class="field-label">이행완료확인서가 있습니까?</span><div class="seg" role="group" aria-label="이행완료확인서"><button type="button" data-cert="certAsk" data-v="yes" aria-pressed="${ask==='yes'}">있음</button><button type="button" data-cert="certAsk" data-v="no" aria-pressed="${ask==='no'}">없음</button></div></div>
+    <div class="pair cq-amts" ${ask==='yes'?'':'hidden'}><label class="f"><span class="field-label">기존 납입금</span>${amtIn('data-k="paid" aria-label="기존 납입금"',f.paid,'예: 1')}</label><label class="f"><span class="field-label">할인 금액</span>${amtIn('data-k="certDisc" aria-label="할인 금액"',f.certDisc,'예: 10')}</label></div></div>
+    <p class="note" id="certSum">${esc(certSumText(c))}</p><p class="note warn" id="certWarn" ${certSkip(c)?'':'hidden'}>직접 적은 「이행완료확인서」 줄이 있어 자동 줄은 넣지 않습니다.</p></div>`;
 }
+function certSumText(c){ const f=c.f||{}, w=certRaw(c), bal=goiBalance(c), b=goiBase(c);
+  if(f.certAsk==='no') return b?`밴드 잔액 = 상품금액 ${wonStr(b)}`:'';
+  if(!certOn(f)) return '있으면 기존 납입금 · 할인 금액을 넣으십시오. 합친 금액이 공제 · 추가 항목 1번 「이행완료확인서 공제」로 들어갑니다.';
+  if(!w) return '기존 납입금 · 할인 금액을 넣으십시오. 비운 칸은 0원입니다.';
+  return `합계 ${wonStr(w)} → 공제 · 추가 항목 1번 「이행완료확인서 ${wonStr(w)} 공제」 · 밴드 납입 ${wonStr(w)}${bal!=null?` · 잔액 ${wonStr(bal)||'0원'}(상품금액 − 이행완료확인서)`:''}`;
+}
+/* 상품 · 금액 카드의 자동 값(잔액 흐린 글자 · 합계 안내) 다시 쓰기 — 다시 그리지 않음 */
+function goiPaint(c){ if(!isGoi(coById(c.companyId))) return; const bal=document.getElementById('f_balance'), b=goiBalance(c);
+  if(bal) bal.placeholder=b!=null?`자동: ${wonStr(b)||'0원'}`:'예: 120.5';
+  const s=document.getElementById('certSum'); if(s) s.textContent=certSumText(c); }
 function certRowHtml(c){ const L=certLine(c); return `<div class="dd dd-cert" id="certRow" ${L?'':'hidden'}><span class="no">1.</span><div class="dd-fixed">${esc(L?L.text:'')}</div><span class="dd-tag">자동</span><small class="dd-amt">${L&&dedOn(c)?esc(`수금액에서 ${wonStr(L.won)} 뺍니다`):''}</small></div>`; }
 function certPaint(c){   /* 질문 칸에 쓰는 동안: 자동 줄 · 번호만 바꿈(다시 그리지 않음) */
   const row=document.getElementById('certRow'); if(!row) return; const L=certLine(c);
   row.hidden=!L; row.querySelector('.dd-fixed').textContent=L?L.text:''; row.querySelector('.dd-amt').textContent=L&&dedOn(c)?`수금액에서 ${wonStr(L.won)} 뺍니다`:'';
   document.querySelectorAll('#p-input .dd:not(.dd-cert) .no').forEach((n,i)=>{ n.textContent=`${i+1+(L?1:0)}.`; });
   const w=document.getElementById('certWarn'); if(w) w.hidden=!certSkip(c);
+  goiPaint(c);
 }
 function deductHtml(c){
   const co=coById(c.companyId), goi=isGoi(co), off=goi&&certLine(c)?1:0;
-  return `${goi?certHtml(c):''}<div class="items">${goi?certRowHtml(c):''}${(c.deductions||[]).map((d,i)=>`<div class="dd"><span class="no">${i+1+off}.</span><input class="input" data-dd="${d.id}" value="${esc(d.text)}" placeholder="예: 헌화 30송이 5만원 공제" aria-label="공제 · 추가 항목"><button class="x" type="button" data-dddel="${d.id}" aria-label="항목 삭제">✕</button><small class="dd-amt" data-dd-amt="${d.id}">${esc(dedAmtText(c,d))}</small></div>`).join('')}</div>
+  return `<div class="items">${goi?certRowHtml(c):''}${(c.deductions||[]).map((d,i)=>`<div class="dd"><span class="no">${i+1+off}.</span><input class="input" data-dd="${d.id}" value="${esc(d.text)}" placeholder="예: 헌화 30송이 5만원 공제" aria-label="공제 · 추가 항목"><button class="x" type="button" data-dddel="${d.id}" aria-label="항목 삭제">✕</button><small class="dd-amt" data-dd-amt="${d.id}">${esc(dedAmtText(c,d))}</small></div>`).join('')}</div>
     <button class="btn sm" type="button" data-act="addDeduct">+ 항목 추가</button>
-    <p class="note">예: 헌화 30송이 5만원 공제 · 넣은 순서대로 번호가 붙습니다.${isGoi(co)?' 「공제」 · 「할인」이 들어간 줄은 수금액에서 빼고, 「추가」가 들어간 줄은 더합니다(금액은 「5만원」처럼). 수금액 칸에는 공제 · 추가 전 상품 금액을 넣으십시오.':''}</p>`;
+    <p class="note">예: 헌화 30송이 5만원 공제 · 넣은 순서대로 번호가 붙습니다.${isGoi(co)?' 「공제」 · 「할인」이 들어간 줄은 수금액에서 빼고, 「추가」가 들어간 줄은 더합니다(금액은 「5만원」처럼). 수금액 칸에는 공제 · 추가 전 상품 금액이 들어갑니다(상품에 「289」처럼 적으면 자동). 이행완료확인서는 상품 · 금액 카드에서 묻습니다.':''}</p>`;
 }
 function renderInput(){
   const c=curCase();
@@ -4155,6 +4167,8 @@ function renderInput(){
     const sectionKey=s.key||s.rows[0][0].k, meta=SECTION_UI[sectionKey]||{group:'basic',title:s.t};
     h+=`<div class="sec" data-section="${sectionKey}" data-group="${meta.group}" data-title="${esc(meta.title)}" ${meta.group===inputGroup?'':'hidden'}><div class="sec-head"><h2>${meta.title}</h2>${s.key==='sched'?'<button class="btn link" type="button" data-act="threeDay">3일장 자동 입력</button>':''}</div><div class="fields">`;
     if(s.key==='prov'){ let cur=''; rows.forEach(r=>{ const g=noneOf(r[0].k); if(g!==cur){ if(cur) h+='</div>'; cur=g; if(g) h+=`<div class="none-head"><b>${NONE_GRP[g].label}</b>${noneTog(c,g)}</div><div class="none-grp" data-none-grp="${g}" ${c.f[g]?'hidden':''}>`; } h+=fieldRow(r); }); if(cur) h+='</div>'; }
+    else if(sectionKey==='product'&&isGoi(co)){ const rs=rows.map(r=>r.filter(fd=>fd.k!=='paid')).filter(r=>r.length), at=rs.findIndex(r=>r.some(fd=>fd.k==='balance'||fd.k==='collect'));   /* 고이: 납입 칸은 이행완료확인서 질문 안으로 */
+      rs.forEach((r,i)=>{ if(i===at) h+=certHtml(c); h+=fieldRow(r); }); if(at<0) h+=certHtml(c); }
     else h+=rows.map(fieldRow).join('');
     if(s.key==='sched') h+=`<div id="schedInfo" class="fields"></div>`;
     if(s.key==='cust') h+=`<label class="check"><input type="checkbox" id="sameChief" ${c.f.sameChief?'checked':''}> ${esc(custWord(c))}과 상주가 같은 사람</label>`;
@@ -4172,6 +4186,7 @@ function renderInput(){
     cards.forEach((el,i)=>el.querySelector('h2').insertAdjacentHTML('afterbegin',`<span class="sec-num">${String(i+1).padStart(2,'0')}</span>`));
   });
   const place=$('#f_place');if(place)place.placeholder=exFor('place')||'예: 동래봉생 2호';
+  goiPaint(c);
   const hint=$('#f_productShort');if(hint)hint.closest('label').insertAdjacentHTML('beforeend','<span class="field-hint">비우면 상품명이 사용됩니다.</span>');
   const product=$('#f_product');if(product)product.closest('label').insertAdjacentHTML('afterend','<p class="note" style="grid-column:1/-1">금액은 숫자만 넣으면 만원입니다. 120 → 120만원 · 120.5 → 1,205,000원</p>');
   applyInputGroup();
@@ -4214,9 +4229,13 @@ $('#p-input').addEventListener('input',e=>{
   if(t.dataset.it && t.dataset.itf==='text'){ const it=c.items.find(x=>x.id===t.dataset.it); if(it){ it.text=t.value; if(t.tagName==='TEXTAREA') fitItemText(t); renumber(); touched(); } }
   if(t.dataset.mgf==='n'){ const m=(c.mgr||[]).find(x=>x.id===t.dataset.mg); if(m){ m.n=t.value; touched(); } }
   if(t.dataset.dd){ const d=(c.deductions||[]).find(x=>x.id===t.dataset.dd); if(d){ d.text=t.value; c.dedNet=true; const a=document.querySelector(`[data-dd-amt="${d.id}"]`); if(a) a.textContent=dedAmtText(c,d); certPaint(c); updAltarNotes(); touched(); } }
-  if(t.dataset.k==='paid'||t.dataset.k==='certDisc'){   /* 이행완료확인서 금액 (기존 납입금은 밴드 「납입」 칸과 같은 값 → 다른 칸도 맞춤) */
+  if(t.dataset.k==='product'&&goiAutoCollect(c)){ const el=$('#f_collect'); if(el){ el.value=c.f.collect||''; const bx=el.closest('.amt'); if(bx) bx.querySelector('.amt-u').textContent=amtUnit(el.value); const r=bx&&bx.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(el.value); } updAltarNotes(); }
+  if(t.dataset.k==='collect') delete c.f.collectAuto;   /* 직접 고친 수금액은 상품을 바꿔도 그대로 */
+  if(['product','collect','balance'].includes(t.dataset.k)) goiPaint(c);
+  if(t.dataset.k==='paid'||t.dataset.k==='certDisc'){   /* 이행완료확인서 금액 */
     document.querySelectorAll(`#p-input [data-k="${t.dataset.k}"]`).forEach(x=>{ if(x===t) return; x.value=t.value; const bx=x.closest('.amt'); if(bx){ bx.querySelector('.amt-u').textContent=amtUnit(t.value); const r=bx.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); } });
-    if(c.f.paidAsk==='yes'||c.f.discAsk==='yes'){ if(t.closest('.cert-q')) c.dedNet=true; certPaint(c); updAltarNotes(); }
+    if(t.closest('.cert-q')){ if(c.f.certAsk==null) certFromOld(c,'yes'); c.dedNet=true; }
+    if(certOn(c.f)){ certPaint(c); updAltarNotes(); }
   }
   if(t.dataset.k==='burial1'||t.dataset.k==='burial2'){ const bp=$('#f_burial'); if(bp) bp.placeholder=[c.f.burial1,c.f.burial2].filter(Boolean).join('-')||'비우면 1차-2차 장지로 채움'; }
 });
@@ -4256,12 +4275,12 @@ $('#p-input').addEventListener('click',e=>{
   if(!c.deductions) c.deductions=[];
   if(b.dataset.dddel){ c.dedNet=true; delRow(c,'deductions',b.dataset.dddel,renderInput,'공제'); return; }
   if(b.dataset.ddadd){ c.dedNet=true; c.deductions.push({id:uid(),text:b.dataset.ddadd}); touched(); renderInput(); return; }
-  if(b.dataset.cert){   /* 이행완료확인서: 기존 납입금 · 할인 금액 있음/없음 (2026.11.14) */
-    const k=b.dataset.cert, amtK=k==='paidAsk'?'paid':'certDisc', v=b.dataset.v, pa=c.f[k], pv=c.f[amtK], name=k==='paidAsk'?'기존 납입금':'할인 금액';
-    const focusAmt=()=>{ const el=document.querySelector(`#p-input .cert-q [data-k="${amtK}"]`); if(el) el.focus(); };
+  if(b.dataset.cert==='certAsk'){   /* 이행완료확인서가 있습니까? 있음 / 없음 (2026.11.24) — 없음이면 넣어 둔 금액을 지움(되돌리기) */
+    const v=b.dataset.v, f=c.f, pa=f.certAsk, pp=f.paid, pd=f.certDisc;
+    const focusAmt=()=>{ const el=document.querySelector('#p-input .cert-q [data-k="paid"]'); if(el) el.focus(); };
     if(pa===v){ if(v==='yes') focusAmt(); return; }
-    c.f[k]=v; c.dedNet=true;
-    if(v==='no'&&String(pv||'').trim()){ c.f[amtK]=''; if(window.dwUndo) window.dwUndo(`${name}을 지웠습니다`,()=>{ c.f[k]=pa; c.f[amtK]=pv; touched(); renderInput(); }); }
+    certFromOld(c,v); c.dedNet=true;
+    if(v==='no'&&(String(pp||'').trim()||String(pd||'').trim())){ f.paid=''; f.certDisc=''; if(window.dwUndo) window.dwUndo('기존 납입금 · 할인 금액을 지웠습니다',()=>{ if(pa==null) delete f.certAsk; else f.certAsk=pa; f.paid=pp; f.certDisc=pd; touched(); renderInput(); }); }
     touched(); renderInput(); if(v==='yes') focusAmt(); return;
   }
   if(!c.mgr) c.mgr=[];
@@ -5149,7 +5168,28 @@ function dedAdjWon(c){ return dedOn(c)?dedTexts(c).reduce((a,t)=>a+dedLine(t).ad
 /* 고이장례연구소 이행완료확인서 (2026.11.14 사용자 「기존납입금이 있나요? 얼마? 할인금액이 있나요? 얼마? → 합친 금액을 공제 · 추가 내역에 「이행완료확인서 11만원 공제」」)
    공제 · 추가 항목 카드 맨 위 질문: 기존 납입금(f.paidAsk 'yes'|'no' + 금액은 예전 칸 f.paid = 밴드 「납입」 · 일정표 납입금) · 할인 금액(f.discAsk + f.certDisc) — 새 칸, 추가만 · 이전 코드 없음.
    「있음」인 금액을 더해 공제 · 추가 항목 1번 줄로(기록에는 안 넣고 그때그때 만듦) → {공제항목} · 수금액(dedAdjWon)에 그대로. 직접 적은 「이행완료확인서 …」 줄이 있으면 그 줄만 씀(두 번 빠지지 않게). */
-function certRaw(c){ const f=(c&&c.f)||{}; if(!isGoi(coById(c.companyId))) return 0; return (f.paidAsk==='yes'?Math.abs(toWon(f.paid)):0)+(f.discAsk==='yes'?Math.abs(toWon(f.certDisc)):0); }
+/* (2026.11.24 사용자 「상품 2026 가족장 289 → 289만원 자동 · 일정표 입력할 때 이행완료확인서가 있는지 묻고 기납입금 · 할인 금액 입력 → 합쳐서 이행완료확인서 공제 · 밴드 수금액 반영 · 잔액은 상품금액 − 이행완료확인서」 + 고른 답 밴드 납입 = 기납입 + 할인 합계)
+   질문은 행사 입력 → 상품 · 금액 카드 「이행완료확인서가 있습니까?」(f.certAsk 'yes'|'no', 새 칸) → 기존 납입금(f.paid) · 할인 금액(f.certDisc).
+   f.certAsk 가 없는 예전 행사는 예전 질문 값(f.paidAsk · f.discAsk)대로 셈 */
+function certOn(f){ f=f||{}; return f.certAsk==='yes'||(f.certAsk==null&&(f.paidAsk==='yes'||f.discAsk==='yes')); }
+function certRaw(c){ const f=(c&&c.f)||{}; if(!isGoi(coById(c.companyId))) return 0;
+  if(f.certAsk==='yes') return Math.abs(toWon(f.paid))+Math.abs(toWon(f.certDisc)); if(f.certAsk==='no') return 0;
+  return (f.paidAsk==='yes'?Math.abs(toWon(f.paid)):0)+(f.discAsk==='yes'?Math.abs(toWon(f.certDisc)):0); }
+/* 상품 글에서 상품금액 읽기: 「2026 가족장 289」 → 289만원 (연도 · 10만원 아래 숫자는 뺌, 맨 뒤 금액) */
+function prodWon(p){ const m=String(p||'').match(/\d[\d,]*(?:\.\d+)?\s*(?:만\s*원?|원)?/g)||[];
+  const ws=m.filter(x=>!/^(19|20)\d\d$/.test(x.trim())).map(x=>toWon(x)).filter(w=>w>=100000); return ws.length?ws[ws.length-1]:0; }
+function goiBase(c){ const f=(c&&c.f)||{}; return prodWon(f.product)||toWon(f.collect); }
+/* 밴드 「납입」 = 이행완료확인서 금액(기납입 + 할인), 「잔액」 = 상품금액 − 이행완료확인서 (직접 넣은 잔액이 있으면 그 값) — 고이장례연구소만 */
+/* 예전 질문(기존 납입금이 있습니까? · 할인 금액이 있습니까?)으로 넣은 행사를 새 질문으로 — 「없음」이었던 금액은 0 */
+function certFromOld(c,v){ const f=c.f; if(f.certAsk==null){ if(f.paidAsk==='no') f.paid=''; if(f.discAsk==='no') f.certDisc=''; } f.certAsk=v; }
+function goiPaid(c){ const w=certRaw(c); return w?wonStr(w):null; }
+function goiBalance(c){ const f=(c&&c.f)||{}; if(!isGoi(coById(c.companyId))||String(f.balance||'').trim()) return null;
+  if(!(f.certAsk==='yes'||f.certAsk==='no'||certRaw(c))) return null; const b=goiBase(c); return b?b-certRaw(c):null; }
+/* 상품을 넣으면 수금액 칸(공제 · 추가 전 상품 금액)에 자동으로 — 비어 있거나 전에 자동으로 넣은 값일 때만 (f.collectAuto, 새 칸) */
+function goiAutoCollect(c){ const f=c.f; if(!isGoi(coById(c.companyId))) return false;
+  const cur=String(f.collect||'').trim(); if(cur&&cur!==String(f.collectAuto||'')) return false;
+  const w=prodWon(f.product), v=w?String(w/10000):''; if(v===cur) return false;
+  f.collect=v; if(v) f.collectAuto=v; else delete f.collectAuto; return true; }
 function certSkip(c){ return certRaw(c)>0&&(c.deductions||[]).some(d=>/^\s*이행완료확인서/.test(d.text||'')); }
 function certLine(c){ const won=certRaw(c); return won&&!certSkip(c)?{won,text:`이행완료확인서 ${wonStr(won)} 공제`}:null; }
 function dedTexts(c){ const L=certLine(c); return [...(L?[L.text]:[]),...(c.deductions||[]).map(d=>String(d.text||'').trim()).filter(Boolean)]; }

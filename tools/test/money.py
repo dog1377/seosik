@@ -48,6 +48,12 @@ SETUP = r"""(()=>{
      const r=[vals(g)['공제항목'], collectNetWon(g)];
      g.f.discAsk='no'; r.push(vals(g)['공제항목'].split('\n')[0], collectNetWon(g)); g.f.discAsk='yes';
      g.deductions.push({id:'d2',text:'이행완료확인서 11만원 공제'}); r.push(collectNetWon(g)); return r; })(),
+   goiBand:(()=>{ startCase(co('고이장례연구소')); const g=curCase();   // 2026.11.24 상품 289 자동 · 이행완료확인서(기납입 1 + 할인 10) · 밴드 납입 · 잔액 · 수금액
+     g.f.product='2026 가족장 289'; goiAutoCollect(g); S(g).pay='현금'; Object.assign(g.f,{certAsk:'yes',paid:'1',certDisc:'10'}); g.deductions=[{id:'d1',text:'헌화30송이 5만원공제'}];
+     const v=vals(g), r=[g.f.collect, v['납입'], v['잔액'], v['수금액'], vals(g)['공제항목'], settleCalc(g).sendWon];
+     g.f.certAsk='no'; g.f.paid=''; g.f.certDisc=''; const v2=vals(g); r.push(v2['납입'], v2['잔액'], v2['수금액']);
+     r.push(prodWon('289 4일장'), prodWon('2026 가족장'), prodWon('삼성전기 270 일반형'));
+     g.f.collect='300'; delete g.f.collectAuto; g.f.product='2026 가족장 320'; r.push(goiAutoCollect(g), g.f.collect); return r; })(),
    basket:(()=>{ startCase(co('디더블유')); const b=curCase();   // 2026.11.24 꽃바구니 줄 · 입관꽃장식 제공
      Object.assign(b.f,{eventNo:'9',place:'양산농협 VIP1호',depart:'2026-11-20T07:00',collect:'250',helper:'김정단',helperHours:'20',vehType:'버스 리무진',vehCo:'한맥장의차',mournBrand:'한맥',burial:'진주화장-양산선영(평장)'});
      Object.assign(S(b),{pay:'현금',altarAmt:'38',altarPay:'현금',extras:[{id:'x1',text:'여상복 1벌',amt:'3',pay:'현금'}],flower:'경북 5만원',flowerPay:'월말 법카결제',basket:'영호 2만원',basketPay:'월말 법카결제'});
@@ -65,6 +71,7 @@ EXPECT = [
     ('고이 공제 · 추가 항목 (5만원공제 · 할인 10만원 · 추가 12만원, 수금 300 현금)', 'goiDed', [2970000, 2970000, '수금액에서 10만원 뺍니다']),
     ('고이 이행완료확인서 (납입 1 + 할인 10 → 1번 「이행완료확인서 11만원 공제」, 할인 없음 → 1만원, 직접 적은 줄이 있으면 두 번 안 뺌)', 'goiCert', ['1.이행완료확인서 11만원 공제\n2.헌화30송이 5만원공제', 2840000, '1.이행완료확인서 1만원 공제', 2940000, 2840000]),
     ('꽃바구니 줄 (헌화 다음, 법카 · 현장결제는 안 더함, 없으면 줄 없음, 카톡 검사 통과) · 입관꽃장식 제공이면 추가 판매 안 물음', 'basket', ['기타추가 : 여상복 1벌 3만원(현금)\n이송 :\n입관꽃장식 : 경북 5만원(월말 법카결제)\n헌화 :\n꽃바구니 : 영호 2만원(월말 법카결제)\n보내는금액 : 277만원', 2770000, 2770000, True, True, True, True]),
+    ('고이 상품 「2026 가족장 289」 → 수금액 289 자동 · 이행완료확인서 있음(1+10) → 밴드 납입 11 · 잔액 278 · 수금액 273 / 없음 → 납입 그대로 · 잔액 289 · 수금액 284 · 직접 고친 수금액은 그대로', 'goiBand', ['289', '11만원', '278만원', '273만원', '1.이행완료확인서 11만원 공제\n2.헌화30송이 5만원공제', 2730000, '', '289만원', '284만원', 2890000, 0, 2700000, False, '300']),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시1 상품 수금 본사송금 → 보내는금액 · 현금영수증에서 빠짐', 'hq', [1380000, '수금 : 2,575,000원(본사송금)', 1620000]),
     ('예시2 보내는금액', 'ex2', -180000),
