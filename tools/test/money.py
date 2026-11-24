@@ -75,6 +75,13 @@ SETUP = r"""(()=>{
    etc:(()=>{ const e=coById(ETC), g=db.companies.find(x=>x.name==='고이장례연구소'), r=[activeReports(e).length, activeReports(g).length>0];   // 2026.11.24 기타 업체 = 고이 양식 없음
      const keep=e.reports; e.reports=[{id:'a',name:'보고 양식',body:GOI_REPORT},{id:'b',name:'내 양식',body:'장소 : {장소}'}]; e.reportsEnabled=true; etcNoGoi(); r.push(e.reports.map(x=>x.name).join(',')); e.reports=keep; delete e.reportsEnabled;
      startCase(ETC); r.push(outViews(curCase()).some(([k])=>/^rep/.test(k))); return r; })(),
+   goiBal:(()=>{ const goi=co('고이장례연구소'), r=[];   // 2026.11.24 사용자 실제 행사: 잔액 2,781,100원 · 공제 1만원 → 수금액 2,771,100원 (이행완료확인서 두 번 빠지던 것)
+     startCase(goi); let g=curCase(); psApply(g,psParse('장례행사 일정표\n장   소 : 부산메리놀 특2호\n기   간 : 23일-25일 3일\n회사명 : 고이장례연구소\n회원명 : 한봉재\n관    계 : 자\n연락처 : 010-9990-7287\n고인명 : 김정자 여자 86세(본관/안동)\n상주명 : 한봉재\n연락처 : 010-9990-7287\n종    교 : 불교\n임    종 : 23일 06시 20분\n입    관 : 24일 14시\n발    인 : 25일 08시 30분\n장    지 : 부산영락-부산추모공원(봉안)\n상    품 : 2026 가족장 289\n납    입 : 108,900원\n잔    액 : 2,781,100원\n수금액 : 2,781,100원\n담    당 : 서영우\n연락처 : 010-7799-7720\n특이사항 :'),false); g.deductions.push({id:'x',text:'헌화 1만원 공제'});
+     r.push(bandCollect(g), g.f.certAsk, g.f.collect, settleCalc(g).sendWon);
+     startCase(goi); g=curCase(); Object.assign(g.f,{product:'2026 가족장 289',paid:'108900',balance:'2781100',collect:'278.11'}); g.dedNet=true; certFromOld(g,'yes'); g.deductions=[{id:'y',text:'헌화 1만원 공제'}]; r.push(bandCollect(g));
+     startCase(goi); g=curCase(); Object.assign(g.f,{product:'2026 가족장 289',collect:'289',collectAuto:'289',certAsk:'yes',paid:'8900',certDisc:'10'}); g.deductions=[{id:'b',text:'1.이행완료확인서 108,900원 공제'},{id:'a',text:'헌화 1만원 공제'}]; r.push(bandCollect(g), goiSumVals(g).bal);
+     g.deductions=[{id:'a',text:'헌화 1만원 공제'},{id:'d',text:'상복 추가 5만원'}]; g.f.altar='20'; r.push(bandCollect(g), altarNotes(g).collect);
+     return r; })(),
    hq:(()=>{ const p0=S(c1).pay; S(c1).pay='본사송금'; const t=settleText(c1), r=[settleCalc(c1).sendWon, t.split('\n').find(l=>/^수금 :/.test(l)), rcptSums(c1).cash]; S(c1).pay=p0; return r; })()};   // 2026.11.13 상품 수금 본사송금
 })()"""
 
@@ -91,6 +98,7 @@ EXPECT = [
         '화장 : 11월 25일 09시 (마산화장장 03회차)\n장법 : 화장(마산화장장)\n장지 : 창원상복공원-부산추모', '화장 : 11월 25일 09시 (마산화장 03회차)', '화장 : 마산화장 (03회차)']),
     ('밴드 장법 괄호 (밴드만 · 회사 보고 · 정산 카톡에는 없음)', 'bmark', ['부산영락-부산추모(봉안)', '장지 : 부산영락공원-부산추모\n2차 : 부산추모', '장    지 : 부산영락-부산추모(봉안)', '창원상복-부산추모(벽식,자차)', '장지 : 창원상복공원-부산추모', '안동선영(산골,자차)', '장지 : 안동선영', '장지 : 안동선영']),
     ('기타 업체 = 회사 보고 양식 없음 (고이 양식만 빠지고 직접 만든 양식은 남음, 고이는 그대로)', 'etc', [0, True, '내 양식', False]),
+    ('고이 수금액 = 잔액 − 공제 + 추가 (이행완료확인서 한 번만: 붙여넣기 · 붙여넣은 뒤 있음 · 직접 적은 줄)', 'goiBal', ['2,771,100원', None, '2781100', 2771100, '2,771,100원', '2,771,100원', '2,781,100원', '2,621,100원', '잔액 2,781,100원에서 제단공제 20만원 빼고 · 공제 · 추가 +4만원 → 2,621,100원']),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시1 상품 수금 본사송금 → 보내는금액 · 현금영수증에서 빠짐', 'hq', [1380000, '수금 : 2,575,000원(본사송금)', 1620000]),
     ('예시2 보내는금액', 'ex2', -180000),
