@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.24-6"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.24-7"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
@@ -1444,7 +1444,6 @@ html body header.appbar{background:var(--surface);border-bottom:1px solid var(--
 :root body .btn,:root body .btn.sm,:root body .btn.link,:root body #newCase,:root body #saveNow,:root body .input,:root body .seg,:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea,:root body .icon-btn,:root body .cp-go,:root body .cp-close,:root body .text-out,:root body .wz-choice button,:root body .chip,:root body .group-tabs,:root body .sub-fold,:root body .missing,:root body .co-symbol,:root body .cm-nav,:root body .rp{border-radius:10px}
 :root body .seg button,:root body .group-tabs button,:root body .ph button,:root body .acc-b button,:root body .tp-grid button,:root body .csheet-list button,:root body .burial-seg button,:root body .missing button,:root body .ch-btn,:root body .check,:root body .pt-step,:root body .item .tog{border-radius:8px}
 :root body .lv-st,:root body .tag{border-radius:6px}
-:root body .wz-amt .input{border-radius:0}
 :root body .btn.primary{border-radius:10px;font-weight:600}
 :root body .csheet{border-radius:20px 20px 0 0;box-shadow:var(--shadow-modal)}
 :root body .sheet{border-radius:20px;box-shadow:var(--shadow-modal)}
@@ -1471,8 +1470,17 @@ html.dw-dr-lock body .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 :root body .input:not(.wz-amt .input),:root body .sel,:root body label.field input,:root body label.field select,:root body label.field textarea{border:1px solid var(--edge);background-color:var(--field);color:var(--ink)}
 :root body .input:not(.wz-amt .input):focus,:root body .sel:focus,:root body label.field input:focus,:root body label.field select:focus,:root body label.field textarea:focus{background-color:var(--surface);border-color:var(--brand);box-shadow:0 0 0 3px var(--bg-selected);outline:none}
 :root body .input::placeholder,:root body label.field input::placeholder,:root body textarea::placeholder{color:var(--ph);opacity:1}
-:root body .wz-amt .input{border-bottom-color:var(--edge)}
-:root body .wz-amt .input:focus{border-bottom-color:var(--brand)}
+/* 정산 금액 칸 = 시안 A (2026.11.24 사용자: 「숫자 입력하는 칸 · 깜빡이는 커서랑 칸이 부자연스러움」 → 시안 A 고름)
+   파란 네모 테두리 · 두 겹 밑줄 없앰 → 밑줄 하나(누르면 파랑) · 파란 커서 · 단위(만원 · 번)는 오른쪽, 숫자 줄 높이에 맞춤 */
+:root body .wz-amt{grid-template-columns:minmax(0,1fr)}
+:root body .wz-amt .amt,:root body .wz-amt .suffix{display:flex;align-items:baseline;gap:10px;min-width:0;border-bottom:1px solid var(--edge);transition:border-color .16s cubic-bezier(.2,0,0,1),box-shadow .16s cubic-bezier(.2,0,0,1)}
+:root body .wz-amt .amt:focus-within,:root body .wz-amt .suffix:focus-within{border-bottom-color:var(--brand);box-shadow:0 1px 0 var(--brand)}
+:root body .wz-amt .amt .input,:root body .wz-amt .suffix .input{flex:1;min-width:0;width:auto;height:auto;min-height:0;padding:6px 0 10px;border:0;border-radius:0;outline:none;box-shadow:none;background:transparent;font-size:36px;line-height:1.2;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink);caret-color:var(--brand)}
+:root body .wz-amt .amt .input::placeholder,:root body .wz-amt .suffix .input::placeholder{font-size:36px;font-weight:600;color:var(--ph);opacity:.45}
+:root body .wz-amt .amt .amt-u,:root body .wz-amt .suffix span{position:static;transform:none;flex:none;font-size:20px;font-weight:600;color:var(--ink-2)}
+:root body .wz-amt .amt-r{padding-left:0;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+@media (min-width:700px){ :root body .wz-amt .amt .input,:root body .wz-amt .suffix .input,:root body .wz-amt .amt .input::placeholder,:root body .wz-amt .suffix .input::placeholder{font-size:40px} }
+@media (prefers-reduced-motion:reduce){ :root body .wz-amt .amt,:root body .wz-amt .suffix{transition:none} }
 /* 고르는 칸(현금/카드 등): 옅은 바탕, 고른 칸 = 선택 바탕 + 파란 글자 */
 :root body .seg,:root body .group-tabs{border:0;background-color:var(--bg-subtle)}
 :root body .seg button[aria-pressed="true"],:root body .group-tabs button[aria-pressed="true"],:root body .group-tabs button.on{background-color:var(--bg-selected);color:var(--st-info);box-shadow:inset 0 0 0 1px var(--st-info);font-weight:600}
