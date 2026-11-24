@@ -1745,6 +1745,11 @@ if(!db.vSJLife){   /* SJ산림조합상조 → 산림조합라이프 (2026.11.03
   db.vSJLife=true;
 }
 if(!db.vGoiEnd){ const goi=db.companies.find(x=>isGoi(x)); if(goi){ if(!goi.reports) goi.reports=[]; if(!goi.reports.some(r=>r.name==='장례 종료 보고')) goi.reports.push({id:uid(),name:'장례 종료 보고',body:GOI_END_REPORT}); } db.vGoiEnd=true; }
+/* 기타 업체 = 회사 보고 양식 없음 (2026.11.24 사용자: 「기타 회사 입력할 때 회사 양식 계속 고이 것 나오는데 안 나오게」)
+   예전에 기본값으로 들어간 고이 양식만 뺌(직접 만든 양식은 그대로) · 서버에서 받은 설정에도 다시 적용(sbApply) */
+const goiLike=b=>{ const k=String(b||'').replace(/\s/g,''); return k===GOI_REPORT.replace(/\s/g,'')||/^장소:\{장소\}상품:\{상품\}고인:\{고인이름\}/.test(k); };
+function etcNoGoi(){ const e=(db.companies||[]).find(x=>x.id===ETC); if(!e||!Array.isArray(e.reports)) return; const r=e.reports.filter(x=>!goiLike(x&&x.body)); if(r.length!==e.reports.length){ e.reports=r; if(!r.length) delete e.reportsEnabled; } }
+etcNoGoi();
 function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
 // 기타 업체로 작성한 건은 직접 넣은 업체명을 씀
@@ -3114,6 +3119,7 @@ function sbApply(r){
     const cur=r.id==='settings'?sbSettings():r.id==='duty'?sbDuty():null; if(!cur) return false;
     if(SBM.h[key]&&sbHash(JSON.stringify(cur))!==SBM.h[key]) return false;   // 이 기기에서 방금 고친 게 아직 안 올라감 → 이 기기 것을 올림
     if(r.id==='settings'){ SB_SET_KEYS.forEach(k=>{ if(k in r.data) db[k]=r.data[k]; }); if(db.lists&&typeof db.lists==='object') Object.keys(DEFAULT_LISTS).forEach(k=>{ if(!Array.isArray(db.lists[k])) db.lists[k]=DEFAULT_LISTS[k].slice(); });   /* 예전 기기가 올린 설정엔 새 목록이 없음 */
+      etcNoGoi();   /* 기타 업체에 고이 양식이 다시 들어오지 않게 */
       SBM.h[key]=sbHash(JSON.stringify(sbSettings())); }
     else { Object.entries(r.data).forEach(([k,v])=>{ if(/^hyumu-/.test(k)&&typeof v==='string'){ try{ localStorage.setItem(k,v); }catch(e){} } }); SBM.h[key]=sbHash(JSON.stringify(sbDuty())); sbDutyReload(); }
     SBM.up[key]=up; return true;
@@ -3346,7 +3352,7 @@ $('#addReport').onclick=()=>{ const id=uid(); $('#coReports').insertAdjacentHTML
 $('#coReports').onclick=e=>{ const b=e.target.closest('[data-rpdel]'); if(!b) return; arm(b,'한 번 더',()=>{ b.closest('.rp').remove(); updateReportEditorVisibility(); toast('저장을 누르면 삭제가 적용됩니다'); },{title:'이 보고 양식을 빼시겠습니까?',body:'아래 「저장」을 눌러야 적용됩니다.',ok:'빼기'}); };
 $('#coChips').onclick=e=>{
   const b=e.target.closest('[data-co]'); if(!b) return;
-  if(b.dataset.co==='__new'){ const co={id:uid(),name:'새 업체',band:GEN_BAND,reports:[{id:uid(),name:'보고 양식',body:GOI_REPORT}],items:BAND_ITEMS.slice(),deduct:[]}; db.companies.push(co); coSel=co.id; save(); renderCompanies(); $('#coName').focus(); $('#coName').select(); return; }
+  if(b.dataset.co==='__new'){ const co={id:uid(),name:'새 업체',band:GEN_BAND,reports:[],items:BAND_ITEMS.slice(),deduct:[]};   /* 새 업체도 고이 양식 없이 (「+ 보고 양식 추가」로 직접) */ db.companies.push(co); coSel=co.id; save(); renderCompanies(); $('#coName').focus(); $('#coName').select(); return; }
   coSel=b.dataset.co; renderCompanies();
 };
 $('#phList').onclick=e=>{

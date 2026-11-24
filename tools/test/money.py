@@ -72,6 +72,9 @@ SETUP = r"""(()=>{
      c.f.burial='창원상복-부산추모(벽식)'; c.f.burialMark='자차'; r.push(bandBurial(c.f), reportFill('장지 : {장지}',c));
      c.f.burial=''; c.f.burial1='안동선영'; c.f.burial2=''; c.f.burialMark='산골,자차'; r.push(bandBurial(c.f), reportFill('장지 : {장지}',c), settleText(c).split('\n').find(l=>/^장지 :/.test(l))||'');
      return r; })(),
+   etc:(()=>{ const e=coById(ETC), g=db.companies.find(x=>x.name==='고이장례연구소'), r=[activeReports(e).length, activeReports(g).length>0];   // 2026.11.24 기타 업체 = 고이 양식 없음
+     const keep=e.reports; e.reports=[{id:'a',name:'보고 양식',body:GOI_REPORT},{id:'b',name:'내 양식',body:'장소 : {장소}'}]; e.reportsEnabled=true; etcNoGoi(); r.push(e.reports.map(x=>x.name).join(',')); e.reports=keep; delete e.reportsEnabled;
+     startCase(ETC); r.push(outViews(curCase()).some(([k])=>/^rep/.test(k))); return r; })(),
    hq:(()=>{ const p0=S(c1).pay; S(c1).pay='본사송금'; const t=settleText(c1), r=[settleCalc(c1).sendWon, t.split('\n').find(l=>/^수금 :/.test(l)), rcptSums(c1).cash]; S(c1).pay=p0; return r; })()};   // 2026.11.13 상품 수금 본사송금
 })()"""
 
@@ -87,6 +90,7 @@ EXPECT = [
         '화장 : 11월 25일 09시 (창원상복공원 03회차)\n장법 : 화장(창원상복공원)\n장지 : 창원상복공원-부산추모', '화장 : 11월 25일 09시 (창원상복 03회차)', '화장 : 창원상복 (03회차)',
         '화장 : 11월 25일 09시 (마산화장장 03회차)\n장법 : 화장(마산화장장)\n장지 : 창원상복공원-부산추모', '화장 : 11월 25일 09시 (마산화장 03회차)', '화장 : 마산화장 (03회차)']),
     ('밴드 장법 괄호 (밴드만 · 회사 보고 · 정산 카톡에는 없음)', 'bmark', ['부산영락-부산추모(봉안)', '장지 : 부산영락공원-부산추모\n2차 : 부산추모', '장    지 : 부산영락-부산추모(봉안)', '창원상복-부산추모(벽식,자차)', '장지 : 창원상복공원-부산추모', '안동선영(산골,자차)', '장지 : 안동선영', '장지 : 안동선영']),
+    ('기타 업체 = 회사 보고 양식 없음 (고이 양식만 빠지고 직접 만든 양식은 남음, 고이는 그대로)', 'etc', [0, True, '내 양식', False]),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시1 상품 수금 본사송금 → 보내는금액 · 현금영수증에서 빠짐', 'hq', [1380000, '수금 : 2,575,000원(본사송금)', 1620000]),
     ('예시2 보내는금액', 'ex2', -180000),
