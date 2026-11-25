@@ -82,6 +82,15 @@ SETUP = r"""(()=>{
      startCase(goi); g=curCase(); Object.assign(g.f,{product:'2026 가족장 289',collect:'289',collectAuto:'289',certAsk:'yes',paid:'8900',certDisc:'10'}); g.deductions=[{id:'b',text:'1.이행완료확인서 108,900원 공제'},{id:'a',text:'헌화 1만원 공제'}]; r.push(bandCollect(g), goiSumVals(g).bal);
      g.deductions=[{id:'a',text:'헌화 1만원 공제'},{id:'d',text:'상복 추가 5만원'}]; g.f.altar='20'; r.push(bandCollect(g), altarNotes(g).collect);
      return r; })(),
+   live:(()=>{ const r=[];   // 2026.11.25 금액을 고치면 정산 카톡도 바로: 고이 붙여넣은 잔액 고정 풀기 · 지난 마이너스 금액 따라가기
+     startCase(co('고이장례연구소')); const g=curCase(); Object.assign(g.f,{product:'2026 가족장 289',paid:'108900',balance:'2781100',collect:'278.11',certAsk:'yes'}); g.dedNet=true; g.deductions=[{id:'y',text:'헌화 1만원 공제'}];
+     r.push(goiNorm(g), g.f.collect, g.f.balance, bandCollect(g)); g.f.certDisc='3'; r.push(bandCollect(g), settleCalc(g).sendWon); g.f.collect='300'; r.push(bandCollect(g));
+     startCase(co('디더블유')); const a=curCase(); Object.assign(a.f,{eventNo:'3',place:'창원한마음',depart:'2026-10-12T08:00',collect:'389'}); Object.assign(S(a),{pay:'카드',altarAmt:'30',altarPay:'현금',urnCollect:'120',urnCost:'36',urnPay:'카드'});
+     startCase(co('디더블유')); const b=curCase(); Object.assign(b.f,{eventNo:'5',place:'김해복음',depart:'2026-10-14T08:00',collect:'300'}); Object.assign(S(b),{pay:'현금',altarAmt:'24',altarPay:'현금'}); S(b).carry=[{id:'k1',from:a.id,label:caseTag(a),won:settleCalc(a).sendWon}];
+     const tail=()=>settleText(b).split('\n').slice(-2).join(' / ');
+     r.push(tail()); S(a).urnCollect='100'; r.push(tail()); S(a).pay='현금'; r.push(tail());
+     S(a).carry=[{id:'k2',from:b.id,label:'돌기',won:-10000}]; r.push(settleCalc(a).sendWon>0);   // 서로 빼 줘도 계산이 돌지 않음
+     return r; })(),
    hq:(()=>{ const p0=S(c1).pay; S(c1).pay='본사송금'; const t=settleText(c1), r=[settleCalc(c1).sendWon, t.split('\n').find(l=>/^수금 :/.test(l)), rcptSums(c1).cash]; S(c1).pay=p0; return r; })()};   // 2026.11.13 상품 수금 본사송금
 })()"""
 
@@ -99,6 +108,7 @@ EXPECT = [
     ('밴드 장법 괄호 (밴드만 · 회사 보고 · 정산 카톡에는 없음)', 'bmark', ['부산영락-부산추모(봉안)', '장지 : 부산영락공원-부산추모\n2차 : 부산추모', '장    지 : 부산영락-부산추모(봉안)', '창원상복-부산추모(벽식,자차)', '장지 : 창원상복공원-부산추모', '안동선영(산골,자차)', '장지 : 안동선영', '장지 : 안동선영']),
     ('기타 업체 = 회사 보고 양식 없음 (고이 양식만 빠지고 직접 만든 양식은 남음, 고이는 그대로)', 'etc', [0, True, '내 양식', False]),
     ('고이 수금액 = 잔액 − 공제 + 추가 (이행완료확인서 한 번만: 붙여넣기 · 붙여넣은 뒤 있음 · 직접 적은 줄)', 'goiBal', ['2,771,100원', None, '2781100', 2771100, '2,771,100원', '2,771,100원', '2,781,100원', '2,621,100원', '잔액 2,781,100원에서 제단공제 20만원 빼고 · 공제 · 추가 +4만원 → 2,621,100원']),
+    ('금액 고치면 바로 (고이 붙여넣은 잔액 → 상품금액 기준, 할인 · 상품금액 고치면 수금액 · 지난 마이너스 따라감)', 'live', [True, '289', '', '2,771,100원', '2,741,100원', 2741100, '2,851,100원', '10월3번행사 -18만원 / 보내는금액 : 306만원', '10월3번행사 -8만원 / 보내는금액 : 316만원', '헌화 : / 보내는금액 : 324만원', True]),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시1 상품 수금 본사송금 → 보내는금액 · 현금영수증에서 빠짐', 'hq', [1380000, '수금 : 2,575,000원(본사송금)', 1620000]),
     ('예시2 보내는금액', 'ex2', -180000),

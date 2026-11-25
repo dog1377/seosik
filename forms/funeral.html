@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.24-8">
+<meta name="app-version" content="2026.11.25-1">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -2465,6 +2465,10 @@ body.case-locked [data-lock-inert]{opacity:.78;cursor:not-allowed}
 /* 정산 · 입관꽃장식 「제공」 체크 옆 작은 설명 (2026.11.24) */
 .none-tog small{margin-left:4px;font-size:12px;font-weight:400;color:var(--muted)}
 /* 고이장례연구소 상품 · 금액 카드: 밴드에 들어가는 납입 · 잔액 · 수금액 실시간 (2026.11.24) */
+/* 보내는금액 직접 입력 알림 (2026.11.25) — 정산 카톡 위 */
+#p-settle .ov-warn:not([hidden]){display:block;margin:0 0 10px;padding:10px 12px;border-radius:10px;background:var(--st-warn-bg,#FFF4E0);color:var(--st-warn,#8A5400);font-size:14px;line-height:1.55;word-break:keep-all}
+#p-settle .ov-warn b{font-weight:700;color:inherit}
+#p-settle .ov-warn .btn{display:inline-flex;margin-left:6px;vertical-align:middle}
 .goi-sum{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px}
 .gs-c{display:grid;gap:2px;align-content:start;min-width:0;padding:12px;border-radius:12px;background:var(--field,var(--bg-subtle))}
 .gs-c>span{font-size:13px;font-weight:600;color:var(--ink-2)}
@@ -4211,7 +4215,7 @@ function deductHtml(c){
     <p class="note">예: 헌화 30송이 5만원 공제 · 넣은 순서대로 번호가 붙습니다.${isGoi(co)?' 「공제」 · 「할인」이 들어간 줄은 수금액에서 빼고, 「추가」가 들어간 줄은 더합니다(금액은 「5만원」처럼). 수금액 칸에는 공제 · 추가 전 상품 금액이 들어갑니다(상품에 「289」처럼 적으면 자동). 이행완료확인서는 상품 · 금액 카드에서 묻습니다.':''}</p>`;
 }
 function renderInput(){
-  const c=curCase();
+  goiNormCur(); const c=curCase();
   if(!c){ $('#p-input').innerHTML=`<div class="sec start-card"><div class="sec-head"><h2>새 행사 시작</h2></div><p class="note">진행 업체를 누르면 그 업체 양식으로 바로 시작합니다. 행사 없이도 아래 메뉴(봉투 · 휴무 · 설정)는 그대로 쓸 수 있습니다.</p>${pasteStartBtn()}<div class="co-list">${coButtons('data-start')}</div></div>
     <div class="sec quick-start"><div class="sec-head"><h2>행사 입력 없이 정산만</h2></div><p class="note">정산 카톡과 봉투만 필요하면 업체를 고르지 않고 바로 시작하십시오. 행사번호 · 장소 · 발인일부터 하나씩 물어봅니다.</p><div class="row"><button class="btn primary" type="button" data-quick-settle>정산만 바로 시작</button></div></div>`; return; }
   const co=coById(c.companyId);
@@ -4354,7 +4358,7 @@ $('#p-input').addEventListener('click',e=>{
     const v=b.dataset.v, f=c.f, pa=f.certAsk, pp=f.paid, pd=f.certDisc;
     const focusAmt=()=>{ const el=document.querySelector('#p-input .cert-q [data-k="paid"]'); if(el) el.focus(); };
     if(pa===v){ if(v==='yes') focusAmt(); return; }
-    certFromOld(c,v); c.dedNet=true;
+    certFromOld(c,v); c.dedNet=true; if(v==='yes') goiNorm(c);
     if(v==='no'&&(String(pp||'').trim()||String(pd||'').trim())){ f.paid=''; f.certDisc=''; if(window.dwUndo) window.dwUndo('기존 납입금 · 할인 금액을 지웠습니다',()=>{ if(pa==null) delete f.certAsk; else f.certAsk=pa; f.paid=pp; f.certDisc=pd; touched(); renderInput(); }); }
     touched(); renderInput(); if(v==='yes') focusAmt(); return;
   }
@@ -5122,7 +5126,7 @@ $('#outTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-ov-t
 $('#outTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; const bs=[...e.currentTarget.querySelectorAll('[data-ov-tab]')], i=bs.indexOf(document.activeElement); if(i<0) return;
   const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
 function renderOut(){
-  const c=curCase();
+  goiNormCur(); const c=curCase();
   if(!c){ $('#bandText').value=''; $('#provText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; $('#outTabs').innerHTML=''; $('#outNext').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
   { const bo=bandOut(c), sp=splitBand(bo); $('#bandText').value=sp.prov?sp.sched:bo; $('#provText').value=sp.prov; $('#bandAll').hidden=!sp.prov;
@@ -5265,6 +5269,18 @@ function goiPaid(c){ const w=certRaw(c); return w?wonStr(w):null; }
 function goiBalance(c){ const f=(c&&c.f)||{}; if(!isGoi(coById(c.companyId))||String(f.balance||'').trim()) return null;
   if(!(f.certAsk==='yes'||f.certAsk==='no'||certRaw(c))) return null; const b=goiBase(c); return b?b-certRaw(c):null; }
 /* 상품을 넣으면 수금액 칸(공제 · 추가 전 상품 금액)에 자동으로 — 비어 있거나 전에 자동으로 넣은 값일 때만 (f.collectAuto, 새 칸) */
+/* 고이 금액 실시간 (2026.11.25 사용자: 「고이장례연구소 포함 전부 다 금액 수정하면 모든 보고 양식에 실시간으로 — 정산 카톡에 금액 수정 안 되는 경우가 있음」)
+   붙여 넣은 행사 · 예전 행사는 잔액이 칸에 적혀 있고(f.balance) 상품금액 칸에 이미 납입을 뺀 금액이 있어서, 상품금액 · 납입 · 할인을 고쳐도 잔액 · 수금액이 그대로였음.
+   이행완료확인서가 있고 「적힌 잔액 + 이행완료확인서 = 상품 금액(상품 글의 금액)」이거나 「상품금액 칸 = 적힌 잔액」이면 → 상품금액 칸을 공제 전 금액으로, 잔액 칸은 비움(자동).
+   지금 보이는 잔액 · 수금액은 그대로이고, 그 뒤로는 고칠 때마다 바로 바뀜. 직접 다른 잔액을 적어 둔 행사는 그대로 */
+function goiNorm(c){
+  const f=c&&c.f; if(!f||!dedOn(c)||!certRaw(c)) return false;
+  const bt=String(f.balance||'').trim(); if(!bt) return false;
+  const bal=toWon(bt), cert=certRaw(c), gross=bal+cert, pw=prodWon(f.product), col=toWon(f.collect); if(!bal) return false;
+  if(!(pw?gross===pw:col===bal)) return false;
+  f.collect=gross%10000===0?String(gross/10000):String(gross); if(pw===gross) f.collectAuto=f.collect; f.balance=''; return true;
+}
+function goiNormCur(){ const c=curCase(); if(c&&goiNorm(c)){ c.updated=Date.now(); save(); } }
 function goiAutoCollect(c){ const f=c.f; if(!isGoi(coById(c.companyId))) return false;
   const cur=String(f.collect||'').trim(); if(cur&&cur!==String(f.collectAuto||'')) return false;
   const w=prodWon(f.product), v=w?String(w/10000):''; if(v===cur) return false;
@@ -5323,6 +5339,15 @@ function envSplit(s,R){
     otherHq:kHq+lHq,otherMg:chodo+(kit-kHq)+(lunch-lHq)};
 }
 // 숫자 계산만 (다른 행사 마이너스 확인할 때도 씀 · 저장된 값은 바꾸지 않음)
+/* 지난 마이너스 금액 (2026.11.25): 원래 행사가 있으면 그 행사의 지금 보내는금액(마이너스일 때만, 아니면 0), 지워졌거나 붙여 넣은 카톡이면 뺄 때 금액.
+   서로 빼 준 행사끼리 계산이 돌지 않게 계산 중인 행사는 뺄 때 금액으로 */
+function carryBusy(){ return carryBusy.s||(carryBusy.s=new Set()); }
+function carryWon(r,c){
+  const st=-Math.abs(Number(r&&r.won)||0), src=r&&r.from&&db.cases.find(x=>x.id===r.from), B=carryBusy();
+  if(!src||src===c||B.has(src.id)) return st;
+  const mine=c&&!B.has(c.id); if(mine) B.add(c.id); B.add(src.id);
+  try{ const w=settleCalc(src).sendWon; return w<0?w:0; } finally{ B.delete(src.id); if(mine) B.delete(c.id); }
+}
 function settleCalc(c){
   const f=c.f||{}, s=c.s?S(c):{pay:'현금',extras:[],urnPay:'현금'}, R=rules(), mg=mgrName();
   const altarWon=toWon(s.altarAmt), altarSend=altarWon?Math.min(altarWon, R.altarFixed*10000):0;
@@ -5345,7 +5370,7 @@ function settleCalc(c){
   if(FL.our>0) autoMinus.push({who:mg,memo:'꽃장식',short:'꽃장식',won:FL.our,why:'관꽃장식 · 우리 몫',line:`${mg} : -${wonStr(FL.our)}(꽃장식)`});
   const minus=(s.minus||[]).filter(x=>String(x.who||'').trim()||x.amt||String(x.memo||'').trim()).map(x=>{ const who=String(x.who||'').trim()||mg, memo=String(x.memo||'').trim(), won=Math.abs(toWon(x.amt));
     return {who,memo,short:memo||'기타',won,line:`${who} : -${wonStr(won)||'0원'}${memo?`(${memo})`:''}`}; });
-  const carry=(s.carry||[]).map(r=>({...r,line:`${String(r.label||'').trim()} ${wonStr(-Math.abs(r.won))}`}));
+  const carry=(s.carry||[]).map(r=>({...r,won:carryWon(r,c)})).filter(r=>r.won).map(r=>({...r,line:`${String(r.label||'').trim()} ${wonStr(-Math.abs(r.won))}`}));   /* 원래 행사 금액이 바뀌면 바로 따라감 · 이제 마이너스가 아니면 줄 없음 */
   const altarDed=altarDeductWon(c), NB=netBase(c), dedAdj=dedAdjWon(c,NB.bal), collectWon=collectNetWon(c);
   // 보내는금액에 들어가는 줄(on) / 안 들어가는 줄(off)
   const rows=[];
@@ -5375,7 +5400,7 @@ function settleData(c){ return {...settleCalc(c), v:vals(c)}; }
 /* 정산 카톡의 돈 줄(수금 ~ 보내는금액). 정산 카톡과 「받은 정산 카톡 검사」가 같이 씀 */
 function settleMoneyLines(d){
   const g=k=>String(d.s[k]??'').trim(), ind='                 ';
-  const collect=d.f.collect?`${d.collectWon?wonStr(d.collectWon):(d.altarDed||d.dedAdj?'0원':money(d.f.collect))}(${d.s.pay||'현금'})`:'';
+  const collect=(d.f.collect||d.collectWon)?`${d.collectWon?wonStr(d.collectWon):(d.altarDed||d.dedAdj?'0원':money(d.f.collect))}(${d.s.pay||'현금'})`:'';
   return [
     `수금 : ${collect}`,
     `제단 : ${d.altar}`,
@@ -7267,7 +7292,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{ if(e.target.id!=='ckIn') return; ckText=e.target.value; clearTimeout(ckTimer); ckTimer=setTimeout(()=>runCheck(false),450); });
 function renderSettle(){
-  const c=curCase(), el=$('#p-settle');
+  goiNormCur(); const c=curCase(), el=$('#p-settle');
   el.classList.remove('wz-on','wz-end');
   el.classList.toggle('ck-on',ckOn);
   if(ckOn){ renderCheck(); return; }
@@ -7289,6 +7314,7 @@ function renderSettle(){
     <div class="ledger" id="ledger"></div>
     <label class="f">직접 입력 (비우면 위 계산대로)${amtIn('data-s="sendOverride"',s.sendOverride,'비워 두면 자동')}</label></div></div>
   <div class="out" data-sv="kakao"><div class="out-head"><h2>정산 카톡<small>회사로 보내는 몫</small></h2><button class="btn primary" id="copySettle" type="button">복사</button></div>
+    <p class="def-warn ov-warn" id="ovWarn" hidden></p>
     <textarea class="text-out" id="settleText" rows="18" aria-label="정산 카톡"></textarea></div>
   ${[['card','카드결제',isHJ(c)?'현진시닝 보고':'업체 보고'],['cash','현금영수증',isHJ(c)?'현진시닝 보고':'업체 보고']].map(([k,t,sub])=>`<div class="out" id="rcBox_${k}" data-sv="rcpt" hidden><div class="out-head"><h2>${t}<small>${sub}</small></h2><button class="btn primary" type="button" data-rc-copy="${k}">복사</button></div>
     <textarea class="text-out" id="rcText_${k}" rows="7" aria-label="${t} 양식"></textarea></div>`).join('')}
@@ -7332,10 +7358,10 @@ function renderDef(c,d){
       ${String(c.f.eventNo||'').trim()?'':`<label class="f">행사번호 <span class="lbl-sub">넣으면 "${M}월N번행사"로 표시</span><div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value=""><span>번</span></div></label>`}</div>`);
   }
   h.push(`<h3 class="def-h">이 정산에서 빼는 마이너스</h3>`);
-  h.push(carry.length?carry.map(r=>{ const src=db.cases.find(x=>x.id===r.from), live=src?settleCalc(src).sendWon:null, changed=live!=null&&live<0&&live!==-Math.abs(r.won);
-    return `<div class="def-row on"><div class="def-main"><input class="input" data-cl="${r.id}" value="${esc(r.label||'')}" aria-label="카톡에 적을 이름"><b class="def-amt">${esc(wonStr(-Math.abs(r.won)))}</b></div>
+  h.push(carry.length?carry.map(r=>{ const src=db.cases.find(x=>x.id===r.from), w=carryWon(r,c);
+    return `<div class="def-row on"><div class="def-main"><input class="input" data-cl="${r.id}" value="${esc(r.label||'')}" aria-label="카톡에 적을 이름"><b class="def-amt">${esc(w?wonStr(-Math.abs(w)):'0원')}</b></div>
       <div class="def-sub"><span>${src?esc(caseWho(src)+(depDay(src)?' · '+depDay(src):'')):'원래 행사 기록은 지워짐'}</span><button class="btn sm" type="button" data-carry-del="${r.id}">빼기 취소</button></div>
-      ${changed?`<p class="def-warn">원래 행사 금액이 ${esc(wonStr(live))}(으)로 바뀌었습니다. <button class="btn sm" type="button" data-carry-fix="${r.id}">바뀐 금액으로</button></p>`:''}</div>`; }).join('')
+      ${src&&!w?`<p class="def-warn">원래 행사가 이제 마이너스가 아니라 이 정산에서 빼지 않습니다. 필요 없으면 「빼기 취소」를 누르십시오.</p>`:src?'<p class="note">원래 행사 금액을 고치면 여기 금액도 바로 바뀝니다.</p>':''}</div>`; }).join('')
     :'<p class="note">없음. 아래 남은 마이너스에서 「이 정산에서 빼기」를 누르면 보내는금액 바로 위 줄에 들어갑니다.</p>');
   h.push(`<h3 class="def-h">아직 안 뺀 마이너스</h3>`);
   h.push(open.length?open.map(x=>`<div class="def-row"><div class="def-main"><span class="def-tag">${esc(x.tag)}</span><b class="def-amt">${esc(wonStr(x.won))}</b></div>
@@ -7418,6 +7444,8 @@ function updSettle(skipDef){
   const bs=$('#wzBasicState'); if(bs){ const miss=[['행사번호',d.f.eventNo],['장소',d.f.place],['도우미',d.f.helperNone||d.f.helper],['차량',d.f.vehNone||d.f.vehType||d.f.vehCo],['상복',d.f.mournNone||d.f.mournBrand],['장지',d.v['장지']]].filter(x=>!String(x[1]||'').trim()).map(x=>x[0]); bs.textContent=miss.length?`비어 있음: ${miss.join(' · ')}`:'모두 채움'; bs.classList.toggle('miss',!!miss.length); }
   const bar=$('#settleBar'); if(bar){ bar.classList.toggle('neg',d.sendWon<0); $('#sbLabel').textContent=d.sendWon<0?'보내는금액 · 마이너스':'보내는금액'; $('#sbSend').textContent=d.send||'0원'; }
   const t=$('#settleText'); if(t) t.value=settleText(c);
+  { const ow=$('#ovWarn'), ov=String(s.sendOverride||'').trim(); if(ow){ ow.hidden=!ov;   /* 직접 넣은 보내는금액은 금액을 고쳐도 그대로 → 눈에 띄게 (2026.11.25) */
+      if(ov) ow.innerHTML=`보내는금액을 직접 넣어 <b>${esc(d.send)}</b>로 나갑니다. 금액을 고쳐도 보내는금액은 바뀌지 않습니다. 자동 계산은 ${esc(wonStr(d.auto)||'0원')}입니다. <button class="btn sm" type="button" data-ov-clear>자동 계산으로</button>`; } }
   { const forms=rcptForms(c), by=Object.fromEntries(forms.map(fm=>[fm.kind,fm])), RS=rcptSums(c);
     ['card','cash'].forEach(k=>{ const fm=by[k], box=$('#rcBox_'+k), ta=$('#rcText_'+k), pv=$('#rcPrev_'+k), fl=$('#rcFields_'+k), au=$('#rcAuto_'+k);
       if(box) box.hidden=!fm; if(ta) ta.value=fm?fm.text:''; if(pv) pv.textContent=fm?fm.text:''; if(fl) fl.hidden=!fm;
@@ -7514,6 +7542,8 @@ $('#p-settle').addEventListener('click',e=>{
   if(b.dataset.miQuick!==undefined){ const x={id:uid(),who:'',amt:'',memo:b.dataset.miQuick}; (s.minus||(s.minus=[])).push(x); touched(); renderSettle(); const el=document.querySelector(`[data-mi="${x.id}"][data-mif="${x.memo?'amt':'memo'}"]`); if(el) el.focus(); return; }
   if(b.id==='openEnvelope'||b.dataset.act==='openEnv'){openCurrentEnvelope();return;}
   if(b.id==='copySettle'){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
+  if(b.hasAttribute('data-ov-clear')){ const was=s.sendOverride; s.sendOverride=''; document.querySelectorAll('#p-settle [data-s="sendOverride"]').forEach(x=>{ x.value=''; const bx=x.closest('.amt'); if(bx){ bx.querySelector('.amt-u').textContent=amtUnit(''); const r=bx.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(''); } });
+    touched(); updSettle(); if(window.dwUndo) window.dwUndo('직접 넣은 보내는금액을 지웠습니다',()=>{ s.sendOverride=was; touched(); renderSettle(); }); return; }
   if(b.id==='copyComm'){ copyFrom($('#commText'),'수당 정산을 복사했습니다'); return; }
   const seg=b.closest('[data-seg]'); if(seg){ if(seg.dataset.seg==='burialType') setBType(s,b.dataset.v); else s[seg.dataset.seg]=b.dataset.v; seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); touched(); updSettle(); return; }
   const xs=b.closest('[data-exseg]'); if(xs){ const x=s.extras.find(y=>y.id===xs.dataset.exseg); if(x){ x.pay=x.pay===b.dataset.v?'':b.dataset.v; xs.querySelectorAll('button').forEach(y=>y.setAttribute('aria-pressed',String(y.dataset.v===x.pay))); touched(); updSettle(); } return; }

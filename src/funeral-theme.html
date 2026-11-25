@@ -726,6 +726,10 @@ body.case-locked [data-lock-inert]{opacity:.78;cursor:not-allowed}
 /* 정산 · 입관꽃장식 「제공」 체크 옆 작은 설명 (2026.11.24) */
 .none-tog small{margin-left:4px;font-size:12px;font-weight:400;color:var(--muted)}
 /* 고이장례연구소 상품 · 금액 카드: 밴드에 들어가는 납입 · 잔액 · 수금액 실시간 (2026.11.24) */
+/* 보내는금액 직접 입력 알림 (2026.11.25) — 정산 카톡 위 */
+#p-settle .ov-warn:not([hidden]){display:block;margin:0 0 10px;padding:10px 12px;border-radius:10px;background:var(--st-warn-bg,#FFF4E0);color:var(--st-warn,#8A5400);font-size:14px;line-height:1.55;word-break:keep-all}
+#p-settle .ov-warn b{font-weight:700;color:inherit}
+#p-settle .ov-warn .btn{display:inline-flex;margin-left:6px;vertical-align:middle}
 .goi-sum{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px}
 .gs-c{display:grid;gap:2px;align-content:start;min-width:0;padding:12px;border-radius:12px;background:var(--field,var(--bg-subtle))}
 .gs-c>span{font-size:13px;font-weight:600;color:var(--ink-2)}
