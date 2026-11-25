@@ -166,4 +166,39 @@ html.dw-dr-lock body .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 @keyframes dwdr-in{from{transform:translateX(100%)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){:root body .picker .sheet{animation:none}}
 @media (max-width:699px){ html.dw-at-home body .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))} }   /* 알림이 아래 큰 버튼을 가리지 않게 */
+/* ---------- 행사 화면 머리 · 「이 행사의 일」 칸 (2026.11.25 사용자: 시안 B안 「행사를 누르면 그 행사의 입력 · 양식 · 보고서 · 장례일정표」) ----------
+   행사 화면(입력 · 양식 · 보고서 · 장례일정표 · 정산)에서만 행사 상자 + 6칸. 다른 화면(목록 · 봉투 · 설정 …)은 행사 상자 없음. 화면 제목(1단계 행사 입력)은 행사 상자가 대신함 */
+body:not([data-tab="input"]):not([data-tab="out"]):not([data-tab="sched"]):not([data-tab="poster"]):not([data-tab="settle"]) .top>.case-panel,body.no-case[data-tab="poster"] .top>.case-panel{display:none}
+body:is([data-tab="input"],[data-tab="out"],[data-tab="sched"],[data-tab="poster"],[data-tab="settle"]):not(.no-case) .page-intro{display:none}
+:root body .case-panel{border-radius:16px}
+:root body .case-panel .cp-crumb{display:inline-flex;align-items:center;gap:2px;min-height:36px;margin:8px 0 -6px 8px;padding:0 10px 0 4px;border:0;border-radius:8px;background:none;color:var(--muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+:root body .case-panel .cp-crumb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover){:root body .case-panel .cp-crumb:hover{color:var(--ink);background:var(--field)}}
+:root body .case-panel .cp-t{font-size:20px;font-weight:700;line-height:28px;letter-spacing:-.02em}
+:root body .case-panel .cp-s{font-size:13.5px;line-height:20px;color:var(--ink-2)}
+:root body .case-panel .cp-go,:root body .case-panel .cp-close{min-height:40px;padding:0 12px;border:0;border-radius:10px;background:var(--field);color:var(--ink);font-size:14px;font-weight:600}
+:root body .case-panel .cp-close[aria-pressed="true"]{background:var(--bg-selected);color:var(--brand)}
+:root body .case-panel .cp-go svg{display:none}
+.case-steps{display:none}
+html body .case-steps:not([hidden]){display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:8px 0 0;padding:5px;border:0;border-radius:12px;background:var(--field);box-shadow:none}
+html body .case-steps button{position:static;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;min-height:54px;padding:6px 6px;border:0;border-radius:9px;background:transparent;color:var(--ink);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html body .case-steps button::before,html body .case-steps button::after{content:none}
+html body .case-steps b{font-size:14px;font-weight:600;line-height:20px;white-space:nowrap}
+html body .case-steps small{max-width:100%;font-size:12px;font-weight:600;line-height:16px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body .case-steps small.ok{color:var(--st-ok)}
+html body .case-steps small.warn{color:var(--st-warn)}
+html body .case-steps small.bad{color:var(--st-bad)}
+html body .case-steps button[aria-current="page"]{background:var(--surface);box-shadow:0 1px 2px rgb(15 23 42 / 10%),0 0 0 1px var(--line)}
+html body .case-steps button[aria-current="page"] b{color:var(--brand);font-weight:700}
+@media (hover:hover){html body .case-steps button:not([aria-current="page"]):hover{background:var(--bg-hover,rgb(255 255 255 / 55%))}}
+html body .case-steps button:active{transform:scale(.98)}
+html body .case-steps button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+@media (max-width:699px){
+  html body .case-steps:not([hidden]){display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  html body .case-steps::-webkit-scrollbar{display:none}
+  html body .case-steps button{flex:none;min-width:84px;padding:6px 12px;scroll-snap-align:start}
+  :root body .case-panel .cp-t{font-size:18px;line-height:26px}
+}
+@media (prefers-reduced-motion:reduce){html body .case-steps button:active{transform:none}}
+@media print{html body .case-steps{display:none!important}}
 </style>

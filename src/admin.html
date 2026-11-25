@@ -1103,7 +1103,11 @@ function showTab(t) {
   if (t === 'settings') renderSettings();
   if (t === 'staff') renderStaffList();
   if (window.dwHist) window.dwHist.push();   /* 휴대폰 뒤로 (화면을 옮겼을 때만 쌓임) */
+  if (window.dwSide) window.dwSide.paint();
 }
+/* 왼쪽 메뉴 (2026.11.25 B안): 회사 서류 화면은 「회사 서류」 하나 */
+window.DW_SIDE_CUR = () => (S.tab === 'settings' ? '' : 'company');
+window.DW_SIDE_GO = (k) => { if (k === 'company') { showTab('docs'); return true; } return false; };
 const approvalsOf = (co) => (co.showApproval ? String(co.approvals || '').split(/[,，、]/).map((x) => x.trim()).filter(Boolean).slice(0, 4) : []);
 function fillDatalists() {
   const opt = (arr) => arr.map((v) => `<option value="${esc(v)}"></option>`).join('');

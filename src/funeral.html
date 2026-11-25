@@ -759,8 +759,6 @@ body:has(#p-settle:not([hidden]) .settle-bar) .toast{bottom:calc(var(--nav-h) + 
 .sub-fold>summary span::after{content:" ▾"}
 .sub-fold[open]>summary span::after{content:" ▴"}
 .sub-fold[open]{display:grid;gap:10px;padding-bottom:12px}
-.fold-ex{margin:0;font-size:12.5px;line-height:1.6;color:var(--muted);background:var(--field);border-radius:10px;padding:10px 12px}
-.fold-ex b{color:var(--ink)}
 .co-name-f{margin:-6px 0 4px}
 </style>
 <style id="start-ui">
@@ -1054,7 +1052,8 @@ body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!im
   <header class="top">
     <div class="page-intro"><div><h1 id="pageTitle">장례 일정 작성</h1><p id="pageDesc">행사 정보를 입력하면 업체별 보고 양식이 완성됩니다.</p></div></div>
     <div class="case-panel">
-      <div class="cp-bar"><button type="button" class="case-pick" id="casePick" aria-haspopup="dialog" aria-controls="cpBg"><span class="cp-main"><b class="cp-t" id="cpT">-</b><span class="cp-s" id="cpS"></span></span><span class="cp-go">변경<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></button><button type="button" class="cp-close" id="caseClose" aria-pressed="false" hidden>종결</button></div>
+      <button type="button" class="cp-crumb" data-ctab="list"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>행사 목록</button>
+      <div class="cp-bar"><button type="button" class="case-pick" id="casePick" aria-haspopup="dialog" aria-controls="cpBg"><span class="cp-main"><b class="cp-t" id="cpT">-</b><span class="cp-s" id="cpS"></span></span><span class="cp-go">다른 행사<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></button><button type="button" class="cp-close" id="caseClose" aria-pressed="false" hidden>종결</button></div>
       <p class="ttl" id="ttlNote"></p>
     </div>
     <nav class="case-steps" id="caseSteps" aria-label="업무 순서"></nav>
@@ -1069,8 +1068,6 @@ body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!im
   </header>
 
   <section id="p-home" class="stack" hidden aria-label="행사 첫 화면"></section>
-  <section id="p-fhub" class="stack" hidden aria-label="서식 · 자료"></section>   <!-- 휴대폰 아래 탭 바 「서식 · 자료」 (2026.11.19) -->
-  <section id="p-more" class="stack" hidden aria-label="전체 메뉴"></section>   <!-- 휴대폰 아래 탭 바 「전체」 -->
   <section id="p-list" class="stack" hidden></section>
 
   <section id="p-input" class="stack"></section>
@@ -1145,11 +1142,11 @@ body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!im
         <label class="f">제단 정산 고정 금액<div class="suffix"><input class="input" id="rAltar" inputmode="numeric"><span>만원</span></div></label>
         <label class="f">유골함 이익 나눔<div class="suffix"><input class="input" id="rUrn" inputmode="numeric"><span>%</span></div></label>
       </div>
-      <p class="note">유골함 정산 = 이익(수금 − 원가) × 나눔 비율 + 원가. 예: 수금 40 · 원가 14 → 이익 26 → 13 + 14 = 27만원. 본부장 몫이 0.5만원으로 끝나면 내려서 보냅니다(32.5 → 32).</p>
+      <p class="note">유골함 정산 = 이익(수금 − 원가) × 나눔 비율 + 원가. 본부장 몫이 0.5만원으로 끝나면 본부장 쪽을 내립니다.</p>
       <label class="f">장지 · 본부장이 먼저 받는 금액<div class="suffix"><input class="input" id="rBurial" inputmode="decimal"><span>만원</span></div></label>
-      <p class="note">장지 봉투 = (받은 금액 − 이 금액)을 반으로 나눠 본부장 몫에 이 금액을 더합니다. 해양장은 빼지 않고 반씩 나눔. 0.5만원은 본부장 내림 · 실장 올림. 예: 300 → 295 → 본부장 147 + 5 = 152 · 실장 148. 식장은 전부 본부장, 초도는 전부 실장, 키트 · 도시락은 반반.</p>
+      <p class="note">장지 봉투 = (받은 금액 − 이 금액)을 반으로 나눠 본부장 몫에 이 금액을 더합니다. 해양장은 빼지 않고 반씩 나눔. 0.5만원은 본부장 내림 · 실장 올림. 식장은 전부 본부장, 초도는 전부 실장, 키트 · 도시락은 반반입니다.</p>
       <label class="f">관꽃장식 추가 판매 · 이익 중 우리 몫<div class="suffix"><input class="input" id="rFlower" inputmode="numeric"><span>%</span></div></label>
-      <p class="note">이익 = 받은 금액 − 입관꽃장식 원가. 우리 60% · 본부장 40%, 원가는 본부장 몫에 더합니다. 예: 30만원 · 원가 5 → 이익 25 → 우리 15 · 본부장 10 + 원가 5 = 15</p>
+      <p class="note">이익 = 받은 금액 − 입관꽃장식 원가. 우리 60% · 본부장 40%, 원가는 본부장 몫에 더합니다.</p>
       <div class="row"><button class="btn sm primary" id="saveRules" type="button">저장</button></div>
     </div>
     <div class="sec" data-av="lists">
@@ -1219,13 +1216,7 @@ body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!im
     <button class="btn" id="pickCancel" type="button">닫기</button>
   </div>
 </div>
-<!-- 휴대폰 아래 탭 바 · 떠 있는 「+ 새 행사」 · 첫 화면 고르기 창 (2026.11.19 대시보드) — 홈 · 행사 · 서식 · 자료 · 전체 화면에서만 보임(html.dw-root) -->
-<nav class="dw-tabbar" id="dwTabbar" aria-label="주 메뉴">
-  <button type="button" data-tb="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v10a1.5 1.5 0 0 0 1.5 1.5h3.5v-6h3v6H17a1.5 1.5 0 0 0 1.5-1.5V9"/></svg><span>홈</span></button>
-  <button type="button" data-tb="list"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M8 2.5v4M16 2.5v4M7.5 13h4M7.5 16.5h7"/></svg><span>행사</span></button>
-  <button type="button" data-tb="fhub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/><path d="M4 7v14h11" opacity=".55"/></svg><span>서식 · 자료</span></button>
-  <button type="button" data-tb="more"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/></svg><span>전체</span></button>
-</nav>
+<!-- 휴대폰 떠 있는 「+ 새 행사」 · 첫 화면 고르기 창 — 첫 화면 · 행사 목록에서만 보임(html.dw-fab-on). 예전 아래 탭 바(#dwTabbar)는 2026.11.25 왼쪽 메뉴(☰)로 바뀌어 없앰 -->
 <button type="button" class="dw-fab" id="dwFab" data-hk="new"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새 행사</button>
 <div class="csheet-bg" id="acBg" hidden><div class="csheet ac-sheet" role="dialog" aria-modal="true" aria-labelledby="acTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="acTitle"></b><button class="x" type="button" id="acClose" aria-label="닫기">✕</button></div><div class="ac-list" id="acList"></div><div class="ac-foot" id="acFoot" hidden></div></div></div>
 <div class="csheet-bg" id="chBg" hidden><div class="csheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="csheet-grip"></div><div class="csheet-head"><b id="chTitle"></b><button class="x" type="button" id="chClose" aria-label="닫기">✕</button></div><div class="csheet-list" id="chList" role="listbox"></div></div></div>
@@ -1578,7 +1569,7 @@ function cremHtml(){
   return `<label class="f"><span class="field-label">화장장명</span><input class="input" type="text" id="f_cremName" data-k="cremName" value="${esc(cremName(f))}" placeholder="예: 부산영락 / 마산화장 / 창원상복 / 김해추모" autocomplete="off"><span class="crem-picks">${(db.lists.crems||[]).filter(Boolean).map(n=>`<button type="button" class="chip" data-crempick="${esc(n)}" aria-pressed="${cremName(f)===n}">${esc(n)}</button>`).join('')}</span></label>
     <div class="crem-schedule-fields">
       <label class="f"><span class="field-label">화장 날짜</span><input class="input" type="date" id="f_cremDate" data-k="cremDate" value="${esc(f.cremDate||'')}"></label>
-      <label class="f"><span class="field-label">회차</span><div class="suffix"><input class="input" type="number" id="f_cremRound" data-k="cremRound" value="${esc(f.cremRound||'')}" min="1" max="999" step="1" inputmode="numeric" placeholder="예: 3"><span>회차</span></div></label>
+      <label class="f"><span class="field-label">회차</span><div class="suffix"><input class="input" type="number" id="f_cremRound" data-k="cremRound" value="${esc(f.cremRound||'')}" min="1" max="999" step="1" inputmode="numeric" placeholder=""><span>회차</span></div></label>
       <label class="f"><span class="field-label">시작 시간</span>${tpCtl({mode:'t',h:String(f.cremTime||'').slice(0,2),m:String(f.cremTime||'').slice(3,5),tAttr:'data-k="cremTime"',label:'화장 시작 시간',id:'f_cremTime'})}</label>
     </div>
     <p class="field-hint">예약한 화장장명과 회차·시간을 직접 입력하십시오.</p>
@@ -2098,7 +2089,7 @@ const SECTIONS=[
   {t:'고인', key:'name', rows:[[F('eventNo','행사번호','num','번')],[F('name','고인명'),F('mourn','상 구분 (예: 장인상)')],[F('gender','성별','select',['','남자','여자']),F('age','나이','num','세')],[F('origin','본관'),F('religion','종교','select',['','유교','무교','불교','기독교','천주교','기타'])],[F('cause','사망 사유','pick','causes')],[F('addr','주소')]]},
   {t:'상주', rows:[[F('chief','상주명'),F('chiefRel','관계')],[F('chiefTel','연락처','tel')]]},
   {t:'장지', rows:[[F('method','장법','select',['','화장','매장','수목장'])],[F('burial1','1차 장지'),F('burial2','2차 장지')],[F('burial','장지 (밴드 표기)')]]},
-  {t:'상품 · 금액', rows:[[F('product','상품','prod')],[F('altarSup','제단지원 (예: 100만원 공제)')],[F('productShort','상품 약칭 (보고용, 비우면 상품)','combo','productShorts')],[F('support','회사지원','money'),F('paid','납입','money')],[F('balance','잔액','money'),F('collect','수금액','money')],[F('extraAmt','추가금','money'),F('totalAmt','총수금액','money')]]},
+  {t:'상품 · 금액', rows:[[F('product','상품','prod')],[F('altarSup','제단지원')],[F('productShort','상품 약칭 (보고용, 비우면 상품)','combo','productShorts')],[F('support','회사지원','money'),F('paid','납입','money')],[F('balance','잔액','money'),F('collect','수금액','money')],[F('extraAmt','추가금','money'),F('totalAmt','총수금액','money')]]},
   {t:'담당', rows:[[F('staffOrg','소속 (예: 부산본부)')],[F('staff','담당 · 팀장'),F('staffTel','연락처','tel')],[F('note','특이사항','textarea')]]},
   {t:'제공내역', key:'prov', rows:[[F('helper','도우미','pick','helpers'),F('helperHours','시간','num','시간')],[F('mournM','상복 남','cnt','세트'),F('mournW','상복 여','cnt','벌')],[F('mournBrand','상복 업체','pick','mournBrands')],[F('vehType','차종','combo','vehTypes'),F('vehCo','장의차 업체','pick','vehCos')],[F('dispatchAt','배차','datetime-local'),F('route','운행 경로 (예: 부산영락-부산추모-장례식장)')],[F('altar','제단공제')],[F('shroud','수의대체')],[F('transport','이송','select',['','제공','미제공'])],[F('provNote','특이사항 (번호 없는 메모)')]]},
   {t:'확인 사항', rows:[[F('coupon','할인권 사용','select',['','O','X']),F('cardBack','회원증 회수','select',['','O','X'])],[F('certSub','확인서 대체')],[F('preJoin','사전 가입 할인 (비우면 없음)'),F('certDone','이행완료확인서','select',['','하단 첨부','미가입'])]]},
@@ -2167,7 +2158,7 @@ function tpRender(){
   $('#tpH').classList.toggle('next',mode!=='h'&&tpTouch.m&&!tpTouch.h);
   $('#tpM').classList.toggle('next',tpTouch.h&&!tpTouch.m);
   $('#tpClear').hidden=!h;
-  $('#tpHint').textContent=(matchMedia('(hover:hover) and (pointer:fine)').matches?'키보드 숫자도 됩니다 (1430 → 14:30) · ':'')+(mode==='h'?'누르면 바로 들어갑니다':(tpTouch.h?'바로 들어갔습니다 · 분을 누르면 닫힙니다':(tpTouch.m?'시를 누르면 들어갑니다':'시를 누르면 바로 들어가고, 분을 누르면 닫힙니다')));
+  $('#tpHint').textContent=(matchMedia('(hover:hover) and (pointer:fine)').matches?'키보드로 1430처럼 입력해도 됩니다 · ':'')+(mode==='h'?'누르면 바로 들어갑니다':(tpTouch.h?'바로 들어갔습니다 · 분을 누르면 닫힙니다':(tpTouch.m?'시를 누르면 들어갑니다':'시를 누르면 바로 들어가고, 분을 누르면 닫힙니다')));
 }
 function tpClose(){
   const bg=$('#tpBg'); bg.classList.remove('show'); document.body.classList.remove('tp-open');
@@ -2309,8 +2300,8 @@ function ctl(fd){
   if(fd.t==='money') return amtIn(`id="f_${fd.k}" data-k="${fd.k}"`,v,'예: 120.5')+(fd.k==='collect'?(n=>`<span class="amt-r altar-net" data-altar-note="collect" ${n?'':'hidden'}>${esc(n)}</span>`)(altarNotes(curCase()).collect):'');
   if(fd.t==='cnt') return `<div class="suffix cnt"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" value="${esc(v)}" placeholder="숫자 또는 글" autocomplete="off"><span ${isNum(v)||!String(v).trim()?'':'hidden'}>${fd.o}</span></div>
     <div class="cnt-quick">${CNT_WORDS.map(w=>`<button type="button" class="chip" data-cnt="${fd.k}" data-v="${w}" aria-pressed="${String(v).trim()===w}">${w}</button>`).join('')}</div>`;
-  if(fd.t==='num') return `<div class="suffix"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="${fd.k==='eventNo'?'numeric':'decimal'}" value="${esc(v)}" ${fd.k==='eventNo'?'placeholder="예: 3" autocomplete="off"':''}><span>${fd.o}</span></div>`;
-  if(fd.k==='altar'){ const c0=curCase(), card=!!(c0&&c0.f.altarCard), n=altarNotes(c0).altar; return `<input class="input" id="f_altar" data-k="altar" type="text" aria-labelledby="lb_altar" value="${esc(v)}" placeholder="${card?'예: 20 → 20만원 법인카드결제':'예: 20 → 20만원 공제'}" autocomplete="off"><label class="check altar-card"><input type="checkbox" id="altarCard" ${card?'checked':''}> 법인카드결제 <small>고객 대신 법카로 결제 · 수금액에서 안 뺌</small></label><span class="amt-r altar-net" data-altar-note="altar" ${n?'':'hidden'}>${esc(n)}</span>`; }
+  if(fd.t==='num') return `<div class="suffix"><input class="input" id="f_${fd.k}" data-k="${fd.k}" type="text" inputmode="${fd.k==='eventNo'?'numeric':'decimal'}" value="${esc(v)}" ${fd.k==='eventNo'?'autocomplete="off"':''}><span>${fd.o}</span></div>`;
+  if(fd.k==='altar'){ const c0=curCase(), card=!!(c0&&c0.f.altarCard), n=altarNotes(c0).altar; return `<input class="input" id="f_altar" data-k="altar" type="text" aria-labelledby="lb_altar" value="${esc(v)}" placeholder="${card?'법인카드결제 금액':'공제 금액'}" autocomplete="off"><label class="check altar-card"><input type="checkbox" id="altarCard" ${card?'checked':''}> 법인카드결제 <small>고객 대신 법카로 결제 · 수금액에서 안 뺌</small></label><span class="amt-r altar-net" data-altar-note="altar" ${n?'':'hidden'}>${esc(n)}</span>`; }
   return `<input class="input" id="f_${fd.k}" data-k="${fd.k}" type="${fd.t}" value="${esc(v)}"${exAttr(fd.k)||labPh(fd)} ${fd.t==='tel'?'inputmode="tel" autocomplete="off"':''}>`;
 }
 const lab=fd=>{
@@ -2367,7 +2358,7 @@ function goiSumVals(c){ const f=c.f||{}, b=goiBalance(c);
 function goiSumHtml(c){ const v=goiSumVals(c), cell=(id,k,t,sub,main)=>`<div class="gs-c${main?' main':''}"><span>${k}</span><b id="${id}" class="num">${esc(t)||'–'}</b><small>${sub}</small></div>`;
   return `<div class="goi-sum" aria-live="polite" aria-label="밴드에 들어가는 금액">${cell('gsPaid','납입',v.paid,'기납입 + 할인')}${cell('gsBal','잔액',v.bal,'상품금액 − 이행완료확인서')}${cell('gsCol','수금액',v.col,'잔액 − 공제 + 추가',true)}</div>`; }
 function goiPaint(c){ if(!c||!isGoi(coById(c.companyId))) return; const bal=document.getElementById('f_balance'), b=goiBalance(c);
-  if(bal) bal.placeholder=b!=null?`비우면 자동: ${wonStr(b)||'0원'}`:'예: 120.5';
+  if(bal) bal.placeholder=b!=null?`비우면 자동: ${wonStr(b)||'0원'}`:'0';
   const s=document.getElementById('certSum'); if(s){ s.textContent=certSumText(c); s.hidden=!s.textContent; }
   const v=goiSumVals(c); [['gsPaid',v.paid],['gsBal',v.bal],['gsCol',v.col]].forEach(([id,x])=>{ const el=document.getElementById(id); if(el) el.textContent=x||'–'; }); }
 function certRowHtml(c){ const L=certLine(c); return `<div class="dd dd-cert" id="certRow" ${L?'':'hidden'}><span class="no">1.</span><div class="dd-fixed">${esc(L?L.text:'')}</div><span class="dd-tag">자동</span><small class="dd-amt">${L&&dedOn(c)?esc(`수금액에서 ${wonStr(L.won)} 뺍니다`):''}</small></div>`; }
@@ -2425,7 +2416,7 @@ function renderInput(){
   const place=$('#f_place');if(place)place.placeholder=exFor('place')||'예: 동래봉생 2호';
   goiPaint(c);
   const hint=$('#f_productShort');if(hint)hint.closest('label').insertAdjacentHTML('beforeend','<span class="field-hint">비우면 상품명이 사용됩니다.</span>');
-  const product=$('#f_product');if(product)product.closest('label').insertAdjacentHTML('afterend','<p class="note" style="grid-column:1/-1">금액은 숫자만 넣으면 만원입니다. 120 → 120만원 · 120.5 → 1,205,000원</p>');
+  const product=$('#f_product');if(product)product.closest('label').insertAdjacentHTML('afterend','<p class="note" style="grid-column:1/-1">금액은 숫자만 넣으면 만원 단위로 들어갑니다.</p>');
   applyInputGroup();
   lockPaint();
   bMarkPaint(c);
@@ -2492,7 +2483,7 @@ function composeDT(box){
 $('#p-input').addEventListener('change',e=>{
   const t=e.target, c=curCase(); if(!c) return; const f=c.f;
   if(updateHagwanInput(t,c)||updateCremInput(t,c)) return;
-  if(t.id==='altarCard'){ c.f.altarCard=t.checked; touched(); updAltarNotes(); const a=$('#f_altar'); if(a) a.placeholder=t.checked?'예: 20 → 20만원 법인카드결제':'예: 20 → 20만원 공제';
+  if(t.id==='altarCard'){ c.f.altarCard=t.checked; touched(); updAltarNotes(); const a=$('#f_altar'); if(a) a.placeholder=t.checked?'법인카드결제 금액':'공제 금액';
     toast(t.checked?'제단공제를 법인카드결제로 바꿨습니다 · 수금액에서 빼지 않습니다':'제단공제를 수금액에서 뺍니다'); return; }
   if(t.id==='sameChief'){ c.f.sameChief=t.checked; syncChief(c); touched(); renderInput(); toast(t.checked?`상주 칸에 ${custWord(c)} 정보를 넣었습니다`:'상주 칸을 직접 입력할 수 있습니다'); return; }
   if(t.dataset.pk){
@@ -2971,7 +2962,7 @@ const caseTitle=(c,noNo)=>{ const f=c.f||{}, no=caseNoKey(c), nm=String(f.name||
 const caseSub=c=>{ const f=c.f||{}, coNm=c.quick&&!c.coPicked?'정산만':caseCoName(c), custCo=coNm.replace(/\s/g,'')==='현진시닝'?String(f.company||'').trim():'', p=parseDT(f.depart), nm=String(f.name||'').trim();
   return [nm&&String(f.place||'').trim(), [coNm,custCo].filter(Boolean).join(' '), p&&`${p.mo}월\u00a0${pad(p.d)}일\u00a0발인`].filter(Boolean).join(' · '); };
 function caseStShort(c,used){ const st=settleStatus(c,used);
-  return st.k==='none'?{k:'none',t:''}:st.k==='minus'?{k:'minus',t:`마이너스 ${wonStr(st.won)}`}:st.k==='cleared'?{k:'cleared',t:'마이너스 정리됨'}:{k:st.k,t:st.t}; }
+  return st.k==='none'?{k:'none',t:''}:st.k==='minus'?{k:'minus',t:`차감 대기 ${wonStr(st.won)}`}:st.k==='cleared'?{k:'cleared',t:'차감 완료'}:{k:st.k,t:st.t}; }
 function renderCaseSel(){
   renderTtl();
   const c=curCase(), b=$('#casePick');
@@ -2992,7 +2983,7 @@ function cpRender(){
     :`<p class="note cp-empty">${nClosed?'진행 중인 행사가 없습니다.':'이 달에는 행사가 없습니다.'}</p>`)
     +(nClosed?`<button type="button" class="cp-closed-tog" data-cp-closed aria-expanded="${cpShowClosed}">${cpShowClosed?'종결된 행사 숨기기':`종결된 행사 ${nClosed}건 보기`}</button>`:'');
   $('#cmLabel').textContent=cpMonth?monthLabel(cpMonth):'행사 없음';
-  $('#cmCount').textContent=cpMonth?`${all.length-nClosed}건${nClosed?` · 종결 ${nClosed}건`:''}${neg?` · 마이너스 ${neg}건 남음`:''}`:'';
+  $('#cmCount').textContent=cpMonth?`${all.length-nClosed}건${nClosed?` · 종결 ${nClosed}건`:''}${neg?` · 차감 대기 ${neg}건`:''}`:'';
   $('#cmCount').classList.toggle('warn',neg>0);
   $('#cmPrev').disabled=i<0||i>=months.length-1; $('#cmNext').disabled=i<=0;
   $('#delCase').disabled=!curCase();
@@ -3739,12 +3730,12 @@ function deficits(){
    상태: 입력 전(정산 값 없음) · 미정산(보낼 돈 있음, 안 보냄) · 보냄(c.s.sentAt) · 보낸 뒤 바뀜(보낼 때 금액 c.s.sentWon 과 지금 금액이 다름) · 마이너스 · 정리됨(다른 정산에서 뺌).
    「보냄」은 정산 확인 화면 · 행사 목록에서 표시. 돈 계산은 그대로(settleCalc) — 상태는 표시만. */
 function settleStatus(c,used){
-  if(!envelopeHasSettlement(c)) return {k:'none',t:'입력 전',won:0};
+  if(!envelopeHasSettlement(c)) return {k:'none',t:'정산 전',won:0};
   const w=settleCalc(c).sendWon;
-  if(w<0){ const by=(used||carryUse()).get(c.id)||null, out=by?null:minusOutOf(c); return by||out?{k:'cleared',t:'정리됨',won:w,by,out}:{k:'minus',t:'마이너스',won:w}; }
+  if(w<0){ const by=(used||carryUse()).get(c.id)||null, out=by?null:minusOutOf(c); return by||out?{k:'cleared',t:'차감 완료',won:w,by,out}:{k:'minus',t:'차감 대기',won:w}; }
   const s=c.s||{};
-  if(s.sentAt) return Number(s.sentWon)===w||s.sentWon==null?{k:'sent',t:'보냄',won:w,at:s.sentAt}:{k:'changed',t:'보낸 뒤 바뀜',won:w,at:s.sentAt,was:Number(s.sentWon)};
-  return {k:'open',t:'미정산',won:w};
+  if(s.sentAt) return Number(s.sentWon)===w||s.sentWon==null?{k:'sent',t:'정산 완료',won:w,at:s.sentAt}:{k:'changed',t:'정산 후 변경',won:w,at:s.sentAt,was:Number(s.sentWon)};
+  return {k:'open',t:'정산 대기',won:w};
 }
 function setSent(c,on){
   const s=S(c);
@@ -3753,15 +3744,15 @@ function setSent(c,on){
   if(db.tab==='settle') renderSettle(); else if(db.tab==='list') renderList();
   paintSteps();
   try{ renderCaseSel(); }catch(e){}
-  if(on&&window.dwUndo) window.dwUndo('보냄으로 표시했습니다',()=>setSent(c,false)); else toast(on?'보냄으로 표시했습니다':'보냄 표시를 삭제했습니다');
+  if(on&&window.dwUndo) window.dwUndo('정산 완료로 표시했습니다',()=>setSent(c,false)); else toast(on?'정산 완료로 표시했습니다':'정산 완료 표시를 취소했습니다');
 }
 const sentDay=iso=>{ const t=new Date(iso); return isNaN(t)?'':`${t.getMonth()+1}월 ${pad(t.getDate())}일`; };
 /* 다른 팀장 행사에서 뺀 마이너스: 적는 칸(접어 둠) · 적은 뒤 표시 */
 function minusOutForm(){
-  return `<details class="sub-fold mo-fold"><summary><div class="wb-t"><b>다른 팀장 행사에서 뺀 경우</b><small>뺀 팀장을 적으면 「정리됨」으로 표시합니다</small></div><span>입력</span></summary>
+  return `<details class="sub-fold mo-fold"><summary><div class="wb-t"><b>다른 팀장 행사에서 차감한 경우</b><small>차감한 팀장을 적으면 「차감 완료」로 표시합니다</small></div><span>입력</span></summary>
     <div class="fields"><label class="f">팀장 이름<input class="input" data-mo="who" placeholder="예: 김철수 팀장" autocomplete="off"></label>
     <label class="f">그 행사 (선택 사항)<input class="input" data-mo="event" placeholder="예: 10월 5번 김해복음" autocomplete="off"></label>
-    <button class="btn" type="button" data-mo-save>정리됨으로 표시</button></div></details>`;
+    <button class="btn" type="button" data-mo-save>차감 완료로 표시</button></div></details>`;
 }
 const minusOutDone=o=>`<div class="wz-sent on"><span>✓ ${esc(o.who)} 행사에서 뺐습니다${o.event?` (${esc(o.event)})`:''}${o.at?` · ${esc(sentDay(o.at))}`:''}</span><button class="btn sm" type="button" data-mo-off>표시 취소</button></div>`;
 function setMinusOut(c,v){
@@ -3769,7 +3760,7 @@ function setMinusOut(c,v){
   c.updated=Date.now(); save(); dirty=true;
   if(db.tab==='settle') renderSettle(); else if(db.tab==='list') renderList();
   renderCaseSel(); paintSteps();
-  if(v&&window.dwUndo) window.dwUndo('정리됨으로 표시했습니다',()=>setMinusOut(c,was)); else toast(v?'정리됨으로 표시했습니다':'「정리됨」 표시를 취소했습니다');
+  if(v&&window.dwUndo) window.dwUndo('차감 완료로 표시했습니다',()=>setMinusOut(c,was)); else toast(v?'차감 완료로 표시했습니다':'「차감 완료」 표시를 취소했습니다');
 }
 document.addEventListener('click',e=>{
   const sv=e.target.closest&&e.target.closest('[data-mo-save]');
@@ -3777,27 +3768,27 @@ document.addEventListener('click',e=>{
     if(!who){ toast('뺀 팀장 이름을 입력하십시오'); w.focus(); return; }
     setMinusOut(c,{who,event:ev,at:new Date().toISOString()}); return; }
   const off=e.target.closest&&e.target.closest('[data-mo-off]');
-  if(off){ const c=curCase(); if(!c) return; arm(off,'표시 취소',()=>setMinusOut(c,null),{title:'「정리됨」 표시를 취소하시겠습니까?',body:'이 행사가 다시 「마이너스」로 표시됩니다.',ok:'표시 취소',danger:false}); }
+  if(off){ const c=curCase(); if(!c) return; arm(off,'표시 취소',()=>setMinusOut(c,null),{title:'「차감 완료」 표시를 취소하시겠습니까?',body:'이 행사가 다시 「차감 대기」로 표시됩니다.',ok:'표시 취소',danger:false}); }
 });
 /* 정산 확인 화면: 정산 카톡 복사 아래 「보냄」 줄 */
 function sentRow(c){
   const st=settleStatus(c);
   if(st.k==='none') return '';
-  if(st.k==='minus') return `<p class="wz-sent-note">마이너스 행사입니다. 수익이 충분한 다른 행사 정산에서 빼 주십시오.</p>${minusOutForm()}`;
-  if(st.k==='cleared') return st.out?minusOutDone(st.out):`<div class="wz-sent on"><span>✓ ${esc(caseTag(st.by))} 정산에서 뺐습니다</span></div>`;
-  if(st.k==='sent'||st.k==='changed') return `<div class="wz-sent on${st.k==='changed'?' warn':''}"><span>✓ ${sentDay(st.at)} 보냄${st.k==='changed'?` · 보낸 뒤 금액이 바뀌었습니다(보낼 때 ${wonStr(st.was)||'0원'})`:''}</span><button class="btn sm" type="button" data-sent="${st.k==='changed'?'on':'off'}">${st.k==='changed'?'지금 금액으로 다시 표시':'보냄 취소'}</button></div>`;
-  return `<button class="btn wz-sent-btn" type="button" data-sent="on">정산 카톡 보냈습니다 · 보냄 표시</button>`;
+  if(st.k==='minus') return `<p class="wz-sent-note">차감 대기 행사입니다. 수익이 충분한 다른 행사 정산에서 차감하십시오.</p>${minusOutForm()}`;
+  if(st.k==='cleared') return st.out?minusOutDone(st.out):`<div class="wz-sent on"><span>✓ ${esc(caseTag(st.by))} 정산에서 차감했습니다</span></div>`;
+  if(st.k==='sent'||st.k==='changed') return `<div class="wz-sent on${st.k==='changed'?' warn':''}"><span>✓ ${sentDay(st.at)} 정산 완료${st.k==='changed'?` · 정산 후 금액이 바뀌었습니다(정산 당시 ${wonStr(st.was)||'0원'})`:''}</span><button class="btn sm" type="button" data-sent="${st.k==='changed'?'on':'off'}">${st.k==='changed'?'지금 금액으로 다시 완료':'완료 취소'}</button></div>`;
+  return `<button class="btn wz-sent-btn" type="button" data-sent="on">정산 카톡을 보냈으면 · 정산 완료로 표시</button>`;
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('[data-sent]'); if(!b) return;
   const c=db.cases.find(x=>x.id===(b.dataset.case||db.cur)); if(!c) return;
-  if(b.dataset.sent==='off'){ arm(b,'보냄 취소',()=>setSent(c,false),{title:'보냄 표시를 삭제하시겠습니까?',body:'정산 상태가 「미정산」으로 돌아갑니다.',ok:'삭제',danger:false}); return; }
+  if(b.dataset.sent==='off'){ arm(b,'완료 취소',()=>setSent(c,false),{title:'정산 완료 표시를 취소하시겠습니까?',body:'정산 상태가 「정산 대기」로 돌아갑니다.',ok:'완료 취소',danger:false}); return; }
   setSent(c,true);
 });
 /* 행사 목록 (탭 list, 화면 #p-list) */
 let LV=Object.assign({month:null,q:'',co:'',st:'',sort:'no'},db.listPrefs||{},{month:null});   /* month: null = 이번 달, '' = 전체 기간 — 앱을 열 때는 늘 이번 달 (2026.11.13 사용자 「11월이면 11월 행사만, 10월까지 보일 필요 없음」) */
 function listSave(){ db.listPrefs={month:LV.month,co:LV.co,st:LV.st,sort:LV.sort}; try{ store.set(db); }catch(e){} }
-const LIST_ST=[['','모든 상태'],['todo','처리할 것 (미정산 · 마이너스 · 바뀜)'],['open','미정산'],['changed','보낸 뒤 바뀜'],['sent','보냄'],['minus','마이너스'],['cleared','정리됨'],['none','입력 전'],['later','장지 추후입금']];
+const LIST_ST=[['','모든 상태'],['todo','정산할 행사 (대기 · 변경 · 차감)'],['open','정산 대기'],['changed','정산 후 변경'],['sent','정산 완료'],['minus','차감 대기'],['cleared','차감 완료'],['none','정산 전'],['later','장지 추후입금']];
 function listHay(c){ const f=c.f||{}; return [caseLabel(c),f.chief,f.customer,f.company,f.product,f.eventNo,f.staff,f.name].map(v=>String(v||'')).join(' ').toLowerCase().replace(/\s+/g,''); }
 function listRows(noSt){   /* noSt: 상태 거르기만 빼고 (요약 카드 건수용, 2026.11.13) */
   const used=carryUse();
@@ -3819,32 +3810,32 @@ function listDay(c){ const p=parseDT((c.f||{}).depart); return p?`${p.mo}월 ${p
    - 요약 카드(전체 · 입력 전 · 미정산 · 마이너스 · 보냄): 누르면 아래 목록이 그 상태로, 다시 누르면 전체. 도구 줄 상태 고르기와 같은 값 하나(LV.st)
    - 목록은 핵심 칸만(번호 · 행사 · 발인 · 정산 상태 · 보내는금액 · 작업), 봉투 금액 · 업체 · 상주 · 단계는 오른쪽 상세 패널(dwDrawer)
    - 줄을 누르면 상세 패널(예전: 바로 그 행사 화면으로) → 패널 아래 「이어서 하기」 · 단계마다 열기 · 보냄 표시 · 삭제 */
-const LV_CARDS=[['','전체'],['none','입력 전'],['open','미정산'],['minus','마이너스'],['sent','보냄']];
+const LV_CARDS=[['','전체'],['none','정산 전'],['open','정산 대기'],['minus','차감 대기'],['sent','정산 완료']];
 let LVD='', LVM=false, LVC=false;   /* LVC: 종결된 행사 펼침 (화면 표시만) */   /* LVD: 상세 패널에 열린 행사 id · LVM: 휴대폰 필터 · 정렬 펼침 (둘 다 화면 표시만, 저장 안 함) */
 function lvCo(c){ return c.quick&&!c.coPicked?'정산만':caseCoName(c); }
 function lvMain(c){ const f=c.f||{}, nm=String(f.name||'').trim(); return nm?`故 ${nm}`:(String(f.place||'').trim()||'이름 없는 행사'); }
 function lvSubLine(c){ const f=c.f||{}, nm=String(f.name||'').trim(), co=lvCo(c), cust=co.replace(/\s/g,'')==='현진시닝'?String(f.company||'').trim():'';
   return [nm&&String(f.place||'').trim(),[co,cust].filter(Boolean).join(' '),hoFresh(c)?'넘겨받음':''].filter(Boolean).join(' · '); }
 function lvBadge(st){ return `<span class="lv-st st-${st.k}">${st.k==='minus'?'− ':st.k==='sent'?'✓ ':''}${esc(st.t)}</span>`; }
-function lvNext(c){ const i=STEPS.findIndex(x=>!stepDone(c,x[0])); return i<0?[settleStatus(c).k==='none'?'input':'settle','행사 열기']:[STEPS[i][0],`이어서 하기 · ${STEPS[i][2]}`]; }
+function lvNext(c){ const i=STEPS.findIndex(x=>!stepDone(c,x[0])); return i<0?[settleStatus(c).k==='none'?'input':'settle','행사 열기']:[STEPS[i][0],`다음 단계 · ${STEPS[i][2]}`]; }
 function lvMark(){ const el=$('#p-list'); if(!el) return; el.querySelectorAll('.lv-tr[data-id]').forEach(r=>{ const id=r.dataset.id, on=LVD?id===LVD:false;
   r.classList.toggle('on',on); r.classList.toggle('cur',!LVD&&id===db.cur); if(on) r.setAttribute('aria-current','true'); else r.removeAttribute('aria-current'); }); }
 function lvDrawerData(c){
   const f=c.f||{}, st=settleStatus(c), env=caseEnvelope(c), row=(k,v,cls)=>v?`<div><dt>${k}</dt><dd${cls?` class="${cls}"`:''}>${v}</dd></div>`:'';
   const dt=v=>{ const p=parseDT(v); return p?`${p.mo}월 ${pad(p.d)}일${p.h==null?'':` ${pad(p.h)}:${pad(p.mi)}`}`:''; };
-  const stRow=st.k==='sent'||st.k==='changed'?row('보낸 날',esc(sentDay(st.at))+(st.k==='changed'?` <small class="lvd-at">보낸 뒤 금액이 바뀌었습니다 (보낼 때 ${esc(wonStr(st.was)||'0원')})</small>`:''))
+  const stRow=st.k==='sent'||st.k==='changed'?row('정산 완료일',esc(sentDay(st.at))+(st.k==='changed'?` <small class="lvd-at">정산 후 금액이 바뀌었습니다 (정산 당시 ${esc(wonStr(st.was)||'0원')})</small>`:''))
     :st.k==='cleared'?row('정리',esc(st.out?st.out.who+' 팀장 행사에서 뺐습니다':caseTag(st.by)+' 정산에서 뺐습니다')):'';
   const later=burialLater(c)?row('장지 금액',`추후입금${bType(S(c))?` (${esc(BT_NAME[bType(S(c))])})`:''}`,'warn'):'';
-  const act=c.closed?'':st.k==='open'||st.k==='changed'?`<button class="btn lvd-sent" type="button" data-sent="on" data-case="${esc(c.id)}">${st.k==='changed'?'지금 금액으로 다시 보냄 표시':'보냄 표시'}</button>`
-    :st.k==='sent'?`<button class="btn link lvd-sent" type="button" data-sent="off" data-case="${esc(c.id)}">보냄 취소</button>`:'';
-  const money=st.k==='none'?`<div class="lvd-money none"><span>보내는금액</span><b>정산 입력 전</b></div>`
+  const act=c.closed?'':st.k==='open'||st.k==='changed'?`<button class="btn lvd-sent" type="button" data-sent="on" data-case="${esc(c.id)}">${st.k==='changed'?'지금 금액으로 다시 정산 완료':'정산 완료로 표시'}</button>`
+    :st.k==='sent'?`<button class="btn link lvd-sent" type="button" data-sent="off" data-case="${esc(c.id)}">정산 완료 취소</button>`:'';
+  const money=st.k==='none'?`<div class="lvd-money none"><span>보내는금액</span><b>정산 전</b></div>`
     :`<div class="lvd-money${st.won<0?' minus':''}"><span>보내는금액</span><b class="num">${st.won<0?'− ':''}${esc(wonStr(Math.abs(st.won))||'0원')}</b></div>`;
   const steps=STEPS.map(([k,short,long],i)=>{ const done=stepDone(c,k);
     return `<li><button class="lvd-step${done?' done':''}" type="button" data-lvd-go="${k}"><span class="st-no" aria-hidden="true">${done?'✓':i+1}</span><span class="lvd-sn">${esc(short)}<small>${esc(long)}</small></span><span class="lvd-ss">${done?'끝냄':'남음'}</span>${uiIcon('right')}</button></li>`; }).join('');
   const [nk,nl]=lvNext(c), ho=hoInfo(c), cd=c.closed?new Date(Number(c.closed)):null;
   const shut=c.closed?`<div class="lvd-lock"><b>종결된 행사입니다${cd&&!isNaN(cd)?` · ${cd.getMonth()+1}월 ${pad(cd.getDate())}일`:''}</b><span>보기 · 복사만 할 수 있습니다. 고치려면 「종결 풀기」를 누르십시오.</span></div>`:'';
   return {key:'case:'+c.id, title:caseTitle(c), sub:lvBadge(st)+(c.closed?'<span class="lv-st st-closed">종결</span>':''), back:'목록',
-    body:`${shut}<section class="lvd-sec"><h3>정산</h3>${money}<dl class="lvd-dl">${stRow}${row('본부장 봉투',esc(wonStr(env.part)||'–'),'num')}${row('실장 봉투',esc(wonStr(env.manager)||'–'),'num')}${later}</dl>${st.k==='minus'?'<p class="lvd-note">마이너스 행사입니다. 수익이 충분한 다른 행사 정산에서 빼 주십시오.</p>':''}${act?`<div class="lvd-act">${act}</div>`:''}</section>
+    body:`${shut}<section class="lvd-sec"><h3>정산</h3>${money}<dl class="lvd-dl">${stRow}${row('본부장 봉투',esc(wonStr(env.part)||'–'),'num')}${row('실장 봉투',esc(wonStr(env.manager)||'–'),'num')}${later}</dl>${st.k==='minus'?'<p class="lvd-note">차감 대기 행사입니다. 수익이 충분한 다른 행사 정산에서 차감하십시오.</p>':''}${act?`<div class="lvd-act">${act}</div>`:''}</section>
       <section class="lvd-sec"><h3>행사 정보</h3><dl class="lvd-dl">${row('장소',esc(String(f.place||'').trim()))}${row('업체',esc(lvCo(c)))}${lvCo(c).replace(/\s/g,'')==='현진시닝'?row('고객 회사',esc(String(f.company||'').trim())):''}${row('접수',esc(dt(f.recv)))}${row('임종',esc(dt(f.death)))}${row('입관',esc(dt(f.casket)))}${row('발인',esc(dt(f.depart)))}${row('상주',esc(String(f.chief||'').trim()))}${row('장지',esc(String(f.burial||'').trim()))}${row('상품',esc(String(f.product||'').trim()))}</dl></section>
       <section class="lvd-sec"><h3>업무 단계</h3><ol class="lvd-steps">${steps}</ol></section>${ho}`,
     foot:`<button class="btn link lvd-del" type="button" data-lvd-del>삭제</button><span class="dwdr-sp"></span>`+(c.closed
@@ -3871,7 +3862,7 @@ function renderList(){
       <p class="pg-sub"><span>${mm}월 마감 <b>${dday}</b> · ${left===0?'오늘이 마감일입니다':`${mm}월 ${lastD}일(${wd(lastD)})까지`}</span><button class="pg-link" type="button" data-lv-env="${esc(envM)}">${envMo}월 봉투 합계 <b class="num">${w(envS.all.total)}</b><small>본부장 ${w(envS.part.total)} · 실장 ${w(envS.manager.total)}</small>${uiIcon('right')}</button><a class="pg-link pg-ext" href="${CREM_URL}" target="_blank" rel="noopener noreferrer" aria-label="화장예약 간편조회 · e하늘 (새 창)">화장예약 조회<small>e하늘</small>${uiIcon('ext')}</a></p></div>
     <button class="btn primary pg-cta" type="button" data-lv-new>${uiIcon('plus')}새 행사</button></header>`;
   /* ② 요약 카드 4칸 (누르면 거르기 — 도구 줄 상태 고르기와 같은 값 LV.st) + 검색 · 필터 한 줄 */
-  const CARDS=[['','전체',list=>{ const n=cnt('none').length; return n?`입력 전 ${n}건`:''; }],['open','미정산',list=>list.length?w(sumWon(list)):''],['minus','마이너스',list=>list.length?'− '+w(Math.abs(sumWon(list))):''],['sent','보냄',list=>list.length?w(sumWon(list)):'']];
+  const CARDS=[['','전체',list=>{ const n=cnt('none').length; return n?`정산 전 ${n}건`:''; }],['open','정산 대기',list=>list.length?w(sumWon(list)):''],['minus','차감 대기',list=>list.length?'− '+w(Math.abs(sumWon(list))):''],['sent','정산 완료',list=>list.length?w(sumWon(list)):'']];
   h+=`<section class="pg-kpi" role="group" aria-label="정산 상태로 거르기">${CARDS.map(([k,t,sub])=>{ const list=cnt(k), on=LV.st===k, s2=sub(list);
       return `<button type="button" class="kpi-card${on?' on':''}" aria-pressed="${on}" data-lv-card="${k||'all'}"><span class="kpi-l">${k?`<i class="kpi-dot st-${k}" aria-hidden="true"></i>`:''}${esc(t)}</span><b class="kpi-n num">${list.length}<small>건</small></b><span class="kpi-s num">${s2||'&nbsp;'}</span></button>`; }).join('')}</section>`;
   const nf=[LV.month!==seoulToday().slice(0,7),!!LV.co,!!LV.st,LV.sort!=='no'].filter(Boolean).length;
@@ -4779,7 +4770,7 @@ function dvDrawerData(r){
     ${k!=='goods'?`<section class="lvd-sec"><h3>관리사 배치</h3><div class="fields">${dvMgrHtml(r)}</div></section>`:''}
     ${k==='sub'?`<section class="lvd-sec"><h3>대체 · 차량</h3><div class="fields">${dvSubHtml(r)}</div></section>`:''}
     ${dvHasVeh(r)?`<section class="lvd-sec"><h3>장의차량</h3><div class="fields">
-      <div class="pair"><div class="f-wrap"><span class="field-label">차종</span>${chooser({scope:'dv',key:'veh.type',options:db.lists.vehTypes||[],label:'차종'})}</div>${dvSuf('veh.km','운행 거리','km','예: 200')}</div>
+      <div class="pair"><div class="f-wrap"><span class="field-label">차종</span>${chooser({scope:'dv',key:'veh.type',options:db.lists.vehTypes||[],label:'차종'})}</div>${dvSuf('veh.km','운행 거리','km','')}</div>
       <div class="f-wrap" id="dvCremWrap"${dvSplitOn(r)?'':' hidden'}><span class="field-label">화장장</span>${chooser({scope:'dv',key:'veh.crem',options:db.lists.crems||[],label:'화장장'})}
         <p class="note">리무진은 화장장까지, 장의버스는 화장장-장지-장례식장으로 따로 나갑니다. 운행 거리는 장의버스 줄에 붙습니다.</p></div>
       ${dvIn('veh.burial','장지','예: 울산하늘')}
@@ -4937,7 +4928,7 @@ function szScreen(c,st,steps){
   const choice=(key,opts,cur,cls='')=>`<div class="wz-choice ${cls}">${opts.map(([v,l])=>`<button type="button" data-sz-pick="${key}" data-v="${esc(v)}" aria-pressed="${cur===v}"><b>${esc(l)}</b></button>`).join('')}</div>`;
   let q=st.q, sub='', body='';
   const autoSub='흐린 글자는 행사 입력 · 정산에서 자동으로 들어가는 값입니다. 다르게 쓰려면 직접 입력하십시오.';
-  if(st.id==='no') body=fIn('eventNo','행사번호','예: 140',{num:1})+fIn('place','행사 진행 장소','예: 함안하늘 특실')+go();
+  if(st.id==='no') body=fIn('eventNo','행사번호','',{num:1})+fIn('place','행사 진행 장소','예: 함안하늘 특실')+go();
   else if(st.id==='span'){ sub='비우면 접수일(없으면 임종일)부터 발인일까지 자동으로 들어갑니다.'; body=xIn('span','행사 진행 기간',ph(A.Q3,'예: 2026.04.01 ~03'))+go(); }
   else if(st.id==='staff') body=fIn('staff','담당자',ph(!f.staff&&me().name,'예: 서영우'))+fIn('staffTel','연락처','예: 010-0000-0000',{tel:1})+go();
   else if(st.id==='cust') body=fIn('customer','고객명','예: 노승지')+fIn('custTel','연락처','예: 010-0000-0000',{tel:1})+fIn('custRel','고인과의 관계','예: 녀')+go();
@@ -4951,7 +4942,7 @@ function szScreen(c,st,steps){
   else if(st.id==='pay'){ sub='금액은 정산에 넣은 값으로 자동으로 들어갑니다. 카드/현금 줄은 상품 수금, 추가 줄은 유골함 · 추가내역 · 관꽃장식입니다.';
     const row=(l,on,v)=>`<div class="sz-pr"><span>${l}</span><b>${on?'V ':''}${esc(v||'없음')}</b></div>`;
     body=`<div class="sz-box">${row('카드',A.E10,String(A.F10||'').replace('결제금액: ',''))}${row('현금',A.E11,String(A.F11||'').replace('결제금액: ',''))}${row('추가',A.E12,A.E12?`${[A.G12&&'카드',A.I12&&'현금'].filter(Boolean).join(' · ')} ${String(A.J12||'').replace('금액: ','')}`:'')}</div>
-      ${sIn('rcCardAppr','카드승인 번호','예: 10202012')}${sIn('rcCashNo','현금영수증 번호','예: 010-0000-0000',{tel:1})}
+      ${sIn('rcCardAppr','카드승인 번호','카드 승인번호')}${sIn('rcCashNo','현금영수증 번호','휴대폰 · 사업자 번호',{tel:1})}
       <button class="btn wz-go wz-go2" type="button" data-sz-settle>정산에서 금액 수정</button>${go()}`; }
   else if(st.id==='note'){ sub='일정표 장례용품 바로 위 「특이사항」 줄에 한 줄로 들어갑니다. 없으면 비워 두고 넘어가십시오.';
     body=xIn('topNote','특이사항','예: 상주 요청으로 입관 30분 늦춤')+go(); }
@@ -4963,18 +4954,18 @@ function szScreen(c,st,steps){
     body=`<div class="wz-choice wz-co sz-picks">${SZ_ITEMS.map(([n])=>`<button type="button" data-sz-item="${esc(n)}" aria-pressed="${szItemOn(c,n,A)}"><b>${esc(n)}</b></button>`).join('')}</div>${go()}`; }
   else if(st.item){ const n=st.item, row=(SZ_ITEMS.find(z=>z[0]===n)||[])[1], P=`items.${n}.`, has=['C','G','K','L'].some(k=>A[k+row]!=null);
     q=n; sub=has?autoSub:'모르는 칸은 비워 두십시오.';
-    body=xIn(P+'co','업체명',ph(A['C'+row],'예: 삼미'))+xIn(P+'name','품목명',ph(A['G'+row],n==='수의'?'예: 현진저마(남)':''))+xIn(P+'qty','수량',ph(A['K'+row],'예: 1'),{num:1})+xIn(P+'note','비고 및 특이사항 (현장결제)',ph(A['L'+row],''))+go(); }
+    body=xIn(P+'co','업체명',ph(A['C'+row],'예: 삼미'))+xIn(P+'name','품목명',ph(A['G'+row],n==='수의'?'예: 현진저마(남)':''))+xIn(P+'qty','수량',ph(A['K'+row],''),{num:1})+xIn(P+'note','비고 및 특이사항 (현장결제)',ph(A['L'+row],''))+go(); }
   else if(st.id==='mourn'){ sub='업체 · 수량은 행사 입력과 같이 바뀝니다.';
-    body=ch('상복 업체',{scope:'f',key:'mournBrand',options:db.lists.mournBrands||[],label:'상복 업체'})+`<div class="pair2">${fIn('mournM','남 수량','예: 2')}${fIn('mournW','여 수량','예: 2')}</div>`
+    body=ch('상복 업체',{scope:'f',key:'mournBrand',options:db.lists.mournBrands||[],label:'상복 업체'})+`<div class="pair2">${fIn('mournM','남 수량','')}${fIn('mournW','여 수량','')}</div>`
       +xIn('mNoteM','남 비고',ph(A.K29,''))+xIn('mNoteW','여 비고',ph(A.K30,''))+go(); }
   else if(st.id==='veh'){ sub='차종 · 업체 · 목적지는 행사 입력과 같이 바뀝니다. 업체는 일정표에 「한맥」처럼 「장의차」를 빼고 나갑니다.';
     body=ch('구분 (차종)',{scope:'f',key:'vehType',options:db.lists.vehTypes||[],label:'차종'})+ch('업체',{scope:'f',key:'vehCo',options:db.lists.vehCos||[],label:'장의차 업체'})
-      +fIn('route','목적지',ph(!f.route&&autoRoute(f),'예: 함안하늘-함안추모-장례식장'))+xIn('km1','실제 주행거리 (km)','예: 30 (숫자만 넣으면 km)',{dec:true})+xIn('vnote1','비고',ph(A.Q32,''))+go(); }
+      +fIn('route','목적지',ph(!f.route&&autoRoute(f),'예: 함안하늘-함안추모-장례식장'))+xIn('km1','실제 주행거리 (km)','',{dec:true})+xIn('vnote1','비고',ph(A.Q32,''))+go(); }
   else if(st.id==='veh2'&&A.C33){ q='두 번째 차량을 확인해 주십시오'; sub=`행사 입력 차종(${noPlus(f.vehType)})이 두 대라서 ${A.C33}${(k=>k>=0&&k<11172&&k%28?'은':'는')(String(A.C33).charCodeAt(String(A.C33).length-1)-0xAC00)} 일정표 둘째 줄에 따로 들어갑니다. 다르면 수정하십시오.`;
-    body=xIn('veh2.type','구분 (차종)',ph(A.C33,'예: 리무진'))+xIn('veh2.co','업체',ph(A.E33,'예: 한국'))+xIn('veh2.dest','목적지',ph(A.F33,'예: 장례식장-함안하늘'))+xIn('veh2.km','실제 주행거리 (km)','예: 20 (숫자만 넣으면 km)',{dec:true})+xIn('veh2.note','비고',ph(A.Q33,''))+go(); }
+    body=xIn('veh2.type','구분 (차종)',ph(A.C33,'예: 리무진'))+xIn('veh2.co','업체',ph(A.E33,'예: 한국'))+xIn('veh2.dest','목적지',ph(A.F33,'예: 장례식장-함안하늘'))+xIn('veh2.km','실제 주행거리 (km)','',{dec:true})+xIn('veh2.note','비고',ph(A.Q33,''))+go(); }
   else if(st.id==='veh2'){ const on=x.veh2On; body=choice('x:veh2On',[['yes','있음'],['no','없음']],on||'');
-    if(on==='yes') body+=xIn('veh2.type','구분 (차종)','예: 리무진')+xIn('veh2.co','업체','예: 한국')+xIn('veh2.dest','목적지','예: 장례식장-함안하늘')+xIn('veh2.km','실제 주행거리 (km)','예: 20 (숫자만 넣으면 km)',{dec:true})+xIn('veh2.note','비고',ph(A.Q33,''))+go(); }
-  else if(st.id==='help') body=ch('팀장명',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})+`<label class="f">총 시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" placeholder="예: 30" autocomplete="off"><span>시간</span></div></label>`+go();
+    if(on==='yes') body+=xIn('veh2.type','구분 (차종)','예: 리무진')+xIn('veh2.co','업체','예: 한국')+xIn('veh2.dest','목적지','예: 장례식장-함안하늘')+xIn('veh2.km','실제 주행거리 (km)','',{dec:true})+xIn('veh2.note','비고',ph(A.Q33,''))+go(); }
+  else if(st.id==='help') body=ch('팀장명',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})+`<label class="f">총 시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" autocomplete="off"><span>시간</span></div></label>`+go();
   else if(st.id==='helpRows'){ const days=szDays(c), H=Array.from({length:24},(_,k)=>pad(k)), au=(col,k)=>String(A[col+(36+k)]||'');
     const sel=(p,opts,lab,auto)=>`<select class="input" data-sx="${p}" aria-label="${lab}"${auto?' required':''}><option value="">${esc(String(auto||'').replace(/시 (\d+)분$/,':$1'))}</option>${opts.map(o=>`<option value="${o.v}"${sxGet(c,p)===o.v?' selected':''}>${esc(o.l)}</option>`).join('')}</select>`;
     sub=mgrRows(c).length?'행사 입력 「도우미 시간대」에 넣은 시간이 흐린 글자로 들어가 있습니다. 다르게 쓰려면 고르십시오.':'모르는 줄은 비워 두십시오. 날짜는 접수일부터 발인일까지 고릅니다.';
@@ -5089,14 +5080,14 @@ function rcWhoFields(c){
 function rcCardFields(c){
   const s=S(c);
   return `<div class="f-wrap"><label class="f">카드사</label>${chooser({scope:'s',key:'rcCardCo',options:db.lists.cardCos||[],label:'카드사',dirPh:'예: 하나카드'})}</div>
-    <label class="f">승인번호<input class="input" data-s="rcCardAppr" inputmode="numeric" value="${esc(s.rcCardAppr||'')}" placeholder="예: 10202012" autocomplete="off"></label>
+    <label class="f">승인번호<input class="input" data-s="rcCardAppr" inputmode="numeric" value="${esc(s.rcCardAppr||'')}" placeholder="카드 승인번호" autocomplete="off"></label>
     <label class="f">결제일<input class="input" type="date" data-s="rcCardDate" value="${esc(rcDay(c,'rcCardDate'))}"></label>
     <label class="f">카드결제 금액${amtIn('data-s="rcCardAmt"',s.rcCardAmt,'비우면 자동')}</label><p class="note rc-auto" id="rcAuto_card"></p>`;
 }
 function rcCashFields(c){
   const s=S(c);
-  return `<label class="f">발행번호<input class="input" type="tel" data-s="rcCashNo" inputmode="tel" value="${esc(s.rcCashNo||'')}" placeholder="예: 010-8508-3590" autocomplete="off"></label>
-    ${isHJ(c)?`<label class="f">승인번호<input class="input" data-s="rcCashAppr" value="${esc(s.rcCashAppr||'')}" placeholder="예: I71883433" autocomplete="off" autocapitalize="characters"></label>`:''}
+  return `<label class="f">발행번호<input class="input" type="tel" data-s="rcCashNo" inputmode="tel" value="${esc(s.rcCashNo||'')}" placeholder="휴대폰 · 사업자 번호" autocomplete="off"></label>
+    ${isHJ(c)?`<label class="f">승인번호<input class="input" data-s="rcCashAppr" value="${esc(s.rcCashAppr||'')}" placeholder="현금영수증 승인번호" autocomplete="off" autocapitalize="characters"></label>`:''}
     <label class="f">발행일<input class="input" type="date" data-s="rcCashDate" value="${esc(rcDay(c,'rcCashDate'))}"></label>
     <label class="f">발행금액${amtIn('data-s="rcCashAmt"',s.rcCashAmt,'비우면 자동')}</label><p class="note rc-auto" id="rcAuto_cash"></p>`;
 }
@@ -5109,6 +5100,7 @@ const seg2=(key,val,attr='data-seg',hq=key==='pay'&&attr==='data-seg')=>`<div cl
 function amtUnit(v){ const t=String(v??'').replace(/,/g,'').trim(); if(!t) return '만원'; if(!/^\d+(\.\d+)?$/.test(t)) return ''; return Number(t)>=1000?'원':'만원'; }
 function amtRead(v){ const t=String(v??'').trim(); if(!t) return ''; const w=toWon(t); return w?`= ${w.toLocaleString('ko-KR')}원`:''; }
 function amtIn(attr,val,ph,read=true){
+  if(/^예:\s*[\d.,]+$/.test(String(ph||''))) ph='0';   /* 금액 칸 숫자 예시는 0 하나로 (2026.11.25 사용자 「번잡한 숫자 예시 정리」) */
   return `<div class="amt"><input class="input" ${attr} inputmode="decimal" value="${esc(val||'')}" placeholder="${esc(ph||'')}" autocomplete="off"><span class="amt-u">${amtUnit(val)}</span></div>${read?`<span class="amt-r">${amtRead(val)}</span>`:''}`;
 }
 const sChip=id=>`<span class="s-chip" id="${id}"></span>`;
@@ -5122,7 +5114,7 @@ const GRP=[
   {id:'extra',t:'추가내역',chip:'chExtra'},
   {id:'rcpt',t:'영수증',chip:'chRcpt'},
   {id:'mgr',t:'실장님 몫',chip:'chMinus'},
-  {id:'def',t:'지난 마이너스',chip:'chDef'},
+  {id:'def',t:'이전 행사 차감',chip:'chDef'},
 ];
 const GRP_T=Object.fromEntries([['info','행사 정보'],...GRP.map(g=>[g.id,g.t]),['done','확인']]);
 const SM_KEY='funeral-settleMode';
@@ -5150,25 +5142,25 @@ const SCR=[
   {id:'qVeh',g:'info',kind:'veh',keys:['vehType','vehCo'],q:'장의차는 어떤 차였습니까?',sub:'차종과 업체를 선택하십시오. 없으면 넘어가십시오.',when:quickOn},
   {id:'qMourn',g:'info',kind:'mourn',keys:['mournBrand'],q:'상복은 어느 업체였습니까?',sub:'없으면 넘어가십시오.',when:quickOn},
   {id:'qBurial',g:'info',kind:'text',scope:'f',key:'burial',ph:'예: 창원상복-부산추모(벽식)',q:'장지는 어디였습니까?',sub:'장지 장소 이름입니다. 받은 금액은 다음에 따로 물어봅니다.',when:quickOn},
-  {id:'hall',g:'recv',kind:'amt',key:'hall',ph:'예: 10',q:'식장에서 받은 금액이 있습니까?',sub:'전부 본부장 봉투로 들어갑니다. 보내는금액에는 안 들어갑니다.'},
-  {id:'burial',g:'recv',kind:'amt',key:'burialAmt',ph:'예: 300',q:'장지에서 받은 금액은 얼마입니까?',sub:()=>`${rules().burialFee}만원을 먼저 빼고 반으로 나눕니다. 본부장 몫에 ${rules().burialFee}만원을 더합니다.`},
+  {id:'hall',g:'recv',kind:'amt',key:'hall',q:'식장에서 받은 금액이 있습니까?',sub:'전부 본부장 봉투로 들어갑니다. 보내는금액에는 안 들어갑니다.'},
+  {id:'burial',g:'recv',kind:'amt',key:'burialAmt',q:'장지에서 받은 금액은 얼마입니까?',sub:()=>`${rules().burialFee}만원을 먼저 빼고 반으로 나눕니다. 본부장 몫에 ${rules().burialFee}만원을 더합니다.`},
   {id:'sea',g:'recv',kind:'pick',key:'burialType',opts:BT_OPTS,q:'어떤 장지입니까?',sub:()=>`실장 몫이 수당 카톡의 그 줄(수목장 · 바다장 · 납골)에 들어갑니다. 해양장은 ${rules().burialFee}만원을 빼지 않고 반씩 나눕니다.`,when:c=>toWon(S(c).burialAmt)>0||burialLater(c)},
-  {id:'altar',g:'recv',kind:'amt',key:'altarAmt',ph:'예: 100',q:'제단은 얼마 받았습니까?',sub:()=>`${rules().altarFixed}만원까지 보내는금액에 들어가고, 나머지는 실장 몫입니다.`},
+  {id:'altar',g:'recv',kind:'amt',key:'altarAmt',q:'제단은 얼마 받았습니까?',sub:()=>`${rules().altarFixed}만원까지 보내는금액에 들어가고, 나머지는 실장 몫입니다.`},
   {id:'altarPay',g:'recv',kind:'pay',key:'altarPay',q:'제단은 어떻게 받았습니까?',sub:'카드면 회사가 모두 받으므로 실장 몫을 보내는금액에서 뺍니다.',when:c=>toWon(S(c).altarAmt)>0},
-  {id:'chodo',g:'recv',kind:'amt',key:'chodo',ph:'예: 5',q:'초도는 얼마 받았습니까?',sub:'전부 실장 봉투로 들어갑니다.'},
-  {id:'kit',g:'recv',kind:'amt',key:'kit',ph:'예: 4',q:'키트는 얼마 받았습니까?',sub:'본부장 · 실장이 반씩 나눕니다.'},
-  {id:'lunch',g:'recv',kind:'amt',key:'lunch',ph:'예: 6',q:'도시락은 얼마 받았습니까?',sub:'본부장 · 실장이 반씩 나눕니다.'},
-  {id:'collect',g:'collect',kind:'amt',scope:'f',key:'collect',ph:'예: 257.5',q:'상품 수금액은 얼마입니까?',sub:'상품 수금 금액만 입력하십시오. 제단 · 유골함 · 추가 항목은 따로 물어봅니다.',warn:true},
+  {id:'chodo',g:'recv',kind:'amt',key:'chodo',q:'초도는 얼마 받았습니까?',sub:'전부 실장 봉투로 들어갑니다.'},
+  {id:'kit',g:'recv',kind:'amt',key:'kit',q:'키트는 얼마 받았습니까?',sub:'본부장 · 실장이 반씩 나눕니다.'},
+  {id:'lunch',g:'recv',kind:'amt',key:'lunch',q:'도시락은 얼마 받았습니까?',sub:'본부장 · 실장이 반씩 나눕니다.'},
+  {id:'collect',g:'collect',kind:'amt',scope:'f',key:'collect',q:'상품 수금액은 얼마입니까?',sub:'상품 수금 금액만 입력하십시오. 제단 · 유골함 · 추가 항목은 따로 물어봅니다.',warn:true},
   {id:'pay',g:'collect',kind:'pay',key:'pay',q:'상품 수금은 어떻게 받았습니까?',sub:'카드 · 본사송금이면 보내는금액에 더하지 않습니다. 본사송금은 고객이 본사 계좌로 바로 보낸 경우입니다.',when:c=>toWon(c.f.collect)>0},
   {id:'urnAsk',g:'urn',kind:'yn',key:'urnAsk',q:'유골함 판매가 있었습니까?',yes:urnYes},
-  {id:'urnCollect',g:'urn',kind:'amt',key:'urnCollect',ph:'예: 90',q:'유골함은 얼마 받았습니까?',when:urnYes},
-  {id:'urnCost',g:'urn',kind:'amt',key:'urnCost',ph:'예: 25',q:'유골함 원가는 얼마입니까?',when:urnYes},
-  {id:'urnDisc',g:'urn',kind:'amt',key:'urnDisc',ph:'예: 5',q:'할인해 드린 금액이 있습니까?',sub:'카톡에만 적힙니다. 없으면 넘어가십시오.',when:urnYes},
+  {id:'urnCollect',g:'urn',kind:'amt',key:'urnCollect',q:'유골함은 얼마 받았습니까?',when:urnYes},
+  {id:'urnCost',g:'urn',kind:'amt',key:'urnCost',q:'유골함 원가는 얼마입니까?',when:urnYes},
+  {id:'urnDisc',g:'urn',kind:'amt',key:'urnDisc',q:'할인해 드린 금액이 있습니까?',sub:'카톡에만 적힙니다. 없으면 넘어가십시오.',when:urnYes},
   {id:'urnPay',g:'urn',kind:'pay',key:'urnPay',q:'유골함은 어떻게 받았습니까?',sub:c=>urnHqOk(c)?'카드 · 본사송금이면 본사가 모두 받으므로 우리 몫을 실장님 몫 줄로 뺍니다. 본사송금은 고객이 본사 계좌로 바로 보낸 경우입니다.':'카드면 본부장이 모두 받으므로 우리 몫을 보내는금액에서 뺍니다.',when:urnYes},
   {id:'urnType',g:'urn',kind:'urnType',q:'어떤 유골함입니까?',sub:'카톡에 적힙니다. 모르면 넘어가십시오.',when:urnYes},
   {id:'flower',g:'etc',kind:'flower',q:'입관꽃장식은 어디 것이었습니까?',sub:'업체 · 원가와 결제를 선택하십시오. 제공이면 「제공」을 누르십시오. 없으면 넘어가십시오.'},
   {id:'fsAsk',g:'etc',kind:'yn',key:'flowerSaleAsk',q:'입관꽃장식은 추가 판매였습니까?',sub:'제공이 아니면 추가로 판 것인지 확인합니다.',yes:fsYes,when:c=>!fsFree(c)},
-  {id:'flowerSale',g:'etc',kind:'amt',key:'flowerSale',ph:'예: 30',q:'관꽃장식은 얼마에 팔았습니까?',sub:()=>`이익(판 금액 − 원가)을 본부장 ${100-rules().flowerPct} : 우리 ${rules().flowerPct}로 나눕니다.`,when:fsYes},
+  {id:'flowerSale',g:'etc',kind:'amt',key:'flowerSale',q:'관꽃장식은 얼마에 팔았습니까?',sub:()=>`이익(판 금액 − 원가)을 본부장 ${100-rules().flowerPct} : 우리 ${rules().flowerPct}로 나눕니다.`,when:fsYes},
   {id:'flowerSalePay',g:'etc',kind:'pay',key:'flowerSalePay',q:'관꽃장식은 어떻게 받았습니까?',when:c=>fsYes(c)&&toWon(S(c).flowerSale)>0},
   {id:'trib',g:'etc',kind:'trib',q:'헌화가 있었습니까?',sub:'업체와 결제를 선택하십시오. 없으면 넘어가십시오.'},
   {id:'basket',g:'etc',kind:'basket',keys:['basket'],scope:'s',q:'꽃바구니가 있었습니까?',sub:'업체와 결제를 선택하십시오. 없으면 「없음」을 누르십시오.'},
@@ -5181,7 +5173,7 @@ const SCR=[
   {id:'rcCash',g:'rcpt',kind:'rcCash',scope:'s',keys:['rcCashNo','rcCashAppr'],q:'현금영수증 내용을 입력하십시오',sub:'현금으로 받은 돈(제단 빼고)이 발행금액에 자동으로 들어갑니다. 발행 안 했으면 넘어가십시오.',when:rcCashOn},
   {id:'mgAsk',g:'mgr',kind:'yn',key:'mgrAsk',q:'실장님께 따로 드릴 금액이 있습니까?',yes:miYes},
   {id:'mgr',g:'mgr',kind:'mgr',q:'실장님께 드릴 금액을 항목별로 입력하십시오',when:miYes},
-  {id:'def',g:'def',kind:'def',q:'지난 행사 마이너스를 이 정산에서 빼시겠습니까?',sub:'보내는금액이 마이너스였던 행사입니다. 수익이 충분한 정산에서 뺍니다.',when:c=>openDefs(c).length>0||(S(c).carry||[]).length>0},
+  {id:'def',g:'def',kind:'def',q:'이전 행사의 차감 금액을 이 정산에서 빼시겠습니까?',sub:'보내는금액이 0원보다 적었던 행사입니다. 수익이 충분한 정산에서 차감합니다.',when:c=>openDefs(c).length>0||(S(c).carry||[]).length>0},
   {id:'done',g:'done',kind:'done',q:'정산이 끝났습니다',sub:c=>c.closed?'종결된 행사라 보기 · 복사만 할 수 있습니다.':'줄을 누르면 그 질문으로 돌아가 수정할 수 있습니다.'},
 ];
 // 「없음」를 누를 때 이미 넣은 값이 있으면 지움 (한 번 더 눌러야 지움)
@@ -5244,7 +5236,7 @@ function basicFields(c){
   const sf=(k,label,list,ph,mode='')=>list?`<div class="f-wrap"><label class="f">${label}</label>${chooser({key:k,options:db.lists[list]||[],label})}</div>`:`<label class="f">${label}<input class="input" data-sf="${k}" value="${esc(f[k]||'')}" ${mode} placeholder="${esc(ph||'')}" autocomplete="off"></label>`;
   const autoBurial=[f.burial1,f.burial2].filter(Boolean).join('-');
   return `<p class="note">${c.quick?'행사 입력 없이 정산에서 바로 만든 행사입니다. 여기 넣은 값이 정산 카톡 · 봉투 · 수당에 들어갑니다.':'입력 탭에 넣은 값이 자동으로 들어옵니다. 비어 있으면 여기서 바로 입력하십시오. (여기서 고치면 입력 탭에도 반영)'}</p>
-    <div class="pair"><label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}" placeholder="예: 3" autocomplete="off"><span>번</span></div></label>
+    <div class="pair"><label class="f">행사번호<div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value="${esc(f.eventNo||'')}" autocomplete="off"><span>번</span></div></label>
     <label class="f">발인일<input class="input" type="date" data-sfdate="depart" value="${esc(String(f.depart||'').slice(0,10))}"></label></div>
     ${sf('place','장소','', '예: 부산대동 6호')}
     <div class="none-row"><span>미사용</span>${['helperNone','vehNone','mournNone'].map(g=>noneTog(c,g,true)).join('')}</div>
@@ -5290,8 +5282,7 @@ function stepBody(id,c,all){
     <div class="pair"><div class="f-wrap"><label class="f">입관꽃장식 (업체 · 원가)</label>${chooser({scope:'s',key:'flower',options:db.lists.flowers,label:'입관꽃장식',numeric:false,dirPh:'예: 경북 5만원'})}</div>
     <div class="f-wrap"><label class="f">결제</label>${chooser({scope:'s',key:'flowerPay',options:db.lists.flowerPays,label:'입관꽃장식 결제',dirPh:'예: 현금'})}</div></div>
     ${freeTog(s)}
-    <details class="sub-fold" id="fsFold" ${String(s.flowerSale||'').trim()?'open':''} ${s.flowerFree==='yes'?'hidden':''}><summary><b>관꽃장식 추가 판매</b><span>예시 · 입력</span></summary>
-      <p class="fold-ex">예: 관꽃장식을 30만원에 팔고 원가가 5만원(경북)이면 → 이익 25만원을 본부장 ${100-R.flowerPct} : 우리 ${R.flowerPct} → <b>본부장 15만원</b>(원가 포함) · <b>우리 15만원</b>. 카톡에 "관꽃장식 추가 30만원(현금)"과 "실장 : -15만원(꽃장식)"이 자동으로 들어갑니다.</p>
+    <details class="sub-fold" id="fsFold" ${String(s.flowerSale||'').trim()?'open':''} ${s.flowerFree==='yes'?'hidden':''}><summary><b>관꽃장식 추가 판매</b><span>입력</span></summary>
       <div class="pair"><label class="f">받은 금액${amtIn('data-s="flowerSale"',s.flowerSale,'예: 30')}</label>
       <label class="f">결제${seg2('flowerSalePay',s.flowerSalePay||'현금')}</label></div>
       <div class="calc urn-calc" id="flowerCalc"></div></details>
@@ -5334,9 +5325,9 @@ function wzScreen(c,id){
   if(x.kind==='amt'){ const attr=x.scope==='f'?`data-sf="${x.key}"`:`data-s="${x.key}"`;
     body=`<div class="wz-amt">${amtIn(attr+` aria-label="${esc(String(q).replace(/<[^>]*>/g,''))}"`,x.scope==='f'?f[x.key]:s[x.key],x.ph)}</div>${x.key==='collect'?(n=>`<p class="calc altar-net" data-altar-note="collect" ${n?'':'hidden'}>${esc(n)}</p>`)(altarNotes(c).collect):''}${x.key==='burialAmt'?laterTog(c):''}<div class="wz-result" id="wzResult" hidden></div>${go()}`; }
   else if(x.kind==='text') body=`<input class="input wz-text" ${x.scope==='f'?'data-sf':'data-s'}="${x.key}" value="${esc((x.scope==='f'?f:s)[x.key]||'')}" placeholder="${esc(x.ph||'')}" autocomplete="off" aria-label="${esc(x.q)}">${go()}`;
-  else if(x.kind==='no') body=`<div class="wz-amt wz-no"><div class="suffix"><input class="input" data-sf="${x.key}" inputmode="numeric" value="${esc(f[x.key]||'')}" placeholder="예: 3" autocomplete="off" aria-label="행사번호"><span>번</span></div></div>${go()}`;
+  else if(x.kind==='no') body=`<div class="wz-amt wz-no"><div class="suffix"><input class="input" data-sf="${x.key}" inputmode="numeric" value="${esc(f[x.key]||'')}" autocomplete="off" aria-label="행사번호"><span>번</span></div></div>${go()}`;
   else if(x.kind==='date') body=`<input class="input wz-text" type="date" data-sfdate="${x.key}" value="${esc(String(f[x.key]||'').slice(0,10))}" aria-label="발인일"><p class="wz-read" id="wzDateRead">${esc(dateRead(f[x.key]))}</p>${go()}`;
-  else if(x.kind==='helper') body=`<div class="fields" data-none-grp="helperNone" ${f.helperNone?'hidden':''}>${ch('도우미',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})}<label class="f">시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" placeholder="예: 50" autocomplete="off"><span>시간</span></div></label></div>${noneTog(c,'helperNone')}${go()}`;
+  else if(x.kind==='helper') body=`<div class="fields" data-none-grp="helperNone" ${f.helperNone?'hidden':''}>${ch('도우미',{scope:'f',key:'helper',options:db.lists.helpers||[],label:'도우미'})}<label class="f">시간<div class="suffix"><input class="input" data-sf="helperHours" inputmode="numeric" value="${esc(f.helperHours||'')}" autocomplete="off"><span>시간</span></div></label></div>${noneTog(c,'helperNone')}${go()}`;
   else if(x.kind==='veh') body=`<div class="fields" data-none-grp="vehNone" ${f.vehNone?'hidden':''}>${ch('차종',{scope:'f',key:'vehType',options:db.lists.vehTypes||[],label:'차종'})}${ch('장의차 업체',{scope:'f',key:'vehCo',options:db.lists.vehCos||[],label:'장의차 업체'})}</div>${noneTog(c,'vehNone')}${go()}`;
   else if(x.kind==='mourn') body=`<div class="fields" data-none-grp="mournNone" ${f.mournNone?'hidden':''}>${ch('상복 업체',{scope:'f',key:'mournBrand',options:db.lists.mournBrands||[],label:'상복 업체'})}</div>${noneTog(c,'mournNone')}${go()}`;
   else if(x.kind==='co') body=rcCoPick(c,false)+(c.coPicked&&c.companyId===ETC?go():'');
@@ -5365,7 +5356,7 @@ function wzScreen(c,id){
     <div class="wz-quick"><button class="chip" type="button" data-mi-quick="꽃장식">+ 꽃장식</button><button class="chip" type="button" data-mi-quick="">+ 직접 입력</button></div>
     <p class="calc mgr-keep" id="mgrKeep" hidden></p>${go()}`; }
   else if(x.kind==='def') body=`<div class="def-body" id="defBody"></div>${go()}`;
-  else if(x.kind==='done'){ if(settleCalc(c).sendWon<0) q='이 행사는 마이너스입니다';
+  else if(x.kind==='done'){ if(settleCalc(c).sendWon<0) q='이 행사는 차감 대기입니다';
     body=stepBody('done',c,false)+`<button class="btn primary wz-go" type="button" data-wz-copy>정산 카톡 복사</button>`+sentRow(c)
       +(fs=>fs.length?`<div class="wz-rc-row${fs.length>1?' two':''}">${fs.map(fm=>`<button class="btn" type="button" data-rc-copy="${fm.kind}">${fm.title} 복사</button>`).join('')}</div>`:'')(rcptForms(c))
       +`<button class="btn sm wz-ck" type="button" data-ck-open>받은 정산 카톡 검사</button>${stepNextHTML('settle')}`; }
@@ -5429,7 +5420,7 @@ function wzReview(c,d){
     ['etc', d.sub.etc, etcBits.join(' · ')||'없음'],
     ['extra', d.sub.extra, ex.length?ex.map(x=>x.text||'추가').join(' · '):'없음'],
     ['mgr', -d.sub.minus, mi.length?mi.map(x=>`${x.short||x.memo||'기타'} ${wonStr(x.won)}`).join(' · '):'없음'],
-    ['def', -d.sub.carry, d.carry.length?d.carry.map(r=>String(r.label||'').trim()||'지난 마이너스').join(' · '):'없음'],
+    ['def', -d.sub.carry, d.carry.length?d.carry.map(r=>String(r.label||'').trim()||'이전 행사 차감').join(' · '):'없음'],
   ];
   if(rcOn(c)) rows.splice(rows.findIndex(r=>r[0]==='extra')+1,0,['rcpt',null,rcptForms(c).map(fm=>`${fm.title} ${wonStr(rcAmt(c,fm.kind))||'0원'}`).join(' · ')]);
   if(quickOn(c)){ const f=d.f, p=parseDT(f.depart), no=String(f.eventNo||'').trim();
@@ -5487,7 +5478,7 @@ function renderSettle(){
   if(c.closed&&wiz) wzPos.set(c.id,'done');   /* 종결한 행사 = 확인 화면만 (보기 · 복사) */
   el.classList.toggle('wz-on',wiz);
   const main=wiz?wzFrame(c):`<div class="sm-switch settle-wide"><span>한 화면에 모두 보는 중</span><div class="sm-btns"><button class="btn sm" type="button" data-ck-open>받은 카톡 검사</button><button class="btn sm" type="button" data-wz-end>확인 화면</button><button class="btn sm" type="button" data-wz-mode="wizard">한 단계씩 입력하기</button></div></div>
-    <div class="settle-guide settle-wide"><b>숫자만 넣으면 만원</b>입니다. 30 → 30만원<br>칸 아래 실제 금액, 제목 옆 <b>+</b>/<b>−</b>는 보내는금액에 들어가는 몫입니다.</div>
+    <div class="settle-guide settle-wide"><b>숫자만 넣으면 만원</b> 단위로 들어갑니다.<br>칸 아래 실제 금액, 제목 옆 <b>+</b>/<b>−</b>는 보내는금액에 들어가는 몫입니다.</div>
     <div class="sec"><div class="sec-head"><h2>기본 정보</h2></div><div class="fields">${basicFields(c)}</div></div>
     ${GRP.map(st=>`<div class="sec${st.id==='def'?' settle-wide':''}" ${st.id==='def'?'id="defSec"':''}><div class="sec-head"><h2>${esc(st.t)}</h2>${sChip(st.chip)}</div><div class="fields">${stepBody(st.id,c,true)}</div></div>`).join('')}`;
   el.innerHTML=`
@@ -5534,27 +5525,27 @@ function renderDef(c,d){
   const openSum=open.reduce((a,x)=>a+x.won,0)+(mine&&!mine.done?mine.won:0);
   const dc=$('#chDef'); if(dc){ dc.className='s-chip'+(openSum?' minus':''); dc.textContent=openSum?`남은 ${wonStr(openSum)}`:''; }
   const al=$('#defAlert'); if(al){ const n=open.length+(mine&&!mine.done?1:0);
-    al.innerHTML=n?`<button type="button" class="def-alert" data-go-def><b>아직 안 뺀 마이너스 ${n}건 · ${esc(wonStr(openSum))}</b><span>수익이 충분한 행사 정산에서 빼십시오 ›</span></button>`:''; }
+    al.innerHTML=n?`<button type="button" class="def-alert" data-go-def><b>차감 대기 ${n}건 · ${esc(wonStr(openSum))}</b><span>수익이 충분한 행사 정산에서 차감하십시오 ›</span></button>`:''; }
   const body=$('#defBody'); if(!body) return;
   const h=[];
   if(mine){
     h.push(`<div class="def-me"><b>이 행사는 보내는금액이 ${esc(wonStr(mine.won))}입니다.</b>
-      ${mine.used?`<span>${esc(caseTag(mine.used))} 정산에서 뺐습니다.</span>`:mine.out?minusOutDone(mine.out):`<span>수익이 충분한 다른 행사 정산에서 빼십시오. 그 정산 카톡에 <b>${esc(mine.tag)} ${esc(wonStr(mine.won))}</b>로 들어갑니다.</span>${minusOutForm()}`}
+      ${mine.used?`<span>${esc(caseTag(mine.used))} 정산에서 차감했습니다.</span>`:mine.out?minusOutDone(mine.out):`<span>수익이 충분한 다른 행사 정산에서 차감하십시오. 그 정산 카톡에 <b>${esc(mine.tag)} ${esc(wonStr(mine.won))}</b>로 들어갑니다.</span>${minusOutForm()}`}
       ${String(c.f.eventNo||'').trim()?'':`<label class="f">행사번호 <span class="lbl-sub">넣으면 "${M}월N번행사"로 표시</span><div class="suffix"><input class="input" data-sf="eventNo" inputmode="numeric" value=""><span>번</span></div></label>`}</div>`);
   }
-  h.push(`<h3 class="def-h">이 정산에서 빼는 마이너스</h3>`);
+  h.push(`<h3 class="def-h">이 정산에서 차감하는 행사</h3>`);
   h.push(carry.length?carry.map(r=>{ const src=db.cases.find(x=>x.id===r.from), w=carryWon(r,c);
     return `<div class="def-row on"><div class="def-main"><input class="input" data-cl="${r.id}" value="${esc(r.label||'')}" aria-label="카톡에 적을 이름"><b class="def-amt">${esc(w?wonStr(-Math.abs(w)):'0원')}</b></div>
-      <div class="def-sub"><span>${src?esc(caseWho(src)+(depDay(src)?' · '+depDay(src):'')):'원래 행사 기록은 지워짐'}</span><button class="btn sm" type="button" data-carry-del="${r.id}">빼기 취소</button></div>
-      ${src&&!w?`<p class="def-warn">원래 행사가 이제 마이너스가 아니라 이 정산에서 빼지 않습니다. 필요 없으면 「빼기 취소」를 누르십시오.</p>`:src?'<p class="note">원래 행사 금액을 고치면 여기 금액도 바로 바뀝니다.</p>':''}</div>`; }).join('')
-    :'<p class="note">없음. 아래 남은 마이너스에서 「이 정산에서 빼기」를 누르면 보내는금액 바로 위 줄에 들어갑니다.</p>');
-  h.push(`<h3 class="def-h">아직 안 뺀 마이너스</h3>`);
+      <div class="def-sub"><span>${src?esc(caseWho(src)+(depDay(src)?' · '+depDay(src):'')):'원래 행사 기록은 지워짐'}</span><button class="btn sm" type="button" data-carry-del="${r.id}">차감 취소</button></div>
+      ${src&&!w?`<p class="def-warn">원래 행사가 더 이상 차감 대상이 아니어서 이 정산에서 빼지 않습니다. 필요 없으면 「차감 취소」를 누르십시오.</p>`:src?'<p class="note">원래 행사 금액을 고치면 여기 금액도 바로 바뀝니다.</p>':''}</div>`; }).join('')
+    :'<p class="note">없음. 아래 차감 대기 행사에서 「이 정산에서 차감」을 누르면 보내는금액 바로 위 줄에 들어갑니다.</p>');
+  h.push(`<h3 class="def-h">차감 대기 행사</h3>`);
   h.push(open.length?open.map(x=>`<div class="def-row"><div class="def-main"><span class="def-tag">${esc(x.tag)}</span><b class="def-amt">${esc(wonStr(x.won))}</b></div>
-      <div class="def-sub"><span>${esc(caseWho(x.c))}${depDay(x.c)?' · '+depDay(x.c):''}</span><button class="btn sm primary" type="button" data-carry-add="${x.c.id}">이 정산에서 빼기</button></div></div>`).join('')
-    :'<p class="note">남은 마이너스가 없습니다.</p>');
-  h.push(`<h3 class="def-h">${M}월 마이너스 행사</h3>`);
+      <div class="def-sub"><span>${esc(caseWho(x.c))}${depDay(x.c)?' · '+depDay(x.c):''}</span><button class="btn sm primary" type="button" data-carry-add="${x.c.id}">이 정산에서 차감</button></div></div>`).join('')
+    :'<p class="note">차감 대기 행사가 없습니다.</p>');
+  h.push(`<h3 class="def-h">${M}월 차감 행사</h3>`);
   h.push(monthList.length?`<div class="def-month">${monthList.map(x=>`<div><span>${esc(x.tag)}${x.c.id===c.id?' (지금 행사)':''}</span><b>${esc(wonStr(x.won))}</b><em class="${x.done?'done':'left'}">${x.used?esc(caseTag(x.used))+'에서 뺌':x.out?esc(x.out.who)+' 행사에서 뺌':'남음'}</em></div>`).join('')}</div>`
-    :`<p class="note">${M}월에는 마이너스 난 행사가 없습니다.</p>`);
+    :`<p class="note">${M}월에는 차감할 행사가 없습니다.</p>`);
   body.innerHTML=h.join('');
 }
 /* 정산 결과(카톡 · 영수증 · 계산서 · 수당)는 위쪽 줄에서 하나씩 (2026.10.22 정리) */
@@ -5608,7 +5599,7 @@ function updSettle(skipDef){
     const on=d.rows.filter(r=>r.on), off=d.rows.filter(r=>!r.on), neg=d.sendWon<0;
     lg.innerHTML=(on.length?on.map(r=>`<div class="lg-row ${r.won<0?'minus':''}"><span class="lg-k">${esc(r.k)}${r.note?`<small>${esc(r.note)}</small>`:''}</span><span class="lg-v">${r.won<0?'−':''}${wnum(r.won)}</span></div>`).join(''):'<p class="lg-none">금액을 넣으면 여기에 한 줄씩 쌓입니다.</p>')
       +`<div class="lg-total ${neg?'neg':''}"><span>보내는금액</span><b>${esc(d.send||'0원')}</b></div>`
-      +(neg?`<p class="lg-note">마이너스입니다. 이 금액은 수익이 충분한 다른 행사 정산에서 빼야 합니다. 아래 「마이너스 정리」에서 확인하십시오.</p>`:'')
+      +(neg?`<p class="lg-note">보내는금액이 0원보다 적습니다. 이 금액은 수익이 충분한 다른 행사 정산에서 차감하십시오.</p>`:'')
       +(String(s.sendOverride||'').trim()?`<p class="lg-note">직접 입력한 금액으로 나갑니다. 자동 계산은 ${wonStr(d.auto)||'0원'}${d.sendWon!==d.auto?` (차이 ${d.sendWon>d.auto?'+':'−'}${wnum(d.sendWon-d.auto)})`:''}</p>`:'')
       +(off.length?`<div class="lg-off"><b>안 더한 것</b>${off.map(r=>`<span>${esc(r.k)} ${wnum(r.won)}${r.off?` (${esc(r.off)})`:''}</span>`).join('')}</div>`:'');
   }
@@ -5624,10 +5615,10 @@ function updSettle(skipDef){
     wres.hidden=!h; wres.innerHTML=h; }
   wzGoLabel(c);
   const wt=$('#wzTotal'); if(wt){ wt.classList.toggle('neg',d.sendWon<0); $('#wzSend').textContent=d.send||'0원';
-    $('#wzSendNote').textContent=d.sendWon<0?'수익이 충분한 다른 행사 정산에서 빼야 합니다':String(s.sendOverride||'').trim()?`직접 입력한 금액 · 자동 계산 ${wonStr(d.auto)||'0원'}`:'아래 「카톡 복사」를 눌러 보내십시오'; }
+    $('#wzSendNote').textContent=d.sendWon<0?'수익이 충분한 다른 행사 정산에서 차감하십시오':String(s.sendOverride||'').trim()?`직접 입력한 금액 · 자동 계산 ${wonStr(d.auto)||'0원'}`:'아래 「카톡 복사」를 눌러 보내십시오'; }
   const wr=$('#wzReview'); if(wr) wr.innerHTML=wzReview(c,d);
   const bs=$('#wzBasicState'); if(bs){ const miss=[['행사번호',d.f.eventNo],['장소',d.f.place],['도우미',d.f.helperNone||d.f.helper],['차량',d.f.vehNone||d.f.vehType||d.f.vehCo],['상복',d.f.mournNone||d.f.mournBrand],['장지',d.v['장지']]].filter(x=>!String(x[1]||'').trim()).map(x=>x[0]); bs.textContent=miss.length?`비어 있음: ${miss.join(' · ')}`:'모두 채움'; bs.classList.toggle('miss',!!miss.length); }
-  const bar=$('#settleBar'); if(bar){ bar.classList.toggle('neg',d.sendWon<0); $('#sbLabel').textContent=d.sendWon<0?'보내는금액 · 마이너스':'보내는금액'; $('#sbSend').textContent=d.send||'0원'; }
+  const bar=$('#settleBar'); if(bar){ bar.classList.toggle('neg',d.sendWon<0); $('#sbLabel').textContent=d.sendWon<0?'보내는금액 · 차감 대기':'보내는금액'; $('#sbSend').textContent=d.send||'0원'; }
   const t=$('#settleText'); if(t) t.value=settleText(c);
   { const ow=$('#ovWarn'), ov=String(s.sendOverride||'').trim(); if(ow){ ow.hidden=!ov;   /* 직접 넣은 보내는금액은 금액을 고쳐도 그대로 → 눈에 띄게 (2026.11.25) */
       if(ov) ow.innerHTML=`보내는금액을 직접 넣어 <b>${esc(d.send)}</b>로 나갑니다. 금액을 고쳐도 보내는금액은 바뀌지 않습니다. 자동 계산은 ${esc(wonStr(d.auto)||'0원')}입니다. <button class="btn sm" type="button" data-ov-clear>자동 계산으로</button>`; } }
@@ -5739,8 +5730,8 @@ $('#p-settle').addEventListener('click',e=>{
   if(b.dataset.carryAdd){
     const src=db.cases.find(x=>x.id===b.dataset.carryAdd); if(!src) return; const w=settleCalc(src).sendWon; if(w>=0){ updSettle(); return; }
     (s.carry||(s.carry=[])).push({id:uid(),from:src.id,label:caseTag(src),won:w}); touched(); updSettle();
-    const after=settleCalc(c).sendWon; toast(after<0?`이 정산도 ${wonStr(after)} 마이너스가 됩니다. 수익이 더 큰 행사에서 빼는 것이 좋습니다`:`${caseTag(src)} ${wonStr(w)}을 이 정산에서 뺍니다`); return; }
-  if(b.dataset.carryDel){ s.carry=(s.carry||[]).filter(r=>r.id!==b.dataset.carryDel); touched(); updSettle(); toast('빼기를 취소했습니다. 다시 「아직 안 뺀 마이너스」에 나옵니다'); return; }
+    const after=settleCalc(c).sendWon; toast(after<0?`이 정산의 보내는금액도 ${wonStr(after)}입니다. 수익이 더 큰 행사에서 차감하십시오`:`${caseTag(src)} ${wonStr(w)}을 이 정산에서 차감합니다`); return; }
+  if(b.dataset.carryDel){ s.carry=(s.carry||[]).filter(r=>r.id!==b.dataset.carryDel); touched(); updSettle(); toast('차감을 취소했습니다. 다시 「차감 대기 행사」에 나옵니다'); return; }
   if(b.dataset.carryFix){ const r=(s.carry||[]).find(x=>x.id===b.dataset.carryFix), src=r&&db.cases.find(x=>x.id===r.from); if(r&&src){ r.won=settleCalc(src).sendWon; touched(); updSettle(); } return; }
   if(b.id==='sbCopy'){ copyFrom($('#settleText'),'정산 카톡을 복사했습니다'); return; }
   if(b.id==='sbJump'){ db.settleView='ledger'; applySettleView(curCase()); $('#ledgerSec')?.scrollIntoView({block:'center',behavior:'smooth'}); return; }
@@ -6276,7 +6267,7 @@ function adminGo(v){   /* 설정 안에서 항목만 바꿈 (고치던 칸은 �
   window.scrollTo(0,0); }
 window.addEventListener('dw-role',()=>{ if(db.tab!=='admin') return; applyAdminView(); $('#abTitle').textContent=ADMIN_TITLES[db.adminView]; });
 const DUTY_TITLES={calendar:'일정 달력',report:'월간 현황',staff:'직원 관리',settings:'규칙 설정'};   /* 데이터 관리(백업 · 가져오기 · 엑셀 · 초기화)는 2026.11.11 없앰 */
-const TAB_TITLES={home:['','DW장례업무'],fhub:['','서식 · 자료'],more:['','전체'],deliv:['배송','배송 기록'],list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','양식 · 복사'],sched:['장례 행사','행사 보고서'],poster:['장례 행사','장례일정표'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['','설정']};
+const TAB_TITLES={home:['','DW장례업무'],deliv:['배송','배송 기록'],list:['장례 행사','행사 목록'],input:['장례 행사','행사 입력'],out:['장례 행사','양식 · 복사'],sched:['장례 행사','행사 보고서'],poster:['장례 행사','장례일정표'],settle:['장례 행사','정산 · 수당'],envelopes:['월말 정산','봉투정리'],admin:['','설정']};
 /* ---------- 넓은 화면(태블릿 가로 · PC): 입력과 결과를 나란히 ---------- */
 const isSplit=()=>document.body.classList.contains('split');
 function applySplit(){
@@ -6296,7 +6287,6 @@ let outT=null;
 function liveOut(){ if(!isSplit()||db.tab!=='input') return; clearTimeout(outT); outT=setTimeout(()=>{ if(isSplit()&&db.tab==='input') renderOut(); },220); }
 function setTab(t,sub){
   if(t==='duty'&&window.dwDutyOk&&!window.dwDutyOk()){ t='list'; setTimeout(()=>toast('휴무 · 당직은 이기현 · 서영우만 볼 수 있습니다'),0); }   /* 2026.11.25 사용자 「휴무는 이기현, 서영우만 보이게」 */
-  if(PHONE_TABS.includes(t)&&!(window.dwPhone&&window.dwPhone())) t='list';   /* 서식 · 자료 · 전체 화면은 휴대폰만 (태블릿 · PC 는 위 메뉴 줄) */
   { const dk=window.dwDrawer?window.dwDrawer.key():''; if(dk&&!((t==='list'&&/^(case|ho):/.test(dk))||(t==='envelopes'&&/^env/.test(dk))||(t==='deliv'&&dk.indexOf('dv:')===0))) window.dwDrawer.close(); }   /* 화면마다 서랍 — 행사 목록 case: · 봉투정리 env · 배송 기록 dv: (2026.11.13 · 11.14) */
   if(t==='duty'){ db.dutyView=DUTY_TITLES[sub]?sub:DUTY_TITLES[db.dutyView]?db.dutyView:'calendar'; }
   if(t==='admin'){ db.adminView=adminViewFix(sub&&ADMIN_TITLES[sub]?sub:'hub'); }   /* 설정을 열면 설정 목록부터 */
@@ -6305,11 +6295,9 @@ function setTab(t,sub){
   $('#abSub').textContent=s1; $('#abTitle').textContent=s2;
   document.querySelectorAll('.sidenav [data-go]').forEach(b=>b.classList.toggle('on', b.dataset.go===(t==='duty'?'duty:'+db.dutyView:t==='admin'?'admin:'+db.adminView:t)));
   ALL_TABS.forEach(k=>{ const el=$('#p-'+k); if(el) el.hidden=t!==k; });
-  if(!HOME_TABS.includes(t)&&!PHONE_TABS.includes(t)){ const sc=secOf(t); if(!db.navLast||typeof db.navLast!=='object') db.navLast={}; db.navLast[sc.k]=t; }
+  if(!HOME_TABS.includes(t)){ const sc=secOf(t); if(!db.navLast||typeof db.navLast!=='object') db.navLast={}; db.navLast[sc.k]=t; }
   if(window.dwHome) window.dwHome.at(HOME_TABS.includes(t)); else document.documentElement.classList.toggle('dw-at-home',HOME_TABS.includes(t)); document.body.dataset.mode=modeOfTab(t);
   if(t==='home') renderHome();
-  if(t==='fhub') renderFhub();
-  if(t==='more') renderMore();
   tbPaint(t);
   if(t==='list') renderList();
   document.body.classList.toggle('duty-mode',t==='duty');
@@ -6346,9 +6334,8 @@ const NAV_SEC=[
 const TN_MAIN=NAV_SEC.flatMap(sc=>sc.tabs.map(x=>[x[0],x[1]]));
 const HOME_TABS=['home'];   /* 휴대폰 첫 화면 (2026.11.11 바둑판 3안 — 행사 · 서식 · 배송 한 장, 예전 배송 첫 화면 dhome 은 없앰) */
 const modeOfTab=t=>t==='deliv'?'deliv':'event';
-const PHONE_TABS=['fhub','more'];   /* 휴대폰 아래 탭 바 「서식 · 자료」 · 「전체」 (2026.11.19) */
-const ROOT_TABS=['home','list','fhub','more'];   /* 휴대폰 아래 탭 바가 보이는 화면 */
-const ALL_TABS=TN_MAIN.map(x=>x[0]).concat(HOME_TABS,PHONE_TABS);
+const ROOT_TABS=['home','list'];   /* 휴대폰 떠 있는 「+ 새 행사」가 보이는 화면 */
+const ALL_TABS=TN_MAIN.map(x=>x[0]).concat(HOME_TABS);
 const secOf=t=>NAV_SEC.find(sc=>sc.tabs.some(x=>x[0]===t))||NAV_SEC[0];
 const NAV_IC={};
 document.querySelectorAll('#mobileNav [data-ui-go], .work-tabs [data-ui-go]').forEach(b=>{ const sv=b.querySelector('svg'); if(sv&&!NAV_IC[b.dataset.uiGo]) NAV_IC[b.dataset.uiGo]=sv.outerHTML; });
@@ -6389,11 +6376,11 @@ async function setClosed(c,on){
   const st=settleStatus(c), send=st.k==='open'||st.k==='changed', rest=STEPS.filter(([k])=>!stepDone(c,k)).map(([,sh])=>sh);
   const body=[`${caseTitle(c)} 행사입니다.`,
     rest.length?`끝내지 않은 단계: ${rest.join(' · ')}.`:'',
-    send?`정산은 지금 금액 ${wonStr(st.won)||'0원'}으로 「보냄」 표시합니다.`:'',
+    send?`정산은 지금 금액 ${wonStr(st.won)||'0원'}으로 「정산 완료」 처리합니다.`:'',
     '종결하면 목록에서 빠지고 수정할 수 없습니다. 고칠 때는 종결을 푸십시오.'].filter(Boolean).join(' ');
   if(window.dwConfirm&&!(await window.dwConfirm({title:'행사를 종결하시겠습니까?',body,ok:'종결',danger:false}))) return;
   c.closed=Date.now(); if(send){ s.sentAt=new Date().toISOString(); s.sentWon=settleCalc(c).sendWon; } c.updated=Date.now(); closedPaint();
-  const msg=send?'종결하고 정산도 보냄으로 표시했습니다':st.k==='minus'?'종결했습니다 · 마이너스는 다른 정산에서 빼면 정리됩니다':'종결했습니다';
+  const msg=send?'종결하고 정산도 완료로 표시했습니다':st.k==='minus'?'종결했습니다 · 차감 대기 금액은 다른 정산에서 차감하면 완료됩니다':'종결했습니다';
   if(window.dwUndo) window.dwUndo(msg,back); else toast(msg);
 }
 /* 종결한 행사 잠금: 단계 화면(입력 · 양식 · 보고서 · 정산) 위에 안내 줄 + 수정하는 칸은 누를 수 없게(inert) — 보기 · 복사 · 이미지/엑셀 저장은 그대로.
@@ -6410,29 +6397,72 @@ function lockPaint(){
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-unclose]'); if(!b) return; const c=curCase(); if(c&&c.closed) setClosed(c,false); });
 $('#caseClose').addEventListener('click',()=>{ const c=curCase(); if(c) setClosed(c,!c.closed); });
 function markStep(k,c){ c=c||curCase(); if(!c||c.closed) return; if(!c.steps||typeof c.steps!=='object') c.steps={}; if(c.steps[k]) return; c.steps[k]=Date.now(); c.updated=Date.now(); save(); dirty=true; paintSteps(); }
-const stepBtns=attr=>STEPS.map(([k,l],i)=>`<button type="button" ${attr}="${k}" data-step="${k}"><i class="st-no" aria-hidden="true">${i+1}</i><span>${l}</span></button>`).join('<span class="st-arrow" aria-hidden="true">›</span>');
-function paintSteps(){
-  const c=curCase(), t=db.tab;
-  document.querySelectorAll('[data-step]').forEach(b=>{ const k=b.dataset.step, i=STEP_KEYS.indexOf(k), done=stepDone(c,k);
-    b.classList.toggle('done',done); const no=b.querySelector('.st-no'); if(no) no.textContent=done?'✓':String(i+1);
-    if(k===t) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
-    b.setAttribute('aria-label',`${i+1}단계 ${STEPS[i][2]}${done?' · 완료':''}`); });
-  const cs=$('#caseSteps'); if(cs) cs.hidden=!STEP_KEYS.includes(t);
+/* ---------- 행사 화면 「이 행사의 일」 칸 (2026.11.25 사용자: 시안 B안 「행사를 누르면 그 행사의 입력 · 양식 · 보고서 · 장례일정표가 나오게」) ----------
+   행사 상자 바로 아래 6칸(행사 입력 · 양식 · 보고서 · 장례일정표 · 정산 · 봉투) + 칸마다 진행 상태 — 넓은 화면 · 휴대폰 모두. 왼쪽 메뉴 「지금 보는 행사」도 같은 칸(DW_SIDE_CASE).
+   장례일정표는 행사 기록과 따로 쓰지만(db.posterDoc), 행사에서 열었을 때 장례일정표가 비어 있으면 그 행사 값으로 채움. 봉투 = 봉투정리에서 그 행사 봉투를 엶 */
+const CASE_TABS=['input','out','sched','poster','settle'];
+const CTABS=[['input','행사 입력'],['out','양식'],['sched','보고서'],['poster','장례일정표'],['settle','정산'],['envelopes','봉투']];
+const ST_TONE={none:'',open:'warn',sent:'ok',changed:'warn',minus:'bad',cleared:'ok'};
+function ctabState(c,k){
+  if(!c||k==='poster') return ['',''];
+  if(c.closed) return ['완료','ok'];
+  const st=(c.steps&&typeof c.steps==='object')?c.steps:{}, f=c.f||{};
+  if(k==='input') return stepDone(c,'input')?['완료','ok']:String(f.place||f.name||'').trim()?['작성 중','']:['작성 전',''];
+  if(k==='out') return st.out?['복사 완료','ok']:['복사 전',''];
+  if(k==='sched') return st.sched?['저장 완료','ok']:['작성 전',''];
+  if(k==='settle'){ const x=settleStatus(c); return [x.t,ST_TONE[x.k]||'']; }
+  if(k==='envelopes') return stepDone(c,'envelopes')?['완료','ok']:['정산 후',''];
+  return ['',''];
 }
+function ctabGo(k){
+  const c=db.cases.length?curCase():null;
+  if(k==='pick'){ const b=$('#casePick'); if(b&&!b.disabled) b.click(); return; }
+  if(k==='list'){ LV.month=null; LV.st=''; LV.q=''; setTab('list'); return; }
+  if(!c){ setTab(k==='envelopes'?'envelopes':k); return; }
+  if(k==='envelopes'){ const r=db.envelopes.find(x=>x.sourceCaseId===c.id); envelopeMonth=r?envelopeRecordMonth(r):(caseMonth(c)||seoulToday().slice(0,7)); setTab('envelopes'); if(r) setTimeout(()=>evOpen('env:'+r.id),0); return; }
+  if(k==='poster'){ const d=pxDoc(); if(!['name','casket','depart','rite','burial'].some(x=>String(d[x]||'').trim())){ db.posterDoc=Object.assign(pxFromCase(c),d.who?{who:d.who}:{}); save(); } }
+  setTab(k);
+}
+function paintSteps(){
+  const c=db.cases.length?curCase():null, t=db.tab, on=CASE_TABS.includes(t)&&!!c, cs=$('#caseSteps');
+  document.body.classList.toggle('no-case',!c);
+  if(cs){ cs.hidden=!on;
+    if(on) cs.innerHTML=CTABS.map(([k,l])=>{ const [st,tone]=ctabState(c,k), cur=k===t;
+      return `<button type="button" data-ctab="${k}"${cur?' aria-current="page"':''} aria-label="${esc(l)}${st?' · '+esc(st):''}"><b>${esc(l)}</b><small class="${tone}">${st?esc(st):'&nbsp;'}</small></button>`; }).join('');
+    if(on){ const b=cs.querySelector('[aria-current]'); if(b&&cs.scrollWidth>cs.clientWidth+1) cs.scrollLeft=Math.max(0,b.offsetLeft-(cs.clientWidth-b.offsetWidth)/2); } }
+  if(window.dwSide) window.dwSide.paint();
+}
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-ctab]'); if(b) ctabGo(b.dataset.ctab); });
+/* 왼쪽 메뉴 (leader-gate-head.html window.dwSide) — 지금 메뉴 · 이 화면에서 여는 메뉴 · 지금 보는 행사 · 정산할 행사 수 */
+window.DW_SIDE_CUR=()=>{ const t=db.tab, c=db.cases.length?curCase():null;
+  if(CASE_TABS.includes(t)&&c) return '';
+  return t==='list'?(LV.st==='todo'?'todo':'list'):t==='admin'?'set':t; };
+window.DW_SIDE_GO=k=>{
+  if(k.startsWith('case:')){ ctabGo(k.slice(5)); return true; }
+  if(k==='home'){ setTab('home'); return true; }
+  if(k==='list'){ LV.month=null; LV.st=''; LV.q=''; setTab('list'); return true; }
+  if(k==='todo'){ LV.month=''; LV.st='todo'; LV.q=''; listSave(); setTab('list'); return true; }
+  if(k==='new'){ openPicker('new'); return true; }
+  if(k==='poster'){ setTab('poster'); return true; }
+  if(k==='envelopes'){ envelopeMonth=seoulToday().slice(0,7); setTab('envelopes'); return true; }
+  if(k==='dnew'){ dvNew(); return true; }
+  if(k==='deliv'){ DVF=''; DVQ=''; setTab('deliv'); return true; }
+  if(k==='duty'){ setTab('duty'); return true; }
+  if(k==='set'){ setTab('admin'); return true; }
+  if(k==='board'){ goBoard(); return true; }
+  return false; };
+window.DW_SIDE_CASE=()=>{ const c=db.cases.length?curCase():null; if(!c||!CASE_TABS.includes(db.tab)) return null;
+  return {t:caseTitle(c), s:caseSub(c), items:CTABS.map(([k,l])=>{ const [st,tone]=ctabState(c,k); return {k,l,st,tone,on:k===db.tab}; })}; };
+window.DW_SIDE_BADGE=()=>{ const used=carryUse(); let n=0; db.cases.forEach(c=>{ const k=settleStatus(c,used).k; if(k==='open'||k==='changed'||k==='minus') n++; }); return n?{todo:n+'건'}:{}; };
 /* 단계 화면 끝 「다음 단계」 */
 function stepNextHTML(from){
   const i=STEP_KEYS.indexOf(from), nx=STEPS[i+1]; if(i<0||!nx) return '';
-  return `<div class="step-next"><span class="stn-k">다음 단계</span><button class="btn stn-go" type="button" data-step-go="${nx[0]}"><i class="st-no" aria-hidden="true">${i+2}</i><b>${esc(nx[2])}</b>${uiIcon('right')}</button></div>`;
+  return `<div class="step-next"><span class="stn-k">다음 단계</span><button class="btn stn-go" type="button" data-step-go="${nx[0]}"><b>${esc(nx[2])}</b>${uiIcon('right')}</button></div>`;
 }
-document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-step-go]'); if(!b) return; setTab(b.dataset.stepGo); });
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-step-go]'); if(!b) return; ctabGo(b.dataset.stepGo); });
 /* ② 보고서: 보고서 화면에서 무엇이든 복사하면 끝낸 것으로 */
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('#p-out button'); if(!b) return;
   if(b.matches('#copyBand,#copySched,#copyProv,[data-copydisp],[data-copyoff]')||/복사/.test(b.textContent||'')) markStep('out'); },true);
-(()=>{ const m=$('#tnMain'); if(m){
-    const one=(k,l,short)=>`<button type="button" data-tn="${k}"${short?' class="has-s"':''}>${NAV_IC[k]||''}<span class="tn-l">${l}</span>${short?`<span class="tn-s">${short}</span>`:''}</button>`;
-    m.innerHTML=[one('list','행사 목록','목록'),`<div class="tn-steps" role="group" aria-label="업무 순서">${stepBtns('data-tn')}</div>`,one('poster','장례일정표'),one('duty','휴무 · 당직','휴무'),
-      `<button type="button" data-tn-ext="board">${BOARD_IC}<span>게시판</span></button>`,one('admin','설정')].join('<span class="tn-sep" aria-hidden="true"></span>'); }
-  const cs=$('#caseSteps'); if(cs) cs.innerHTML=stepBtns('data-step-go'); })();
 /* 아래 메뉴(#mobileNav)는 2026.10.30 에 없앰 → 휴대폰은 첫 화면 바둑판 + 위 막대 「‹ 홈」(#mobileNav 글은 그림 모음으로만 씀) */
 /* ---------- 휴대폰 첫 화면 (2026.10.30 사용자 「모바일 화면 ATM 큰 글씨처럼 큰 바둑판 배열 · 원하는 기능으로만 바로」 · 「첫 화면 바둑판 · 홈 화면으로 돌아가기」) ----------
    첫 화면 = home 하나(2026.11.11 — 행사 · 서식 · 배송 묶음 한 장). 휴대폰에서 앱을 열면(주소 끝 화면 없이 처음 열 때) 첫 화면, 다른 화면은 위 막대 「‹ 홈」으로 돌아옴.
@@ -6465,10 +6495,10 @@ function homeTodos(){
   const cur=db.cases.length?curCase():null, si=cur?STEP_KEYS.findIndex(k=>!stepDone(cur,k)):-1, todo=[];
   homeT={open:opens.map(x=>x[0].id),openSt:opens.some(x=>x[1].k==='changed')?'todo':'open',minus:minus.map(x=>x[0].id),later:later.map(c=>c.id),cur:cur&&si>=0?STEP_KEYS[si]:''};
   const more=n=>n>1?` 외 ${n-1}건`:'';
-  if(opens.length){ const [c,st]=opens[0]; todo.push({k:'t-open',l:`정산 카톡 보내기 전 ${opens.length}건`,s:`${caseTitle(c)} · ${wonStr(st.won)||'0원'}${more(opens.length)}`,ic:'settle',tone:'blue'}); }
-  if(minus.length){ const [c,st]=minus[0]; todo.push({k:'t-minus',l:`마이너스 정리 ${minus.length}건`,s:`${caseTitle(c)} · ${wonStr(st.won)}${more(minus.length)}`,ic:'settle',tone:'red',warn:true}); }
+  if(opens.length){ const [c,st]=opens[0]; todo.push({k:'t-open',l:`정산 대기 ${opens.length}건`,s:`${caseTitle(c)} · ${wonStr(st.won)||'0원'}${more(opens.length)}`,ic:'settle',tone:'blue'}); }
+  if(minus.length){ const [c,st]=minus[0]; todo.push({k:'t-minus',l:`차감 대기 ${minus.length}건`,s:`${caseTitle(c)} · ${wonStr(st.won)}${more(minus.length)}`,ic:'settle',tone:'red',warn:true}); }
   if(later.length) todo.push({k:'t-later',l:`장지 추후입금 ${later.length}건`,s:`${caseTitle(later[0])} · 금액이 들어오면 입력${more(later.length)}`,ic:'envelopes',tone:'amber'});
-  if(cur&&si>=0&&!(si>=3&&(homeT.open.includes(cur.id)||homeT.minus.includes(cur.id)))) todo.push({k:'t-cur',l:caseTitle(cur),s:`이어서 하기 · ${si+1}단계 ${STEPS[si][2]}`,ic:'input',tone:'mint'});
+  if(cur&&si>=0&&!(si>=3&&(homeT.open.includes(cur.id)||homeT.minus.includes(cur.id)))) todo.push({k:'t-cur',l:caseTitle(cur),s:`다음 단계 · ${STEPS[si][2]}`,ic:'input',tone:'mint'});
   homeTodo=todo; return {todo,opens,minus};
 }
 /* 1열 목록 줄 [작은 그림 + 이름(+ 설명) + ›] — it = {k, l, s, ic, tone, href, aria, warn}. href 가 있으면 바깥 주소를 새 창으로 */
@@ -6497,7 +6527,7 @@ function qkCatalog(){
     {g:'행사 업무',k:'p-input',l:'행사 입력',s:'행사 골라 입력',ic:'input',tone:'blue'},
     {g:'행사 업무',k:'p-out',l:'양식',s:'밴드 · 회사 보고 복사',ic:'out',tone:'blue'},
     {g:'행사 업무',k:'p-sched',l:'행사 보고서',s:'장례행사 일정표',ic:'sched',tone:'blue'},
-    {g:'행사 업무',k:'p-settle',l:'정산',s:nSt?[opens.length&&`보내기 전 ${opens.length}건`,minus.length&&`마이너스 ${minus.length}건`].filter(Boolean).join(' · '):'행사 골라 정산',ic:'settle',tone:'amber',warn:nSt>0},
+    {g:'행사 업무',k:'p-settle',l:'정산',s:nSt?[opens.length&&`정산 대기 ${opens.length}건`,minus.length&&`차감 대기 ${minus.length}건`].filter(Boolean).join(' · '):'행사 골라 정산',ic:'settle',tone:'amber',warn:nSt>0},
     {g:'행사 업무',k:'envelopes',l:'봉투정리',s:`${mm}월 봉투 ${wonStr(env.all.total)||'0원'}`,ic:'envelopes',tone:'amber'},
     {g:'행사 업무',k:'q-poster',l:'장례일정표',s:'빈소 게시용 출력',ic:'poster',tone:'mint'},
     Object.assign({g:'행사 업무'},CREM_ROW),
@@ -6540,71 +6570,66 @@ function dshCaseRow(c,used){   /* 진행 중인 행사 한 줄 (2026.11.23 사�
     +`<button type="button" class="dsh-close${si<0?' ready':''}" data-case-close="${esc(c.id)}" aria-label="${esc(caseTitle(c))} 행사 종결">종결</button></div>`;
 }
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-case-close]'); if(!b) return; const c=db.cases.find(x=>x.id===b.dataset.caseClose); if(c&&!c.closed) setClosed(c,true); });
+/* 첫 화면 묶음 접기 · 펴기 (2026.11.25 사용자: 「섹션마다 아코디언식으로」 — 시안 B안). 펼친 것은 이 기기 localStorage dw-home-acc (새 값, 화면 모양만) */
+const HACC_KEY='dw-home-acc', HACC_DEF={prog:true,settle:true,quick:true,forms:false,share:false};
+function haccGet(){ let a={}; try{ a=JSON.parse(localStorage.getItem(HACC_KEY)||'{}')||{}; }catch(e){} return Object.assign({},HACC_DEF,a); }
+function haccSet(k,v){ const a=haccGet(); a[k]=v; try{ localStorage.setItem(HACC_KEY,JSON.stringify(a)); }catch(e){} }
+const dshAcc=(k,t,n,body,foot)=>{ const on=!!haccGet()[k];
+  return `<section class="dsh-acc dsh-card" aria-label="${esc(t)}"><button type="button" class="dsh-acc-h" data-hacc="${k}" aria-expanded="${on}" aria-controls="hacc-${k}"><b>${esc(t)}</b>${n?`<span class="dsh-acc-n num">${esc(n)}</span>`:''}<svg class="dsh-acc-c" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div class="dsh-acc-b" id="hacc-${k}"${on?'':' hidden'}>${body}${foot||''}</div></section>`; };
+document.addEventListener('click',e=>{ const h=e.target.closest&&e.target.closest('[data-hacc]'); if(!h) return; const on=h.getAttribute('aria-expanded')!=='true';
+  h.setAttribute('aria-expanded',String(on)); const b=document.getElementById('hacc-'+h.dataset.hacc); if(b) b.hidden=!on; haccSet(h.dataset.hacc,on); });
+function dshSettleRow(c,st){
+  return `<button type="button" class="dsh-row dsh-press" data-hk="s:${esc(c.id)}"><span class="dsh-rt"><b>${esc(caseTitle(c,true))}</b><small>${esc(caseSub(c)||'정보 입력 전')}</small></span><span class="dsh-amt"><b class="num${st.won<0?' neg':''}">${esc(wonStr(st.won)||'0원')}</b><small class="st-${st.k}">${esc(st.t)}</small></span></button>`; }
 function renderHome(){
   const el=$('#p-home'); if(!el) return;
   const {todo,opens,minus}=homeTodos(), {mm,dd,lastD,left}=ddInfo(), pct=Math.max(2,Math.round(dd/lastD*100)), used=carryUse();
   const nm=(window.dwHome&&window.dwHome.who&&window.dwHome.who())||'DW장례업무';
-  /* ② 요약 카드 */
+  /* 요약 카드 */
   const banner=todo.length
     ?`<button type="button" class="dsh-todo dsh-press" data-hk="todo"><span class="dsh-todo-i" aria-hidden="true">${HIC('bell')}<i></i></span><span class="dsh-todo-t"><b>오늘 할 일 <em class="num">${todo.length}</em>건</b><small>${esc(todo[0].l)}${todo.length>1?` 외 ${todo.length-1}건`:''}</small></span>${dshChev()}</button>`
-    :`<div class="dsh-todo none"><span class="dsh-todo-i" aria-hidden="true">${HIC('check')}</span><span class="dsh-todo-t"><b>오늘 할 일이 없어요</b><small>정산 · 마이너스 · 이어서 할 행사가 모두 정리되었습니다</small></span></div>`;
+    :`<div class="dsh-todo none"><span class="dsh-todo-i" aria-hidden="true">${HIC('check')}</span><span class="dsh-todo-t"><b>오늘 할 일이 없습니다</b><small>정산 · 차감 · 진행 중인 행사가 모두 정리되었습니다</small></span></div>`;
   let h=`<div class="dsh">
     <section class="dsh-hero" aria-label="이번 달 요약">
       <p class="dsh-hi">${esc(nm)}</p>
-      <p class="dsh-dd">${left===0?`오늘이 <b>${mm}월 마감일</b>이에요`:`${mm}월 마감까지 <b class="num">${left}일</b> 남았어요`}</p>
+      <p class="dsh-dd">${left===0?`오늘이 <b>${mm}월 마감일</b>입니다`:`${mm}월 마감까지 <b class="num">${left}일</b> 남았습니다`}</p>
       <div class="dsh-bar" role="progressbar" aria-label="${mm}월 진행" aria-valuemin="1" aria-valuemax="${lastD}" aria-valuenow="${dd}" aria-valuetext="${mm}월 ${lastD}일 중 ${dd}일째"><i style="width:${pct}%"></i></div>
       <div class="dsh-bar-l num"><span>오늘 ${mm}월 ${dd}일</span><span>${mm}월 ${lastD}일 마감</span></div>
       ${banner}
     </section>`;
-  /* ③ 진행 중인 행사 = 종결 안 했고 발인일이 아직 안 지난 행사 (2026.11.19 사용자 「발인일이 넘어가면 진행 중인 행사가 아님」) — 발인이 가까운 순 3건 */
+  /* 진행 중인 행사 = 종결 안 했고 발인일이 아직 안 지난 행사 (발인이 가까운 순) — 누르면 그 행사의 다음 단계 */
   const prog=db.cases.filter(caseLive).sort((a,b)=>{ const da=String((a.f||{}).depart||'')||'9', dbb=String((b.f||{}).depart||'')||'9'; return da<dbb?-1:da>dbb?1:(b.updated||0)-(a.updated||0); });
-  h+=dshSec(prog.length>3?`진행 중인 행사 ${prog.length}건`:'진행 중인 행사',
-    prog.length?`<div class="dsh-card dsh-cases">${prog.slice(0,3).map(c=>dshCaseRow(c,used)).join('')}</div>`
-      :`<div class="dsh-card dsh-empty"><b>진행 중인 행사가 없어요</b><small>발인일이 지난 행사는 「전체보기」에서 볼 수 있어요.</small></div>`,
-    dshMore('list','전체보기'));
-  /* ④ 자주 쓰는 기능 — 처음엔 비어 있고 직접 고름 (2026.11.19 사용자 「자주 쓰는 기능은 직접 설정할 수 있게 비워 둬야지」, 고른 것 db.homeQuick · 내 계정 설정에 같이 저장) */
+  const allLink=`<button type="button" class="dsh-acc-more" data-hk="list">행사 목록 전체 보기${dshChev()}</button>`;
+  h+=dshAcc('prog','진행 중인 행사',prog.length?`${prog.length}건`:'',
+    prog.length?`<div class="dsh-cases">${prog.map(c=>dshCaseRow(c,used)).join('')}</div>`
+      :`<div class="dsh-empty"><b>진행 중인 행사가 없습니다</b><small>발인일이 지난 행사는 행사 목록에서 볼 수 있습니다.</small></div>`, allLink);
+  /* 정산 남음 = 정산 대기 · 정산 후 변경 · 차감 대기 */
+  const due=db.cases.map(c=>[c,settleStatus(c,used)]).filter(([,st])=>['open','changed','minus'].includes(st.k)).sort((a,b)=>(b[0].updated||0)-(a[0].updated||0));
+  h+=dshAcc('settle','정산 남음',due.length?`${due.length}건`:'',
+    due.length?`<div class="dsh-list">${due.slice(0,8).map(([c,st])=>dshSettleRow(c,st)).join('')}</div>`
+      :`<div class="dsh-empty"><b>남은 정산이 없습니다</b><small>모든 행사의 정산이 완료되었습니다.</small></div>`,
+    due.length>8?`<button type="button" class="dsh-acc-more" data-hk="t-due">정산할 행사 ${due.length}건 모두 보기${dshChev()}</button>`:'');
+  /* 자주 쓰는 기능 — 처음엔 비어 있고 직접 고름 (db.homeQuick · 내 계정 설정에 같이 저장) */
   const cat=qkCatalog(), sel=(Array.isArray(db.homeQuick)?db.homeQuick:[]).map(k=>cat.find(x=>x.k===k)).filter(Boolean).slice(0,QK_MAX);
   const qk=q=>{ const inner=`<span class="dsh-qi t-${q.tone}" aria-hidden="true">${HIC(q.ic)}</span>${q.href?`<span class="dsh-qx" aria-hidden="true">${HIC('ext')}</span>`:''}<b class="dsh-ql">${esc(q.l)}</b>${q.s?`<small class="dsh-qs num${q.warn?' warn':''}">${esc(q.s)}</small>`:''}`;
     return q.href?`<a class="dsh-q dsh-press" href="${esc(q.href)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(q.aria||q.l)} (새 창)">${inner}</a>`
       :`<button type="button" class="dsh-q dsh-press" data-hk="${q.k}" aria-label="${esc(q.l)}${q.s?' · '+esc(q.s):''}">${inner}</button>`; };
-  h+=dshSec('자주 쓰는 기능',sel.length
+  h+=dshAcc('quick','자주 쓰는 기능',sel.length?`${sel.length}개`:'',sel.length
     ?`<div class="dsh-qgrid">${sel.map(qk).join('')}${sel.length<QK_MAX?`<button type="button" class="dsh-q dsh-qadd dsh-press" data-hk="qk-edit"><span class="dsh-qi" aria-hidden="true">${HIC('plus')}</span><b class="dsh-ql">추가</b><small class="dsh-qs">기능 더 고르기</small></button>`:''}</div>`
-    :`<button type="button" class="dsh-qempty dsh-press" data-hk="qk-edit"><span class="dsh-qi t-blue" aria-hidden="true">${HIC('plus')}</span><span class="dsh-rt"><b>자주 쓰는 기능 추가</b><small>많이 쓰는 기능을 골라 첫 화면에 두세요 · 최대 ${QK_MAX}개</small></span>${dshChev()}</button>`,
-    sel.length?`<button type="button" class="dsh-more" data-hk="qk-edit">편집${dshChev()}</button>`:'');
-  /* ⑤ 서식 (파트장) */
-  if(isLeaderNow()) h+=dshSec('서식',dshList(formRows(HOME_FORMS)),dshMore('fhub','서식 · 자료'));
+    :`<button type="button" class="dsh-qempty dsh-press" data-hk="qk-edit"><span class="dsh-qi t-blue" aria-hidden="true">${HIC('plus')}</span><span class="dsh-rt"><b>자주 쓰는 기능 추가</b><small>많이 쓰는 기능을 골라 첫 화면에 두십시오 · 최대 ${QK_MAX}개</small></span>${dshChev()}</button>`,
+    sel.length?`<button type="button" class="dsh-acc-more" data-hk="qk-edit">자주 쓰는 기능 편집${dshChev()}</button>`:'');
+  /* 서식 (파트장) · 함께 쓰기 */
+  if(isLeaderNow()) h+=dshAcc('forms','서식','',`<div class="dsh-list">${formRows(['f-weekly','f-minutes','f-review','f-consult','f-ship','f-stock','f-company']).map(dshRow).join('')}</div>`);
+  const share=[{k:'board',l:'게시판',s:'파트 공지 · 글',ic:'board',tone:'slate'},{k:'f-docs',l:'자료실',s:'회사 기본 서류',ic:'folder',tone:'slate'}]
+    .concat(window.dwDutyOk&&window.dwDutyOk()?[{k:'duty',l:'휴무 · 당직',s:'일정 달력',ic:'duty',tone:'slate'}]:[],[{k:'admin',l:'설정',s:'업체 양식 · 정산 기준 · 선택 목록',ic:'set',tone:'slate'}]);
+  h+=dshAcc('share','함께 쓰기','',`<div class="dsh-list">${share.map(dshRow).join('')}</div>`);
   el.innerHTML=h+'</div>';
   homeBellPaint();
 }
 function homeBellPaint(){ const n=$('#homeBellN'); if(!n) return; const k=homeTodo.length; n.hidden=!k; n.textContent=k>9?'9+':String(k||''); $('#homeBell').setAttribute('aria-label',k?`알림 · 할 일 ${k}건`:'알림'); }
-/* 탭 바 「서식 · 자료」 */
-function renderFhub(){
-  const el=$('#p-fhub'); if(!el) return; let h='<div class="dsh">';   /* 화면 이름은 위 막대 */
-  if(isLeaderNow()) h+=dshSec('보고 서식',dshList(formRows(HOME_FORMS)))+dshSec('업무 기록',dshList(formRows(['f-ship','f-stock','f-company'])));
-  h+=dshSec('자료 · 소통',dshList([{k:'f-docs',l:'자료실',s:'회사 기본 서류 · 양식 파일',ic:'folder',tone:'blue'},{k:'board',l:'게시판',s:'파트 공지 · 글',ic:'board',tone:'mint'}]));
-  if(!isLeaderNow()) h+='<p class="dsh-note">주간보고 · 회의록 같은 서식은 파트장 계정에서 씁니다.</p>';
-  el.innerHTML=h+'</div>';
-}
-/* 탭 바 「전체」: 모든 기능 (휴무 · 당직 · 게시판 · 설정 · 자료실 등은 여기로) */
-function renderMore(){
-  const el=$('#p-more'); if(!el) return;
-  const v=(window.dwMe&&window.dwMe.vals&&window.dwMe.vals())||{}, em=String(((window.dwAcct&&window.dwAcct.user&&window.dwAcct.user())||{}).email||''), nm=(window.dwHome&&window.dwHome.who&&window.dwHome.who())||'내 정보';
-  let h=`<div class="dsh">
-    <button type="button" class="dsh-card dsh-me dsh-press" data-hk="me"><span class="dsh-ri t-blue" aria-hidden="true">${HIC('user')}</span><span class="dsh-rt"><b>${esc(nm)}</b><small class="num">${esc([v.phone||'전화번호 없음',em].filter(Boolean).join(' · '))}</small></span>${dshChev()}</button>`;
-  h+=dshSec('행사 업무',dshList([{k:'list',l:'행사 목록',ic:'list',tone:'blue'},{k:'p-input',l:'행사 입력',ic:'input',tone:'blue'},{k:'p-out',l:'양식',ic:'out',tone:'blue'},{k:'p-sched',l:'행사 보고서',ic:'sched',tone:'blue'},
-    {k:'p-settle',l:'정산',ic:'settle',tone:'amber'},{k:'envelopes',l:'봉투정리',ic:'envelopes',tone:'amber'},{k:'q-poster',l:'장례일정표',ic:'poster',tone:'mint'},CREM_ROW]));
-  h+=dshSec('배송',dshList([{k:'d-new',l:'새 배송',ic:'plus',tone:'purple'},{k:'q-deliv',l:'배송 기록',ic:'truck',tone:'purple'}]));
-  h+=dshSec('함께 쓰기',dshList([{k:'duty',l:'휴무 · 당직',ic:'duty',tone:'mint'},{k:'board',l:'게시판',ic:'board',tone:'mint'},{k:'f-docs',l:'자료실',ic:'folder',tone:'mint'}]));
-  if(isLeaderNow()) h+=dshSec('서식',dshList(formRows(['f-weekly','f-minutes','f-review','f-consult','f-ship','f-stock','f-company'])));
-  h+=dshSec('계정',dshList([{k:'qk-edit',l:'첫 화면 자주 쓰는 기능',s:'첫 화면에 둘 기능 고르기',ic:'grid',tone:'blue'},{k:'admin',l:'설정',s:'업체 양식 · 정산 기준 · 선택 목록',ic:'set',tone:'slate'},{k:'logout',l:'로그아웃',ic:'logout',tone:'slate'}]));
-  const ver=(document.querySelector('meta[name="app-version"]')||{}).content||window.__APP_VERSION__||'';
-  el.innerHTML=h+`<p class="dsh-note">모든 기록은 내 계정에 자동으로 저장됩니다.${ver?` · 앱 버전 ${esc(ver)}`:''}</p></div>`;
-}
-/* 아래 탭 바 · 떠 있는 버튼: 휴대폰(699px 이하) · 홈 · 행사 · 서식 · 자료 · 전체 화면에서만 */
+/* 떠 있는 「+ 새 행사」: 휴대폰(699px 이하) 첫 화면 · 행사 목록에서만 */
 function tbPaint(t){
   const root=ROOT_TABS.includes(t), r=document.documentElement;
   r.classList.toggle('dw-root',root); r.classList.toggle('dw-fab-on',t==='home'||t==='list');
-  document.querySelectorAll('#dwTabbar [data-tb]').forEach(b=>{ if(b.dataset.tb===t) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
 }
 /* 첫 화면 고르기 창 (#acBg — 할 일 · 알림 · 자주 쓰는 기능 고르기) */
 let acMode='';   /* 'qk' = 자주 쓰는 기능 고르기 */
@@ -6630,6 +6655,8 @@ function homeGo(k,btn){
   if(k==='t-open'||k==='t-minus'){ const ids=k==='t-open'?homeT.open:homeT.minus;   /* 한 건이면 그 행사 정산, 여러 건이면 행사 목록(그 상태만) */
     if(ids.length===1&&db.cases.some(c=>c.id===ids[0])){ db.cur=ids[0]; save(); renderCaseSel(); setTab('settle'); }
     else { LV.month=''; LV.st=k==='t-open'?homeT.openSt:'minus'; LV.q=''; listSave(); setTab('list'); } return; }
+  if(k.startsWith('s:')){ const c=db.cases.find(x=>x.id===k.slice(2)); if(!c) return; db.cur=c.id; save(); renderCaseSel(); setTab('settle'); return; }   /* 첫 화면 「정산 남음」 줄 → 그 행사 정산 */
+  if(k==='t-due'){ window.DW_SIDE_GO('todo'); return; }
   if(k==='t-later'){ const ids=homeT.later||[];   /* 한 건이면 그 행사 장지 금액 칸, 여러 건이면 행사 목록(추후입금만) */
     if(ids.length===1){ const c=db.cases.find(x=>x.id===ids[0]); if(c){ laterGo(c); return; } }
     LV.month=''; LV.st='later'; LV.q=''; listSave(); setTab('list'); return; }
@@ -6645,15 +6672,14 @@ function homeGo(k,btn){
   if(ALL_TABS.includes(k)) setTab(k);
 }
 document.addEventListener('click',e=>{
-  const tb=e.target.closest('#dwTabbar [data-tb]'); if(tb){ const t=tb.dataset.tb; if(t==='list'){ LV.month=null; LV.st=''; LV.q=''; } setTab(t); return; }
   if(e.target.closest('#acBg')){ const q=e.target.closest('[data-qe]'); if(q){ qkToggle(q.dataset.qe); return; }
     if(e.target.closest('[data-qe-done]')){ acClose(); return; } }
-  const b=e.target.closest('[data-hk]'); if(!b||!b.closest('#p-home,#p-fhub,#p-more,#acBg,#dwFab,#homeBell')) return;
+  const b=e.target.closest('[data-hk]'); if(!b||!b.closest('#p-home,#acBg,#dwFab,#homeBell')) return;
   if(b.closest('#acBg')) acClose();
   homeGo(b.dataset.hk,b);
 });
 /* 내 정보 · 권한을 받으면 첫 화면 · 전체 다시 그림 (이름 · 파트장 서식 묶음) */
-['dw-role','dw-me','dw-name','dw-me-load'].forEach(ev=>window.addEventListener(ev,()=>{ if(db.tab==='home') renderHome(); else if(db.tab==='fhub') renderFhub(); else if(db.tab==='more') renderMore(); }));
+['dw-role','dw-me','dw-name','dw-me-load'].forEach(ev=>window.addEventListener(ev,()=>{ if(db.tab==='home') renderHome(); paintSteps(); }));
 function tnMeasure(){ const n=$('#topNav'); if(!n) return; const h=n.getBoundingClientRect().height||0; document.documentElement.style.setProperty('--tn-h',h+'px'); }
 function paintTopNav(t){
   const m=$('#tnMain'); if(!m) return;
@@ -6662,7 +6688,6 @@ function paintTopNav(t){
   let items=[], phoneOnly=false;
   const sc=secOf(t);
   if(t==='duty') items=Object.entries(DUTY_TITLES).map(([k,l])=>['duty:'+k,l,k===db.dutyView]);
-  else if(t==='list'||t==='poster'){ items=[['list','행사 목록',t==='list'],['poster','장례일정표',t==='poster']]; phoneOnly=true; }   /* 휴대폰: 행사 묶음 안 세부 화면 (단계 화면은 행사 고르기 상자 아래 단계 줄) */
   const row=$('#tnSubRow'); row.hidden=!items.length; row.classList.toggle('tn-phone-only',phoneOnly);
   $('#tnSub').innerHTML=items.map(([k,l,on])=>`<button type="button" data-tn-sub="${k}"${on?' aria-current="page"':''}>${esc(l)}</button>`).join('');
   $('#tnSubRow').setAttribute('aria-label',t==='duty'?'휴무 · 당직 메뉴':`${sc.l} 메뉴`);
@@ -6712,7 +6737,9 @@ renderAll();
   if(h==='dhome') h='home';   /* 예전 배송 첫 화면 주소 (2026.11.11 첫 화면 하나로) */
   { const [t0,sub]=h.split(':'); if((t0==='admin'&&ADMIN_TITLES[sub])||(t0==='duty'&&DUTY_TITLES[sub])){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(t0,sub); return; } }   /* 설정 목록에서 온 주소: #admin:rules · #duty:settings */
   if(h.startsWith('sec-')){ const sc=NAV_SEC.find(x=>x.k===h.slice(4)); if(sc){ const last=(db.navLast||{})[sc.k]; h=sc.tabs.some(x=>x[0]===last)?last:sc.tabs[0][0]; } }   /* 게시판 화면 아래 메뉴 「행사」 · 「정산」 → 그 묶음에서 마지막에 본 화면 */
-  if(['home','list','input','out','sched','poster','deliv','settle','envelopes','duty','admin','fhub','more'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
+  if(h==='fhub'||h==='more') h='home';   /* 예전 휴대폰 아래 탭 바 화면 (2026.11.25 왼쪽 메뉴로 바뀜) */
+  if(['new','todo','dnew'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} window.DW_SIDE_GO(h); return; }   /* 다른 화면 왼쪽 메뉴에서 온 주소 (새 행사 · 정산할 행사 · 새 배송) */
+  if(['home','list','input','out','sched','poster','deliv','settle','envelopes','duty','admin'].includes(h)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTab(h); } })();
 /* 휴대폰 「뒤로」 (2026.11.01, 공통 dwHist — leader-gate-head.html): 화면 = db.tab(설정은 「admin:항목」), 홈 = 그 칸 첫 화면(휴대폰), 이 화면만의 창 = 시간 · 고르기 · 행사 고르기 · 배송 고르기 · 업체 고르기 · 메뉴 */
 window.DW_VIEW=()=>db.tab==='admin'?'admin:'+db.adminView:db.tab==='duty'?'duty:'+db.dutyView:db.tab;
 window.DW_GO=v=>{ const [t,sub]=String(v).split(':'); setTab(t,sub); };

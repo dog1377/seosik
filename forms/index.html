@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.25-4";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.25-5";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
@@ -1276,6 +1276,7 @@ window.dwHist = (function () {
   }
   function closeTop() {
     var c = document.querySelector('.dwc-bg .dwc-no'); if (c) { c.click(); return true; }
+    if (window.dwSide && window.dwSide.isOpen()) { window.dwSide.close(); return true; }   /* 왼쪽 메뉴 (2026.11.25) */
     var me = document.getElementById('dwMe'); if (me && !me.hidden && window.dwMe) { window.dwMe.close(); return true; }
     if (window.dwDrawer && window.dwDrawer.isOpen() && !document.querySelector('.csheet-bg:not([hidden]),#picker:not([hidden])')) { window.dwDrawer.close(); return true; }   /* 상세 패널 (2026.11.13) */
     if (call('DW_CLOSE_TOP') === true) return true;
@@ -1440,6 +1441,242 @@ window.dwScr = (function () {
   });
   if (mq.addEventListener) mq.addEventListener('change', function () { if (scrim) sync(); });
   return sync;
+})();
+</script>
+<!-- 왼쪽 메뉴 (2026.11.25 사용자: 「왼쪽부터 게시판 형식으로 열리고 섹션마다 아코디언 · 모바일 · PC · 태블릿 각각」 → 시안 B안 「행사를 누르면 그 행사의 입력 · 양식 · 보고서 · 장례일정표 · 정산」)
+     세 화면(장례업무 · 서식 · 회사 서류) 공통. 1100px 이상 = 왼쪽에 늘 보임(256px) · 700~1099px = 아이콘 줄(72px) + 누르면 펼침 · 휴대폰 = 위 막대 ☰ → 왼쪽에서 열림.
+     메뉴 목록은 여기 한 곳(secs). 화면이 주는 것: DW_SIDE_CUR() 지금 메뉴 열쇠 · DW_SIDE_GO(열쇠) 이 화면에서 열었으면 true(아니면 주소로 이동) ·
+     DW_SIDE_CASE() 지금 보는 행사 {t, s, items:[{k, l, st, tone, on}]} (행사 화면에서만) · DW_SIDE_BADGE() {열쇠: 글}.
+     펼친 묶음은 이 기기 localStorage dw-side-acc (새 값, 화면 모양만 — 계정 기록 아님). 예전 위 메뉴 줄 · 칸 바꾸기(행사 · 서식 · 배송) · 휴대폰 아래 탭 바는 숨김 -->
+<style id="dw-side-css">
+.dsn-nav,.dsn-rail,.dsn-bg,.dsn-burger{display:none}
+html.dw-side:not(.dw-gated) .dsn-nav{display:flex}
+html.dw-side .dw-mode,html.dw-side body .tabbar,html.dw-side .tn-main-row,html.dw-side .dw-tabbar{display:none!important}
+html.dw-side:root{--tabbar-h:0px}
+.dsn-nav{position:fixed;top:0;bottom:0;left:0;z-index:29;width:256px;box-sizing:border-box;flex-direction:column;background:var(--surface,#FCFCFD);border-right:1px solid var(--line,#E8EDF3);color:var(--ink,#1B2537);font-family:var(--sans,inherit);word-break:keep-all}
+.dsn-top{flex:none;display:flex;align-items:center;gap:8px;min-height:64px;padding:env(safe-area-inset-top,0px) 10px 0 20px;box-sizing:border-box}
+.dsn-brand{flex:1;min-width:0;font-size:17px;font-weight:700;line-height:24px;letter-spacing:-.01em}
+.dsn-x,.dsn-burger{flex:none;width:44px;height:44px;align-items:center;justify-content:center;padding:0;border:0;border-radius:10px;background:transparent;color:var(--ink-2,#4C596D);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-x{display:none}
+.dsn-burger{background:var(--field,#F0F3F8);color:var(--ink,#1B2537)}
+.dsn-x svg,.dsn-burger svg,.dsn-rb svg,.dsn-h svg,.dsn-me svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.dsn-x svg,.dsn-burger svg{width:22px;height:22px}
+.dsn-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 12px 16px;display:flex;flex-direction:column;gap:14px}
+.dsn-case{display:grid;gap:2px;padding:12px;border-radius:14px;background:var(--field,#F0F3F8)}
+.dsn-case[hidden]{display:none}
+.dsn-ck{font-size:12px;font-weight:600;line-height:18px;color:var(--muted,#5F6D82)}
+.dsn-ct{font-size:15px;font-weight:700;line-height:22px;color:var(--ink,#1B2537);overflow-wrap:anywhere}
+.dsn-cs{font-size:12.5px;line-height:18px;color:var(--ink-2,#4C596D);overflow-wrap:anywhere}
+.dsn-steps{display:grid;gap:2px;margin:8px 0 6px}
+.dsn-step{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-step span{flex:1;min-width:0}
+.dsn-step small{flex:none;font-size:12px;font-weight:600;color:var(--muted,#5F6D82)}
+.dsn-step small.ok{color:var(--st-ok,#216843)}
+.dsn-step small.warn{color:var(--st-warn,#8A5400)}
+.dsn-step small.bad{color:var(--st-bad,#B3323D)}
+.dsn-step[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
+.dsn-other{display:flex;align-items:center;justify-content:center;min-height:40px;border:0;border-radius:10px;background:var(--surface,#FCFCFD);color:var(--ink,#1B2537);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.dsn-sec+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
+.dsn-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14.5px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-h .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
+.dsn-h span{flex:1;min-width:0}
+.dsn-h .dsn-chev{flex:none;width:16px;height:16px;color:var(--muted,#5F6D82);transition:transform .16s cubic-bezier(.2,0,0,1)}
+.dsn-h[aria-expanded="false"] .dsn-chev{transform:rotate(-90deg)}
+.dsn-items{display:grid;gap:2px;padding:0 0 10px}
+.dsn-h[aria-expanded="false"]+.dsn-items{display:none}
+.dsn-i{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 10px 0 37px;border-radius:10px;color:var(--ink-2,#4C596D);font-size:14px;font-weight:500;line-height:20px;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-i span{flex:1;min-width:0}
+.dsn-i[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
+.dsn-i .ui-icon{flex:none;width:15px;height:15px;color:var(--muted,#5F6D82)}
+.dsn-badge{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;background:var(--st-warn-bg,#FFF4E0);color:var(--st-warn,#8A5400);font-size:12px;font-style:normal;font-weight:600}
+.dsn-foot{flex:none;border-top:1px solid var(--line,#E8EDF3);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+.dsn-me{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14px;font-weight:600;text-align:left;cursor:pointer}
+.dsn-me svg{flex:none;width:20px;height:20px;color:var(--ink-2,#4C596D)}
+.dsn-me span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsn-me small{flex:none;font-size:12.5px;font-weight:500;color:var(--muted,#5F6D82)}
+.dsn-rail{position:fixed;top:0;bottom:0;left:0;z-index:29;width:72px;box-sizing:border-box;flex-direction:column;align-items:center;gap:4px;padding:calc(12px + env(safe-area-inset-top,0px)) 0 12px;background:var(--surface,#FCFCFD);border-right:1px solid var(--line,#E8EDF3)}
+.dsn-rb{width:62px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 0;border:0;border-radius:10px;background:transparent;color:var(--ink-2,#4C596D);font:inherit;font-size:12px;font-weight:600;line-height:16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-rb svg{width:22px;height:22px}
+.dsn-rb.menu{min-height:48px;width:48px;margin-bottom:8px;background:var(--field,#F0F3F8);color:var(--ink,#1B2537)}
+.dsn-rb.on{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
+html.dsn-open .dsn-bg{display:block;position:fixed;inset:0;z-index:44;background:var(--overlay,rgb(15 23 42 / 30%))}
+.dsn-nav :focus-visible,.dsn-rail :focus-visible,.dsn-burger:focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:-2px}
+@media (hover:hover){
+  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-x:hover,.dsn-rb:hover{background:var(--field,#F0F3F8)}
+  .dsn-i[aria-current="page"]:hover,.dsn-step[aria-current="page"]:hover,.dsn-rb.on:hover{background:var(--bg-selected,#EDF2FF)}
+  .dsn-case .dsn-step:hover{background:var(--surface,#FCFCFD)}
+}
+.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active{transform:scale(.98)}
+@media (min-width:1100px){
+  html.dw-side:not(.dw-gated) body{padding-left:256px!important}
+  .dsn-ph{display:none!important}
+}
+@media (min-width:700px) and (max-width:1099px){
+  html.dw-side:not(.dw-gated) .dsn-rail{display:flex}
+  html.dw-side:not(.dw-gated) body{padding-left:72px!important}
+  .dsn-ph{display:none!important}
+}
+@media (max-width:1099px){
+  .dsn-nav{z-index:45;width:300px;transform:translateX(-102%);visibility:hidden;transition:transform .2s cubic-bezier(.2,0,0,1),visibility 0s linear .2s;box-shadow:0 8px 32px rgb(15 23 42 / 18%)}
+  html.dsn-open .dsn-nav{transform:none;visibility:visible;transition:transform .2s cubic-bezier(.2,0,0,1)}
+  .dsn-x{display:inline-flex}
+}
+@media (max-width:699px){
+  .dsn-nav{width:min(318px,86vw)}
+  html.dw-side:not(.dw-gated) .dsn-burger{display:inline-flex}
+  html.dw-side .ab-in>.dsn-burger,html.dw-side .appbar-in>.dsn-burger{margin-right:2px}
+}
+html.dw-gated .dsn-nav,html.dw-gated .dsn-rail,html.dw-gated .dsn-bg,html.dw-gated .dsn-burger{display:none!important}
+html.dw-noduty [data-dsn="duty"]{display:none!important}
+html[data-theme="dark"] .dsn-nav,html[data-theme="dark"] .dsn-rail{box-shadow:none}
+@media (prefers-reduced-motion:reduce){.dsn-nav,html.dsn-open .dsn-nav,.dsn-h .dsn-chev{transition:none}.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active{transform:none}}
+@media print{.dsn-nav,.dsn-rail,.dsn-bg,.dsn-burger{display:none!important}html.dw-side body{padding-left:0!important}}
+</style>
+<script>
+window.dwSide = (function () {
+  'use strict';
+  var root = document.documentElement; root.classList.add('dw-side');
+  var NV = window.dwNav || { ic: {} }, IC = NV.ic || {};
+  var SV = function (p, c) { return '<svg' + (c ? ' class="' + c + '"' : '') + ' viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>'; };
+  var MENU = SV('<path d="M4 7h16M4 12h16M4 17h16"/>'), X = SV('<path d="M6 6l12 12M18 6 6 18"/>'), CHEV = SV('<path d="m6 9 6 6 6-6"/>', 'dsn-chev');
+  var EXT = (IC.ext || '');
+  var CREM = 'https://15774129.go.kr/info/total_search.do', CREM2 = 'https://15774129.go.kr/info/total_search2.do';
+  var KEY = 'dw-side-acc';
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function call(n, a) { try { return typeof window[n] === 'function' ? window[n](a) : null; } catch (e) { return null; } }
+  function role() { try { return NV.role ? NV.role() : 'member'; } catch (e) { return 'member'; } }
+  /* 묶음: [열쇠, 이름, 주소(forms/ 기준), 표시] — 표시 ph = 휴대폰만 · ext = 바깥 주소(새 창) · duty = 휴무 권한 */
+  function secs() {
+    if (role() === 'chief') return [
+      { k: 'forms', l: '서식', ic: 'doc', items: [['gather', '취합', './#gather'], ['forms', '서식 작성', './#forms'], ['company', '회사 서류', 'admin.html']] },
+      { k: 'share', l: '함께 쓰기', ic: 'board', items: [['docs', '자료실', './#docs'], ['set', '설정', './#settings']] }];
+    var L = role() === 'leader', S = [
+      { k: 'work', l: '행사 업무', ic: 'list', items: [['home', '홈', 'funeral.html#home', 'ph'], ['list', '행사 목록', 'funeral.html#list'], ['new', '새 행사', 'funeral.html#new'], ['poster', '장례일정표', 'funeral.html#poster'], ['crem', '화장예약 조회', CREM, 'ext'], ['crem2', '개장유골 화장예약', CREM2, 'ext']] },
+      { k: 'money', l: '정산 · 봉투', ic: 'settle', items: [['todo', '정산할 행사', 'funeral.html#todo'], ['envelopes', '봉투정리', 'funeral.html#envelopes']] }];
+    if (L) S.push({ k: 'forms', l: '서식', ic: 'doc', items: [['weekly', '주간보고', './#weekly'], ['minutes', '회의록', './#minutes'], ['review', '후기보고', './#review'], ['consult', '상담서', './#consult'], ['company', '회사 서류', 'admin.html']] });
+    S.push({ k: 'ship', l: '배송', ic: 'truck', items: [['dnew', '새 배송', 'funeral.html#dnew'], ['deliv', '배송 기록', 'funeral.html#deliv']].concat(L ? [['ship', '탁송 · 출고', './#ship'], ['stock', '물품 수령 · 불출', './#stock']] : []) });
+    S.push({ k: 'share', l: '함께 쓰기', ic: 'board', items: [['board', '게시판', './#board'], ['docs', '자료실', './#docs'], ['duty', '휴무 · 당직', 'funeral.html#duty', 'duty'], ['set', '설정', 'funeral.html#admin']] });
+    return S;
+  }
+  var RAIL = { work: '행사', money: '정산', forms: '서식', ship: '배송', share: '함께' };
+  function accGet() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function accSet(k, v) { var a = accGet(); a[k] = v; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
+  function overlay() { return !(window.matchMedia && matchMedia('(min-width:1100px)').matches); }
+  var nav, rail, bg, burger, last = null;
+  function build() {
+    if (nav) return true;
+    if (!document.body) return false;
+    nav = document.createElement('aside'); nav.id = 'dwSide'; nav.className = 'dsn-nav'; nav.setAttribute('aria-label', '전체 메뉴');
+    nav.innerHTML = '<div class="dsn-top"><b class="dsn-brand">DW장례업무</b><button type="button" class="dsn-x" data-dsn-x aria-label="메뉴 닫기">' + X + '</button></div>'
+      + '<div class="dsn-body"><div class="dsn-case" id="dwSideCase" role="group" aria-label="지금 보는 행사" hidden></div><nav class="dsn-secs" aria-label="메뉴"></nav></div>'
+      + '<div class="dsn-foot"><button type="button" class="dsn-me" data-dsn-me>' + (IC.user || '') + '<span>내 정보</span><small>내 정보</small></button></div>';
+    rail = document.createElement('nav'); rail.className = 'dsn-rail'; rail.setAttribute('aria-label', '메뉴 줄');
+    bg = document.createElement('div'); bg.className = 'dsn-bg'; bg.setAttribute('aria-hidden', 'true');
+    document.body.insertBefore(bg, document.body.firstChild);
+    document.body.insertBefore(nav, document.body.firstChild);
+    document.body.insertBefore(rail, document.body.firstChild);
+    bg.addEventListener('click', function () { close(); });
+    nav.addEventListener('click', onClick);
+    rail.addEventListener('click', function (e) { var b = e.target.closest('[data-dsn-open]'); if (b) open(b.getAttribute('data-dsn-open') || ''); });
+    nav.addEventListener('keydown', trap);
+    return true;
+  }
+  function onClick(e) {
+    if (e.target.closest('[data-dsn-x]')) { close(); return; }
+    var h = e.target.closest('[data-dsn-h]');
+    if (h) { var on = h.getAttribute('aria-expanded') !== 'true'; h.setAttribute('aria-expanded', String(on)); accSet(h.getAttribute('data-dsn-h'), on); return; }
+    var me = e.target.closest('[data-dsn-me]');
+    if (me) { close(true); if (window.dwMe && window.dwMe.open) window.dwMe.open(me); return; }
+    var st = e.target.closest('[data-dsn-case]');
+    if (st) { close(true); call('DW_SIDE_GO', 'case:' + st.getAttribute('data-dsn-case')); return; }
+    var a = e.target.closest('a[data-dsn]');
+    if (!a || a.target === '_blank') { if (a) close(true); return; }
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button > 0) return;
+    e.preventDefault(); go(a.getAttribute('data-dsn'), a.getAttribute('href'));
+  }
+  function go(k, href) {
+    close(true);
+    if (call('DW_SIDE_GO', k) === true) return;
+    if (href) location.replace(href);
+  }
+  function trap(e) {
+    if (e.key === 'Escape' && isOpen()) { e.preventDefault(); close(); return; }
+    if (e.key !== 'Tab' || !isOpen() || !overlay()) return;
+    var f = [].slice.call(nav.querySelectorAll('a[href],button:not([disabled])')).filter(function (x) { return x.offsetParent; });
+    if (!f.length) return; var a = f[0], z = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+  }
+  function placeBurger() {
+    var bar = document.querySelector('header.appbar .ab-in') || document.querySelector('header.appbar .appbar-in');
+    if (!bar) return;
+    if (!burger) {
+      burger = document.createElement('button'); burger.type = 'button'; burger.id = 'dwSideBtn'; burger.className = 'dsn-burger';
+      burger.setAttribute('aria-label', '전체 메뉴 열기'); burger.setAttribute('aria-controls', 'dwSide'); burger.setAttribute('aria-expanded', 'false');
+      burger.innerHTML = MENU; burger.addEventListener('click', function () { open(); });
+    }
+    if (bar.firstElementChild !== burger) bar.insertBefore(burger, bar.firstChild);
+  }
+  function paint() {
+    if (!build()) return;
+    placeBurger();
+    var cur = String(call('DW_SIDE_CUR') || ''), badge = call('DW_SIDE_BADGE') || {}, acc = accGet(), S = secs(), h = '', curSec = '';
+    S.forEach(function (s) {
+      var has = s.items.some(function (x) { return x[0] === cur; }); if (has) curSec = s.k;
+      var open_ = has || (s.k in acc ? !!acc[s.k] : (s.k === 'work' || s.k === 'money'));
+      h += '<section class="dsn-sec"><button type="button" class="dsn-h" data-dsn-h="' + s.k + '" aria-expanded="' + open_ + '" aria-controls="dsnS-' + s.k + '">' + (IC[s.ic] || '') + '<span>' + esc(s.l) + '</span>' + CHEV + '</button>'
+        + '<div class="dsn-items" id="dsnS-' + s.k + '">' + s.items.map(function (x) {
+          var cls = 'dsn-i' + (x[3] === 'ph' ? ' dsn-ph' : '');
+          if (x[3] === 'ext') return '<a class="' + cls + '" data-dsn="' + x[0] + '" href="' + esc(x[2]) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(x[1]) + ' (새 창)"><span>' + esc(x[1]) + '</span>' + EXT + '</a>';
+          var b = badge[x[0]];
+          return '<a class="' + cls + '" data-dsn="' + x[0] + '" href="' + esc(x[2]) + '"' + (x[0] === cur ? ' aria-current="page"' : '') + '><span>' + esc(x[1]) + '</span>' + (b ? '<em class="dsn-badge">' + esc(b) + '</em>' : '') + '</a>';
+        }).join('') + '</div></section>';
+    });
+    nav.querySelector('.dsn-secs').innerHTML = h;
+    var cb = call('DW_SIDE_CASE'), box = nav.querySelector('#dwSideCase');
+    if (cb && cb.t) {
+      box.hidden = false;
+      box.innerHTML = '<span class="dsn-ck">지금 보는 행사</span><b class="dsn-ct">' + esc(cb.t) + '</b>' + (cb.s ? '<span class="dsn-cs">' + esc(cb.s) + '</span>' : '')
+        + '<div class="dsn-steps">' + (cb.items || []).map(function (x) {
+          return '<button type="button" class="dsn-step" data-dsn-case="' + esc(x.k) + '"' + (x.on ? ' aria-current="page"' : '') + '><span>' + esc(x.l) + '</span>' + (x.st ? '<small class="' + esc(x.tone || '') + '">' + esc(x.st) + '</small>' : '') + '</button>';
+        }).join('') + '</div><button type="button" class="dsn-other" data-dsn-case="pick">다른 행사 고르기</button>';
+    } else { box.hidden = true; box.innerHTML = ''; }
+    rail.innerHTML = '<button type="button" class="dsn-rb menu" data-dsn-open="" aria-label="전체 메뉴 열기">' + MENU + '</button>'
+      + (cb && cb.t ? '<button type="button" class="dsn-rb on" data-dsn-open="case" aria-label="지금 보는 행사 · ' + esc(cb.t) + '">' + (IC.input || '') + '<span>이 행사</span></button>' : '')
+      + S.map(function (s) { return '<button type="button" class="dsn-rb' + (!(cb && cb.t) && s.k === curSec ? ' on' : '') + '" data-dsn-open="' + s.k + '" aria-label="' + esc(s.l) + ' 메뉴">' + (IC[s.ic] || '') + '<span>' + esc(RAIL[s.k] || s.l) + '</span></button>'; }).join('');
+    var who = '', v = null; try { if (window.dwHome && window.dwHome.who) who = window.dwHome.who().replace(/님$/, ''); } catch (e) {}
+    var me = nav.querySelector('[data-dsn-me]'); me.querySelector('span').textContent = who || '내 정보'; me.querySelector('small').textContent = who ? '내 정보' : '';
+    sync();
+  }
+  function isOpen() { return root.classList.contains('dsn-open'); }
+  function sync() {
+    if (!nav) return; var hid = overlay() && !isOpen();
+    nav.inert = hid; if (hid) nav.setAttribute('aria-hidden', 'true'); else nav.removeAttribute('aria-hidden');
+    if (burger) burger.setAttribute('aria-expanded', String(isOpen()));
+  }
+  function open(sec) {
+    if (!build()) return; paint();
+    if (sec && sec !== 'case') { var hb = nav.querySelector('[data-dsn-h="' + sec + '"]'); if (hb && hb.getAttribute('aria-expanded') !== 'true') { hb.setAttribute('aria-expanded', 'true'); accSet(sec, true); } }
+    if (!overlay()) return;
+    last = document.activeElement;
+    root.classList.add('dsn-open'); sync();
+    if (window.dwHist) window.dwHist.push('side');
+    setTimeout(function () {
+      var t = sec === 'case' ? nav.querySelector('.dsn-step') : sec ? nav.querySelector('#dsnS-' + sec + ' a, [data-dsn-h="' + sec + '"]') : nav.querySelector('[data-dsn-x]');
+      if (t) try { t.focus({ preventScroll: false }); } catch (e) {}
+      if (sec && t && t.scrollIntoView) try { t.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+    }, 60);
+  }
+  function close(quiet) {
+    if (!isOpen()) return false;
+    root.classList.remove('dsn-open'); sync();
+    if (!quiet && last && last.focus && document.contains(last)) try { last.focus(); } catch (e) {}
+    last = null; return true;
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen() && !document.querySelector('.dwc-bg')) close(); });
+  if (window.matchMedia) { var mq = matchMedia('(min-width:1100px)'), f = function () { if (!overlay()) close(true); sync(); }; if (mq.addEventListener) mq.addEventListener('change', f); else if (mq.addListener) mq.addListener(f); }
+  ['dw-role', 'dw-me', 'dw-me-load', 'dw-name'].forEach(function (ev) { window.addEventListener(ev, function () { paint(); }); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else paint();
+  return { paint: paint, open: open, close: close, isOpen: isOpen };
 })();
 </script>
 
@@ -1830,6 +2067,41 @@ html.dw-dr-lock body .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 @keyframes dwdr-in{from{transform:translateX(100%)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){:root body .picker .sheet{animation:none}}
 @media (max-width:699px){ html.dw-at-home body .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))} }   /* 알림이 아래 큰 버튼을 가리지 않게 */
+/* ---------- 행사 화면 머리 · 「이 행사의 일」 칸 (2026.11.25 사용자: 시안 B안 「행사를 누르면 그 행사의 입력 · 양식 · 보고서 · 장례일정표」) ----------
+   행사 화면(입력 · 양식 · 보고서 · 장례일정표 · 정산)에서만 행사 상자 + 6칸. 다른 화면(목록 · 봉투 · 설정 …)은 행사 상자 없음. 화면 제목(1단계 행사 입력)은 행사 상자가 대신함 */
+body:not([data-tab="input"]):not([data-tab="out"]):not([data-tab="sched"]):not([data-tab="poster"]):not([data-tab="settle"]) .top>.case-panel,body.no-case[data-tab="poster"] .top>.case-panel{display:none}
+body:is([data-tab="input"],[data-tab="out"],[data-tab="sched"],[data-tab="poster"],[data-tab="settle"]):not(.no-case) .page-intro{display:none}
+:root body .case-panel{border-radius:16px}
+:root body .case-panel .cp-crumb{display:inline-flex;align-items:center;gap:2px;min-height:36px;margin:8px 0 -6px 8px;padding:0 10px 0 4px;border:0;border-radius:8px;background:none;color:var(--muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+:root body .case-panel .cp-crumb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover){:root body .case-panel .cp-crumb:hover{color:var(--ink);background:var(--field)}}
+:root body .case-panel .cp-t{font-size:20px;font-weight:700;line-height:28px;letter-spacing:-.02em}
+:root body .case-panel .cp-s{font-size:13.5px;line-height:20px;color:var(--ink-2)}
+:root body .case-panel .cp-go,:root body .case-panel .cp-close{min-height:40px;padding:0 12px;border:0;border-radius:10px;background:var(--field);color:var(--ink);font-size:14px;font-weight:600}
+:root body .case-panel .cp-close[aria-pressed="true"]{background:var(--bg-selected);color:var(--brand)}
+:root body .case-panel .cp-go svg{display:none}
+.case-steps{display:none}
+html body .case-steps:not([hidden]){display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:8px 0 0;padding:5px;border:0;border-radius:12px;background:var(--field);box-shadow:none}
+html body .case-steps button{position:static;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;min-height:54px;padding:6px 6px;border:0;border-radius:9px;background:transparent;color:var(--ink);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html body .case-steps button::before,html body .case-steps button::after{content:none}
+html body .case-steps b{font-size:14px;font-weight:600;line-height:20px;white-space:nowrap}
+html body .case-steps small{max-width:100%;font-size:12px;font-weight:600;line-height:16px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body .case-steps small.ok{color:var(--st-ok)}
+html body .case-steps small.warn{color:var(--st-warn)}
+html body .case-steps small.bad{color:var(--st-bad)}
+html body .case-steps button[aria-current="page"]{background:var(--surface);box-shadow:0 1px 2px rgb(15 23 42 / 10%),0 0 0 1px var(--line)}
+html body .case-steps button[aria-current="page"] b{color:var(--brand);font-weight:700}
+@media (hover:hover){html body .case-steps button:not([aria-current="page"]):hover{background:var(--bg-hover,rgb(255 255 255 / 55%))}}
+html body .case-steps button:active{transform:scale(.98)}
+html body .case-steps button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+@media (max-width:699px){
+  html body .case-steps:not([hidden]){display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  html body .case-steps::-webkit-scrollbar{display:none}
+  html body .case-steps button{flex:none;min-width:84px;padding:6px 12px;scroll-snap-align:start}
+  :root body .case-panel .cp-t{font-size:18px;line-height:26px}
+}
+@media (prefers-reduced-motion:reduce){html body .case-steps button:active{transform:none}}
+@media print{html body .case-steps{display:none!important}}
 </style>
 
 </head>
@@ -2628,6 +2900,7 @@ function paintNav() {
     : window.dwNav.html(window.dwNav.items(mode, false), act);
   document.body.dataset.mode = mode;
   if (window.dwMode) window.dwMode.paint();
+  if (window.dwSide) window.dwSide.paint();
 }
 function navGo(k) {
   if (k === 'company') { goCompany(); return; }
@@ -2638,6 +2911,14 @@ function navGo(k) {
 window.DW_MODE = () => modeOf(S.tab);
 window.DW_MODE_GO = (m) => { const ph = !!(window.dwPhone && window.dwPhone());   /* 칸 바꾸기는 태블릿 · PC 위 막대만 (휴대폰은 첫 화면 한 장) */
   if (m === 'event') goFuneral(ph ? 'home' : 'sec-event'); else if (m === 'deliv') goFuneral(ph ? 'home' : 'deliv'); else showTab(ph ? 'fhome' : 'forms'); return true; };
+/* 왼쪽 메뉴 (2026.11.25 B안, leader-gate-head.html window.dwSide): 지금 메뉴 · 이 화면에서 여는 메뉴 */
+window.DW_SIDE_CUR = () => (S.tab === 'settings' ? 'set' : isChief() && FORM_TABS.includes(S.tab) ? 'forms' : S.tab);
+window.DW_SIDE_GO = (k) => {
+  if (k === 'company') { goCompany(); return true; }
+  if (k === 'set') { if (isChief()) { showTab('settings'); return true; } return false; }
+  if (['board', 'docs', 'weekly', 'minutes', 'review', 'consult', 'ship', 'stock', 'gather', 'forms'].includes(k)) { showTab(k); return true; }
+  return false;
+};
 /* 「‹ 홈」(휴대폰, leader-gate.html): 첫 화면 = 파트장 · 직원은 장례업무 첫 화면(행사 · 서식 · 배송 한 장, 2026.11.11), 총괄실장은 서식 첫 화면 */
 window.DW_HOME_GO = () => { if (isChief()) showTab('fhome'); else goFuneral('home'); return true; };
 /* 서식 첫 화면 = 총괄실장만 (2026.11.11 바둑판 3안, 장례업무 첫 화면과 같은 모양 dwHome.grid): 취합 · 주간보고 · 회의록 · 후기보고 · 탁송 · 회사 서류 · 자료실 · 설정 */
@@ -4517,11 +4798,11 @@ function fuStatusFn(cases, envs) {
   (envs || []).forEach((r) => { if (r && r.sourceCaseId) byCase[r.sourceCaseId] = r; });
   (cases || []).forEach((c) => ((c && c.s && c.s.carry) || []).forEach((r) => carried.add(r.from)));
   return (c) => {
-    if (!fuHasSettle(c)) return { k: 'none', t: '입력 전' };
+    if (!fuHasSettle(c)) return { k: 'none', t: '정산 전' };
     const w = fuSendOf(byCase[c.id]), s = c.s || {};
-    if (w != null && w < 0) return carried.has(c.id) || (s.minusOut && String(s.minusOut.who || '').trim()) ? { k: 'cleared', t: '정리됨', won: w } : { k: 'minus', t: '마이너스', won: w };   /* 다른 팀장 행사에서 뺀 마이너스 c.s.minusOut (2026.10.30) */
-    if (s.sentAt) return s.sentWon != null && w != null && Number(s.sentWon) !== w ? { k: 'changed', t: '보낸 뒤 바뀜', won: w } : { k: 'sent', t: '보냄', won: w };
-    return { k: 'open', t: '미정산', won: w };
+    if (w != null && w < 0) return carried.has(c.id) || (s.minusOut && String(s.minusOut.who || '').trim()) ? { k: 'cleared', t: '차감 완료', won: w } : { k: 'minus', t: '차감 대기', won: w };   /* 다른 팀장 행사에서 뺀 마이너스 c.s.minusOut (2026.10.30) */
+    if (s.sentAt) return s.sentWon != null && w != null && Number(s.sentWon) !== w ? { k: 'changed', t: '정산 후 변경', won: w } : { k: 'sent', t: '정산 완료', won: w };
+    return { k: 'open', t: '정산 대기', won: w };
   };
 }
 function fuMonthSum(cases, envs, month) {
@@ -4640,8 +4921,8 @@ function statusView(p) {
   else if (!t) h += `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`;
   else {
     const rows = teamRows(t), tot = teamTotal(rows);
-    h += `<dl class="tm-sum"><div><dt>행사</dt><dd>${tot.n}건</dd></div><div><dt>미정산</dt><dd>${tot.todo}건</dd></div><div><dt>마이너스</dt><dd class="${tot.minus ? 'warn' : ''}">${tot.minus ? '− ' : ''}${tot.minus}건</dd></div><div><dt>봉투 (본부장 · 실장)</dt><dd><span class="nw">${esc(fuWon0(tot.part))}</span> · <span class="nw">${esc(fuWon0(tot.mgr))}</span></dd></div></dl>`;
-    h += `<div class="tm-wrap"><table class="tm-tbl"><thead><tr><th scope="col">이름</th><th scope="col">행사</th><th scope="col">미정산</th><th scope="col">마이너스</th><th scope="col">본부장</th><th scope="col">실장</th></tr></thead><tbody>${
+    h += `<dl class="tm-sum"><div><dt>행사</dt><dd>${tot.n}건</dd></div><div><dt>정산 대기</dt><dd>${tot.todo}건</dd></div><div><dt>차감 대기</dt><dd class="${tot.minus ? 'warn' : ''}">${tot.minus ? '− ' : ''}${tot.minus}건</dd></div><div><dt>봉투 (본부장 · 실장)</dt><dd><span class="nw">${esc(fuWon0(tot.part))}</span> · <span class="nw">${esc(fuWon0(tot.mgr))}</span></dd></div></dl>`;
+    h += `<div class="tm-wrap"><table class="tm-tbl"><thead><tr><th scope="col">이름</th><th scope="col">행사</th><th scope="col">정산 대기</th><th scope="col">차감 대기</th><th scope="col">본부장</th><th scope="col">실장</th></tr></thead><tbody>${
       rows.map((r) => `<tr><td><button type="button" class="tm-name" data-member="${esc(r.user_id)}"><span>${esc(r.name)}</span>${SVG_R}</button></td><td>${r.n}건</td><td class="${r.todo ? 'hot' : ''}">${r.todo}건</td><td class="${r.minus ? 'warn' : ''}">${r.minus ? '− ' : ''}${r.minus}건</td><td>${esc(fuWon0(r.part))}</td><td>${esc(fuWon0(r.mgr))}</td></tr>`).join('')
     }</tbody><tfoot><tr><td>합계</td><td>${tot.n}건</td><td>${tot.todo}건</td><td>${tot.minus}건</td><td>${esc(fuWon0(tot.part))}</td><td>${esc(fuWon0(tot.mgr))}</td></tr></tfoot></table></div>
     <p class="small-t muted">이름을 누르면 그 직원의 장례일정 · 봉투 · 정산 상태를 볼 수 있습니다. 직원이 로그인해서 저장한 기록만 보입니다.</p>`;
@@ -5019,7 +5300,7 @@ function paintMember() {
   h += `<div class="seg" role="group" aria-label="보기 고르기"><button type="button" data-msv="cases" aria-pressed="${MS.view === 'cases'}">장례일정</button><button type="button" data-msv="envs" aria-pressed="${MS.view === 'envs'}">봉투</button></div>`;
   if (!t) { el.innerHTML = h + `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`; return; }
   const s = fuMonthSum(b.cases, b.envs, MS.month);
-  h += `<p class="ms-ro">행사 ${s.cases.length}건 · 미정산 ${s.todo}건${s.cnt.minus ? ` · 마이너스 ${s.cnt.minus}건` : ''} · 본부장 봉투 ${esc(fuWon0(s.part))} · 실장 봉투 ${esc(fuWon0(s.mgr))} — 보기만 할 수 있습니다 (고치기 안 됨)</p>`;
+  h += `<p class="ms-ro">행사 ${s.cases.length}건 · 정산 대기 ${s.todo}건${s.cnt.minus ? ` · 차감 대기 ${s.cnt.minus}건` : ''} · 본부장 봉투 ${esc(fuWon0(s.part))} · 실장 봉투 ${esc(fuWon0(s.mgr))} — 보기만 할 수 있습니다 (고치기 안 됨)</p>`;
   if (MS.view === 'cases') {
     const list = fuByNo(s.cases);
     h += list.length ? '<div class="ms-list">' + list.map((c) => {
@@ -7268,7 +7549,7 @@ async function init() {
     return;
   }
   if (window.DW_HOLD) return;   /* 계정 바꾸기 화면으로 넘어가는 중 */
-  homeButton(); outButton(); modeSwitch();
+  homeButton(); outButton(); modeSwitch(); if (window.dwSide) window.dwSide.paint();   /* 왼쪽 메뉴 ☰ 를 위 막대 맨 앞으로 (2026.11.25) */
   if (root.classList.contains('dw-gated')) gate('login', (sess() || {}).user); else renderAcct();
   verify();
   window.addEventListener('online', verify);

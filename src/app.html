@@ -1374,6 +1374,7 @@ function paintNav() {
     : window.dwNav.html(window.dwNav.items(mode, false), act);
   document.body.dataset.mode = mode;
   if (window.dwMode) window.dwMode.paint();
+  if (window.dwSide) window.dwSide.paint();
 }
 function navGo(k) {
   if (k === 'company') { goCompany(); return; }
@@ -1384,6 +1385,14 @@ function navGo(k) {
 window.DW_MODE = () => modeOf(S.tab);
 window.DW_MODE_GO = (m) => { const ph = !!(window.dwPhone && window.dwPhone());   /* 칸 바꾸기는 태블릿 · PC 위 막대만 (휴대폰은 첫 화면 한 장) */
   if (m === 'event') goFuneral(ph ? 'home' : 'sec-event'); else if (m === 'deliv') goFuneral(ph ? 'home' : 'deliv'); else showTab(ph ? 'fhome' : 'forms'); return true; };
+/* 왼쪽 메뉴 (2026.11.25 B안, leader-gate-head.html window.dwSide): 지금 메뉴 · 이 화면에서 여는 메뉴 */
+window.DW_SIDE_CUR = () => (S.tab === 'settings' ? 'set' : isChief() && FORM_TABS.includes(S.tab) ? 'forms' : S.tab);
+window.DW_SIDE_GO = (k) => {
+  if (k === 'company') { goCompany(); return true; }
+  if (k === 'set') { if (isChief()) { showTab('settings'); return true; } return false; }
+  if (['board', 'docs', 'weekly', 'minutes', 'review', 'consult', 'ship', 'stock', 'gather', 'forms'].includes(k)) { showTab(k); return true; }
+  return false;
+};
 /* 「‹ 홈」(휴대폰, leader-gate.html): 첫 화면 = 파트장 · 직원은 장례업무 첫 화면(행사 · 서식 · 배송 한 장, 2026.11.11), 총괄실장은 서식 첫 화면 */
 window.DW_HOME_GO = () => { if (isChief()) showTab('fhome'); else goFuneral('home'); return true; };
 /* 서식 첫 화면 = 총괄실장만 (2026.11.11 바둑판 3안, 장례업무 첫 화면과 같은 모양 dwHome.grid): 취합 · 주간보고 · 회의록 · 후기보고 · 탁송 · 회사 서류 · 자료실 · 설정 */
@@ -3263,11 +3272,11 @@ function fuStatusFn(cases, envs) {
   (envs || []).forEach((r) => { if (r && r.sourceCaseId) byCase[r.sourceCaseId] = r; });
   (cases || []).forEach((c) => ((c && c.s && c.s.carry) || []).forEach((r) => carried.add(r.from)));
   return (c) => {
-    if (!fuHasSettle(c)) return { k: 'none', t: '입력 전' };
+    if (!fuHasSettle(c)) return { k: 'none', t: '정산 전' };
     const w = fuSendOf(byCase[c.id]), s = c.s || {};
-    if (w != null && w < 0) return carried.has(c.id) || (s.minusOut && String(s.minusOut.who || '').trim()) ? { k: 'cleared', t: '정리됨', won: w } : { k: 'minus', t: '마이너스', won: w };   /* 다른 팀장 행사에서 뺀 마이너스 c.s.minusOut (2026.10.30) */
-    if (s.sentAt) return s.sentWon != null && w != null && Number(s.sentWon) !== w ? { k: 'changed', t: '보낸 뒤 바뀜', won: w } : { k: 'sent', t: '보냄', won: w };
-    return { k: 'open', t: '미정산', won: w };
+    if (w != null && w < 0) return carried.has(c.id) || (s.minusOut && String(s.minusOut.who || '').trim()) ? { k: 'cleared', t: '차감 완료', won: w } : { k: 'minus', t: '차감 대기', won: w };   /* 다른 팀장 행사에서 뺀 마이너스 c.s.minusOut (2026.10.30) */
+    if (s.sentAt) return s.sentWon != null && w != null && Number(s.sentWon) !== w ? { k: 'changed', t: '정산 후 변경', won: w } : { k: 'sent', t: '정산 완료', won: w };
+    return { k: 'open', t: '정산 대기', won: w };
   };
 }
 function fuMonthSum(cases, envs, month) {
@@ -3386,8 +3395,8 @@ function statusView(p) {
   else if (!t) h += `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`;
   else {
     const rows = teamRows(t), tot = teamTotal(rows);
-    h += `<dl class="tm-sum"><div><dt>행사</dt><dd>${tot.n}건</dd></div><div><dt>미정산</dt><dd>${tot.todo}건</dd></div><div><dt>마이너스</dt><dd class="${tot.minus ? 'warn' : ''}">${tot.minus ? '− ' : ''}${tot.minus}건</dd></div><div><dt>봉투 (본부장 · 실장)</dt><dd><span class="nw">${esc(fuWon0(tot.part))}</span> · <span class="nw">${esc(fuWon0(tot.mgr))}</span></dd></div></dl>`;
-    h += `<div class="tm-wrap"><table class="tm-tbl"><thead><tr><th scope="col">이름</th><th scope="col">행사</th><th scope="col">미정산</th><th scope="col">마이너스</th><th scope="col">본부장</th><th scope="col">실장</th></tr></thead><tbody>${
+    h += `<dl class="tm-sum"><div><dt>행사</dt><dd>${tot.n}건</dd></div><div><dt>정산 대기</dt><dd>${tot.todo}건</dd></div><div><dt>차감 대기</dt><dd class="${tot.minus ? 'warn' : ''}">${tot.minus ? '− ' : ''}${tot.minus}건</dd></div><div><dt>봉투 (본부장 · 실장)</dt><dd><span class="nw">${esc(fuWon0(tot.part))}</span> · <span class="nw">${esc(fuWon0(tot.mgr))}</span></dd></div></dl>`;
+    h += `<div class="tm-wrap"><table class="tm-tbl"><thead><tr><th scope="col">이름</th><th scope="col">행사</th><th scope="col">정산 대기</th><th scope="col">차감 대기</th><th scope="col">본부장</th><th scope="col">실장</th></tr></thead><tbody>${
       rows.map((r) => `<tr><td><button type="button" class="tm-name" data-member="${esc(r.user_id)}"><span>${esc(r.name)}</span>${SVG_R}</button></td><td>${r.n}건</td><td class="${r.todo ? 'hot' : ''}">${r.todo}건</td><td class="${r.minus ? 'warn' : ''}">${r.minus ? '− ' : ''}${r.minus}건</td><td>${esc(fuWon0(r.part))}</td><td>${esc(fuWon0(r.mgr))}</td></tr>`).join('')
     }</tbody><tfoot><tr><td>합계</td><td>${tot.n}건</td><td>${tot.todo}건</td><td>${tot.minus}건</td><td>${esc(fuWon0(tot.part))}</td><td>${esc(fuWon0(tot.mgr))}</td></tr></tfoot></table></div>
     <p class="small-t muted">이름을 누르면 그 직원의 장례일정 · 봉투 · 정산 상태를 볼 수 있습니다. 직원이 로그인해서 저장한 기록만 보입니다.</p>`;
@@ -3765,7 +3774,7 @@ function paintMember() {
   h += `<div class="seg" role="group" aria-label="보기 고르기"><button type="button" data-msv="cases" aria-pressed="${MS.view === 'cases'}">장례일정</button><button type="button" data-msv="envs" aria-pressed="${MS.view === 'envs'}">봉투</button></div>`;
   if (!t) { el.innerHTML = h + `<p class="bd-empty">${PB.teamErr ? esc(pbWhyText(PB.teamErr, true)) : '불러오는 중…'}</p>`; return; }
   const s = fuMonthSum(b.cases, b.envs, MS.month);
-  h += `<p class="ms-ro">행사 ${s.cases.length}건 · 미정산 ${s.todo}건${s.cnt.minus ? ` · 마이너스 ${s.cnt.minus}건` : ''} · 본부장 봉투 ${esc(fuWon0(s.part))} · 실장 봉투 ${esc(fuWon0(s.mgr))} — 보기만 할 수 있습니다 (고치기 안 됨)</p>`;
+  h += `<p class="ms-ro">행사 ${s.cases.length}건 · 정산 대기 ${s.todo}건${s.cnt.minus ? ` · 차감 대기 ${s.cnt.minus}건` : ''} · 본부장 봉투 ${esc(fuWon0(s.part))} · 실장 봉투 ${esc(fuWon0(s.mgr))} — 보기만 할 수 있습니다 (고치기 안 됨)</p>`;
   if (MS.view === 'cases') {
     const list = fuByNo(s.cases);
     h += list.length ? '<div class="ms-list">' + list.map((c) => {

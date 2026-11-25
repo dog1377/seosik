@@ -561,7 +561,7 @@
     return;
   }
   if (window.DW_HOLD) return;   /* 계정 바꾸기 화면으로 넘어가는 중 */
-  homeButton(); outButton(); modeSwitch();
+  homeButton(); outButton(); modeSwitch(); if (window.dwSide) window.dwSide.paint();   /* 왼쪽 메뉴 ☰ 를 위 막대 맨 앞으로 (2026.11.25) */
   if (root.classList.contains('dw-gated')) gate('login', (sess() || {}).user); else renderAcct();
   verify();
   window.addEventListener('online', verify);

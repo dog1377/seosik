@@ -133,7 +133,7 @@ label.f>.field-label{color:var(--muted)}
 /* 모서리 · 그림자 통일 (디자인 통일 점검 2026.10.16): 버튼 · 칸 · 작은 표시 4px, 상자 · 창 6px, 그림자 대신 먹색 선 */
 body .ab-menu,body .cm-nav,body .co-symbol,body .x,body .pick-x,body .tp-clear,body .tp-grid button,body .mobile-nav button,
 body .burial-seg button,body .missing button,body .ph button,body .seg,body .seg button,body .acc-b button,body .item .tog,body .csheet-list button,body .check,body .btn.link,body .group-tabs button{border-radius:4px}
-body .burial-seg,body .sum,body .must,body .fold-ex,body .acc,body .crem-preview,body .env-notice,body .warnline,body .calc,body .text-out,body .toast,body .sheet{border-radius:6px}
+body .burial-seg,body .sum,body .must,body .acc,body .crem-preview,body .env-notice,body .warnline,body .calc,body .text-out,body .toast,body .sheet{border-radius:6px}
 body .csheet{border-radius:6px 6px 0 0}
 @media (min-width:700px){ body .csheet,body .sheet{border-radius:6px} }
 body .settle-bar{border-radius:6px;box-shadow:none}
@@ -293,22 +293,7 @@ body .mobile-nav{display:none!important}
   .tn-main-row .tn-in [data-step]{gap:5px;padding:0 5px}
   .st-arrow{padding:0}
 }
-.case-steps{display:none}
-@media (max-width:699px){
-  .top,.wrap>.top{gap:0}
-  .case-steps:not([hidden]){display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:2px 0}
-  body:is([data-tab="input"],[data-tab="out"],[data-tab="sched"],[data-tab="settle"]) .case-panel{border-bottom-left-radius:0;border-bottom-right-radius:0}
-  body:is([data-tab="input"],[data-tab="out"],[data-tab="sched"],[data-tab="settle"]) .case-steps{border-top:0;border-top-left-radius:0;border-top-right-radius:0}
-  .case-steps .st-arrow{display:none}
-  .case-steps button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:62px;min-width:0;padding:7px 2px 6px;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;font-weight:600;line-height:1.2;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .case-steps button:not(:first-of-type)::before{content:"";position:absolute;top:18px;right:calc(50% + 16px);width:calc(100% - 32px);height:1px;background:var(--line)}
-  .case-steps button.done::before,.case-steps button[aria-current="page"]::before{background:var(--ink-2)}
-  .case-steps .st-no{width:24px;height:24px;font-size:12.5px}
-  .case-steps button.done{color:var(--ink-2)}
-  .case-steps button[aria-current="page"]{color:var(--ink);font-weight:700}
-  .case-steps button[aria-current="page"]::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;background:var(--ink)}
-  .case-steps button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
-}
+@media (max-width:699px){ .top,.wrap>.top{gap:0} }
 /* 행사 고르기 (2026.10.30): 두 줄 칸(「1번 · 故 홍길동」 / 장소 · 업체 · 발인 · 정산 상태) + 누르면 올라오는 행사 선택 창 */
 .case-pick{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:12px 14px 12px 16px;border:0;border-radius:inherit;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .case-pick:disabled{cursor:default}
@@ -377,12 +362,12 @@ body.split[data-tab="input"] #outNext{display:none}
 .pr-acts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 @media (max-width:560px){ .pr-acts{grid-template-columns:repeat(2,minmax(0,1fr))} }
 /* 장례일정표 화면 (2026.10.28-5, 행사와 따로 입력) */
-body[data-tab="poster"] .case-panel,body[data-tab="deliv"] .top>.case-panel{display:none}
+body[data-tab="deliv"] .top>.case-panel{display:none}
 /* 휴대폰 첫 화면 (2026.11.11 바둑판 3안, 모양은 leader-gate-head.html .dwg-*) — 행사 고르기 상자 · 새 행사 · 저장 버튼은 첫 화면에서 안 보임 (칸 안에 있음) */
 body[data-tab="home"] .top>.case-panel,
 body[data-tab="home"] #newCase,body[data-tab="home"] #saveNow,body[data-tab="home"] #saveState{display:none}
 @media (max-width:699px){   /* 휴대폰: 행사 고르기 상자가 없는 화면은 위 빈 자리 없앰 */
-  body[data-tab="home"] .wrap>.top,body[data-tab="list"] .wrap>.top,body[data-tab="deliv"] .wrap>.top,body[data-tab="poster"] .wrap>.top{display:none}
+  body[data-tab="home"] .wrap>.top,body[data-tab="list"] .wrap>.top,body[data-tab="deliv"] .wrap>.top,body.no-case[data-tab="poster"] .wrap>.top{display:none}
   #p-list,#p-deliv,#p-poster{padding-top:14px}
 }
 /* 배송 칸 (넓은 화면): 행사 칸 메뉴 줄은 숨김 — 칸 바꾸기는 위 막대 「행사 · 서식 · 배송」 */
@@ -516,7 +501,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 <!-- 휴대폰 첫 화면 대시보드 (2026.11.19 사용자: 「단순 4열 아이콘 그리드(런처형) → 토스 · 카카오뱅크 스타일 모던 핀테크/엔터프라이즈 대시보드로 전면 개편」)
      바탕 #F4F6F9 · 흰 카드(16px 둥근 모서리 · 그림자 0 2px 12px rgba(0,0,0,.03) · 테두리 없음) · 숫자 tabular-nums · 누르면 scale(.98).
      요약 카드(네이비) · 진행 중인 행사 · 2×2 퀵 카드(파스텔 그림 바탕) · 서식 1열 목록 · 떠 있는 「+ 새 행사」 · 아래 탭 바(64px · 반투명 흐림).
-     코드: src/funeral.html renderHome · renderFhub · renderMore · tbPaint · homeGo · acOpen. 휴대폰(699px 이하)만 — 태블릿 · PC 는 위 메뉴 줄 그대로 -->
+     코드: src/funeral.html renderHome · tbPaint · homeGo · acOpen. 휴대폰(699px 이하)만. 2026.11.25 묶음마다 접기 · 펴기(dsh-acc), 아래 탭 바 대신 왼쪽 메뉴(☰) -->
 <style id="dsh-css">
 :root{--dsh-bg:#F4F6F9;--dsh-card:#FFFFFF;--dsh-shadow:0 2px 12px rgba(0,0,0,.03);--dsh-line:#EEF1F5;--dsh-sub:#6B7684;--dsh-chev:#B0B8C1;
   --dsh-hero:#1B2A4A;--dsh-hero-2:rgba(255,255,255,.1);--dsh-hero-sub:rgba(255,255,255,.72);--dsh-bar:#6EA0FF;--dsh-bar-bg:rgba(255,255,255,.16);
@@ -547,7 +532,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .dsh-press{transition:transform .12s ease,background-color .12s ease;-webkit-tap-highlight-color:transparent}
 .dsh-press:active{transform:scale(.98)}
 .dsh svg.dsh-chev,.ac-list svg.dsh-chev{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;color:var(--dsh-chev);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.dsh button:focus-visible,.dsh a:focus-visible,.dw-tabbar button:focus-visible,.dw-fab:focus-visible,.ac-list :focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:2px}
+.dsh button:focus-visible,.dsh a:focus-visible,.dw-fab:focus-visible,.ac-list :focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:2px}
 
 /* ② 요약 카드 (네이비) */
 .dsh-hero{display:grid;gap:0;padding:22px 20px 16px;border-radius:16px;background:var(--dsh-hero);color:#fff;box-shadow:var(--dsh-shadow)}
@@ -646,32 +631,47 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .ab-bell-n{position:absolute;top:4px;right:3px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;display:grid;place-items:center;border-radius:9px;background:#E5484D;color:#fff;font-size:12px;font-weight:700;line-height:1;box-shadow:0 0 0 2px var(--surface,#fff)}
 .ab-bell-n[hidden]{display:none}
 
-/* 아래 탭 바 · 떠 있는 「+ 새 행사」 */
-.dw-tabbar,.dw-fab{display:none}
+/* 떠 있는 「+ 새 행사」 (휴대폰 첫 화면 · 행사 목록) — 예전 아래 탭 바는 2026.11.25 왼쪽 메뉴(☰)로 바뀌어 없앰 */
+.dw-fab{display:none}
 @media (max-width:699px){
   html.dw-root body{background:var(--dsh-bg)}
   html.dw-at-home .ab-bell{display:inline-grid}
-  html.dw-root .dw-home-btn{display:none!important}   /* 아래 탭 바가 있는 화면은 「‹ 홈」 없음 */
-  html.dw-root .dw-tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;height:calc(64px + env(safe-area-inset-bottom,0px));padding:0 6px env(safe-area-inset-bottom,0px);box-sizing:border-box;background:var(--dsh-tab);-webkit-backdrop-filter:saturate(1.6) blur(12px);backdrop-filter:saturate(1.6) blur(12px);box-shadow:0 -1px 0 var(--dsh-tab-edge)}
-  .dw-tabbar button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:none;color:var(--dsh-tab-off);font:inherit;font-size:12px;font-weight:600;letter-spacing:-.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
-  .dw-tabbar button:active{transform:scale(.98)}
-  .dw-tabbar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-  .dw-tabbar button[aria-current="page"]{color:var(--brand,#2457D6)}
-  .dw-tabbar button[aria-current="page"] svg{stroke-width:2.2}
-  html.dw-root.dw-fab-on .dw-fab{display:inline-flex;position:fixed;right:16px;bottom:calc(64px + 16px + env(safe-area-inset-bottom,0px));z-index:41;align-items:center;gap:6px;height:52px;padding:0 22px 0 18px;border:0;border-radius:26px;background:var(--brand,#2457D6);color:var(--accent-ink,#fff);font:inherit;font-size:16px;font-weight:700;letter-spacing:-.01em;box-shadow:var(--dsh-fab-shadow);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+  html.dw-root.dw-fab-on .dw-fab{display:inline-flex;position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:41;align-items:center;gap:6px;height:52px;padding:0 22px 0 18px;border:0;border-radius:26px;background:var(--brand,#2457D6);color:var(--accent-ink,#fff);font:inherit;font-size:16px;font-weight:700;letter-spacing:-.01em;box-shadow:var(--dsh-fab-shadow);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
   .dw-fab:active{transform:scale(.98)}
   .dw-fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
-  html.dw-gated .dw-tabbar,html.dw-gated .dw-fab,html.dw-dr-lock .dw-fab{display:none!important}
-  html.dw-root #p-home,html.dw-root #p-fhub,html.dw-root #p-more{padding-top:12px}
-  html.dw-root #p-fhub,html.dw-root #p-more{padding-bottom:calc(64px + 12px + env(safe-area-inset-bottom,0px))}
-  html.dw-root.dw-fab-on #p-home,html.dw-root.dw-fab-on #p-list{padding-bottom:calc(64px + 84px + env(safe-area-inset-bottom,0px))}
+  html.dw-gated .dw-fab,html.dw-dr-lock .dw-fab,html.dsn-open .dw-fab{display:none!important}
+  html.dw-root #p-home{padding-top:12px}
+  html.dw-root.dw-fab-on #p-home,html.dw-root.dw-fab-on #p-list{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   html.dw-root.dw-fab-on #p-list .pg-cta{display:none}   /* 행사 목록: 「새 행사」는 떠 있는 버튼 하나로 */
-  html.dw-root.dw-root body .toast{bottom:calc(64px + 16px + env(safe-area-inset-bottom,0px))}
-  html.dw-root.dw-fab-on body .toast{bottom:calc(64px + 84px + env(safe-area-inset-bottom,0px))}
-  body[data-tab="fhub"] .wrap>.top,body[data-tab="more"] .wrap>.top{display:none}
+  html.dw-root.dw-fab-on body .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }
-body[data-tab="fhub"] #newCase,body[data-tab="fhub"] #saveNow,body[data-tab="fhub"] #saveState,body[data-tab="more"] #newCase,body[data-tab="more"] #saveNow,body[data-tab="more"] #saveState{display:none}
-@media (prefers-reduced-motion:reduce){.dsh-press,.dw-tabbar button,.dw-fab{transition:none}.dsh-press:active,.dw-tabbar button:active,.dw-fab:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.dsh-press,.dw-fab{transition:none}.dsh-press:active,.dw-fab:active{transform:none}}
+/* 첫 화면 묶음 접기 · 펴기 (2026.11.25 B안) */
+.dsh-acc{overflow:hidden}
+.dsh-acc-h{display:flex;align-items:center;gap:8px;width:100%;min-height:56px;padding:0 16px;border:0;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsh-acc-h b{flex:1;min-width:0;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.dsh-acc-n{flex:none;font-size:13.5px;font-weight:600;color:var(--dsh-sub)}
+.dsh-acc-c{flex:none;width:18px;height:18px;fill:none;stroke:var(--dsh-sub);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .16s cubic-bezier(.2,0,0,1)}
+.dsh-acc-h[aria-expanded="false"] .dsh-acc-c{transform:rotate(-90deg)}
+.dsh-acc-b{border-top:1px solid var(--dsh-line)}
+.dsh-acc-b[hidden]{display:none}
+.dsh-acc .dsh-cases,.dsh-acc .dsh-list{border-radius:0;box-shadow:none;background:none}
+.dsh-acc .dsh-list .dsh-row,.dsh-acc .dsh-cases .dsh-case{border-radius:0!important}
+.dsh-acc .dsh-qgrid{padding:12px}
+.dsh-acc .dsh-qempty{border-radius:0;box-shadow:none;background:none}
+.dsh-acc-more{display:flex;align-items:center;justify-content:center;gap:2px;width:100%;min-height:48px;border:0;border-top:1px solid var(--dsh-line);background:none;color:var(--brand,#2457D6);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.dsh-acc-more svg.dsh-chev{color:currentColor;width:16px;height:16px}
+.dsh-acc .dsh-empty{padding:20px 16px}
+.dsh-amt{flex:none;display:grid;justify-items:end;gap:2px;max-width:46%}
+.dsh-amt b{font-size:15px;font-weight:700;line-height:1.35;white-space:nowrap}
+.dsh-amt b.neg{color:var(--dsh-red-i)}
+.dsh-amt small{font-size:12.5px;font-weight:600;line-height:1.35;white-space:nowrap}
+.dsh-amt .st-open,.dsh-amt .st-changed{color:var(--dsh-amber-i)}
+.dsh-amt .st-minus{color:var(--dsh-red-i)}
+.dsh:has(.dsh-acc){gap:12px}
+@media (hover:hover){.dsh-acc-h:hover,.dsh-acc-more:hover{background:var(--bg-hover,#F6F8FB)}}
+.dsh-acc-h:focus-visible,.dsh-acc-more:focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.dsh-acc-c{transition:none}}
 /* ---------- 행사 종결 잠금 · 진행 중인 행사 단계 막대 (2026.11.23 사용자 「현재 진행단계 바로 보이게 · 종결 버튼 바로 · 종결하면 수정 안 되고 리스트에 안 보이게」) ---------- */
 .case-lock{display:flex;align-items:center;gap:12px;margin:0;padding:12px 12px 12px 14px;border-radius:12px;background:var(--st-warn-bg,#FFF3DD);color:var(--st-warn,#8A5400)}
 .case-lock[hidden]{display:none}

@@ -138,14 +138,18 @@ def main():
                 if not p.evaluate("!!(document.getElementById('dwHomeBtn')||{}).offsetParent"):
                     problems.append(f'{tag}: 행사 입력 화면에 「‹ 홈」 버튼이 안 보임')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
-                # 첫 화면 대시보드 (2026.11.19): 요약 카드 · 진행 중인 행사 · 자주 쓰는 업무 2×2 · 서식 1열 · 떠 있는 「+ 새 행사」 · 아래 탭 바
+                # 첫 화면 (2026.11.25 B안): 요약 카드 + 묶음 접기 · 펴기(진행 중인 행사 · 정산 남음 · 자주 쓰는 기능 · 서식 · 함께 쓰기) · 떠 있는 「+ 새 행사」 · 위 막대 ☰ (아래 탭 바 없음)
                 vis = "(id=>{const e=document.getElementById(id);return !!e&&getComputedStyle(e).display!=='none'})"
                 p.evaluate("db.homeQuick=[]; save(); renderHome()")   # 같은 계정으로 화면 크기마다 다시 들어오므로 처음 상태로
-                got = p.evaluate(f"[db.tab, [...document.querySelectorAll('#p-home .dsh-sec h2')].map(x=>x.textContent).join(' '), document.querySelectorAll('#p-home .dsh-q').length, (document.querySelector('#p-home .dsh-todo b')||{{}}).textContent||'', !!(document.getElementById('dwHomeBtn')||{{}}).offsetParent, {vis}('dwTabbar'), {vis}('dwFab'), document.querySelectorAll('#dwTabbar [data-tb]').length]")
-                if got != ['home', '진행 중인 행사 자주 쓰는 기능 서식', 0, '오늘 할 일 3건', False, True, True, 4]:   # 자주 쓰는 기능은 처음엔 비어 있음 (2026.11.19)
-                    problems.append(f'{tag}: 첫 화면이 다름 [탭, 묶음, 퀵 카드, 할 일, 홈 버튼 보임, 탭 바, 새 행사 버튼, 탭 수] = {got}')
+                got = p.evaluate(f"[db.tab, [...document.querySelectorAll('#p-home .dsh-acc-h b')].map(x=>x.textContent).join(' '), document.querySelectorAll('#p-home .dsh-q').length, (document.querySelector('#p-home .dsh-todo b')||{{}}).textContent||'', !!(document.getElementById('dwHomeBtn')||{{}}).offsetParent, {vis}('dwSideBtn'), {vis}('dwFab'), !!document.getElementById('dwTabbar')]")
+                if got != ['home', '진행 중인 행사 정산 남음 자주 쓰는 기능 서식 함께 쓰기', 0, '오늘 할 일 3건', False, True, True, False]:   # 자주 쓰는 기능은 처음엔 비어 있음 (2026.11.19)
+                    problems.append(f'{tag}: 첫 화면이 다름 [탭, 묶음, 퀵 카드, 할 일, 홈 버튼 보임, ☰, 새 행사 버튼, 탭 바 있음] = {got}')
                 if p.evaluate("document.querySelectorAll('#p-home .dsh-case').length"):   # 시험 행사는 발인일(10월)이 지남 → 진행 중 아님
                     problems.append(f'{tag}: 발인일이 지난 행사가 「진행 중인 행사」에 보임')
+                p.click('#p-home [data-hacc="settle"]'); p.wait_for_timeout(200)   # 묶음 접기 → 이 기기에 기억
+                if p.evaluate("[document.getElementById('hacc-settle').hidden, JSON.parse(localStorage.getItem('dw-home-acc')||'{}').settle]") != [True, False]:
+                    problems.append(f'{tag}: 첫 화면 묶음을 눌러도 접히지 않음')
+                p.click('#p-home [data-hacc="settle"]'); p.wait_for_timeout(200)
                 p.click('#p-home .dsh-qempty'); p.wait_for_timeout(300)   # 자주 쓰는 기능 고르기 → 화장예약 조회 · 정산
                 p.click('#acList [data-qe="crem"]'); p.click('#acList [data-qe="p-settle"]'); p.click('#acFoot [data-qe-done]'); p.wait_for_timeout(300)
                 if p.evaluate("[db.homeQuick, 'homeQuick' in sbSettings(), [...document.querySelectorAll('#p-home .dsh-q .dsh-ql')].map(x=>x.textContent)]") != [['crem', 'p-settle'], True, ['화장예약 조회', '정산', '추가']]:
@@ -158,28 +162,47 @@ def main():
                     problems.append(f'{tag}: 첫 화면 「오늘 할 일 3건」을 눌러도 할 일 3줄이 안 나옴')
                 look(p, f'funeral_home_todo_{tag}')
                 p.click('#acClose'); p.wait_for_timeout(300)
-                p.locator('#p-home [data-hk="list"]').click(); p.wait_for_timeout(300)   # 전체보기
-                if p.evaluate("[db.tab, !document.getElementById('tnSubRow').hidden, !!(document.getElementById('dwHomeBtn')||{}).offsetParent]") != ['list', True, False]:
-                    problems.append(f'{tag}: 첫 화면 「전체보기」 → 행사 목록(안쪽 밑줄 탭 · 「‹ 홈」 없음)이 아님')
-                # 1~5단계 (2026.11.13): 탭 바 「전체」 → 「행사 보고서」 → 이번 달 행사 고르기 → 그 행사의 행사 보고서
-                p.click('#dwTabbar [data-tb="more"]'); p.wait_for_timeout(300)
-                p.locator('#p-more [data-hk="p-sched"]').click(); p.wait_for_timeout(400)
+                p.locator('#p-home [data-hk="list"]').click(); p.wait_for_timeout(300)   # 행사 목록 전체 보기
+                if p.evaluate("[db.tab, document.getElementById('tnSubRow').hidden, !!(document.getElementById('dwHomeBtn')||{}).offsetParent]") != ['list', True, True]:
+                    problems.append(f'{tag}: 첫 화면 「행사 목록 전체 보기」 → 행사 목록(「‹ 홈」 있음)이 아님')
+                # 왼쪽 메뉴 (2026.11.25 B안): ☰ → 왼쪽에서 열림 · 묶음 · 정산할 행사 → 행사 목록(정산할 것만)
+                p.click('#dwSideBtn'); p.wait_for_timeout(350); look(p, f'funeral_side_{tag}')
+                got = p.evaluate("[document.documentElement.classList.contains('dsn-open'), [...document.querySelectorAll('#dwSide .dsn-h span')].map(x=>x.textContent).join(' '), document.getElementById('dwSide').inert]")
+                if got != [True, '행사 업무 정산 · 봉투 서식 배송 함께 쓰기', False]:
+                    problems.append(f'{tag}: ☰ 왼쪽 메뉴가 다름 [열림, 묶음, 막힘] = {got}')
+                p.click('#dwSide [data-dsn="todo"]'); p.wait_for_timeout(350)
+                if p.evaluate("[db.tab, LV.st, document.documentElement.classList.contains('dsn-open')]") != ['list', 'todo', False]:
+                    problems.append(f'{tag}: 왼쪽 메뉴 「정산할 행사」 → 행사 목록(정산할 것)이 아님')
+                # 행사를 누르면 그 행사의 일 (B안): 행사 화면 위 6칸 · 왼쪽 메뉴 「지금 보는 행사」
+                p.evaluate("LV.st=''; listSave(); setTab('input')"); p.wait_for_timeout(300)
+                got = p.evaluate("[...document.querySelectorAll('#caseSteps [data-ctab]')].map(b=>b.dataset.ctab).join(',')")
+                if got != 'input,out,sched,poster,settle,envelopes':
+                    problems.append(f'{tag}: 행사 화면 「이 행사의 일」 칸이 다름 {got}')
+                p.click('#caseSteps [data-ctab="sched"]'); p.wait_for_timeout(350)
+                p.click('#dwSideBtn'); p.wait_for_timeout(350)
+                got = p.evaluate("[db.tab, !document.getElementById('dwSideCase').hidden, (document.querySelector('#dwSideCase [aria-current]')||{}).textContent||'']")
+                if got[:2] != ['sched', True] or not got[2].startswith('보고서'):
+                    problems.append(f'{tag}: 행사 칸 「보고서」 · 왼쪽 메뉴 지금 보는 행사가 다름 {got}')
+                p.click('#dwSide [data-dsn-case="settle"]'); p.wait_for_timeout(350)
+                if p.evaluate('db.tab') != 'settle':
+                    problems.append(f'{tag}: 왼쪽 메뉴 지금 보는 행사 「정산」을 눌러도 정산이 아님')
+                # 1~5단계 (2026.11.13): 자주 쓰는 기능 「행사 보고서」 → 이번 달 행사 고르기 → 그 행사의 행사 보고서
+                p.evaluate("setTab('home')"); p.wait_for_timeout(200); p.evaluate("homeGo('p-sched')"); p.wait_for_timeout(400)
                 got = p.evaluate("[!document.getElementById('cpBg').hidden, document.getElementById('cpTitle').textContent, cpMonth===seoulToday().slice(0,7)||!db.cases.some(c=>caseMonth(c)===seoulToday().slice(0,7))]")
                 if got != [True, '행사 보고서 · 행사 선택', True]:
-                    problems.append(f'{tag}: 전체 「행사 보고서」 → 이번 달 행사 고르기가 아님 {got}')
+                    problems.append(f'{tag}: 「행사 보고서」 → 이번 달 행사 고르기가 아님 {got}')
                 p.locator('#cpList [data-cp]').first.click(); p.wait_for_timeout(400)
                 if p.evaluate("[db.tab, document.getElementById('cpBg').hidden]") != ['sched', True]:
                     problems.append(f'{tag}: 행사를 골랐는데 행사 보고서로 안 감')
-                p.click('#dwHomeBtn'); p.wait_for_timeout(300)
-                p.click('#dwTabbar [data-tb="more"]'); p.wait_for_timeout(300)
-                p.locator('#p-more [data-hk="d-new"]').click(); p.wait_for_timeout(300)
+                p.evaluate("dwSide.open('ship')"); p.wait_for_timeout(350)   # 접혀 있던 묶음은 열면서 펼침
+                p.click('#dwSide [data-dsn="dnew"]'); p.wait_for_timeout(350)
                 if p.evaluate("[db.tab, !!dvCur(), window.dwDrawer.key()==='dv:'+db.shipCur]") != ['deliv', True, True]:   # 새 배송 = 서랍이 열림 (2026.11.14)
-                    problems.append(f'{tag}: 전체 「새 배송」을 눌렀는데 새 배송이 안 됨')
+                    problems.append(f'{tag}: 왼쪽 메뉴 「새 배송」을 눌렀는데 새 배송이 안 됨')
                 p.evaluate("window.dwDrawer.close(); db.ships=[]; db.shipCur=null; save()"); p.wait_for_timeout(250)
                 # 설정 한 곳 (2026.11.11): 전체 「설정」 → 설정 목록 → 한 가지 → 「‹ 설정」
-                p.click('#dwHomeBtn'); p.wait_for_timeout(300)
-                p.click('#dwTabbar [data-tb="more"]'); p.wait_for_timeout(300)
-                p.locator('#p-more [data-hk="admin"]').click(); p.wait_for_timeout(400)
+                p.click('#dwSideBtn'); p.wait_for_timeout(350)
+                p.click('#dwSide [data-dsn-h="share"]'); p.wait_for_timeout(200)   # 묶음 「함께 쓰기」 펼치기
+                p.click('#dwSide [data-dsn="set"]'); p.wait_for_timeout(400)
                 got = p.evaluate("[db.tab, db.adminView, [...document.querySelectorAll('#setHub .dws-g h2')].map(x=>x.textContent).join(' '), !!document.querySelector('#setHub .dws-me')]")
                 if got != ['admin', 'hub', '직원 행사 업무 서식 · 보고서 회사 서류 화면 · 계정', True]:   # 직원 명단 묶음 (2026.11.14)
                     problems.append(f'{tag}: 설정 목록이 다름 {got}')
@@ -189,6 +212,19 @@ def main():
                 p.locator('#setBack [data-dws-back]').click(); p.wait_for_timeout(300)
                 if p.evaluate('db.adminView') != 'hub':
                     problems.append(f'{tag}: 「‹ 설정」을 눌러도 설정 목록으로 안 감')
+            if w >= 700:   # 왼쪽 메뉴 (2026.11.25 B안): 1100px 이상 늘 보임, 700~1099px 아이콘 줄 + 누르면 펼침
+                p.evaluate("setTab('input')"); p.wait_for_timeout(300)
+                got = p.evaluate("[getComputedStyle(document.getElementById('dwSide')).visibility, !!document.querySelector('.dsn-rail')&&getComputedStyle(document.querySelector('.dsn-rail')).display!=='none', !document.getElementById('dwSideCase').hidden, document.querySelectorAll('#caseSteps [data-ctab]').length, getComputedStyle(document.getElementById('topNav').querySelector('.tn-main-row')).display]")
+                want = ['visible' if w >= 1100 else 'hidden', w < 1100, True, 6, 'none']
+                if got != want:
+                    problems.append(f'{tag}: 넓은 화면 왼쪽 메뉴가 다름 [메뉴 보임, 아이콘 줄, 지금 보는 행사, 행사 칸 수, 예전 메뉴 줄] = {got}')
+                if w < 1100:
+                    p.click('.dsn-rail [data-dsn-open="money"]'); p.wait_for_timeout(350); look(p, f'funeral_rail_open_{tag}')
+                    if p.evaluate("[document.documentElement.classList.contains('dsn-open'), document.querySelector('[data-dsn-h=\"money\"]').getAttribute('aria-expanded')]") != [True, 'true']:
+                        problems.append(f'{tag}: 아이콘 줄 「정산」을 눌러도 메뉴가 안 펼쳐짐')
+                    p.keyboard.press('Escape'); p.wait_for_timeout(300)
+                    if p.evaluate("document.documentElement.classList.contains('dsn-open')"):
+                        problems.append(f'{tag}: Esc 로 왼쪽 메뉴가 안 닫힘')
             for t in ['home', 'list', 'input', 'out', 'poster', 'deliv', 'settle', 'envelopes', 'duty', 'admin']:
                 if t == 'deliv':   # 배송 (2026.10.30): 인력+대체 한 건을 넣고 양식 줄 확인
                     p.evaluate("db.ships=[{id:'t1',kind:'sub',co:'삼성SDS',place:'부산대동 VIP실',mgr:[{id:'m1',date:'2026-10-13',sh:'10',sm:'00',eh:'20',em:'00',n:'1'}],veh:{type:'리무진',km:'200',burial:'김해추모',depart:'2026-10-14T06:30',co:'한맥장의차'},subs:[{id:'s1',n:'4',what:'veh'},{id:'s2',n:'3',what:'mourn',m:'5',w:'1'}],updated:1}]; db.shipCur='t1'")
@@ -232,7 +268,7 @@ def main():
             if w < 700:
                 if p.evaluate('db.tab') != 'home':
                     problems.append(f'member {tag}: 휴대폰에서 앱을 열었는데 첫 화면이 아님')
-                elif p.evaluate("[...document.querySelectorAll('#p-home .dsh-sec h2')].map(x=>x.textContent).join(' ')") != '진행 중인 행사 자주 쓰는 기능':
+                elif p.evaluate("[...document.querySelectorAll('#p-home .dsh-acc-h b')].map(x=>x.textContent).join(' ')") != '진행 중인 행사 정산 남음 자주 쓰는 기능 함께 쓰기':
                     problems.append(f'member {tag}: 직원 첫 화면에 서식 묶음이 보이거나 묶음이 다름')
                 p.evaluate("setTab('admin')"); look(p, f'member_settings_{tag}')
                 if p.evaluate("[...document.querySelectorAll('#setHub [data-dws]')].map(b=>b.dataset.dws).filter(k=>k.startsWith('ev-')||k.startsWith('fm-')||k.startsWith('co-')).join(',')") != 'ev-rules,ev-lists,ev-keep':
