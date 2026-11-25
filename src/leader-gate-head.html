@@ -14,6 +14,13 @@ html:not(.dw-chief) [data-chief]{display:none!important}
 .gt-card img{width:72px;height:72px;border-radius:6px;margin:0 auto 4px}
 .gt-card h1{margin:0 0 10px;font-family:var(--serif,var(--font-display,serif));font-size:24px;line-height:1.35}
 .gt-card input{width:100%;box-sizing:border-box;font:inherit;font-size:17px;text-align:center;min-height:52px;padding:10px 14px;border-radius:4px;border:1px solid var(--edge,var(--line-2,#9a9d9a));background:var(--surface,#fff);color:inherit}
+.pw-mask{-webkit-text-security:disc}
+/* 휴무 · 당직은 이기현 · 서영우만 (2026.11.25) — 그 밖의 계정은 메뉴 · 첫 화면 줄 · 설정 줄을 숨김 (window.dwDutyOk) */
+html.dw-noduty [data-nav="duty"],html.dw-noduty [data-dws="duty"],html.dw-noduty [data-hk="duty"],html.dw-noduty [data-tn="duty"],html.dw-noduty [data-tn-sub^="duty"],html.dw-noduty [data-go^="duty"],html.dw-noduty .acc[data-acc="duty"],html.dw-noduty [data-ui-go="duty"]{display:none!important}
+html.dw-noduty .tabbar-in:not(.six){grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}   /* 공용 컴퓨터: 글자 칸을 비밀번호처럼 가림 → 브라우저가 비밀번호로 저장하지 않음 (2026.11.25) */
+.gt-card .gt-keep{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:-2px 0 0;font-size:15px;color:var(--ink-2,#4C596D);cursor:pointer;user-select:none}
+.gt-card .gt-keep input:focus{box-shadow:none;outline:2px solid var(--brand,#2457D6);outline-offset:2px}
+.gt-card .gt-keep input{width:20px;height:20px;min-height:0;padding:0;margin:0;border-radius:4px;box-shadow:none;accent-color:var(--brand,#2457D6);cursor:pointer}
 .gt-card input::placeholder{color:var(--ph,var(--muted,#6a6e73));opacity:1}
 .gt-card input:focus{outline:none;border-color:var(--ink,#1c1d1f);box-shadow:0 0 0 1px var(--ink,#1c1d1f)}
 .gt-card button{font:inherit;font-size:16px;font-weight:700;min-height:52px;border-radius:4px;cursor:pointer;border:1px solid var(--ink,#1c1d1f);background:var(--accent,#1c1d1f);color:var(--accent-ink,#fff);margin-top:4px}
@@ -291,6 +298,15 @@ a.dwg-t{text-decoration:none}
     try { if (!v || !v.name) { var st = JSON.parse(localStorage.getItem('dw-sb-auth') || 'null'), u = st && (st.user || (st.currentSession && st.currentSession.user)), n = u && u.user_metadata && u.user_metadata.name; if (n) v = { name: n, rank: (v && v.rank) || '', phone: (v && v.phone) || '' }; } } catch (e) {}
     v = v || {}; return { name: String(v.name || '').trim(), rank: String(v.rank || '').trim(), phone: String(v.phone || '').trim() };
   }
+  /* 휴무 · 당직 메뉴가 보이는 사람 (2026.11.25 사용자: 「휴무는 이기현, 서영우만 보이게 해 주고 나머지는 안 보이게」 → 고른 답: 휴무 메뉴를 두 분 계정에서만).
+     내 정보 이름으로 봄(띄어쓰기 · 끝 직급 무시). 이름을 아직 모르면 숨김 → 이름이 들어오면(dw-me · dw-me-load · dw-name) 다시 봄 */
+  var DUTY_WHO = ['이기현', '서영우'];
+  function dutyOk() { var n = meNow().name.replace(/\s/g, '').replace(/(총괄실장|파트장|팀장|실장|과장|대리|주임|부장|님)$/, ''); return DUTY_WHO.indexOf(n) >= 0; }
+  function dutyMark() { try { document.documentElement.classList.toggle('dw-noduty', !dutyOk()); } catch (e) {} }
+  window.dwDutyOk = dutyOk; window.dwDutyMark = dutyMark;
+  ['dw-me', 'dw-me-load', 'dw-name', 'dw-role'].forEach(function (ev) { window.addEventListener(ev, dutyMark); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', dutyMark); else dutyMark();
+  dutyMark();
   function who() {   /* 머리 이름 「서영우 파트장님」 — 직급이 없으면 파트장 · 총괄실장 */
     var v = meNow(), r = role(), rank = v.rank || (r === 'leader' ? '파트장' : r === 'chief' ? '총괄실장' : '');
     return v.name ? v.name + (rank ? ' ' + rank : '') + '님' : '';

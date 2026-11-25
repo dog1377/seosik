@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.25-2"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.25-3"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
@@ -446,6 +446,13 @@ html:not(.dw-chief) [data-chief]{display:none!important}
 .gt-card img{width:72px;height:72px;border-radius:6px;margin:0 auto 4px}
 .gt-card h1{margin:0 0 10px;font-family:var(--serif,var(--font-display,serif));font-size:24px;line-height:1.35}
 .gt-card input{width:100%;box-sizing:border-box;font:inherit;font-size:17px;text-align:center;min-height:52px;padding:10px 14px;border-radius:4px;border:1px solid var(--edge,var(--line-2,#9a9d9a));background:var(--surface,#fff);color:inherit}
+.pw-mask{-webkit-text-security:disc}
+/* 휴무 · 당직은 이기현 · 서영우만 (2026.11.25) — 그 밖의 계정은 메뉴 · 첫 화면 줄 · 설정 줄을 숨김 (window.dwDutyOk) */
+html.dw-noduty [data-nav="duty"],html.dw-noduty [data-dws="duty"],html.dw-noduty [data-hk="duty"],html.dw-noduty [data-tn="duty"],html.dw-noduty [data-tn-sub^="duty"],html.dw-noduty [data-go^="duty"],html.dw-noduty .acc[data-acc="duty"],html.dw-noduty [data-ui-go="duty"]{display:none!important}
+html.dw-noduty .tabbar-in:not(.six){grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}   /* 공용 컴퓨터: 글자 칸을 비밀번호처럼 가림 → 브라우저가 비밀번호로 저장하지 않음 (2026.11.25) */
+.gt-card .gt-keep{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:-2px 0 0;font-size:15px;color:var(--ink-2,#4C596D);cursor:pointer;user-select:none}
+.gt-card .gt-keep input:focus{box-shadow:none;outline:2px solid var(--brand,#2457D6);outline-offset:2px}
+.gt-card .gt-keep input{width:20px;height:20px;min-height:0;padding:0;margin:0;border-radius:4px;box-shadow:none;accent-color:var(--brand,#2457D6);cursor:pointer}
 .gt-card input::placeholder{color:var(--ph,var(--muted,#6a6e73));opacity:1}
 .gt-card input:focus{outline:none;border-color:var(--ink,#1c1d1f);box-shadow:0 0 0 1px var(--ink,#1c1d1f)}
 .gt-card button{font:inherit;font-size:16px;font-weight:700;min-height:52px;border-radius:4px;cursor:pointer;border:1px solid var(--ink,#1c1d1f);background:var(--accent,#1c1d1f);color:var(--accent-ink,#fff);margin-top:4px}
@@ -723,6 +730,15 @@ a.dwg-t{text-decoration:none}
     try { if (!v || !v.name) { var st = JSON.parse(localStorage.getItem('dw-sb-auth') || 'null'), u = st && (st.user || (st.currentSession && st.currentSession.user)), n = u && u.user_metadata && u.user_metadata.name; if (n) v = { name: n, rank: (v && v.rank) || '', phone: (v && v.phone) || '' }; } } catch (e) {}
     v = v || {}; return { name: String(v.name || '').trim(), rank: String(v.rank || '').trim(), phone: String(v.phone || '').trim() };
   }
+  /* 휴무 · 당직 메뉴가 보이는 사람 (2026.11.25 사용자: 「휴무는 이기현, 서영우만 보이게 해 주고 나머지는 안 보이게」 → 고른 답: 휴무 메뉴를 두 분 계정에서만).
+     내 정보 이름으로 봄(띄어쓰기 · 끝 직급 무시). 이름을 아직 모르면 숨김 → 이름이 들어오면(dw-me · dw-me-load · dw-name) 다시 봄 */
+  var DUTY_WHO = ['이기현', '서영우'];
+  function dutyOk() { var n = meNow().name.replace(/\s/g, '').replace(/(총괄실장|파트장|팀장|실장|과장|대리|주임|부장|님)$/, ''); return DUTY_WHO.indexOf(n) >= 0; }
+  function dutyMark() { try { document.documentElement.classList.toggle('dw-noduty', !dutyOk()); } catch (e) {} }
+  window.dwDutyOk = dutyOk; window.dwDutyMark = dutyMark;
+  ['dw-me', 'dw-me-load', 'dw-name', 'dw-role'].forEach(function (ev) { window.addEventListener(ev, dutyMark); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', dutyMark); else dutyMark();
+  dutyMark();
   function who() {   /* 머리 이름 「서영우 파트장님」 — 직급이 없으면 파트장 · 총괄실장 */
     var v = meNow(), r = role(), rank = v.rank || (r === 'leader' ? '파트장' : r === 'chief' ? '총괄실장' : '');
     return v.name ? v.name + (rank ? ' ' + rank : '') + '님' : '';
@@ -3432,6 +3448,21 @@ async function init() {
   }
   var box = null, outBusy = null, outN;
   /* 방금 로그아웃된 이유 · 이메일 (로그인 화면에 한 번 보여 줌) */
+  /* 공용 컴퓨터 (2026.11.25 사용자: 「장례식장 공용 컴퓨터로 로그인하는 경우가 많은데, 기본적으로 아이디나 비밀번호가 인터넷(브라우저)에 저장 안 되게」)
+     - 비밀번호 칸: 마우스로 쓰는 컴퓨터(크롬 · 엣지 · 웨일 · 사파리)는 글자 칸 + 가림(.pw-mask, -webkit-text-security) → 브라우저가 비밀번호 칸으로 알아보지 못해 「비밀번호를 저장할까요?」를 안 띄우고 자동 채움도 안 함.
+       휴대폰(손가락) · 가림을 모르는 브라우저는 비밀번호 칸 그대로 + 자동 완성 끔.
+     - 아이디: 브라우저 자동 완성 끔. 「이 기기에 아이디 기억」을 켠 기기만 다음에 아이디를 채워 둠(기본 꺼짐, LKEEP). 예전에 기억해 둔 아이디(LIDK)는 켜지 않으면 안 씀 · 다음 로그인 때 지움 */
+  var LKEEP = 'dw-lid-keep';
+  function idKeep() { try { return localStorage.getItem(LKEEP) === '1'; } catch (e) { return false; } }
+  function noSave(el) {
+    if (!el) return;
+    ['autocomplete', 'off', 'autocapitalize', 'none', 'autocorrect', 'off', 'spellcheck', 'false', 'data-lpignore', 'true', 'data-1p-ignore', 'true', 'data-form-type', 'other'].forEach(function (v, i, a) { if (i % 2 === 0) el.setAttribute(v, a[i + 1]); });
+    if (el.type !== 'password') return;
+    var mask = false; try { mask = window.matchMedia('(pointer:fine)').matches && window.CSS && CSS.supports('-webkit-text-security', 'disc'); } catch (e) {}
+    if (mask) { el.type = 'text'; el.classList.add('pw-mask'); }
+  }
+  function noSaveAll(root) { if (root) [].forEach.call(root.querySelectorAll('input:not([type=checkbox])'), noSave); }
+  window.dwNoSave = noSaveAll;
   function outNote() { if (outN === undefined) { outN = null; try { outN = JSON.parse(sessionStorage.getItem(OUTK) || 'null'); sessionStorage.removeItem(OUTK); } catch (e) {} } return outN; }
   /* 이메일 칸: 이메일을 그대로 넣거나, @ 없이 아이디만 넣으면 아이디@dwfuneral.com */
   function toEmail(v) { v = String(v || '').trim().toLowerCase(); return !v ? '' : v.indexOf('@') >= 0 ? v : v + '@' + DOMAIN; }
@@ -3443,20 +3474,23 @@ async function init() {
     }
     box.hidden = false; box.dataset.mode = mode;
     var join = mode === 'join', out = outNote();
+    var keep = !join && idKeep();
     if (out && out.email && !(u && u.email)) u = { email: out.email };
-    if (!join && !(u && u.email)) { var lid = ''; try { lid = localStorage.getItem(LIDK) || ''; } catch (e) {} if (lid) u = { email: lid }; }   /* 마지막으로 로그인한 아이디 (2026.10.29) */
-    box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
+    if (keep && !(u && u.email)) { var lid = ''; try { lid = localStorage.getItem(LIDK) || ''; } catch (e) {} if (lid) u = { email: lid }; }   /* 마지막으로 로그인한 아이디 (2026.10.29) — 「아이디 기억」을 켠 기기만 (2026.11.25) */
+    box.innerHTML = '<form class="gt-card" autocomplete="off" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">' + (join ? '회원가입' : 'DW장례업무') + '</h1>'
       + (out && out.why === 'idle' && !join ? '<p class="gt-note" role="status">10분 동안 쓰지 않아서 로그아웃됐습니다. 다시 로그인해 주십시오.</p>' : '')
       + (out && out.why === 'left' && !join ? '<p class="gt-note" role="status">사용이 중지된 계정이라 로그아웃됐습니다(제명). 관리자에게 말씀해 주십시오.</p>' : '')
-      + '<input id="gtId" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="이메일 입력" aria-label="이메일">'
+      + '<input id="gtId" type="text" inputmode="email" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="이메일 입력" aria-label="이메일">'
       + '<input id="gtPw" type="password" autocomplete="' + (join ? 'new-password' : 'current-password') + '" placeholder="비밀번호 입력" aria-label="비밀번호">'
       + (join ? '<input id="gtPw2" type="password" autocomplete="new-password" placeholder="비밀번호 확인" aria-label="비밀번호 확인"><input id="gtName" autocomplete="name" placeholder="이름 입력" aria-label="이름">' : '')
+      + (join ? '' : '<label class="gt-keep"><input type="checkbox" id="gtKeep"' + (keep ? ' checked' : '') + '>이 기기에 아이디 기억</label>')
       + '<button type="submit" id="gtGo">' + (join ? '가입하기' : '로그인') + '</button>'
       + '<p class="gt-err" id="gtErr" role="alert"></p>'
       + '<button type="button" class="gt-link" id="gtSwap">' + (join ? '로그인으로 돌아가기' : '회원가입') + '</button></form>';
     box.querySelector('#gtSwap').onclick = function () { gate(join ? 'login' : 'join', u); };
     var f = box.querySelector('form'), idEl = box.querySelector('#gtId'), pwEl = box.querySelector('#gtPw'), go = box.querySelector('#gtGo'), err = box.querySelector('#gtErr');
-    if (u && u.email && !join) idEl.value = u.email;
+    noSaveAll(box);
+    if (keep && u && u.email) idEl.value = u.email;   /* 공용 컴퓨터: 아이디 기억을 켜지 않았으면 앞사람 아이디를 채우지 않음 */
     var first = idEl.value ? pwEl : idEl;
     setTimeout(function () { var a = document.activeElement; if (!(a && a.tagName === 'INPUT' && box.contains(a))) first.focus(); }, 50);   /* 이미 칸에 넣고 있으면 초점을 옮기지 않음 */
     f.addEventListener('submit', function (e) {
@@ -3468,7 +3502,7 @@ async function init() {
       getClient().then(function (c) { return c.auth.signInWithPassword({ email: toEmail(id), password: pw }); })
         .then(function (r) {
           if (r.error) { err.textContent = authMsg(r.error, false); return; }
-          try { localStorage.setItem(LIDK, id); } catch (e) {}
+          try { var kp = box.querySelector('#gtKeep'); if (kp && kp.checked) { localStorage.setItem(LIDK, id); localStorage.setItem(LKEEP, '1'); } else { localStorage.removeItem(LIDK); localStorage.removeItem(LKEEP); } } catch (e) {}
           signedIn(r.data && r.data.user, false);
         })
         .catch(function () { err.textContent = navigator.onLine === false ? '인터넷에 연결한 뒤 로그인해 주십시오.' : '로그인하지 못했습니다. 인터넷을 확인해 주십시오.'; })
@@ -3508,8 +3542,7 @@ async function init() {
       .then(function (r) {
         if (r.error) { err.textContent = authMsg(r.error, true); return; }
         if (!r.data || !r.data.session) { gate('login'); var e2 = box.querySelector('#gtErr'); if (e2) e2.textContent = '가입은 됐는데 「이메일 확인」이 켜져 있어서 아직 로그인이 안 됩니다. 관리자에게 말씀해 주십시오.'; return; }
-        try { localStorage.setItem(LIDK, v); } catch (e) {}
-        signedIn(r.data.user, true);
+        signedIn(r.data.user, true);   /* 가입: 아이디를 기억하지 않음 (공용 컴퓨터, 2026.11.25) */
       })
       .catch(function () { err.textContent = '가입하지 못했습니다. 인터넷을 확인해 주십시오.'; })
       .then(function () { if (go.isConnected) { go.disabled = false; go.textContent = '가입하기'; } });
@@ -3562,7 +3595,7 @@ async function init() {
           return c.rpc('dw_delete_me').then(function (d) {
             if (d.error) return /function|not found|PGRST202|schema cache/i.test(String(d.error.message || '') + String(d.error.code || '')) ? 'nofn' : 'net';
             /* 탈퇴한 계정의 이 휴대폰 기록은 남기지 않음 → 부른 쪽이 dwOwner.erase() 로 비움 (2026.10.28-22, 예전: 주인 없는 기록으로 남김) */
-            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { [IK, LK, CK, SK, LIDK].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} return 'ok'; });
+            return c.auth.signOut({ scope: 'local' }).catch(function () {}).then(function () { try { [IK, LK, CK, SK, LIDK, LKEEP].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} return 'ok'; });
           });
         });
       }).catch(function () { return 'net'; });
@@ -3629,7 +3662,7 @@ async function init() {
       + '<p class="dwme-note">게시판 이름 · 장례일정표 문의 줄 · 수당 정산에 들어갑니다. 어느 휴대폰에서 고쳐도 같습니다.</p>'
       + '<button type="submit" class="dwme-main" id="dwMeSave">저장</button><p class="dwme-msg" id="dwMeMsg" role="status"></p></form>'
       + '<div class="dwme-sec"><button type="button" class="dwme-row" id="dwMePwOpen" aria-expanded="false" aria-controls="dwMePwBox">비밀번호 바꾸기' + CH_SVG + '</button>'
-      + '<form class="dwme-box" id="dwMePwBox" hidden novalidate><input type="email" autocomplete="username" id="dwMeUser" hidden>'
+      + '<form class="dwme-box" id="dwMePwBox" hidden novalidate autocomplete="off"><input type="hidden" id="dwMeUser">'
       + '<label>지금 비밀번호<input id="dwMePw0" type="password" autocomplete="current-password"></label>'
       + '<label>새 비밀번호 (6자 이상)<input id="dwMePw1" type="password" autocomplete="new-password"></label>'
       + '<label>새 비밀번호 확인<input id="dwMePw2" type="password" autocomplete="new-password"></label>'
@@ -3637,11 +3670,12 @@ async function init() {
       + '<div class="dwme-sec"><div class="dw-theme-row" id="dwMeTheme"><span>화면</span></div></div>'
       + '<div class="dwme-sec"><button type="button" class="dwme-sub" id="dwMeOut">로그아웃</button>'
       + '<button type="button" class="dwme-link" id="dwMeDelOpen">회원 탈퇴</button>'
-      + '<form class="dwme-box" id="dwMeDelBox" hidden novalidate><p class="dwme-warn">탈퇴하면 내 계정과 저장된 기록이 모두 지워지고 되돌릴 수 없습니다. 이 휴대폰에서도 삭제됩니다.</p>'
+      + '<form class="dwme-box" id="dwMeDelBox" hidden novalidate autocomplete="off"><p class="dwme-warn">탈퇴하면 내 계정과 저장된 기록이 모두 지워지고 되돌릴 수 없습니다. 이 휴대폰에서도 삭제됩니다.</p>'
       + '<label>비밀번호 확인<input id="dwMeDelPw" type="password" autocomplete="current-password"></label>'
       + '<div class="dwme-del"><button type="submit" class="dwme-main dwme-danger" id="dwMeDelGo">탈퇴하기</button><button type="button" class="dwme-sub" id="dwMeDelNo">취소</button></div><p class="dwme-msg" id="dwMeDelMsg" role="alert"></p></form></div>'
       + '</div>';
     document.body.appendChild(el);
+    [meEl('dwMePw0'), meEl('dwMePw1'), meEl('dwMePw2'), meEl('dwMeDelPw')].forEach(noSave);   /* 공용 컴퓨터: 비밀번호를 브라우저에 저장 안 함 (2026.11.25) */
     if (window.dwTheme) meEl('dwMeTheme').insertAdjacentHTML('beforeend', window.dwTheme.seg());
     el.addEventListener('click', function (e) {
       if (e.target.closest('[data-me-close]')) { meClose(); return; }
@@ -3784,15 +3818,15 @@ async function init() {
     }
     if (!box.hidden && box.dataset.mode === 'newpw') return;   /* 이미 보고 있음 → 넣던 글 그대로 */
     box.hidden = false; box.dataset.mode = 'newpw';
-    box.innerHTML = '<form class="gt-card" autocomplete="on" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">새 비밀번호 정하기</h1>'
+    box.innerHTML = '<form class="gt-card" autocomplete="off" novalidate><img src="icons/gukhwa-192.png" alt=""><h1 id="gtTitle">새 비밀번호 정하기</h1>'
       + '<p class="gt-note">비밀번호가 초기화됐습니다. 앞으로 쓸 새 비밀번호를 정해 주십시오.</p>'
-      + '<p class="gt-note" id="gtWho"></p><input type="email" autocomplete="username" id="gtUser" hidden>'
+      + '<p class="gt-note" id="gtWho"></p><input type="hidden" id="gtUser">'
       + '<input id="gtNp1" type="password" autocomplete="new-password" placeholder="새 비밀번호 (6자 이상)" aria-label="새 비밀번호">'
       + '<input id="gtNp2" type="password" autocomplete="new-password" placeholder="새 비밀번호 확인" aria-label="새 비밀번호 확인">'
       + '<button type="submit" id="gtGo">저장하고 시작하기</button><p class="gt-err" id="gtErr" role="alert"></p>'
       + '<button type="button" class="gt-link" id="gtOut">로그아웃</button></form>';
     var em = (u && u.email) || ((sess() || {}).user || {}).email || '';
-    box.querySelector('#gtWho').textContent = em; box.querySelector('#gtUser').value = em;
+    box.querySelector('#gtWho').textContent = em; box.querySelector('#gtUser').value = em; noSaveAll(box);
     var f = box.querySelector('form'), n1 = box.querySelector('#gtNp1'), n2 = box.querySelector('#gtNp2'), go = box.querySelector('#gtGo'), err = box.querySelector('#gtErr');
     setTimeout(function () { var a = document.activeElement; if (!(a && a.tagName === 'INPUT' && box.contains(a))) n1.focus(); }, 50);
     box.querySelector('#gtOut').onclick = function () { this.disabled = true; acct.logout(); };

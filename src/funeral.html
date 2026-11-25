@@ -1758,7 +1758,9 @@ const reportsEnabled=co=>typeof co.reportsEnabled==='boolean'?co.reportsEnabled:
 const activeReports=co=>reportsEnabled(co)?(co.reports||[]):[];
 function cremById(id){ return db.crems.find(c=>c.id===id)||LEGACY_CREMS.find(c=>c.id===id); }
 const curCase=()=>db.cases.find(c=>c.id===db.cur) || db.cases[0];
-function makeCase(coId){ const co=coById(coId); return { id:uid(), created:Date.now(), updated:Date.now(), companyId:co.id, items:co.items.map(t=>({id:uid(),text:t,on:true})), deductions:[], f:{}, altarNet:true, dedNet:true }; }
+/* 새 행사의 담당 · 연락처 = 내 정보 이름 · 전화번호 (2026.11.25 사용자: 「담당자 정보에 입력한 사람 기준으로 담당자는 자동으로 입력되어 있게」) — 고쳐 쓸 수 있음 · 붙여 넣은 글에 담당이 있으면 그 값 */
+function myStaff(){ const m=me(), o={}, n=String(m.name||'').trim(), t=String(m.phone||'').trim(); if(n) o.staff=n; if(t) o.staffTel=t; return o; }
+function makeCase(coId){ const co=coById(coId); return { id:uid(), created:Date.now(), updated:Date.now(), companyId:co.id, items:co.items.map(t=>({id:uid(),text:t,on:true})), deductions:[], f:myStaff(), altarNet:true, dedNet:true }; }
 
 /* ---------- 행사 기록: 자동 삭제 없이 월별로 계속 보관 ---------- */
 function purge(){ syncEnvelopeArchives(); if(!db.cases.find(c=>c.id===db.cur)) db.cur=db.cases.length?[...db.cases].sort((a,b)=>b.updated-a.updated)[0].id:null; return 0; }
@@ -4092,6 +4094,7 @@ function me(){ if(!db.me) db.me={name:'',rank:''}; return db.me; }
 /* 내 정보 (2026.10.28-5 전화번호 칸 phone — db.me 안이라 내 계정 설정과 같이 저장). 바뀌면 설정 맨 위 카드 · 첫 화면 이름을 다시 그림 (dw-me-load) */
 function renderMe(){ try{ window.dispatchEvent(new CustomEvent('dw-me-load')); }catch(e){} }
 /* 내 정보 창(leader-gate.html window.dwMe)과 같이 씀 (2026.10.29): 이 화면의 내 정보 읽기 · 넣기 */
+try{ setTimeout(()=>{ if(window.dwDutyMark) window.dwDutyMark(); },0); }catch(e){}   /* 휴무 메뉴 (이기현 · 서영우만) — 이 화면의 내 정보 이름으로 다시 봄 */
 window.dwMeLocal=()=>{ const m=me(); return {name:m.name||'',phone:m.phone||'',rank:m.rank||'',at:Number(m.at)||0}; };
 window.dwMeApply=v=>{ if(window.DW_FREEZE||!v) return; const m=me(); m.name=String(v.name||''); m.phone=String(v.phone||''); m.rank=String(v.rank||''); m.at=Number(v.at)||Date.now(); save(); renderMe();
   try{ if(db.tab==='poster') renderPoster(); else if(db.tab==='settle'||db.tab==='comm') updSettle(); }catch(e){} };
@@ -6280,6 +6283,7 @@ window.addEventListener('resize',()=>{ clearTimeout(splitT); splitT=setTimeout(c
 let outT=null;
 function liveOut(){ if(!isSplit()||db.tab!=='input') return; clearTimeout(outT); outT=setTimeout(()=>{ if(isSplit()&&db.tab==='input') renderOut(); },220); }
 function setTab(t,sub){
+  if(t==='duty'&&window.dwDutyOk&&!window.dwDutyOk()){ t='list'; setTimeout(()=>toast('휴무 · 당직은 이기현 · 서영우만 볼 수 있습니다'),0); }   /* 2026.11.25 사용자 「휴무는 이기현, 서영우만 보이게」 */
   if(PHONE_TABS.includes(t)&&!(window.dwPhone&&window.dwPhone())) t='list';   /* 서식 · 자료 · 전체 화면은 휴대폰만 (태블릿 · PC 는 위 메뉴 줄) */
   { const dk=window.dwDrawer?window.dwDrawer.key():''; if(dk&&!((t==='list'&&/^(case|ho):/.test(dk))||(t==='envelopes'&&/^env/.test(dk))||(t==='deliv'&&dk.indexOf('dv:')===0))) window.dwDrawer.close(); }   /* 화면마다 서랍 — 행사 목록 case: · 봉투정리 env · 배송 기록 dv: (2026.11.13 · 11.14) */
   if(t==='duty'){ db.dutyView=DUTY_TITLES[sub]?sub:DUTY_TITLES[db.dutyView]?db.dutyView:'calendar'; }
