@@ -96,6 +96,13 @@ SETUP = r"""(()=>{
      const t=settleText(h).split('\n'), rs=rcptSums(h);
      const P=parseSettleKakao(settleText(h));
      return [t.find(l=>/^유골함 :/.test(l)), t.find(l=>/: -33만원$/.test(l))||'', settleCalc(h).sendWon, rs.cash, P&&P.s?P.s.urnPay:'', P&&P.s?P.s.urnType:'']; })(),
+   rcLive:(()=>{ const r=[], line=c=>(reportFill(GOI_END_REPORT,c).match(/-결제 금액 : .*/)||[''])[0];   // 2026.11.25 직접 넣은 영수증 금액 → 금액이 바뀌면 자동 (고이 장례 종료 보고 결제 금액)
+     startCase(co('고이장례연구소')); const g=curCase(); Object.assign(g.f,{product:'2026 가족장 289',collect:'289',collectAuto:'289',certAsk:'yes',paid:'8900',certDisc:'10'}); g.deductions=[{id:'a',text:'헌화 1만원 공제'}]; S(g).pay='현금';
+     S(g).rcCashAmt='2662200'; r.push(line(g)); r.push(rcStale(g), S(g).rcCashAmt, S(g).rcCashAmtWas);   // 예전에 넣어 둔 값(기준 없음) → 자동
+     S(g).rcCashAmt='270'; S(g).rcCashBase=rcptSums(g).cash; r.push(line(g)); g.f.certDisc='12'; r.push(line(g));   // 넣을 때 기준 → 금액이 바뀌면 자동
+     g.closed=Date.now(); S(g).rcCashAmt='250'; delete S(g).rcCashBase; r.push(line(g)); delete g.closed;   // 종결한 행사는 그대로
+     startCase(co('현진시닝')); const h=curCase(); S(h).pay='카드'; h.f.collect=''; S(h).rcCashAmt='5'; r.push(rcAmt(h,'cash'));   // 자동 0원이면 예전 값 그대로
+     return r; })(),
    hq:(()=>{ const p0=S(c1).pay; S(c1).pay='본사송금'; const t=settleText(c1), r=[settleCalc(c1).sendWon, t.split('\n').find(l=>/^수금 :/.test(l)), rcptSums(c1).cash]; S(c1).pay=p0; return r; })()};   // 2026.11.13 상품 수금 본사송금
 })()"""
 
@@ -115,6 +122,7 @@ EXPECT = [
     ('고이 수금액 = 잔액 − 공제 + 추가 (이행완료확인서 한 번만: 붙여넣기 · 붙여넣은 뒤 있음 · 직접 적은 줄)', 'goiBal', ['2,771,100원', None, '2781100', 2771100, '2,771,100원', '2,771,100원', '2,781,100원', '2,621,100원', '잔액 2,781,100원에서 제단공제 20만원 빼고 · 공제 · 추가 +4만원 → 2,621,100원']),
     ('금액 고치면 바로 (고이 붙여넣은 잔액 → 상품금액 기준, 할인 · 상품금액 고치면 수금액 · 지난 마이너스 따라감)', 'live', [True, '289', '', '2,771,100원', '2,741,100원', 2741100, '2,851,100원', '10월3번행사 -18만원 / 보내는금액 : 306만원', '10월3번행사 -8만원 / 보내는금액 : 316만원', '헌화 : / 보내는금액 : 324만원', True]),
     ('현진시닝 유골함 본사송금 (카드처럼 실장 몫 줄 · 카톡 끝 (본사송금) · 현금영수증에 안 넣음 · 받은 카톡에서 읽음)', 'urnHq', ['유골함 : 32만원(65만원)수금(90만원)할인(5만원)봉분골드천향(본사송금)', '이승구실장 : -33만원', 2485000, 2575000, '본사송금', '봉분골드천향']),
+    ('직접 넣은 영수증 금액 → 금액이 바뀌면 자동 (고이 장례 종료 보고 결제 금액 · 예전 값 · 종결 · 자동 0원)', 'rcLive', ['-결제 금액 : 2,771,100원', True, '', '2662200', '-결제 금액 : 2,700,000원', '-결제 금액 : 2,751,100원', '-결제 금액 : 2,500,000원', 50000]),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시1 상품 수금 본사송금 → 보내는금액 · 현금영수증에서 빠짐', 'hq', [1380000, '수금 : 2,575,000원(본사송금)', 1620000]),
     ('예시2 보내는금액', 'ex2', -180000),

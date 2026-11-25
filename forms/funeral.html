@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.25-3">
+<meta name="app-version" content="2026.11.25-4">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -3721,7 +3721,7 @@ function funeralSpan(f){ const a=md2(f.death||f.recv||f.arrive), b=md2(f.depart)
 function endPay(c){ try{ return endPay_(c); }catch(e){ return {method:'',day:'',amount:'',payer:'',cardNote:'',receipt:''}; } }   // 처음 불러오는 중에는 계산에 쓰는 것들이 아직 준비 전일 수 있음
 function endPay_(c){
   const s=c.s?S(c):{}, f=c.f||{}, r=rcptSums(c);
-  const cash=String(s.rcCashAmt||'').trim()?toWon(s.rcCashAmt):r.cash, card=String(s.rcCardAmt||'').trim()?toWon(s.rcCardAmt):r.card;
+  const cash=rcAmt(c,'cash'), card=rcAmt(c,'card');   /* 직접 넣은 영수증 금액은 금액이 바뀌면 자동으로 (rcOv) */
   const main=s.pay==='카드'?'카드':s.pay==='본사송금'?'본사송금':'현금', hq=s.pay==='본사송금'?collectNetWon(c):0;
   const ways=[hq>0&&['본사송금',hq],cash>0&&['현금',cash],card>0&&['카드',card]].filter(Boolean);
   const method=ways.map(x=>x[0]).join(' · ')||main;
@@ -5298,7 +5298,7 @@ function goiNorm(c){
   if(!(pw?gross===pw:col===bal)) return false;
   f.collect=gross%10000===0?String(gross/10000):String(gross); if(pw===gross) f.collectAuto=f.collect; f.balance=''; return true;
 }
-function goiNormCur(){ const c=curCase(); if(c&&goiNorm(c)){ c.updated=Date.now(); save(); } }
+function goiNormCur(){ const c=curCase(); if(c&&(goiNorm(c)|rcStale(c))){ c.updated=Date.now(); save(); } }   /* 고이 잔액 고정 풀기 · 쓰지 않게 된 영수증 직접 금액 비우기 */
 function goiAutoCollect(c){ const f=c.f; if(!isGoi(coById(c.companyId))) return false;
   const cur=String(f.collect||'').trim(); if(cur&&cur!==String(f.collectAuto||'')) return false;
   const w=prodWon(f.product), v=w?String(w/10000):''; if(v===cur) return false;
@@ -6009,7 +6009,18 @@ const rcMoney=c=>{ const r=rcptSums(c); return r.cash>0||r.card>0; };
 // 날짜: 넣은 날짜, 없으면 발인일
 const rcDay=(c,k)=>String((c.s||{})[k]||'').trim()||String((c.f||{}).depart||'').slice(0,10);
 const rcDateText=v=>{ const p=parseDT(v); return p?`${pad(p.mo)}월 ${pad(p.d)}일`:''; };
-function rcAmt(c,kind){ const ov=String((c.s||{})[kind==='card'?'rcCardAmt':'rcCashAmt']||'').trim(); return ov?toWon(ov):rcptSums(c)[kind]; }
+/* 영수증 금액을 직접 넣은 값 (2026.11.25 사용자: 「메리놀 행사 기준으로 고이 장례 종료 보고에 (결제) 금액이 안 고쳐짐 — 금액 고치면 실시간으로」)
+   직접 넣은 금액은 넣을 때의 자동 금액(s.rcCashBase · s.rcCardBase)이 지금도 같을 때만 씀 → 다른 금액을 고쳐 자동 금액이 바뀌면 자동 금액으로.
+   예전에 넣어 둔 값(기준 없음)은 종결한 행사 · 자동 금액이 0원인 행사만 그대로, 그 밖에는 자동 금액. 현금영수증 · 카드결제 양식 · 고이 장례 종료 보고 결제 금액 모두 */
+function rcOv(c,kind){ const s=c.s||{}, v=String(s[kind==='card'?'rcCardAmt':'rcCashAmt']||'').trim(); if(!v) return null;
+  const base=s[kind==='card'?'rcCardBase':'rcCashBase'], auto=rcptSums(c)[kind];
+  if(base==null) return c.closed||!auto?toWon(v):null;
+  return Number(base)===auto?toWon(v):null; }
+function rcAmt(c,kind){ const o=rcOv(c,kind); return o!=null?o:rcptSums(c)[kind]; }
+/* 쓰지 않게 된 직접 넣은 금액은 칸에서 비움(예전 값은 s.rcCashAmtWas · s.rcCardAmtWas 에 남김) — 행사를 열 때 */
+function rcStale(c){ if(!c||!c.s||c.closed) return false; let ch=false;
+  [['cash','rcCashAmt','rcCashBase'],['card','rcCardAmt','rcCardBase']].forEach(([k,a,b])=>{ const v=String(c.s[a]||'').trim(); if(v&&rcOv(c,k)==null){ c.s[a+'Was']=v; c.s[a]=''; delete c.s[b]; ch=true; } });
+  return ch; }
 // 둘째 줄: 현진시닝 = 고객 회사 + 이름 (넥센타이어 서재원) · 일반상조 = 업체명 + 이름 (The자빈 손소영, 고이 카드결제도 고이장례연구소 정남영)
 function rcWho(c){ const f=c.f||{}, noName=coById(c.companyId).id===ETC&&!String(f.coName||'').trim();  // 업체명 안 넣은 기타 업체는 이름만
   return [isHJ(c)?String(f.company||'').trim():(noName?'':caseCoName(c)), String(f.customer||'').trim()].filter(Boolean).join(' '); }
@@ -7472,7 +7483,7 @@ function updSettle(skipDef){
     ['card','cash'].forEach(k=>{ const fm=by[k], box=$('#rcBox_'+k), ta=$('#rcText_'+k), pv=$('#rcPrev_'+k), fl=$('#rcFields_'+k), au=$('#rcAuto_'+k);
       if(box) box.hidden=!fm; if(ta) ta.value=fm?fm.text:''; if(pv) pv.textContent=fm?fm.text:''; if(fl) fl.hidden=!fm;
       if(au){ const parts=k==='card'?RS.cardParts:RS.cashParts, ov=String(s[k==='card'?'rcCardAmt':'rcCashAmt']||'').trim();
-        au.innerHTML=parts.length?`자동 <b>${esc(fullWon(RS[k]))}</b> = ${esc(parts.map(x=>`${x.k} ${wonStr(x.w)}`).join(' + '))}${ov?' · 직접 넣은 금액으로 나갑니다':''}`
+        au.innerHTML=parts.length?`자동 <b>${esc(fullWon(RS[k]))}</b> = ${esc(parts.map(x=>`${x.k} ${wonStr(x.w)}`).join(' + '))}${ov?(rcOv(c,k)!=null?' · 직접 넣은 금액으로 나갑니다 (다른 금액을 고치면 자동으로 돌아갑니다)':' · 금액이 바뀌어 직접 넣은 금액 대신 자동 금액으로 나갑니다'):''}`
           :`${k==='card'?'카드':'현금'}로 받은 돈이 없습니다. 금액을 직접 입력하십시오.`; } });
     const nn=$('#rcNone'); if(nn) nn.hidden=forms.length>0;
     const wp=$('#rcWhoPrev'); if(wp) wp.textContent=rcWho(c)||'비어 있음'; }
@@ -7493,6 +7504,7 @@ $('#p-settle').addEventListener('input',e=>{
   else if(t.dataset.s && t.tagName!=='SELECT'){ const k=t.dataset.s;
     if(k==='rcCashNo' && /^01\d/.test(t.value.replace(/\D/g,''))){ const nv=fmtTel(t.value); if(nv!==t.value) t.value=nv; }  /* 휴대폰 번호면 010-0000-0000 */
     const map={flowerSelDir:'flowerAmt',flowerPayDir:'flowerPayText',tribSelDir:'tribAmt',tribPayDir:'tribPayText'}; s[map[k]||k]=t.value;
+    if(k==='rcCashAmt'||k==='rcCardAmt'){ const bk=k==='rcCashAmt'?'rcCashBase':'rcCardBase'; if(String(t.value).trim()) s[bk]=rcptSums(c)[k==='rcCashAmt'?'cash':'card']; else delete s[bk]; }   /* 넣을 때의 자동 금액 (rcOv) */
     if(k==='burialAmt'&&s.burialLater&&toWon(t.value)>0){ s.burialLater=false; document.querySelectorAll('#p-settle [data-s-later]').forEach(x=>{ x.checked=false; }); } }   /* 추후입금 금액이 들어오면 저절로 풀림 */
   else if(t.dataset.ex){ const x=s.extras.find(y=>y.id===t.dataset.ex); if(x) x[t.dataset.exf]=t.value; }
   else if(t.dataset.mi){ const x=(s.minus||[]).find(y=>y.id===t.dataset.mi); if(x) x[t.dataset.mif]=t.value; }
