@@ -3534,7 +3534,7 @@ function settleCalc(c){
   // 실장 몫 자동 줄: 유골함을 카드로 받으면 본부장이 전부 받았으니 우리 몫을 돌려받음 · 관꽃장식 판매는 우리 몫을 뺌
   const autoMinus=[];
   if(altarWon && !altarCash && altarKeep>0) autoMinus.push({who:mg,memo:'제단',short:'제단',won:altarKeep,why:'제단 카드 · 우리 몫',line:`${mg} : -${wonStr(altarKeep)}(제단)`});
-  if(U.uCol && !urnCash && U.keep>0) autoMinus.push({who:mg,memo:'',short:'유골함',won:U.keep,why:'유골함 카드 · 우리 몫',line:`${mg} : -${wonStr(U.keep)}`});
+  if(U.uCol && !urnCash && U.keep>0) autoMinus.push({who:mg,memo:'',short:'유골함',won:U.keep,why:`유골함 ${s.urnPay||'카드'} · 우리 몫`,line:`${mg} : -${wonStr(U.keep)}`});
   if(FL.our>0) autoMinus.push({who:mg,memo:'꽃장식',short:'꽃장식',won:FL.our,why:'관꽃장식 · 우리 몫',line:`${mg} : -${wonStr(FL.our)}(꽃장식)`});
   const minus=(s.minus||[]).filter(x=>String(x.who||'').trim()||x.amt||String(x.memo||'').trim()).map(x=>{ const who=String(x.who||'').trim()||mg, memo=String(x.memo||'').trim(), won=Math.abs(toWon(x.amt));
     return {who,memo,short:memo||'기타',won,line:`${who} : -${wonStr(won)||'0원'}${memo?`(${memo})`:''}`}; });
@@ -3634,15 +3634,15 @@ function parseSettleKakao(text){
       if(CK_KEYS.includes(k)){
         P.order.push(k); if(P.orig[k]==null) P.orig[k]=v;
         if(k in P.head) P.head[k]=v;
-        else if(k==='수금'){ const w=toWon(ckMain(v)); P.f.collect=w?String(w):''; const pay=/본사\s*송금/.test(v)?'본사송금':(ckPayOf(ckParens(v).join(' '))||ckPayOf(v));   /* 상품 수금만 본사송금 */
+        else if(k==='수금'){ const w=toWon(ckMain(v)); P.f.collect=w?String(w):''; const pay=/본사\s*송금/.test(v)?'본사송금':(ckPayOf(ckParens(v).join(' '))||ckPayOf(v));   /* 상품 수금 · 유골함(2026.11.25)은 본사송금도 */
           if(w && !pay) P.notes.push('수금에 현금 · 카드 · 본사송금 표시가 없어 현금으로 봤습니다'); s.pay=pay||'현금'; }
         else if(k==='제단'){ const ps=ckParens(v), main=toWon(ckMain(v)), rec=ps.map(toWon).find(w=>w>0);
           if(main||rec){ s.altarAmt=String(rec||main); s.altarPay=/카드/.test(v)?'카드':'현금'; P.claim.altar=main; } }
         else if(k==='유골함'){ if(v){ const ps=ckParens(v), col=v.match(/수금\s*\(([^)]*)\)/), dis=v.match(/할인\s*\(([^)]*)\)/), lastP=ps.length?ps[ps.length-1]:'';
-          const pay=ckPayOf(lastP)||ckPayOf(v.replace(/\([^()]*\)/g,' ')); let type=v; const cut=Math.max(col?v.indexOf(col[0])+col[0].length:-1, dis?v.indexOf(dis[0])+dis[0].length:-1);
-          type=cut>=0?v.slice(cut):''; if(ckPayOf(lastP)) type=type.replace(/\([^()]*\)\s*$/,''); type=type.replace(/\s*(현금|카드)\s*$/,'').trim();
+          const hqP=/본사\s*송금/.test(lastP), pay=hqP?'본사송금':(ckPayOf(lastP)||ckPayOf(v.replace(/\([^()]*\)/g,' '))); let type=v;   /* 유골함 (본사송금)도 읽음 (2026.11.25) */ const cut=Math.max(col?v.indexOf(col[0])+col[0].length:-1, dis?v.indexOf(dis[0])+dis[0].length:-1);
+          type=cut>=0?v.slice(cut):''; if(ckPayOf(lastP)||hqP) type=type.replace(/\([^()]*\)\s*$/,''); type=type.replace(/\s*(현금|카드)\s*$/,'').trim();
           s.urnCollect=col?String(toWon(col[1])||''):String(toWon(ckMain(v))||''); if(!col) P.notes.push('유골함 「수금(…)」을 찾지 못해 앞 금액을 수금으로 봤습니다');
-          s.urnDisc=dis?String(toWon(dis[1])||''):''; s.urnType=type; s.urnPay=pay||'현금'; if(!pay) P.notes.push('유골함에 현금 · 카드 표시가 없어 현금으로 봤습니다');
+          s.urnDisc=dis?String(toWon(dis[1])||''):''; s.urnType=type; s.urnPay=pay||'현금'; if(!pay) P.notes.push('유골함에 현금 · 카드 · 본사송금 표시가 없어 현금으로 봤습니다');
           if(col){ P.claim.urnShare=toWon(ckMain(v)); const fi=v.indexOf('('); if(fi>0 && !/(수금|할인)\s*$/.test(v.slice(0,fi))) P.claim.urnProfit=toWon(ps[0]); } } }
         else if(k==='유골함원가'){ const w=toWon(v); s.urnCost=w?String(w):''; }
         else if(k==='기타추가'){ inExtra=true; if(v) addExtra(v); }
@@ -5087,7 +5087,10 @@ function rcCashFields(c){
     <label class="f">발행금액${amtIn('data-s="rcCashAmt"',s.rcCashAmt,'비우면 자동')}</label><p class="note rc-auto" id="rcAuto_cash"></p>`;
 }
 const rcPrevBox=(kind,title)=>`<div class="rc-box" id="rcPrevBox_${kind}"><div class="rc-box-h"><span>${title} 양식</span><button class="btn sm" type="button" data-rc-copy="${kind}">복사</button></div><pre id="rcPrev_${kind}"></pre></div>`;
-const seg2=(key,val,attr='data-seg')=>`<div class="seg" ${attr}="${key}"><button type="button" data-v="현금" aria-pressed="${val==='현금'}">현금</button><button type="button" data-v="카드" aria-pressed="${val==='카드'}">카드</button>${key==='pay'&&attr==='data-seg'?`<button type="button" data-v="본사송금" aria-pressed="${val==='본사송금'}">본사송금</button>`:''}</div>`;   /* 상품 수금만 본사송금 (2026.11.13) */
+/* 유골함 본사송금 (2026.11.25 사용자: 「현진시닝 정산에 유골함 받는 거에 본사송금 옵션 — 본사송금이면 실장님에게 줄 금액이 잡혀야 함(본사에서 우리가 수당 설정을 못 하니까) · 정산 카톡 유골함 끝에 (본사송금)」)
+   카드와 같게: 보내는금액에 안 더하고 「실장 : -우리 몫」 줄 자동 · 현금영수증 · 카드결제에는 안 넣음. 현진시닝만(다른 업체여도 이미 본사송금이면 보임) */
+const urnHqOk=c=>!!c&&(isHJ(c)||(c.s||{}).urnPay==='본사송금');
+const seg2=(key,val,attr='data-seg',hq=key==='pay'&&attr==='data-seg')=>`<div class="seg" ${attr}="${key}"><button type="button" data-v="현금" aria-pressed="${val==='현금'}">현금</button><button type="button" data-v="카드" aria-pressed="${val==='카드'}">카드</button>${hq?`<button type="button" data-v="본사송금" aria-pressed="${val==='본사송금'}">본사송금</button>`:''}</div>`;   /* 상품 수금만 본사송금 (2026.11.13) */
 /* 금액 칸: 숫자만 넣으면 만원, 1000 이상이면 원. 옆에 단위, 아래에 실제 금액 */
 function amtUnit(v){ const t=String(v??'').replace(/,/g,'').trim(); if(!t) return '만원'; if(!/^\d+(\.\d+)?$/.test(t)) return ''; return Number(t)>=1000?'원':'만원'; }
 function amtRead(v){ const t=String(v??'').trim(); if(!t) return ''; const w=toWon(t); return w?`= ${w.toLocaleString('ko-KR')}원`:''; }
@@ -5147,7 +5150,7 @@ const SCR=[
   {id:'urnCollect',g:'urn',kind:'amt',key:'urnCollect',ph:'예: 90',q:'유골함은 얼마 받았습니까?',when:urnYes},
   {id:'urnCost',g:'urn',kind:'amt',key:'urnCost',ph:'예: 25',q:'유골함 원가는 얼마입니까?',when:urnYes},
   {id:'urnDisc',g:'urn',kind:'amt',key:'urnDisc',ph:'예: 5',q:'할인해 드린 금액이 있습니까?',sub:'카톡에만 적힙니다. 없으면 넘어가십시오.',when:urnYes},
-  {id:'urnPay',g:'urn',kind:'pay',key:'urnPay',q:'유골함은 어떻게 받았습니까?',sub:'카드면 본부장이 모두 받으므로 우리 몫을 보내는금액에서 뺍니다.',when:urnYes},
+  {id:'urnPay',g:'urn',kind:'pay',key:'urnPay',q:'유골함은 어떻게 받았습니까?',sub:c=>urnHqOk(c)?'카드 · 본사송금이면 본사가 모두 받으므로 우리 몫을 실장님 몫 줄로 뺍니다. 본사송금은 고객이 본사 계좌로 바로 보낸 경우입니다.':'카드면 본부장이 모두 받으므로 우리 몫을 보내는금액에서 뺍니다.',when:urnYes},
   {id:'urnType',g:'urn',kind:'urnType',q:'어떤 유골함입니까?',sub:'카톡에 적힙니다. 모르면 넘어가십시오.',when:urnYes},
   {id:'flower',g:'etc',kind:'flower',q:'입관꽃장식은 어디 것이었습니까?',sub:'업체 · 원가와 결제를 선택하십시오. 제공이면 「제공」을 누르십시오. 없으면 넘어가십시오.'},
   {id:'fsAsk',g:'etc',kind:'yn',key:'flowerSaleAsk',q:'입관꽃장식은 추가 판매였습니까?',sub:'제공이 아니면 추가로 판 것인지 확인합니다.',yes:fsYes,when:c=>!fsFree(c)},
@@ -5264,7 +5267,7 @@ function stepBody(id,c,all){
     return `<div class="pair"><label class="f">수금${amtIn('data-s="urnCollect"',s.urnCollect,'예: 90')}</label>
     <label class="f">원가${amtIn('data-s="urnCost"',s.urnCost,'예: 25')}</label></div>
     <div class="pair"><label class="f">할인${amtIn('data-s="urnDisc"',s.urnDisc,'예: 5')}</label>
-    <label class="f">결제${seg2('urnPay',s.urnPay)}</label></div>
+    <label class="f">결제${seg2('urnPay',s.urnPay,'data-seg',urnHqOk(c))}</label></div>
     <div class="f-wrap"><label class="f">유골함 종류</label>${chooser({scope:'s',key:'urnType',options:db.lists.urnTypes||[],label:'유골함 종류'})}</div>
     <div class="calc urn-calc" id="urnCalc"></div>
     ${all?'':'<button class="btn sm wz-clear" type="button" data-wz-urn="clear">유골함 없음으로 바꾸기</button>'}`;
@@ -5326,7 +5329,7 @@ function wzScreen(c,id){
   else if(x.kind==='who') body=`${rcWhoFields(c)}<div class="wz-result"><div><span>양식 둘째 줄</span><b id="rcWhoPrev"></b></div></div>${go()}`;
   else if(x.kind==='rcCard') body=`${rcCardFields(c)}${rcPrevBox('card','카드결제')}${go()}`;
   else if(x.kind==='rcCash') body=`${rcCashFields(c)}${rcPrevBox('cash','현금영수증')}${go()}`;
-  else if(x.kind==='pay') body=choice('data-wz-pick',x.key,[['현금','현금'],['카드','카드'],...(x.key==='pay'?[['본사송금','본사송금']]:[])],s[x.key]||'현금');
+  else if(x.kind==='pay') body=choice('data-wz-pick',x.key,[['현금','현금'],['카드','카드'],...(x.key==='pay'||(x.key==='urnPay'&&urnHqOk(c))?[['본사송금','본사송금']]:[])],s[x.key]||'현금');
   else if(x.kind==='pick'){
     if(x.id==='sea'&&burialLater(c)) body=`<p class="calc later-note">장지 금액은 추후입금입니다. 종류를 먼저 골라 두면 금액이 들어올 때 이 종류로 나눕니다.</p>`;
     else if(x.id==='sea'){ const b=toWon(s.burialAmt), fee=Math.min(b,(Number(R.burialFee)||0)*10000), h1=hqRound((b-fee)/2), h2=hqRound(b/2), mw=w=>wonStr(w)||'0원';
@@ -5571,14 +5574,14 @@ function updSettle(skipDef){
     :`${d.altarPay}라 회사가 다 받음 → 실장 몫 ${wonStr(d.altarKeep)||'0원'}을 보내는금액에서 뺍니다`;
   const mk=$('#mgrKeep'); if(mk){ const bits=[]; if(d.altarWon&&d.altarCash&&d.altarKeep>0) bits.push(`제단 ${wonStr(d.altarKeep)}`); if(d.U.uCol&&s.urnPay==='현금'&&d.U.keep>0) bits.push(`유골함 ${wonStr(d.U.keep)}`);
     mk.hidden=!bits.length; mk.innerHTML=bits.length?`현금으로 받아 이미 보내는금액에 안 들어간 실장 몫: <b>${esc(bits.join(' · '))}</b><br><small>이건 카톡 줄 없이 봉투정리 실장 봉투로 들어갑니다. 여기 또 넣으면 두 번 빠집니다.</small>`:''; }
-  chipSet('chUrn',d.sub.urn,d.U.uCol&&s.urnPay!=='현금'?'카드 · 우리 몫 빼기':'');
+  chipSet('chUrn',d.sub.urn,d.U.uCol&&s.urnPay!=='현금'?`${s.urnPay||'카드'} · 우리 몫 빼기`:'');
   chipSet('chExtra',d.sub.extra,d.extras.some(x=>!x.flower)&&!d.sub.extra?'안 더함':'');
   chipSet('chMinus',-d.sub.minus);
   chipSet('chEtc',d.sub.etc,(d.flower||d.tribute||d.FL.sale)&&!d.sub.etc?'법카·카드 · 안 더함':'');
   const U=d.U, u=$('#urnCalc'); if(u){
     u.innerHTML=U.uCol?`<div><span>이익</span><b>${fullWon(U.profit)||'0원'}</b><small>수금 ${wnum(U.uCol)} − 원가 ${wnum(U.uCost)}</small></div><div><span>본부장 몫 ${R.urnShare}%</span><b>${fullWon(U.share)||'0원'}</b>${Math.abs(Math.round(U.profit*R.urnShare/100)%10000)===5000?'<small>0.5만원은 내려서 보냄</small>':''}</div><div><span>우리 몫</span><b>${fullWon(U.keep)||'0원'}</b></div>`
       +(s.urnPay==='현금'?`<div class="tot"><span>보내는금액에 더함</span><b>${fullWon(U.share+U.uCost)}</b><small>본부장 몫 ${wnum(U.share)} + 원가 ${wnum(U.uCost)}</small></div>`
-        :`<div class="tot minus"><span>카드라 본부장이 다 받음 → 우리 몫 빼기</span><b>${U.keep>0?'−'+wnum(U.keep):'0'}</b><small>"${esc(mgrName())} : ${esc(wonStr(-U.keep))}" 줄이 자동으로 들어갑니다</small></div>`)
+        :`<div class="tot minus"><span>${s.urnPay==='본사송금'?'본사송금이라 본사가 다 받음':'카드라 본부장이 다 받음'} → 우리 몫 빼기</span><b>${U.keep>0?'−'+wnum(U.keep):'0'}</b><small>"${esc(mgrName())} : ${esc(wonStr(-U.keep))}" 줄이 자동으로 들어갑니다</small></div>`)
       :'<div class="none">수금 · 원가를 넣으면 계산됩니다</div>'; }
   const FL=d.FL, fc=$('#flowerCalc'); if(fc){
     fc.innerHTML=FL.sale?`<div><span>이익</span><b>${fullWon(FL.profit)||'0원'}</b><small>받은 ${wnum(FL.sale)} − 원가 ${wnum(FL.cost)}${FL.cost?'':' · 위 입관꽃장식 업체 · 원가를 고르면 정확해집니다'}</small></div>`
@@ -5602,7 +5605,7 @@ function updSettle(skipDef){
     else if(id==='altar'&&d.altarWon) h=row('보내는금액에',d.altarSend)+row('실장 몫',d.altarKeep);
     else if(id==='kit'&&E.kit) h=row('본부장',E.kitHq)+row('실장',E.kitMg);
     else if(id==='lunch'&&E.lunch) h=row('본부장',E.lunchHq)+row('실장',E.lunchMg);
-    else if(id==='urnType'&&U.uCol) h=row(`본부장 몫 ${R.urnShare}%`,U.share)+row('우리 몫',U.keep)+`<small>${s.urnPay==='현금'?`보내는금액에 ${mw(U.share+U.uCost)} (본부장 몫 + 원가)`:`카드라 우리 몫 ${mw(U.keep)}을 보내는금액에서 뺍니다`}</small>`;
+    else if(id==='urnType'&&U.uCol) h=row(`본부장 몫 ${R.urnShare}%`,U.share)+row('우리 몫',U.keep)+`<small>${s.urnPay==='현금'?`보내는금액에 ${mw(U.share+U.uCost)} (본부장 몫 + 원가)`:`${s.urnPay==='본사송금'?'본사송금이라':'카드라'} 우리 몫 ${mw(U.keep)}을 실장님 몫 줄로 뺍니다`}</small>`;
     else if(id==='flowerSale'&&FL.sale) h=row('본부장 (원가 포함)',FL.hq)+row('우리 몫',FL.our)+`<small>우리 몫은 실장님 몫으로 자동으로 빠집니다${FL.cost?'':' · 입관꽃장식 원가를 고르면 정확해집니다'}</small>`;
     wres.hidden=!h; wres.innerHTML=h; }
   wzGoLabel(c);

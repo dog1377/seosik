@@ -91,6 +91,11 @@ SETUP = r"""(()=>{
      r.push(tail()); S(a).urnCollect='100'; r.push(tail()); S(a).pay='현금'; r.push(tail());
      S(a).carry=[{id:'k2',from:b.id,label:'돌기',won:-10000}]; r.push(settleCalc(a).sendWon>0);   // 서로 빼 줘도 계산이 돌지 않음
      return r; })(),
+   urnHq:(()=>{ startCase(co('현진시닝')); const h=curCase(), s=S(h);   // 2026.11.25 현진시닝 유골함 본사송금: 카드처럼 우리 몫 실장 줄 · 카톡 유골함 끝 (본사송금)
+     Object.assign(h.f,{place:'부산착한 VIP2호',collect:'257.5'}); Object.assign(s,{pay:'현금',altarAmt:'100',altarPay:'현금',urnAsk:'yes',urnCollect:'90',urnCost:'25',urnDisc:'5',urnType:'봉분골드천향',urnPay:'본사송금'}); s.extras=[];
+     const t=settleText(h).split('\n'), rs=rcptSums(h);
+     const P=parseSettleKakao(settleText(h));
+     return [t.find(l=>/^유골함 :/.test(l)), t.find(l=>/: -33만원$/.test(l))||'', settleCalc(h).sendWon, rs.cash, P&&P.s?P.s.urnPay:'', P&&P.s?P.s.urnType:'']; })(),
    hq:(()=>{ const p0=S(c1).pay; S(c1).pay='본사송금'; const t=settleText(c1), r=[settleCalc(c1).sendWon, t.split('\n').find(l=>/^수금 :/.test(l)), rcptSums(c1).cash]; S(c1).pay=p0; return r; })()};   // 2026.11.13 상품 수금 본사송금
 })()"""
 
@@ -109,6 +114,7 @@ EXPECT = [
     ('기타 업체 = 회사 보고 양식 없음 (고이 양식만 빠지고 직접 만든 양식은 남음, 고이는 그대로)', 'etc', [0, True, '내 양식', False]),
     ('고이 수금액 = 잔액 − 공제 + 추가 (이행완료확인서 한 번만: 붙여넣기 · 붙여넣은 뒤 있음 · 직접 적은 줄)', 'goiBal', ['2,771,100원', None, '2781100', 2771100, '2,771,100원', '2,771,100원', '2,781,100원', '2,621,100원', '잔액 2,781,100원에서 제단공제 20만원 빼고 · 공제 · 추가 +4만원 → 2,621,100원']),
     ('금액 고치면 바로 (고이 붙여넣은 잔액 → 상품금액 기준, 할인 · 상품금액 고치면 수금액 · 지난 마이너스 따라감)', 'live', [True, '289', '', '2,771,100원', '2,741,100원', 2741100, '2,851,100원', '10월3번행사 -18만원 / 보내는금액 : 306만원', '10월3번행사 -8만원 / 보내는금액 : 316만원', '헌화 : / 보내는금액 : 324만원', True]),
+    ('현진시닝 유골함 본사송금 (카드처럼 실장 몫 줄 · 카톡 끝 (본사송금) · 현금영수증에 안 넣음 · 받은 카톡에서 읽음)', 'urnHq', ['유골함 : 32만원(65만원)수금(90만원)할인(5만원)봉분골드천향(본사송금)', '이승구실장 : -33만원', 2485000, 2575000, '본사송금', '봉분골드천향']),
     ('예시1 보내는금액', 'ex1', 3955000),
     ('예시1 상품 수금 본사송금 → 보내는금액 · 현금영수증에서 빠짐', 'hq', [1380000, '수금 : 2,575,000원(본사송금)', 1620000]),
     ('예시2 보내는금액', 'ex2', -180000),
