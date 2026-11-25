@@ -1993,7 +1993,7 @@ function fillTpl(body,c,over){
 
 /* 화장예약 간편조회 (2026.11.19 사용자: 「어플메인에 화장예약간편조회서비스 · E하늘 공식 서비스 · 누르면 바로 연결」)
    e하늘 장사정보시스템 첫 화면 「시신 화장예약정보 간편조회 서비스」 버튼이 여는 주소 그대로(사망자 성명으로 당일~5일 예약 조회, 로그인 없음). 개장유골은 total_search2.do */
-const CREM_URL='https://15774129.go.kr/info/total_search.do', CREM_URL2='https://15774129.go.kr/info/total_search2.do';   /* 2 = 개장유골 */
+const CREM_URL='https://15774129.go.kr/info/total_search.do', CREM_RES='https://www.15774129.go.kr/funeral/', CREM_OLD='https://www.15774129.go.kr/funeral/sys2/main.do';   /* 조회 · 화장예약 · 개장유골 화장예약 (2026.11.25 왼쪽 메뉴 「화장예약」 묶음과 같은 곳) */
 const UI_ICONS={"calendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"3\"/><path d=\"M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2\"/>", "edit": "<path d=\"m16 3 5 5-12 12-6 1 1-6zM13 6l5 5M3 6V3h5\"/>", "report": "<path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5\"/>", "wallet": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"3\"/><path d=\"M3 8h18M21 12h-6v5h6M17 14.5h.01\"/>", "settings": "<path d=\"M4 7h10M18 7h2M4 17h4M12 17h8\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"10\" cy=\"17\" r=\"2\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "building": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5\"/>", "right": "<path d=\"M5 12h14m-5-5 5 5-5 5\"/>", "left": "<path d=\"M19 12H5m5-5-5 5 5 5\"/>", "lock": "<rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V6a4 4 0 0 1 8 0v4M12 14v3\"/>", "ext": "<path d=\"M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5\"/>"};
 const uiIcon=k=>`<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">${UI_ICONS[k]||''}</svg>`;
 const INPUT_GROUPS=[{id:'basic',label:'기본 정보'},{id:'schedule',label:'장례 일정'},{id:'service',label:'상품·제공'},{id:'staff',label:'담당·배치'}];
@@ -6530,8 +6530,9 @@ function qkCatalog(){
     {g:'행사 업무',k:'p-settle',l:'정산',s:nSt?[opens.length&&`정산 대기 ${opens.length}건`,minus.length&&`차감 대기 ${minus.length}건`].filter(Boolean).join(' · '):'행사 골라 정산',ic:'settle',tone:'amber',warn:nSt>0},
     {g:'행사 업무',k:'envelopes',l:'봉투정리',s:`${mm}월 봉투 ${wonStr(env.all.total)||'0원'}`,ic:'envelopes',tone:'amber'},
     {g:'행사 업무',k:'q-poster',l:'장례일정표',s:'빈소 게시용 출력',ic:'poster',tone:'mint'},
-    Object.assign({g:'행사 업무'},CREM_ROW),
-    {g:'행사 업무',k:'crem2',l:'개장유골 화장예약',s:'e하늘 간편조회',ic:'crem',tone:'mint',href:CREM_URL2,aria:'개장유골 화장예약 간편조회 · e하늘'},
+    {g:'화장예약',k:'cremres',l:'화장예약',s:'e하늘 예약 신청',ic:'crem',tone:'mint',href:CREM_RES,aria:'화장예약 · e하늘'},
+    Object.assign({g:'화장예약'},CREM_ROW),
+    {g:'화장예약',k:'crem2',l:'개장유골 화장예약',s:'e하늘 개장유골',ic:'crem',tone:'mint',href:CREM_OLD,aria:'개장유골 화장예약 · e하늘'},
     {g:'배송',k:'d-new',l:'새 배송',s:'배송 양식 작성',ic:'plus',tone:'purple'},
     {g:'배송',k:'q-deliv',l:'배송 기록',s:dvCur()?`작성 중 · 전체 ${dvN}건`:`전체 ${dvN}건`,ic:'truck',tone:'purple'},
     {g:'함께 쓰기',k:'duty',l:'휴무 · 당직',s:'일정 달력',ic:'duty',tone:'mint'},

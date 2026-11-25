@@ -16,6 +16,7 @@ def now_iso(): return (datetime.datetime(2026,10,23,9)+datetime.timedelta(second
 class Srv:
     def __init__(s):
         s.USERS={}; s.ROWS={}; s.PROF={}; s.PARTS={}; s.MEM=[]; s.POSTS={}; s.CMTS={}; s.STOCK={}; s.OBJ={}; s.DOCS={}; s.MADE={}; s.UNMIX=[]; s.HOLOG=[]; s.LEFT={}; s.noserver=False; s.calls=[]
+        for i in range(1,5): s.PARTS['part-%d'%i]={'name':'%d파트'%i,'leader_id':None,'created':i}   # 회사 공통 1~4파트 (2026.11.25)
     def add_user(s,login,pw,leader=False,name='',chief=False,admin=False):
         email=login if '@' in login else login+'@dwfuneral.com'; lid=login.split('@')[0] if email.endswith('@dwfuneral.com') else email
         am={'dw_role':'leader'} if leader else {'dw_role':'chief'} if chief else {}
@@ -96,9 +97,11 @@ class Srv:
             else: continue
             out.append(dict(owner=u,rkind=k,rid=i,rdata=d,rupdated=r['updated_at']))
         return out
-    def leads(s,p,uid): return p in s.PARTS and s.PARTS[p]['leader_id']==uid and s.leader(uid)
-    def inpart(s,p,uid): return p in s.PARTS and (s.PARTS[p]['leader_id']==uid or ((p,uid) in [(a,b) for a,b,_ in s.MEM] and not s.leader(uid) and not s.chief(uid)))
+    def leads(s,p,uid): return p in s.PARTS and s.leader(uid)   # 파트장 = 모든 파트 (2026.11.25)
+    def inpart(s,p,uid): return p in s.PARTS and (s.leader(uid) or ((p,uid) in [(a,b) for a,b,_ in s.MEM] and not s.leader(uid) and not s.chief(uid)))
+    def fixed(s,p): import re; return p in s.PARTS and bool(re.fullmatch(r'[1-4]파트',s.PARTS[p]['name']))
     def name(s,uid): p=s.PROF.get(uid); return (p['name'] or p['login_id']) if p else '나간 직원'
+    def lname(s,uid): return '' if uid is None else s.name(uid)
     def rpc(s,src,fn,uid,args,rng):
         s.calls.append(fn)
         if fn=='dw_delete_me':
@@ -115,8 +118,8 @@ class Srv:
     def f_dw_me(s,me):
         if me in s.LEFT: return s.no('left')
         p=s.PROF[me]; parts=[]
-        for pid,t in sorted(s.PARTS.items(),key=lambda x:x[1]['created']):
-            if s.inpart(pid,me): parts.append({'id':pid,'name':t['name'],'leader_id':t['leader_id'],'leader_name':s.name(t['leader_id']),'mine':t['leader_id']==me,'members':sum(1 for a,b,_ in s.MEM if a==pid)})
+        for pid,t in sorted(s.PARTS.items(),key=lambda x:(x[1]['name'],x[1]['created'])):
+            if s.inpart(pid,me): parts.append({'id':pid,'name':t['name'],'leader_id':t['leader_id'],'leader_name':s.lname(t['leader_id']),'mine':s.leader(me),'fixed':s.fixed(pid),'members':sum(1 for a,b,_ in s.MEM if a==pid)})
         u=s.user_of(me)
         return s.ok(user_id=me,login_id=p['login_id'],name=p['name'],leader=s.leader(me),admin=s.admin(me),chief=s.chief(me),parts=parts,
                     phone=p.get('phone',''),rank=p.get('rank',''),info_at=p.get('info_at',0),pw_reset=bool(u and u[2].get('dw_pw_reset')))
@@ -137,7 +140,7 @@ class Srv:
         if not p_user or p_user==me: return s.no('self')
         u=s.user_of(p_user)
         if not u: return s.no('nouser')
-        ok=s.admin(me) or (s.leader(me) and any(b==p_user and s.PARTS.get(a,{}).get('leader_id')==me for a,b,_ in s.MEM) and not s.leader(p_user) and not s.chief(p_user) and not s.admin(p_user))
+        ok=s.admin(me) or (s.leader(me) and not s.leader(p_user) and not s.chief(p_user) and not s.admin(p_user))
         if not ok: return s.no('deny')
         u[0]='12345678a'; u[2]['dw_pw_reset']=True
         return s.ok(name=s.name(p_user),pw='12345678a')
@@ -159,10 +162,12 @@ class Srv:
         pid=str(uuid.uuid4()); s.PARTS[pid]={'name':n,'leader_id':me,'created':next(CNT)}; return s.ok(id=pid)
     def f_dw_part_rename(s,me,p_part,p_name):
         if not s.leads(p_part,me): return s.no('notleader')
+        if s.fixed(p_part): return s.no('fixed')
         if not p_name.strip(): return s.no('name')
         s.PARTS[p_part]['name']=p_name.strip()[:30]; return s.ok()
     def f_dw_part_delete(s,me,p_part):
         if not s.leads(p_part,me): return s.no('notleader')
+        if s.fixed(p_part): return s.no('fixed')
         del s.PARTS[p_part]; s.MEM=[m for m in s.MEM if m[0]!=p_part]
         for k in [k for k,q in s.POSTS.items() if q['part_id']==p_part]:
             del s.POSTS[k]
@@ -186,7 +191,7 @@ class Srv:
         s.MEM=[m for m in s.MEM if not (m[0]==p_part and m[1]==p_user)]; return s.ok()
     def f_dw_part_people(s,me,p_part):
         if not s.inpart(p_part,me): return s.no('notmember')
-        L=s.PARTS[p_part]['leader_id']; out=[dict(user_id=L,login_id=s.PROF[L]['login_id'],name=s.PROF[L]['name'],leader=True,me=L==me)]
+        L=s.PARTS[p_part]['leader_id']; out=[dict(user_id=L,login_id=s.PROF[L]['login_id'],name=s.PROF[L]['name'],leader=True,me=L==me)] if L in s.PROF else []
         mem=[dict(user_id=b,login_id=s.PROF[b]['login_id'],name=s.PROF[b]['name'],leader=False,me=b==me,added_at=t) for a,b,t in s.MEM if a==p_part]
         return s.ok(people=out+sorted(mem,key=lambda x:x['name'] or x['login_id']))
     def post_json(s,q,me,lead,full=False):
@@ -452,7 +457,7 @@ class Srv:
     # 행사 인수인계 (2026.11.14) — supabase-part.sql dw_handover_people · dw_case_handover · dw_case_handover_undo 와 같은 규칙
     def f_dw_handover_people(s,me):
         if not s.leader(me): return s.no('denied')
-        mine=lambda uid:any(b==uid and a in s.PARTS and s.PARTS[a]['leader_id']==me for a,b,_ in s.MEM)
+        mine=lambda uid:any(b==uid and a in s.PARTS for a,b,_ in s.MEM)
         out=[]
         for uid,p in s.PROF.items():
             if uid==me or s.chief(uid) or uid in s.LEFT: continue
@@ -509,8 +514,8 @@ class Srv:
             for a,b,_ in s.MEM:
                 if a not in s.PARTS: continue
                 t=s.PARTS[a]
-                if t['leader_id']==me and b==uid: return True
-                if b==me and (t['leader_id']==uid or any(a2==a and b2==uid for a2,b2,_ in s.MEM)): return True
+                if s.leader(me) and b==uid: return True
+                if b==me and (s.leader(uid) or any(a2==a and b2==uid for a2,b2,_ in s.MEM)): return True
             return False
         out=[]
         for uid,p in s.PROF.items():
@@ -524,27 +529,27 @@ class Srv:
     def staff_can(s,me,u):
         if not me or not u or me==u: return False
         if s.admin(me): return True
-        return s.leader(me) and any(b==u and s.PARTS.get(a,{}).get('leader_id')==me for a,b,_ in s.MEM) and not s.leader(u) and not s.chief(u) and not s.admin(u)
+        return s.leader(me) and not s.leader(u) and not s.chief(u) and not s.admin(u)   # 파트장 = 직원 모두 (2026.11.25)
     def part_of(s,u):
         ps=sorted([a for a,b,_ in s.MEM if b==u and a in s.PARTS],key=lambda a:s.PARTS[a]['created'])
         return ps[0] if ps else None
     def f_dw_staff_list(s,me):
-        adm=s.admin(me)
-        if not adm and not s.leader(me): return s.no('denied')
+        adm=s.admin(me); lead=s.leader(me)
+        if not adm and not lead: return s.no('denied')
         out=[]
         for uid,p in s.PROF.items():
-            mine=any(b==uid and s.PARTS.get(a,{}).get('leader_id')==me for a,b,_ in s.MEM); gone=uid in s.LEFT
-            if not (adm or uid==me or (mine and not gone)): continue
+            mine=lead and any(b==uid and a in s.PARTS for a,b,_ in s.MEM); gone=uid in s.LEFT
+            if not (adm or uid==me or (lead and not gone)): continue
             pid=s.part_of(uid); lp=s.LEFT.get(uid,{}).get('part')
             out.append(dict(user_id=uid,login_id=p['login_id'],name=p['name'],rank=p.get('rank',''),phone=p.get('phone',''),joined=s.MADE.get(uid,0),
                 leader=s.leader(uid),chief=s.chief(uid),admin=s.admin(uid),me=uid==me,mine=mine,part_id=pid,part=s.PARTS[pid]['name'] if pid else None,
                 leads=sum(1 for t in s.PARTS.values() if t['leader_id']==uid),left=gone,left_at=s.LEFT.get(uid,{}).get('at'),left_part=s.PARTS[lp]['name'] if lp in s.PARTS else None,
                 can_edit=s.staff_can(me,uid) and not gone,can_pw=s.staff_can(me,uid) and not gone,
-                can_role=adm and uid!=me and not s.admin(uid) and not gone,can_part=adm and uid!=me and not s.leader(uid) and not s.chief(uid) and not gone,
+                can_role=adm and uid!=me and not s.admin(uid) and not gone,can_part=(adm or lead) and uid!=me and not s.leader(uid) and not s.chief(uid) and not gone,
                 can_kick=adm and uid!=me and not s.admin(uid)))
         rk=lambda x:0 if x['chief'] else 1 if x['leader'] else 2
         out.sort(key=lambda x:(x['left'],not x['me'],rk(x),(x['name'] or '').strip() or x['login_id'],x['login_id']))
-        parts=[dict(id=k,name=t['name'],leader_id=t['leader_id'],leader_name=s.name(t['leader_id'])) for k,t in sorted(s.PARTS.items(),key=lambda x:x[1]['created']) if adm or t['leader_id']==me]
+        parts=[dict(id=k,name=t['name'],leader_id=t['leader_id'],leader_name=s.lname(t['leader_id'])) for k,t in sorted(s.PARTS.items(),key=lambda x:(x[1]['name'],x[1]['created']))]
         return s.ok(admin=adm,parts=parts,people=out)
     def f_dw_staff_set(s,me,p):
         if not isinstance(p,dict): return s.no('bad')
@@ -559,7 +564,7 @@ class Srv:
                 if k in p: r[k]=str(p.get(k) or '').strip()[:20]
             r['info_at']=max(r.get('info_at',0)+1,s.now_ms())
         if 'part' in p:
-            if not s.admin(me): return s.no('deny')
+            if not s.admin(me) and not s.leader(me): return s.no('deny')
             if s.leader(u) or s.chief(u): return s.no('leader')
             pid=str(p.get('part') or '').strip() or None
             if pid and pid not in s.PARTS: return s.no('nopart')

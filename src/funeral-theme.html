@@ -658,7 +658,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .dsh-acc .dsh-cases,.dsh-acc .dsh-list{border-radius:0;box-shadow:none;background:none}
 .dsh-acc .dsh-list .dsh-row,.dsh-acc .dsh-cases .dsh-case{border-radius:0!important}
 .dsh-acc .dsh-qgrid{padding:12px}
-.dsh-acc .dsh-qempty{border-radius:0;box-shadow:none;background:none}
+.dsh-acc .dsh-qempty{border:0;border-radius:0;box-shadow:none;background:none}
 .dsh-acc-more{display:flex;align-items:center;justify-content:center;gap:2px;width:100%;min-height:48px;border:0;border-top:1px solid var(--dsh-line);background:none;color:var(--brand,#2457D6);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
 .dsh-acc-more svg.dsh-chev{color:currentColor;width:16px;height:16px}
 .dsh-acc .dsh-empty{padding:20px 16px}
@@ -669,6 +669,13 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .dsh-amt .st-open,.dsh-amt .st-changed{color:var(--dsh-amber-i)}
 .dsh-amt .st-minus{color:var(--dsh-red-i)}
 .dsh:has(.dsh-acc){gap:12px}
+/* 넓은 화면 첫 화면 (2026.11.25 왼쪽 메뉴 맨 위 「홈 화면」 — PC · 태블릿에서도 엶): 요약 카드는 한 줄 · 묶음은 두 칸 */
+body[data-tab="home"] .page-intro{display:none}
+@media (min-width:1000px){
+  html body .dsh:has(.dsh-acc){max-width:1180px;display:block;columns:2;column-gap:16px;padding-top:8px}
+  .dsh:has(.dsh-acc)>*{break-inside:avoid;margin-bottom:16px}
+  .dsh:has(.dsh-acc)>.dsh-hero{column-span:all}
+}
 @media (hover:hover){.dsh-acc-h:hover,.dsh-acc-more:hover{background:var(--bg-hover,#F6F8FB)}}
 .dsh-acc-h:focus-visible,.dsh-acc-more:focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.dsh-acc-c{transition:none}}

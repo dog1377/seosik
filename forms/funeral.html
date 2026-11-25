@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.25-5">
+<meta name="app-version" content="2026.11.25-6">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -799,6 +799,14 @@ html.dw-side:root{--tabbar-h:0px}
 .dsn-step[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
 .dsn-other{display:flex;align-items:center;justify-content:center;min-height:40px;border:0;border-radius:10px;background:var(--surface,#FCFCFD);color:var(--ink,#1B2537);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
 .dsn-sec+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
+.dsn-home{display:flex;align-items:center;gap:10px;min-height:48px;margin-bottom:4px;padding:0 8px;border-radius:10px;color:var(--ink,#1B2537);font-size:14.5px;font-weight:700;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-home .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
+.dsn-home[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6)}
+.dsn-home[aria-current="page"] .ui-icon{color:var(--brand,#2457D6)}
+.dsn-home+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
+.dsn-cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0 2px 8px;padding:0 14px;border-radius:10px;background:var(--brand,#2457D6);color:var(--accent-ink,#F8FAFC);font-size:14.5px;font-weight:700;text-decoration:none;box-shadow:0 1px 2px rgb(15 23 42 / 12%);-webkit-tap-highlight-color:transparent}
+.dsn-cta .ui-icon{flex:none;width:18px;height:18px;stroke-width:2.2}
+a.dsn-rb{text-decoration:none}
 .dsn-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14.5px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dsn-h .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
 .dsn-h span{flex:1;min-width:0}
@@ -824,19 +832,19 @@ html.dw-side:root{--tabbar-h:0px}
 html.dsn-open .dsn-bg{display:block;position:fixed;inset:0;z-index:44;background:var(--overlay,rgb(15 23 42 / 30%))}
 .dsn-nav :focus-visible,.dsn-rail :focus-visible,.dsn-burger:focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:-2px}
 @media (hover:hover){
-  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-x:hover,.dsn-rb:hover{background:var(--field,#F0F3F8)}
+  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-x:hover,.dsn-rb:hover,.dsn-home:hover{background:var(--field,#F0F3F8)}
+  .dsn-cta:hover{background:var(--brand-hover,#1E49B8)}
+  .dsn-home[aria-current="page"]:hover{background:var(--bg-selected,#EDF2FF)}
   .dsn-i[aria-current="page"]:hover,.dsn-step[aria-current="page"]:hover,.dsn-rb.on:hover{background:var(--bg-selected,#EDF2FF)}
   .dsn-case .dsn-step:hover{background:var(--surface,#FCFCFD)}
 }
-.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active{transform:scale(.98)}
+.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active,.dsn-cta:active,.dsn-home:active{transform:scale(.98)}
 @media (min-width:1100px){
   html.dw-side:not(.dw-gated) body{padding-left:256px!important}
-  .dsn-ph{display:none!important}
 }
 @media (min-width:700px) and (max-width:1099px){
   html.dw-side:not(.dw-gated) .dsn-rail{display:flex}
   html.dw-side:not(.dw-gated) body{padding-left:72px!important}
-  .dsn-ph{display:none!important}
 }
 @media (max-width:1099px){
   .dsn-nav{z-index:45;width:300px;transform:translateX(-102%);visibility:hidden;transition:transform .2s cubic-bezier(.2,0,0,1),visibility 0s linear .2s;box-shadow:0 8px 32px rgb(15 23 42 / 18%)}
@@ -862,25 +870,29 @@ window.dwSide = (function () {
   var SV = function (p, c) { return '<svg' + (c ? ' class="' + c + '"' : '') + ' viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>'; };
   var MENU = SV('<path d="M4 7h16M4 12h16M4 17h16"/>'), X = SV('<path d="M6 6l12 12M18 6 6 18"/>'), CHEV = SV('<path d="m6 9 6 6 6-6"/>', 'dsn-chev');
   var EXT = (IC.ext || '');
-  var CREM = 'https://15774129.go.kr/info/total_search.do', CREM2 = 'https://15774129.go.kr/info/total_search2.do';
+  /* e하늘 장사정보시스템 (2026.11.25 사용자 「화장예약 · 화장예약 조회 · 개장유골 화장예약 이렇게 화장예약 탭」) */
+  var CREM_RES = 'https://www.15774129.go.kr/funeral/', CREM = 'https://15774129.go.kr/info/total_search.do', CREM_OLD = 'https://www.15774129.go.kr/funeral/sys2/main.do';
   var KEY = 'dw-side-acc';
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function call(n, a) { try { return typeof window[n] === 'function' ? window[n](a) : null; } catch (e) { return null; } }
   function role() { try { return NV.role ? NV.role() : 'member'; } catch (e) { return 'member'; } }
-  /* 묶음: [열쇠, 이름, 주소(forms/ 기준), 표시] — 표시 ph = 휴대폰만 · ext = 바깥 주소(새 창) · duty = 휴무 권한 */
+  /* 맨 위 「홈 화면」 (2026.11.25 사용자 「아코디언 제일 위에 홈 화면으로 가기」) */
+  function homeHref() { return role() === 'chief' ? './#fhome' : 'funeral.html#home'; }
+  /* 묶음: [열쇠, 이름, 주소(forms/ 기준), 표시] — 표시 btn = 버튼 모양(행사 등록) · ext = 바깥 주소(새 창) · duty = 휴무 권한 */
   function secs() {
     if (role() === 'chief') return [
       { k: 'forms', l: '서식', ic: 'doc', items: [['gather', '취합', './#gather'], ['forms', '서식 작성', './#forms'], ['company', '회사 서류', 'admin.html']] },
       { k: 'share', l: '함께 쓰기', ic: 'board', items: [['docs', '자료실', './#docs'], ['set', '설정', './#settings']] }];
     var L = role() === 'leader', S = [
-      { k: 'work', l: '행사 업무', ic: 'list', items: [['home', '홈', 'funeral.html#home', 'ph'], ['list', '행사 목록', 'funeral.html#list'], ['new', '새 행사', 'funeral.html#new'], ['poster', '장례일정표', 'funeral.html#poster'], ['crem', '화장예약 조회', CREM, 'ext'], ['crem2', '개장유골 화장예약', CREM2, 'ext']] },
-      { k: 'money', l: '정산 · 봉투', ic: 'settle', items: [['todo', '정산할 행사', 'funeral.html#todo'], ['envelopes', '봉투정리', 'funeral.html#envelopes']] }];
+      { k: 'work', l: '행사 업무', ic: 'list', items: [['new', '행사 등록', 'funeral.html#new', 'btn'], ['list', '행사 목록', 'funeral.html#list'], ['poster', '장례일정표', 'funeral.html#poster']] },
+      { k: 'money', l: '정산 · 봉투', ic: 'settle', items: [['todo', '정산할 행사', 'funeral.html#todo'], ['envelopes', '봉투정리', 'funeral.html#envelopes']] },
+      { k: 'crem', l: '화장예약', ic: 'crem', items: [['cremres', '화장예약', CREM_RES, 'ext'], ['crem', '화장예약 조회', CREM, 'ext'], ['crem2', '개장유골 화장예약', CREM_OLD, 'ext']] }];
     if (L) S.push({ k: 'forms', l: '서식', ic: 'doc', items: [['weekly', '주간보고', './#weekly'], ['minutes', '회의록', './#minutes'], ['review', '후기보고', './#review'], ['consult', '상담서', './#consult'], ['company', '회사 서류', 'admin.html']] });
     S.push({ k: 'ship', l: '배송', ic: 'truck', items: [['dnew', '새 배송', 'funeral.html#dnew'], ['deliv', '배송 기록', 'funeral.html#deliv']].concat(L ? [['ship', '탁송 · 출고', './#ship'], ['stock', '물품 수령 · 불출', './#stock']] : []) });
     S.push({ k: 'share', l: '함께 쓰기', ic: 'board', items: [['board', '게시판', './#board'], ['docs', '자료실', './#docs'], ['duty', '휴무 · 당직', 'funeral.html#duty', 'duty'], ['set', '설정', 'funeral.html#admin']] });
     return S;
   }
-  var RAIL = { work: '행사', money: '정산', forms: '서식', ship: '배송', share: '함께' };
+  var RAIL = { work: '행사', money: '정산', crem: '화장', forms: '서식', ship: '배송', share: '함께' };
   function accGet() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
   function accSet(k, v) { var a = accGet(); a[k] = v; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
   function overlay() { return !(window.matchMedia && matchMedia('(min-width:1100px)').matches); }
@@ -899,7 +911,9 @@ window.dwSide = (function () {
     document.body.insertBefore(rail, document.body.firstChild);
     bg.addEventListener('click', function () { close(); });
     nav.addEventListener('click', onClick);
-    rail.addEventListener('click', function (e) { var b = e.target.closest('[data-dsn-open]'); if (b) open(b.getAttribute('data-dsn-open') || ''); });
+    rail.addEventListener('click', function (e) {
+      var hm = e.target.closest('[data-dsn-rail-home]'); if (hm) { if (e.ctrlKey || e.metaKey || e.shiftKey) return; e.preventDefault(); go('home', hm.getAttribute('href')); return; }
+      var b = e.target.closest('[data-dsn-open]'); if (b) open(b.getAttribute('data-dsn-open') || ''); });
     nav.addEventListener('keydown', trap);
     return true;
   }
@@ -947,13 +961,14 @@ window.dwSide = (function () {
       var open_ = has || (s.k in acc ? !!acc[s.k] : (s.k === 'work' || s.k === 'money'));
       h += '<section class="dsn-sec"><button type="button" class="dsn-h" data-dsn-h="' + s.k + '" aria-expanded="' + open_ + '" aria-controls="dsnS-' + s.k + '">' + (IC[s.ic] || '') + '<span>' + esc(s.l) + '</span>' + CHEV + '</button>'
         + '<div class="dsn-items" id="dsnS-' + s.k + '">' + s.items.map(function (x) {
-          var cls = 'dsn-i' + (x[3] === 'ph' ? ' dsn-ph' : '');
+          if (x[3] === 'btn') return '<a class="dsn-cta" data-dsn="' + x[0] + '" href="' + esc(x[2]) + '">' + (IC.plus || '') + '<span>' + esc(x[1]) + '</span></a>';
+          var cls = 'dsn-i';
           if (x[3] === 'ext') return '<a class="' + cls + '" data-dsn="' + x[0] + '" href="' + esc(x[2]) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(x[1]) + ' (새 창)"><span>' + esc(x[1]) + '</span>' + EXT + '</a>';
           var b = badge[x[0]];
           return '<a class="' + cls + '" data-dsn="' + x[0] + '" href="' + esc(x[2]) + '"' + (x[0] === cur ? ' aria-current="page"' : '') + '><span>' + esc(x[1]) + '</span>' + (b ? '<em class="dsn-badge">' + esc(b) + '</em>' : '') + '</a>';
         }).join('') + '</div></section>';
     });
-    nav.querySelector('.dsn-secs').innerHTML = h;
+    nav.querySelector('.dsn-secs').innerHTML = '<a class="dsn-home" data-dsn="home" href="' + esc(homeHref()) + '"' + (cur === 'home' ? ' aria-current="page"' : '') + ' aria-label="홈 화면으로 가기">' + (IC.home || '') + '<span>홈 화면</span></a>' + h;
     var cb = call('DW_SIDE_CASE'), box = nav.querySelector('#dwSideCase');
     if (cb && cb.t) {
       box.hidden = false;
@@ -963,6 +978,7 @@ window.dwSide = (function () {
         }).join('') + '</div><button type="button" class="dsn-other" data-dsn-case="pick">다른 행사 고르기</button>';
     } else { box.hidden = true; box.innerHTML = ''; }
     rail.innerHTML = '<button type="button" class="dsn-rb menu" data-dsn-open="" aria-label="전체 메뉴 열기">' + MENU + '</button>'
+      + '<a class="dsn-rb' + (cur === 'home' ? ' on' : '') + '" data-dsn-rail-home href="' + esc(homeHref()) + '" aria-label="홈 화면으로 가기">' + (IC.home || '') + '<span>홈</span></a>'
       + (cb && cb.t ? '<button type="button" class="dsn-rb on" data-dsn-open="case" aria-label="지금 보는 행사 · ' + esc(cb.t) + '">' + (IC.input || '') + '<span>이 행사</span></button>' : '')
       + S.map(function (s) { return '<button type="button" class="dsn-rb' + (!(cb && cb.t) && s.k === curSec ? ' on' : '') + '" data-dsn-open="' + s.k + '" aria-label="' + esc(s.l) + ' 메뉴">' + (IC[s.ic] || '') + '<span>' + esc(RAIL[s.k] || s.l) + '</span></button>'; }).join('');
     var who = '', v = null; try { if (window.dwHome && window.dwHome.who) who = window.dwHome.who().replace(/님$/, ''); } catch (e) {}
@@ -2648,7 +2664,7 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .dsh-acc .dsh-cases,.dsh-acc .dsh-list{border-radius:0;box-shadow:none;background:none}
 .dsh-acc .dsh-list .dsh-row,.dsh-acc .dsh-cases .dsh-case{border-radius:0!important}
 .dsh-acc .dsh-qgrid{padding:12px}
-.dsh-acc .dsh-qempty{border-radius:0;box-shadow:none;background:none}
+.dsh-acc .dsh-qempty{border:0;border-radius:0;box-shadow:none;background:none}
 .dsh-acc-more{display:flex;align-items:center;justify-content:center;gap:2px;width:100%;min-height:48px;border:0;border-top:1px solid var(--dsh-line);background:none;color:var(--brand,#2457D6);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
 .dsh-acc-more svg.dsh-chev{color:currentColor;width:16px;height:16px}
 .dsh-acc .dsh-empty{padding:20px 16px}
@@ -2659,6 +2675,13 @@ textarea.input.pz-ta{min-height:132px;height:auto;resize:vertical;padding:12px 1
 .dsh-amt .st-open,.dsh-amt .st-changed{color:var(--dsh-amber-i)}
 .dsh-amt .st-minus{color:var(--dsh-red-i)}
 .dsh:has(.dsh-acc){gap:12px}
+/* 넓은 화면 첫 화면 (2026.11.25 왼쪽 메뉴 맨 위 「홈 화면」 — PC · 태블릿에서도 엶): 요약 카드는 한 줄 · 묶음은 두 칸 */
+body[data-tab="home"] .page-intro{display:none}
+@media (min-width:1000px){
+  html body .dsh:has(.dsh-acc){max-width:1180px;display:block;columns:2;column-gap:16px;padding-top:8px}
+  .dsh:has(.dsh-acc)>*{break-inside:avoid;margin-bottom:16px}
+  .dsh:has(.dsh-acc)>.dsh-hero{column-span:all}
+}
 @media (hover:hover){.dsh-acc-h:hover,.dsh-acc-more:hover{background:var(--bg-hover,#F6F8FB)}}
 .dsh-acc-h:focus-visible,.dsh-acc-more:focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.dsh-acc-c{transition:none}}
@@ -4113,7 +4136,7 @@ function fillTpl(body,c,over){
 
 /* 화장예약 간편조회 (2026.11.19 사용자: 「어플메인에 화장예약간편조회서비스 · E하늘 공식 서비스 · 누르면 바로 연결」)
    e하늘 장사정보시스템 첫 화면 「시신 화장예약정보 간편조회 서비스」 버튼이 여는 주소 그대로(사망자 성명으로 당일~5일 예약 조회, 로그인 없음). 개장유골은 total_search2.do */
-const CREM_URL='https://15774129.go.kr/info/total_search.do', CREM_URL2='https://15774129.go.kr/info/total_search2.do';   /* 2 = 개장유골 */
+const CREM_URL='https://15774129.go.kr/info/total_search.do', CREM_RES='https://www.15774129.go.kr/funeral/', CREM_OLD='https://www.15774129.go.kr/funeral/sys2/main.do';   /* 조회 · 화장예약 · 개장유골 화장예약 (2026.11.25 왼쪽 메뉴 「화장예약」 묶음과 같은 곳) */
 const UI_ICONS={"calendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"3\"/><path d=\"M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2\"/>", "edit": "<path d=\"m16 3 5 5-12 12-6 1 1-6zM13 6l5 5M3 6V3h5\"/>", "report": "<path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5\"/>", "wallet": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"3\"/><path d=\"M3 8h18M21 12h-6v5h6M17 14.5h.01\"/>", "settings": "<path d=\"M4 7h10M18 7h2M4 17h4M12 17h8\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"10\" cy=\"17\" r=\"2\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "building": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-5h4v5\"/>", "right": "<path d=\"M5 12h14m-5-5 5 5-5 5\"/>", "left": "<path d=\"M19 12H5m5-5-5 5 5 5\"/>", "lock": "<rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V6a4 4 0 0 1 8 0v4M12 14v3\"/>", "ext": "<path d=\"M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5\"/>"};
 const uiIcon=k=>`<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">${UI_ICONS[k]||''}</svg>`;
 const INPUT_GROUPS=[{id:'basic',label:'기본 정보'},{id:'schedule',label:'장례 일정'},{id:'service',label:'상품·제공'},{id:'staff',label:'담당·배치'}];
@@ -8650,8 +8673,9 @@ function qkCatalog(){
     {g:'행사 업무',k:'p-settle',l:'정산',s:nSt?[opens.length&&`정산 대기 ${opens.length}건`,minus.length&&`차감 대기 ${minus.length}건`].filter(Boolean).join(' · '):'행사 골라 정산',ic:'settle',tone:'amber',warn:nSt>0},
     {g:'행사 업무',k:'envelopes',l:'봉투정리',s:`${mm}월 봉투 ${wonStr(env.all.total)||'0원'}`,ic:'envelopes',tone:'amber'},
     {g:'행사 업무',k:'q-poster',l:'장례일정표',s:'빈소 게시용 출력',ic:'poster',tone:'mint'},
-    Object.assign({g:'행사 업무'},CREM_ROW),
-    {g:'행사 업무',k:'crem2',l:'개장유골 화장예약',s:'e하늘 간편조회',ic:'crem',tone:'mint',href:CREM_URL2,aria:'개장유골 화장예약 간편조회 · e하늘'},
+    {g:'화장예약',k:'cremres',l:'화장예약',s:'e하늘 예약 신청',ic:'crem',tone:'mint',href:CREM_RES,aria:'화장예약 · e하늘'},
+    Object.assign({g:'화장예약'},CREM_ROW),
+    {g:'화장예약',k:'crem2',l:'개장유골 화장예약',s:'e하늘 개장유골',ic:'crem',tone:'mint',href:CREM_OLD,aria:'개장유골 화장예약 · e하늘'},
     {g:'배송',k:'d-new',l:'새 배송',s:'배송 양식 작성',ic:'plus',tone:'purple'},
     {g:'배송',k:'q-deliv',l:'배송 기록',s:dvCur()?`작성 중 · 전체 ${dvN}건`:`전체 ${dvN}건`,ic:'truck',tone:'purple'},
     {g:'함께 쓰기',k:'duty',l:'휴무 · 당직',s:'일정 달력',ic:'duty',tone:'mint'},

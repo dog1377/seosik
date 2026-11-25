@@ -1386,9 +1386,10 @@ window.DW_MODE = () => modeOf(S.tab);
 window.DW_MODE_GO = (m) => { const ph = !!(window.dwPhone && window.dwPhone());   /* 칸 바꾸기는 태블릿 · PC 위 막대만 (휴대폰은 첫 화면 한 장) */
   if (m === 'event') goFuneral(ph ? 'home' : 'sec-event'); else if (m === 'deliv') goFuneral(ph ? 'home' : 'deliv'); else showTab(ph ? 'fhome' : 'forms'); return true; };
 /* 왼쪽 메뉴 (2026.11.25 B안, leader-gate-head.html window.dwSide): 지금 메뉴 · 이 화면에서 여는 메뉴 */
-window.DW_SIDE_CUR = () => (S.tab === 'settings' ? 'set' : isChief() && FORM_TABS.includes(S.tab) ? 'forms' : S.tab);
+window.DW_SIDE_CUR = () => (S.tab === 'settings' ? 'set' : S.tab === 'fhome' ? 'home' : isChief() && FORM_TABS.includes(S.tab) ? 'forms' : S.tab);
 window.DW_SIDE_GO = (k) => {
   if (k === 'company') { goCompany(); return true; }
+  if (k === 'home' && isChief()) { showTab('fhome'); return true; }
   if (k === 'set') { if (isChief()) { showTab('settings'); return true; } return false; }
   if (['board', 'docs', 'weekly', 'minutes', 'review', 'consult', 'ship', 'stock', 'gather', 'forms'].includes(k)) { showTab(k); return true; }
   return false;
@@ -3355,8 +3356,8 @@ function paintBoard() {
   const links = !pbMine() ? '' : view === 'posts'
     ? `<button class="pg-link" type="button" data-bdv="status">파트 <b>현황</b>${R}</button><button class="pg-link" type="button" data-bdv="people">파트원 <b>관리</b>${R}</button>`
     : `<button class="pg-link" type="button" data-bdv="posts">${L}게시판으로</button>`;
-  h += `<header class="pg-head"><div class="pg-h"><h1 class="pg-title">${esc(T[0])}<span class="pg-count num">${esc(T[1])}</span></h1><p class="pg-sub"><span>${esc(p.name)} · 파트장 ${esc(p.leader_name)} · 파트원 ${Number(p.members) || 0}명</span>${links}</p></div>${view === 'posts' ? `<button class="btn primary pg-cta" type="button" data-bd="write">${PG_ICO_PLUS}글쓰기</button>` : ''}</header>`;
-  if (parts.length > 1 && view !== 'posts') h += `<div class="pg-tools keep"><div class="pg-sel"><select class="input" id="bdPart" aria-label="파트 고르기">${parts.map((x) => `<option value="${esc(x.id)}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)}${x.mine ? ' (내 파트)' : ''}</option>`).join('')}</select></div></div>`;
+  h += `<header class="pg-head"><div class="pg-h"><h1 class="pg-title">${esc(T[0])}<span class="pg-count num">${esc(T[1])}</span></h1><p class="pg-sub"><span>${esc(p.name)}${p.leader_name ? ` · 파트장 ${esc(p.leader_name)}` : ''} · 파트원 ${Number(p.members) || 0}명</span>${links}</p></div>${view === 'posts' ? `<button class="btn primary pg-cta" type="button" data-bd="write">${PG_ICO_PLUS}글쓰기</button>` : ''}</header>`;
+  if (parts.length > 1 && view !== 'posts') h += `<div class="pg-tools keep"><div class="pg-sel"><select class="input" id="bdPart" aria-label="파트 고르기">${parts.map((x) => `<option value="${esc(x.id)}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)}${x.mine && !PB.me.leader ? ' (내 파트)' : ''}</option>`).join('')}</select></div></div>`;
   h += view === 'people' ? peopleView(p) : view === 'status' ? statusView(p) : postsView(parts, p);
   const ae = document.activeElement, hadQ = ae && ae.id === 'bdQ', pos = hadQ ? ae.selectionStart : 0;
   el.innerHTML = h;
@@ -3367,7 +3368,7 @@ function postsView(parts, p) {
   if (!P[PB.pf || '']) PB.pf = '';
   const base = ps.filter((x) => !q || pgKey([x.title, x.body, x.author].join(' ')).includes(q)), n = (k) => base.filter(P[k]).length;
   let h = `<section class="pg-kpi" role="group" aria-label="글 거르기">${pgCards([['', '전체', pgN(n('')), '최근 100건까지'], ['notice', '공지', pgN(n('notice')), '파트장님 공지'], ['mine', '내가 쓴 글', pgN(n('mine')), '고치거나 지울 수 있는 글'], ['cmt', '댓글 있는 글', pgN(n('cmt')), `댓글 모두 ${base.reduce((a, x) => a + (Number(x.comments) || 0), 0)}개`]], PB.pf || '', 'data-bd-card')}</section>`;
-  h += `<div class="pg-tools keep"><label class="pg-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="bdQ" type="search" value="${esc(PB.q || '')}" placeholder="제목 · 내용 · 쓴 사람 검색" aria-label="글 검색" enterkeyhint="search" autocomplete="off"></label>${parts.length > 1 ? `<div class="pg-sel"><select class="input" id="bdPart" aria-label="파트 고르기">${parts.map((x) => `<option value="${esc(x.id)}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)}${x.mine ? ' (내 파트)' : ''}</option>`).join('')}</select></div>` : ''}</div>`;
+  h += `<div class="pg-tools keep"><label class="pg-search"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input class="input" id="bdQ" type="search" value="${esc(PB.q || '')}" placeholder="제목 · 내용 · 쓴 사람 검색" aria-label="글 검색" enterkeyhint="search" autocomplete="off"></label>${parts.length > 1 ? `<div class="pg-sel"><select class="input" id="bdPart" aria-label="파트 고르기">${parts.map((x) => `<option value="${esc(x.id)}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)}${x.mine && !PB.me.leader ? ' (내 파트)' : ''}</option>`).join('')}</select></div>` : ''}</div>`;
   const list = base.filter(P[PB.pf || '']);
   if (!PB.posts && PB.busy) h += '<div class="pg-empty"><p>불러오는 중…</p></div>';
   else if (!ps.length) h += `<div class="pg-empty"><p>아직 글이 없습니다. ${pbMine() ? '파트 공지나 안내를 올려 보십시오.' : '궁금한 것이나 함께 알 것을 올려 보십시오.'}</p></div>`;
@@ -3409,12 +3410,14 @@ function peopleView(p) {
   h += `<section class="card"><h2>파트원 넣기</h2><p class="small-t muted">직원이 가입할 때 쓴 이메일을 입력하십시오. 한 직원은 한 파트에만 들어갈 수 있습니다.</p>
     <div class="bd-add"><input id="bdAddId" type="email" inputmode="email" maxlength="80" placeholder="이메일 입력" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="직원 이메일"><button class="btn primary" type="button" data-bd="add">넣기</button></div></section>`;
   h += `<section class="card"><h2>파트원 명단 · ${mem.length}명</h2>${mem.length ? `<div class="bd-ppl">${mem.map((x) => `<div class="bd-pp rl"><div><b>${esc(pName(x))}</b>${x.name ? `<small>${esc(x.login_id)}</small>` : ''}</div><span class="rl-btns"><button class="btn small quiet" type="button" data-pwreset="${esc(x.user_id)}" data-nm="${esc(pName(x))}">비밀번호 초기화</button><button class="btn small quiet" type="button" data-bd="remove" data-uid="${esc(x.user_id)}">빼기</button></span></div>`).join('')}</div>` : '<p class="bd-empty">아직 파트원이 없습니다.</p>'}</section>`;
-  h += `<section class="card"><h2>파트 설정</h2><div class="bd-add"><input id="bdRename" type="text" maxlength="30" value="${esc(p.name)}" aria-label="파트 이름"><button class="btn" type="button" data-bd="rename">이름 바꾸기</button></div>
+  h += p.fixed ? `<section class="card"><h2>파트 설정</h2><p class="small-t muted">1파트 ~ 4파트는 회사 공통 파트입니다. 파트장이면 누구든 모든 파트의 게시판 · 파트원 · 현황을 같이 관리하고, 직원의 파트는 이 화면 「파트원 넣기」나 설정 → 직원 명단에서 정합니다.</p>
+    <button class="btn quiet small" type="button" data-bd="more">파트 하나 더 만들기</button><div id="bdMore" hidden>${partCreateCard(false)}</div></section>`
+    : `<section class="card"><h2>파트 설정</h2><div class="bd-add"><input id="bdRename" type="text" maxlength="30" value="${esc(p.name)}" aria-label="파트 이름"><button class="btn" type="button" data-bd="rename">이름 바꾸기</button></div>
     <button class="btn quiet small" type="button" data-bd="more">파트 하나 더 만들기</button><div id="bdMore" hidden>${partCreateCard(false)}</div>
     <div class="wipe-zone"><p class="small-t muted">파트를 없애면 이 파트 게시판 글 · 댓글과 파트원 명단이 삭제됩니다. 직원 계정과 장례 기록은 그대로입니다.</p><button class="btn danger block" type="button" data-bd="delpart">이 파트 없애기</button></div></section>`;
   return h;
 }
-const WHY_KO = { chief: '총괄실장 계정은 파트원으로 넣을 수 없습니다', notchief: '총괄실장 계정만 볼 수 있습니다', role: '권한을 바꾸지 못했습니다', notleader: '파트장만 할 수 있습니다', nouser: '그 이메일로 가입한 직원이 없습니다. 다시 확인해 주십시오', already: '이미 이 파트에 있습니다', leader: '파트장 계정은 파트원으로 넣을 수 없습니다', otherpart: '이미 다른 파트에 있는 직원입니다', self: '파트장님은 넣지 않아도 됩니다', name: '이름을 입력하십시오', empty: '내용을 입력하십시오', denied: '쓴 사람이나 파트장만 할 수 있습니다', gone: '지워진 글입니다', notmember: '이 파트 사람만 볼 수 있습니다' };
+const WHY_KO = { chief: '총괄실장 계정은 파트원으로 넣을 수 없습니다', notchief: '총괄실장 계정만 볼 수 있습니다', role: '권한을 바꾸지 못했습니다', notleader: '파트장만 할 수 있습니다', nouser: '그 이메일로 가입한 직원이 없습니다. 다시 확인해 주십시오', already: '이미 이 파트에 있습니다', leader: '파트장 계정은 파트원으로 넣을 수 없습니다', otherpart: '이미 다른 파트에 있는 직원입니다. 파트를 옮길 때는 설정 → 직원 명단에서 바꾸십시오', fixed: '1파트 ~ 4파트는 없애거나 이름을 바꿀 수 없습니다', self: '파트장님은 넣지 않아도 됩니다', name: '이름을 입력하십시오', empty: '내용을 입력하십시오', denied: '쓴 사람이나 파트장만 할 수 있습니다', gone: '지워진 글입니다', notmember: '이 파트 사람만 볼 수 있습니다' };
 function pbFail(e) { toast(e && e.why && !WHY_KO[e.why] ? pbWhyText(e.why, !isMember()).replace(/\.$/, '') : (WHY_KO[(e && e.why) || ''] || '지금은 하지 못했습니다. 잠시 뒤에 다시 해 주십시오')); }
 async function pbCall(fn, args, btn) {
   if (btn) btn.disabled = true;
@@ -4635,21 +4638,23 @@ function sfPaint() {
   const d = SF.d, all = (d && d.people) || [], adm = !!(d && d.admin), parts = (d && d.parts) || [], live = all.filter((x) => !x.left);
   $('#sfSub').textContent = !d ? '가입한 직원의 이름 · 직급 · 전화번호 · 권한을 한곳에서 고칩니다.'
     : adm ? '가입한 직원의 이름 · 직급 · 전화번호 · 권한 · 파트를 한곳에서 고칩니다. 퇴사한 직원은 제명하십시오.'
-      : '우리 파트원의 이름 · 직급 · 전화번호를 고칩니다. 파트원 넣기 · 빼기는 게시판 → 파트원 관리에서 합니다.';
+      : '직원의 이름 · 직급 · 전화번호와 파트(1파트 ~ 4파트)를 정합니다. 파트장은 모든 파트를 같이 관리합니다.';
   $('#sfCount').textContent = `${live.length}명`;
-  const F = { '': (x) => !x.left, nophone: (x) => !x.left && !String(x.phone || '').trim(), norank: (x) => !x.left && !String(x.rank || '').trim(), left: (x) => x.left };
+  const F = { '': (x) => !x.left, nopart: (x) => !x.left && !x.part_id && !x.leader && !x.chief, nophone: (x) => !x.left && !String(x.phone || '').trim(), norank: (x) => !x.left && !String(x.rank || '').trim(), left: (x) => x.left };
   if (!F[SF.f] || (SF.f === 'left' && !adm)) SF.f = '';
   const n = (k) => all.filter(F[k]).length, lead = live.filter((x) => x.leader).length, chief = live.filter((x) => x.chief).length;
-  const cards = [['', adm ? '재직' : '우리 파트', pgN(n(''), '명'), adm ? `파트장 ${lead}명 · 총괄실장 ${chief}명` : parts.map((t) => t.name).join(' · ') || '파트 없음'],
-    ['nophone', '전화번호 없음', pgN(n('nophone'), '명'), n('nophone') ? '장례일정표에 필요합니다' : '모두 넣었습니다', n('nophone') ? 'st-open' : ''],
-    ['norank', '직급 없음', pgN(n('norank'), '명'), n('norank') ? '서랍에서 고를 수 있습니다' : '모두 넣었습니다', n('norank') ? 'st-open' : '']];
-  if (adm) cards.push(['left', '제명', pgN(n('left'), '명'), '로그인이 막힌 직원', n('left') ? 'st-minus' : '']);
+  /* 2026.11.25 파트장 누구든 직원 파트 지정 → 「파트 없음」 카드 (누르면 파트를 안 정한 직원만) */
+  const cards = [['', '재직', pgN(n(''), '명'), `파트장 ${lead}명 · 총괄실장 ${chief}명`],
+    ['nopart', '파트 없음', pgN(n('nopart'), '명'), n('nopart') ? '줄을 눌러 파트를 정하십시오' : '모두 정했습니다', n('nopart') ? 'st-open' : ''],
+    ['nophone', '전화번호 없음', pgN(n('nophone'), '명'), n('nophone') ? '장례일정표에 필요합니다' : '모두 넣었습니다', n('nophone') ? 'st-open' : '']];
+  cards.push(adm ? ['left', '제명', pgN(n('left'), '명'), '로그인이 막힌 직원', n('left') ? 'st-minus' : '']
+    : ['norank', '직급 없음', pgN(n('norank'), '명'), n('norank') ? '서랍에서 고를 수 있습니다' : '모두 넣었습니다', n('norank') ? 'st-open' : '']);
   $('#sfKpi').innerHTML = pgCards(cards, SF.f, 'data-sf-card'); $('#sfKpi').classList.toggle('sf-kpi3', cards.length === 3);
   /* 파트 고르기: 관리자 = 모든 파트 + 파트 없음, 파트장 = 내 파트가 둘 이상일 때만 */
-  const opts = [['', '모든 파트']].concat(parts.map((t) => [t.id, adm ? `${t.name} · ${t.leader_name}` : t.name])).concat(adm ? [['none', '파트 없음']] : []);
+  const opts = [['', '모든 파트']].concat(parts.map((t) => [t.id, adm && t.leader_name ? `${t.name} · ${t.leader_name}` : t.name])).concat([['none', '파트 없음']]);
   if (!opts.some((o) => o[0] === SF.part)) SF.part = '';
   $('#sfPartSel').innerHTML = opts.map(([v, t]) => `<option value="${esc(v)}"${v === SF.part ? ' selected' : ''}>${esc(t)}</option>`).join('');
-  $('#sfSelBox').hidden = !(adm ? parts.length : parts.length > 1);
+  $('#sfSelBox').hidden = !parts.length;
   pgSync('#sfQ', SF.q);
   const q = pgKey(SF.q).replace(/-/g, '');
   const rows = all.filter(F[SF.f]).filter((x) => !SF.part || (SF.part === 'none' ? !x.part_id && !x.leader && !x.chief : x.part_id === SF.part || (!x.part_id && (parts.find((t) => t.id === SF.part) || {}).leader_id === x.user_id)))
@@ -4664,7 +4669,7 @@ function sfPaint() {
 }
 function sfRowHtml(x) {
   const nm = sfName(x), tel = String(x.phone || '').trim(), rk = String(x.rank || '').trim();
-  const sub = [x.login_id, x.left ? `${sfDay(x.left_at)} 제명` : x.chief ? '' : x.leader ? (x.leads ? `파트 ${x.leads}개` : '') : x.part || '파트 없음'].filter(Boolean).join(' · ');
+  const sub = [x.login_id, x.left ? `${sfDay(x.left_at)} 제명` : x.chief || x.leader ? '' : x.part || '파트 없음'].filter(Boolean).join(' · ');
   return pgTr('data-sf-open', x.user_id, `${nm} 정보 열기`, `<span role="cell" class="lv-what lv-who"><span class="sf-ava${x.left ? ' off' : ''}" aria-hidden="true">${esc(nm.slice(0, 1))}</span><span><b>${esc(nm)}${x.me ? ' <i class="lv-me">나</i>' : ''}</b><small>${esc(sub)}</small></span></span>
     <span role="cell" class="lv-day">${rk ? esc(rk) : '<span class="lv-x0">직급 없음</span>'}</span>
     <span role="cell" class="lv-send sf-tel">${tel ? esc(tel) : '<span class="lv-x0">전화번호 없음</span>'}</span>
@@ -4695,13 +4700,13 @@ function sfDrawerData(x) {
   if (x.can_role) {
     const cur = x.chief ? 'chief' : x.leader ? 'leader' : 'member';
     rp += `<div class="field"><span class="field-label" id="sfRoleL">권한</span><div class="seg sf-role" role="group" aria-labelledby="sfRoleL">${[['member', '직원'], ['leader', '파트장'], ['chief', '총괄실장']].map(([k, t]) => `<button type="button" data-sf-role="${k}" aria-pressed="${k === cur}">${t}</button>`).join('')}</div>
-      <p class="lvd-note">파트장: 서식 · 설정 · 회사 서류가 보이고 파트를 만듭니다. 총괄실장: 취합 · 서식 · 회사 서류만 보입니다.</p></div>`;
+      <p class="lvd-note">파트장: 서식 · 설정 · 회사 서류가 보이고 1~4파트를 같이 관리합니다. 총괄실장: 취합 · 서식 · 회사 서류만 보입니다.</p></div>`;
   }
   if (x.can_part) {
-    rp += `<label class="field"><span>파트</span><select class="input" id="sfPartPick">${[['', '파트 없음']].concat(parts.map((t) => [t.id, `${t.name} · ${t.leader_name}`])).map(([v, t]) => `<option value="${esc(v)}"${(x.part_id || '') === v ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
+    rp += `<label class="field"><span>파트</span><select class="input" id="sfPartPick">${[['', '파트 없음']].concat(parts.map((t) => [t.id, t.leader_name ? `${t.name} · ${t.leader_name}` : t.name])).map(([v, t]) => `<option value="${esc(v)}"${(x.part_id || '') === v ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
   }
   if (rp || !x.left) {
-    const info = [(!x.can_role && !x.left) ? row('권한', esc(sfRole(x)) + (x.admin ? ' · 관리자' : '')) : '', !x.can_part && !x.chief && !x.left ? row('파트', esc(x.leader ? (x.leads ? `파트 ${x.leads}개를 맡음` : '맡은 파트 없음') : x.part || '없음')) : '', x.left && x.left_part ? row('있던 파트', esc(x.left_part)) : ''].join('');
+    const info = [(!x.can_role && !x.left) ? row('권한', esc(sfRole(x)) + (x.admin ? ' · 관리자' : '')) : '', !x.can_part && !x.chief && !x.left ? row('파트', esc(x.leader ? '모든 파트 같이 관리' : x.part || '없음')) : '', x.left && x.left_part ? row('있던 파트', esc(x.left_part)) : ''].join('');
     body += `<section class="lvd-sec"><h3>권한 · 파트</h3>${info ? `<dl class="lvd-dl">${info}</dl>` : ''}${rp}</section>`;
   }
   /* 계정 */
@@ -4808,8 +4813,12 @@ function sfBind() {
     try { d = await window.dwAcct.rpc('dw_staff_list'); if (!d || !d.ok) throw { why: (d && d.why) || 'net' }; }
     catch (err) { toast(sfWhy((err && err.why) || 'net').replace(/\.$/, '')); return; }
     finally { b.disabled = false; }
-    const mem = (d.people || []).filter((x) => x.mine && !x.left);
-    if (!mem.length) { toast('내 파트에 들어간 직원이 없습니다. 게시판 → 파트원 관리에서 먼저 넣어 주십시오', 4000); return; }
+    /* 2026.11.25 파트장 모두 1~4파트를 같이 관리 → 「보고서 기본 정보」의 파트명(예: 장례지원 1파트)과 같은 번호 파트의 직원 */
+    const pm = String(sdraft().part || '').match(/(\d+)\s*파트/), pn = pm ? pm[1] : '';
+    if (!pn) { toast('보고서 기본 정보의 파트명(예: 1파트)을 먼저 정하고 저장해 주십시오', 4000); return; }
+    const inPart = (x) => new RegExp('(^|\\D)' + pn + '\\s*파트').test(String(x.part || ''));
+    const mem = (d.people || []).filter((x) => !x.left && !x.leader && !x.chief && inPart(x));
+    if (!mem.length) { toast(`${pn}파트에 들어간 직원이 없습니다. 설정 → 직원 명단에서 파트를 먼저 정해 주십시오`, 4000); return; }
     const r = sdraft().roster; let add = 0, upd = 0;
     mem.forEach((x) => { const nm = sfName(x), rk = String(x.rank || '').trim(), ex = r.find((y) => String(y.name || '').trim() === nm);
       if (ex) { if (rk && String(ex.rank || '').trim() !== rk) { ex.rank = rk; upd++; } } else { r.push({ name: nm, rank: rk }); add++; } });

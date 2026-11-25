@@ -764,6 +764,14 @@ html.dw-side:root{--tabbar-h:0px}
 .dsn-step[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
 .dsn-other{display:flex;align-items:center;justify-content:center;min-height:40px;border:0;border-radius:10px;background:var(--surface,#FCFCFD);color:var(--ink,#1B2537);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
 .dsn-sec+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
+.dsn-home{display:flex;align-items:center;gap:10px;min-height:48px;margin-bottom:4px;padding:0 8px;border-radius:10px;color:var(--ink,#1B2537);font-size:14.5px;font-weight:700;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-home .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
+.dsn-home[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6)}
+.dsn-home[aria-current="page"] .ui-icon{color:var(--brand,#2457D6)}
+.dsn-home+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
+.dsn-cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0 2px 8px;padding:0 14px;border-radius:10px;background:var(--brand,#2457D6);color:var(--accent-ink,#F8FAFC);font-size:14.5px;font-weight:700;text-decoration:none;box-shadow:0 1px 2px rgb(15 23 42 / 12%);-webkit-tap-highlight-color:transparent}
+.dsn-cta .ui-icon{flex:none;width:18px;height:18px;stroke-width:2.2}
+a.dsn-rb{text-decoration:none}
 .dsn-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14.5px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dsn-h .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
 .dsn-h span{flex:1;min-width:0}
@@ -789,19 +797,19 @@ html.dw-side:root{--tabbar-h:0px}
 html.dsn-open .dsn-bg{display:block;position:fixed;inset:0;z-index:44;background:var(--overlay,rgb(15 23 42 / 30%))}
 .dsn-nav :focus-visible,.dsn-rail :focus-visible,.dsn-burger:focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:-2px}
 @media (hover:hover){
-  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-x:hover,.dsn-rb:hover{background:var(--field,#F0F3F8)}
+  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-x:hover,.dsn-rb:hover,.dsn-home:hover{background:var(--field,#F0F3F8)}
+  .dsn-cta:hover{background:var(--brand-hover,#1E49B8)}
+  .dsn-home[aria-current="page"]:hover{background:var(--bg-selected,#EDF2FF)}
   .dsn-i[aria-current="page"]:hover,.dsn-step[aria-current="page"]:hover,.dsn-rb.on:hover{background:var(--bg-selected,#EDF2FF)}
   .dsn-case .dsn-step:hover{background:var(--surface,#FCFCFD)}
 }
-.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active{transform:scale(.98)}
+.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active,.dsn-cta:active,.dsn-home:active{transform:scale(.98)}
 @media (min-width:1100px){
   html.dw-side:not(.dw-gated) body{padding-left:256px!important}
-  .dsn-ph{display:none!important}
 }
 @media (min-width:700px) and (max-width:1099px){
   html.dw-side:not(.dw-gated) .dsn-rail{display:flex}
   html.dw-side:not(.dw-gated) body{padding-left:72px!important}
-  .dsn-ph{display:none!important}
 }
 @media (max-width:1099px){
   .dsn-nav{z-index:45;width:300px;transform:translateX(-102%);visibility:hidden;transition:transform .2s cubic-bezier(.2,0,0,1),visibility 0s linear .2s;box-shadow:0 8px 32px rgb(15 23 42 / 18%)}
@@ -827,25 +835,29 @@ window.dwSide = (function () {
   var SV = function (p, c) { return '<svg' + (c ? ' class="' + c + '"' : '') + ' viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>'; };
   var MENU = SV('<path d="M4 7h16M4 12h16M4 17h16"/>'), X = SV('<path d="M6 6l12 12M18 6 6 18"/>'), CHEV = SV('<path d="m6 9 6 6 6-6"/>', 'dsn-chev');
   var EXT = (IC.ext || '');
-  var CREM = 'https://15774129.go.kr/info/total_search.do', CREM2 = 'https://15774129.go.kr/info/total_search2.do';
+  /* e하늘 장사정보시스템 (2026.11.25 사용자 「화장예약 · 화장예약 조회 · 개장유골 화장예약 이렇게 화장예약 탭」) */
+  var CREM_RES = 'https://www.15774129.go.kr/funeral/', CREM = 'https://15774129.go.kr/info/total_search.do', CREM_OLD = 'https://www.15774129.go.kr/funeral/sys2/main.do';
   var KEY = 'dw-side-acc';
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function call(n, a) { try { return typeof window[n] === 'function' ? window[n](a) : null; } catch (e) { return null; } }
   function role() { try { return NV.role ? NV.role() : 'member'; } catch (e) { return 'member'; } }
-  /* 묶음: [열쇠, 이름, 주소(forms/ 기준), 표시] — 표시 ph = 휴대폰만 · ext = 바깥 주소(새 창) · duty = 휴무 권한 */
+  /* 맨 위 「홈 화면」 (2026.11.25 사용자 「아코디언 제일 위에 홈 화면으로 가기」) */
+  function homeHref() { return role() === 'chief' ? './#fhome' : 'funeral.html#home'; }
+  /* 묶음: [열쇠, 이름, 주소(forms/ 기준), 표시] — 표시 btn = 버튼 모양(행사 등록) · ext = 바깥 주소(새 창) · duty = 휴무 권한 */
   function secs() {
     if (role() === 'chief') return [
       { k: 'forms', l: '서식', ic: 'doc', items: [['gather', '취합', './#gather'], ['forms', '서식 작성', './#forms'], ['company', '회사 서류', 'admin.html']] },
       { k: 'share', l: '함께 쓰기', ic: 'board', items: [['docs', '자료실', './#docs'], ['set', '설정', './#settings']] }];
     var L = role() === 'leader', S = [
-      { k: 'work', l: '행사 업무', ic: 'list', items: [['home', '홈', 'funeral.html#home', 'ph'], ['list', '행사 목록', 'funeral.html#list'], ['new', '새 행사', 'funeral.html#new'], ['poster', '장례일정표', 'funeral.html#poster'], ['crem', '화장예약 조회', CREM, 'ext'], ['crem2', '개장유골 화장예약', CREM2, 'ext']] },
-      { k: 'money', l: '정산 · 봉투', ic: 'settle', items: [['todo', '정산할 행사', 'funeral.html#todo'], ['envelopes', '봉투정리', 'funeral.html#envelopes']] }];
+      { k: 'work', l: '행사 업무', ic: 'list', items: [['new', '행사 등록', 'funeral.html#new', 'btn'], ['list', '행사 목록', 'funeral.html#list'], ['poster', '장례일정표', 'funeral.html#poster']] },
+      { k: 'money', l: '정산 · 봉투', ic: 'settle', items: [['todo', '정산할 행사', 'funeral.html#todo'], ['envelopes', '봉투정리', 'funeral.html#envelopes']] },
+      { k: 'crem', l: '화장예약', ic: 'crem', items: [['cremres', '화장예약', CREM_RES, 'ext'], ['crem', '화장예약 조회', CREM, 'ext'], ['crem2', '개장유골 화장예약', CREM_OLD, 'ext']] }];
     if (L) S.push({ k: 'forms', l: '서식', ic: 'doc', items: [['weekly', '주간보고', './#weekly'], ['minutes', '회의록', './#minutes'], ['review', '후기보고', './#review'], ['consult', '상담서', './#consult'], ['company', '회사 서류', 'admin.html']] });
     S.push({ k: 'ship', l: '배송', ic: 'truck', items: [['dnew', '새 배송', 'funeral.html#dnew'], ['deliv', '배송 기록', 'funeral.html#deliv']].concat(L ? [['ship', '탁송 · 출고', './#ship'], ['stock', '물품 수령 · 불출', './#stock']] : []) });
     S.push({ k: 'share', l: '함께 쓰기', ic: 'board', items: [['board', '게시판', './#board'], ['docs', '자료실', './#docs'], ['duty', '휴무 · 당직', 'funeral.html#duty', 'duty'], ['set', '설정', 'funeral.html#admin']] });
     return S;
   }
-  var RAIL = { work: '행사', money: '정산', forms: '서식', ship: '배송', share: '함께' };
+  var RAIL = { work: '행사', money: '정산', crem: '화장', forms: '서식', ship: '배송', share: '함께' };
   function accGet() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
   function accSet(k, v) { var a = accGet(); a[k] = v; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
   function overlay() { return !(window.matchMedia && matchMedia('(min-width:1100px)').matches); }
@@ -864,7 +876,9 @@ window.dwSide = (function () {
     document.body.insertBefore(rail, document.body.firstChild);
     bg.addEventListener('click', function () { close(); });
     nav.addEventListener('click', onClick);
-    rail.addEventListener('click', function (e) { var b = e.target.closest('[data-dsn-open]'); if (b) open(b.getAttribute('data-dsn-open') || ''); });
+    rail.addEventListener('click', function (e) {
+      var hm = e.target.closest('[data-dsn-rail-home]'); if (hm) { if (e.ctrlKey || e.metaKey || e.shiftKey) return; e.preventDefault(); go('home', hm.getAttribute('href')); return; }
+      var b = e.target.closest('[data-dsn-open]'); if (b) open(b.getAttribute('data-dsn-open') || ''); });
     nav.addEventListener('keydown', trap);
     return true;
   }
@@ -912,13 +926,14 @@ window.dwSide = (function () {
       var open_ = has || (s.k in acc ? !!acc[s.k] : (s.k === 'work' || s.k === 'money'));
       h += '<section class="dsn-sec"><button type="button" class="dsn-h" data-dsn-h="' + s.k + '" aria-expanded="' + open_ + '" aria-controls="dsnS-' + s.k + '">' + (IC[s.ic] || '') + '<span>' + esc(s.l) + '</span>' + CHEV + '</button>'
         + '<div class="dsn-items" id="dsnS-' + s.k + '">' + s.items.map(function (x) {
-          var cls = 'dsn-i' + (x[3] === 'ph' ? ' dsn-ph' : '');
+          if (x[3] === 'btn') return '<a class="dsn-cta" data-dsn="' + x[0] + '" href="' + esc(x[2]) + '">' + (IC.plus || '') + '<span>' + esc(x[1]) + '</span></a>';
+          var cls = 'dsn-i';
           if (x[3] === 'ext') return '<a class="' + cls + '" data-dsn="' + x[0] + '" href="' + esc(x[2]) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(x[1]) + ' (새 창)"><span>' + esc(x[1]) + '</span>' + EXT + '</a>';
           var b = badge[x[0]];
           return '<a class="' + cls + '" data-dsn="' + x[0] + '" href="' + esc(x[2]) + '"' + (x[0] === cur ? ' aria-current="page"' : '') + '><span>' + esc(x[1]) + '</span>' + (b ? '<em class="dsn-badge">' + esc(b) + '</em>' : '') + '</a>';
         }).join('') + '</div></section>';
     });
-    nav.querySelector('.dsn-secs').innerHTML = h;
+    nav.querySelector('.dsn-secs').innerHTML = '<a class="dsn-home" data-dsn="home" href="' + esc(homeHref()) + '"' + (cur === 'home' ? ' aria-current="page"' : '') + ' aria-label="홈 화면으로 가기">' + (IC.home || '') + '<span>홈 화면</span></a>' + h;
     var cb = call('DW_SIDE_CASE'), box = nav.querySelector('#dwSideCase');
     if (cb && cb.t) {
       box.hidden = false;
@@ -928,6 +943,7 @@ window.dwSide = (function () {
         }).join('') + '</div><button type="button" class="dsn-other" data-dsn-case="pick">다른 행사 고르기</button>';
     } else { box.hidden = true; box.innerHTML = ''; }
     rail.innerHTML = '<button type="button" class="dsn-rb menu" data-dsn-open="" aria-label="전체 메뉴 열기">' + MENU + '</button>'
+      + '<a class="dsn-rb' + (cur === 'home' ? ' on' : '') + '" data-dsn-rail-home href="' + esc(homeHref()) + '" aria-label="홈 화면으로 가기">' + (IC.home || '') + '<span>홈</span></a>'
       + (cb && cb.t ? '<button type="button" class="dsn-rb on" data-dsn-open="case" aria-label="지금 보는 행사 · ' + esc(cb.t) + '">' + (IC.input || '') + '<span>이 행사</span></button>' : '')
       + S.map(function (s) { return '<button type="button" class="dsn-rb' + (!(cb && cb.t) && s.k === curSec ? ' on' : '') + '" data-dsn-open="' + s.k + '" aria-label="' + esc(s.l) + ' 메뉴">' + (IC[s.ic] || '') + '<span>' + esc(RAIL[s.k] || s.l) + '</span></button>'; }).join('');
     var who = '', v = null; try { if (window.dwHome && window.dwHome.who) who = window.dwHome.who().replace(/님$/, ''); } catch (e) {}

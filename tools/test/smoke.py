@@ -122,6 +122,12 @@ def main():
                 got = p.evaluate("[document.body.dataset.mode, (document.querySelector('#dwMode [aria-pressed=\"true\"]')||{getAttribute:()=>''}).getAttribute('data-dwmode')]")
                 if got[0] != want or got[1] != want:
                     problems.append(f'{tag} {t}: 행사 · 서식 칸 표시가 다름 {got}')
+            if (w, h, sc) == SIZES[0]:   # 1~4파트 · 파트장 누구든 직원 파트 지정 (2026.11.25)
+                got = p.evaluate("""(async()=>{ const L=await window.dwAcct.rpc('dw_staff_list'), kim=(L.people||[]).find(x=>x.login_id==='kim'), p2=(L.parts||[]).find(x=>x.name==='2파트');
+                  const S=await window.dwAcct.rpc('dw_staff_set',{p:{user:kim.user_id,part:p2.id}}), M=await window.dwAcct.rpc('dw_me'), D=await window.dwAcct.rpc('dw_part_delete',{p_part:p2.id});
+                  return [(L.parts||[]).map(x=>x.name).join(','), !!kim.can_part, S.part, (M.parts||[]).map(x=>x.name+':'+x.mine).join(','), D.why]; })()""")
+                if got != ['1파트,2파트,3파트,4파트', True, '2파트', '1파트:true,2파트:true,3파트:true,4파트:true', 'fixed']:
+                    problems.append(f'{tag}: 1~4파트 · 파트장 파트 지정이 다름 {got}')
             # 내 정보 (위 막대 아이디를 누르면, 2026.10.29)
             p.click('.appbar .local'); p.wait_for_selector('#dwMe:not([hidden])', timeout=5000); look(p, f'forms_me_{tag}')
             if p.input_value('#dwMeName') != '서영우':
@@ -168,7 +174,7 @@ def main():
                 # 왼쪽 메뉴 (2026.11.25 B안): ☰ → 왼쪽에서 열림 · 묶음 · 정산할 행사 → 행사 목록(정산할 것만)
                 p.click('#dwSideBtn'); p.wait_for_timeout(350); look(p, f'funeral_side_{tag}')
                 got = p.evaluate("[document.documentElement.classList.contains('dsn-open'), [...document.querySelectorAll('#dwSide .dsn-h span')].map(x=>x.textContent).join(' '), document.getElementById('dwSide').inert]")
-                if got != [True, '행사 업무 정산 · 봉투 서식 배송 함께 쓰기', False]:
+                if got != [True, '행사 업무 정산 · 봉투 화장예약 서식 배송 함께 쓰기', False]:
                     problems.append(f'{tag}: ☰ 왼쪽 메뉴가 다름 [열림, 묶음, 막힘] = {got}')
                 p.click('#dwSide [data-dsn="todo"]'); p.wait_for_timeout(350)
                 if p.evaluate("[db.tab, LV.st, document.documentElement.classList.contains('dsn-open')]") != ['list', 'todo', False]:
