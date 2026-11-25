@@ -6343,7 +6343,7 @@ NAV_IC.deliv=(window.dwNav&&window.dwNav.ic.box)||'';
 NAV_IC.poster='<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7.5h6M8.5 11.5h7M8.5 15h7M8.5 18h4"/></svg>';
 /* 행사 칸 (2026.10.29): 설정 앞에 「게시판」(DW장례업무 첫 화면 index.html #board — 파트 게시판 · 자료실). 홈은 없앰 → 행사 목록 맨 위에 마감 · 이번 달 */
 const BOARD_IC=(window.dwNav&&window.dwNav.ic.board)||'';
-function goBoard(){ try{ save(); }catch(e){} location.replace('./#board'); }
+function goBoard(v){ try{ save(); }catch(e){} location.replace('./#board'+(v?':'+v:'')); }   /* v = status(파트 현황) · people(파트원 관리), 2026.11.25 */
 /* ---------- 업무 순서 단계 줄 (2026.10.30 사용자 「메뉴 찾기에 급급 · 순서대로 표기되게 강조」) ----------
    ① 입력 › ② 양식 › ③ 보고서 › ④ 정산 › ⑤ 봉투 (2026.10.31 사용자 「2번이 양식이고 3번이 보고서」 — 예전 ② 보고서 · ③ 일정표). 지금 화면 = 먹색 동그라미 · 굵게, 끝낸 단계 = ✓.
    태블릿 · PC: 위 메뉴 줄 [행사 목록 | ①~⑤ | 장례일정표 | 휴무 · 당직 | 게시판 | 설정]
@@ -6450,6 +6450,7 @@ window.DW_SIDE_GO=k=>{
   if(k==='duty'){ setTab('duty'); return true; }
   if(k==='set'){ setTab('admin'); return true; }
   if(k==='board'){ goBoard(); return true; }
+  if(k==='bstatus'||k==='bpeople'){ goBoard(k==='bstatus'?'status':'people'); return true; }
   return false; };
 window.DW_SIDE_CASE=()=>{ const c=db.cases.length?curCase():null; if(!c||!CASE_TABS.includes(db.tab)) return null;
   return {t:caseTitle(c), s:caseSub(c), items:CTABS.map(([k,l])=>{ const [st,tone]=ctabState(c,k); return {k,l,st,tone,on:k===db.tab}; })}; };
@@ -6535,9 +6536,10 @@ function qkCatalog(){
     {g:'화장예약',k:'crem2',l:'개장유골 화장예약',s:'e하늘 개장유골',ic:'crem',tone:'mint',href:CREM_OLD,aria:'개장유골 화장예약 · e하늘'},
     {g:'배송',k:'d-new',l:'새 배송',s:'배송 양식 작성',ic:'plus',tone:'purple'},
     {g:'배송',k:'q-deliv',l:'배송 기록',s:dvCur()?`작성 중 · 전체 ${dvN}건`:`전체 ${dvN}건`,ic:'truck',tone:'purple'},
-    {g:'함께 쓰기',k:'duty',l:'휴무 · 당직',s:'일정 달력',ic:'duty',tone:'mint'},
-    {g:'함께 쓰기',k:'board',l:'게시판',s:'파트 공지 · 글',ic:'board',tone:'mint'},
-    {g:'함께 쓰기',k:'f-docs',l:'자료실',s:'회사 기본 서류',ic:'folder',tone:'mint'}];
+    {g:'파트 · 자료',k:'board',l:'파트 게시판',s:'파트 공지 · 글',ic:'board',tone:'mint'},
+    {g:'파트 · 자료',k:'f-docs',l:'자료실',s:'회사 기본 서류',ic:'folder',tone:'mint'},
+    {g:'파트 · 자료',k:'duty',l:'휴무 · 당직',s:'일정 달력',ic:'duty',tone:'mint'}];
+  if(isLeaderNow()) L.splice(L.findIndex(x=>x.k==='f-docs'),0,{g:'파트 · 자료',k:'b-status',l:'파트 현황',s:'파트원별 행사 · 정산',ic:'list',tone:'mint'},{g:'파트 · 자료',k:'b-people',l:'파트원 관리',s:'파트원 넣기 · 빼기',ic:'people',tone:'mint'});
   if(isLeaderNow()) [['f-weekly','blue','이번 주 보고'],['f-minutes','mint','회의 기록'],['f-review','amber','출상 후기'],['f-consult','purple','장례 상담서'],['f-ship','blue','용품 · 근조기'],['f-stock','amber','입고 · 불출'],['f-company','slate','공지 · 증명서']]
     .forEach(([k,tone,sub])=>{ const x=FORM_TILES.find(y=>y[0]===k); if(x) L.push({g:'서식',k,l:x[1],s:sub,ic:x[2],tone}); });
   L.push({g:'계정',k:'admin',l:'설정',s:'양식 · 정산 기준',ic:'set',tone:'slate'});
@@ -6618,11 +6620,13 @@ function renderHome(){
     ?`<div class="dsh-qgrid">${sel.map(qk).join('')}${sel.length<QK_MAX?`<button type="button" class="dsh-q dsh-qadd dsh-press" data-hk="qk-edit"><span class="dsh-qi" aria-hidden="true">${HIC('plus')}</span><b class="dsh-ql">추가</b><small class="dsh-qs">기능 더 고르기</small></button>`:''}</div>`
     :`<button type="button" class="dsh-qempty dsh-press" data-hk="qk-edit"><span class="dsh-qi t-blue" aria-hidden="true">${HIC('plus')}</span><span class="dsh-rt"><b>자주 쓰는 기능 추가</b><small>많이 쓰는 기능을 골라 첫 화면에 두십시오 · 최대 ${QK_MAX}개</small></span>${dshChev()}</button>`,
     sel.length?`<button type="button" class="dsh-acc-more" data-hk="qk-edit">자주 쓰는 기능 편집${dshChev()}</button>`:'');
-  /* 서식 (파트장) · 함께 쓰기 */
+  /* 서식 (파트장) · 파트 · 자료 (2026.11.25 예전 이름 「함께 쓰기」) — 설정은 맨 아래 따로 */
   if(isLeaderNow()) h+=dshAcc('forms','서식','',`<div class="dsh-list">${formRows(['f-weekly','f-minutes','f-review','f-consult','f-ship','f-stock','f-company']).map(dshRow).join('')}</div>`);
-  const share=[{k:'board',l:'게시판',s:'파트 공지 · 글',ic:'board',tone:'slate'},{k:'f-docs',l:'자료실',s:'회사 기본 서류',ic:'folder',tone:'slate'}]
-    .concat(window.dwDutyOk&&window.dwDutyOk()?[{k:'duty',l:'휴무 · 당직',s:'일정 달력',ic:'duty',tone:'slate'}]:[],[{k:'admin',l:'설정',s:'업체 양식 · 정산 기준 · 선택 목록',ic:'set',tone:'slate'}]);
-  h+=dshAcc('share','함께 쓰기','',`<div class="dsh-list">${share.map(dshRow).join('')}</div>`);
+  const share=[{k:'board',l:'파트 게시판',s:'파트 공지 · 글',ic:'board',tone:'slate'}]
+    .concat(isLeaderNow()?[{k:'b-status',l:'파트 현황',s:'파트원별 행사 · 정산 · 봉투',ic:'list',tone:'slate'},{k:'b-people',l:'파트원 관리',s:'파트원 넣기 · 빼기 · 비밀번호 초기화',ic:'people',tone:'slate'}]:[],
+      [{k:'f-docs',l:'자료실',s:'회사 기본 서류',ic:'folder',tone:'slate'}],window.dwDutyOk&&window.dwDutyOk()?[{k:'duty',l:'휴무 · 당직',s:'일정 달력',ic:'duty',tone:'slate'}]:[]);
+  h+=dshAcc('share','파트 · 자료','',`<div class="dsh-list">${share.map(dshRow).join('')}</div>`);
+  h+=`<div class="dsh-card dsh-list dsh-set">${dshRow({k:'admin',l:'설정',s:'업체 양식 · 정산 기준 · 선택 목록',ic:'set',tone:'slate'})}</div>`;
   el.innerHTML=h+'</div>';
   homeBellPaint();
 }
@@ -6667,6 +6671,7 @@ function homeGo(k,btn){
   if(k==='d-new'){ dvNew(); return; }
   if(k==='d-resume'){ dvResume(); return; }
   if(k==='board'){ goBoard(); return; }
+  if(k==='b-status'||k==='b-people'){ goBoard(k==='b-status'?'status':'people'); return; }
   if(k==='me'){ if(window.dwMe) window.dwMe.open(btn); return; }
   if(k==='logout'){ if(window.dwAcct&&window.dwAcct.askLogout) window.dwAcct.askLogout(btn); return; }
   const f=FORM_TILES.find(x=>x[0]===k); if(f){ try{ save(); }catch(e){} try{ localStorage.setItem('mf.lastApp','forms'); }catch(e){} location.replace(f[3]?'./#'+f[3]:'admin.html'); return; }

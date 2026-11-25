@@ -201,4 +201,41 @@ html body .case-steps button:focus-visible{outline:2px solid var(--brand);outlin
 }
 @media (prefers-reduced-motion:reduce){html body .case-steps button:active{transform:none}}
 @media print{html body .case-steps{display:none!important}}
+/* ---------- 보기 쉬운 글씨 (2026.11.25 사용자 「모든 기능은 찾기 편하게 · 작은 글씨들은 더 잘 보이고 직관적이게」) ----------
+   12 · 13px 설명 · 라벨 · 배지 · 고르는 줄을 한 단계 키우고 흐린 글자는 조금 진하게. 큰 숫자 · 제목은 그대로, 인쇄 · 이미지 양식은 상관없음 */
+html body .pg-sub{font-size:15px;line-height:23px;color:var(--ink-2)}
+html body .pg-link{font-size:15px}
+html body .pg-link small{font-size:13.5px}
+html body .pg-count{font-size:14.5px}
+html body .kpi-l{font-size:15px;line-height:22px;font-weight:600;color:var(--ink-2)}
+html body .kpi-s{font-size:13.5px;line-height:20px}
+html body .lv-th{font-size:14px}
+html body .lv-what small{font-size:13.5px;line-height:20px}
+html body .lv-badge{font-size:13px}
+html body .lv-more,html body .lv-me{font-size:13px}
+html body .lvd-money span,html body .lvd-note,html body .pg-note,html body .pg-status{font-size:14px}
+html body .lvd-at,html body .lvd-sn small,html body .lvd-ss{font-size:13px}
+html body .small-t{font-size:14.5px;line-height:22px}
+html body header .local{font-size:13.5px}
+html body .dsh-rt small,html body .dsh-qs,html body .dsh-todo-t small,html body .dsh-note{font-size:14px}
+html body .dsh-rt small{white-space:normal}   /* 글씨를 키운 만큼 … 으로 자르지 않고 다음 줄로 */
+html body .dsh-bar-l,html body .dsh-amt small{font-size:13.5px}
+html body .field-label{font-size:14.5px;color:var(--ink-2)}
+html body .field-hint{font-size:13.5px}
+html body .ftabs button{min-height:48px;font-size:16px}
+html body .group-tabs button{font-size:14.5px}
+html body .input-progress{font-size:13.5px}
+html body .case-steps b{font-size:15px}
+html body .case-steps small{font-size:13px}
+:root body .case-panel .cp-crumb{font-size:14.5px}
+:root body .case-panel .cp-s{font-size:14.5px;line-height:21px}
+@media (max-width:699px){
+  html body .pg-sub{font-size:14.5px;line-height:22px}
+  html body .pg-count{font-size:14px}
+  html body .lv-day{font-size:14px}
+  html body .ftabs button{padding:0 8px;font-size:15.5px}
+  html body .group-tabs button{font-size:13.5px}
+  html body .im-row .input-progress{font-size:13.5px}
+}
+@media (max-width:360px){html body .ftabs button{padding:0 5px;font-size:14.5px}}
 </style>

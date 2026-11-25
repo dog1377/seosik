@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.25-6"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.25-7"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
@@ -1183,59 +1183,63 @@ html.dw-side:root{--tabbar-h:0px}
 .dsn-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 12px 16px;display:flex;flex-direction:column;gap:14px}
 .dsn-case{display:grid;gap:2px;padding:12px;border-radius:14px;background:var(--field,#F0F3F8)}
 .dsn-case[hidden]{display:none}
-.dsn-ck{font-size:12px;font-weight:600;line-height:18px;color:var(--muted,#5F6D82)}
-.dsn-ct{font-size:15px;font-weight:700;line-height:22px;color:var(--ink,#1B2537);overflow-wrap:anywhere}
-.dsn-cs{font-size:12.5px;line-height:18px;color:var(--ink-2,#4C596D);overflow-wrap:anywhere}
+.dsn-ck{font-size:13.5px;font-weight:600;line-height:20px;color:var(--muted,#5F6D82)}
+.dsn-ct{font-size:16px;font-weight:700;line-height:23px;color:var(--ink,#1B2537);overflow-wrap:anywhere}
+.dsn-cs{font-size:14px;line-height:20px;color:var(--ink-2,#4C596D);overflow-wrap:anywhere}
 .dsn-steps{display:grid;gap:2px;margin:8px 0 6px}
-.dsn-step{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-step{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:15.5px;font-weight:500;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dsn-step span{flex:1;min-width:0}
-.dsn-step small{flex:none;font-size:12px;font-weight:600;color:var(--muted,#5F6D82)}
+.dsn-step small{flex:none;font-size:13.5px;font-weight:600;color:var(--muted,#5F6D82)}
 .dsn-step small.ok{color:var(--st-ok,#216843)}
 .dsn-step small.warn{color:var(--st-warn,#8A5400)}
 .dsn-step small.bad{color:var(--st-bad,#B3323D)}
 .dsn-step[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
-.dsn-other{display:flex;align-items:center;justify-content:center;min-height:40px;border:0;border-radius:10px;background:var(--surface,#FCFCFD);color:var(--ink,#1B2537);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.dsn-other{display:flex;align-items:center;justify-content:center;min-height:44px;border:0;border-radius:10px;background:var(--surface,#FCFCFD);color:var(--ink,#1B2537);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
 .dsn-sec+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
-.dsn-home{display:flex;align-items:center;gap:10px;min-height:48px;margin-bottom:4px;padding:0 8px;border-radius:10px;color:var(--ink,#1B2537);font-size:14.5px;font-weight:700;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.dsn-home .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
+.dsn-home{display:flex;align-items:center;gap:10px;min-height:50px;margin-bottom:4px;padding:0 8px;border-radius:10px;color:var(--ink,#1B2537);font-size:16.5px;font-weight:700;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-home .ui-icon{flex:none;width:21px;height:21px;color:var(--ink-2,#4C596D)}
 .dsn-home[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6)}
 .dsn-home[aria-current="page"] .ui-icon{color:var(--brand,#2457D6)}
 .dsn-home+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
-.dsn-cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0 2px 8px;padding:0 14px;border-radius:10px;background:var(--brand,#2457D6);color:var(--accent-ink,#F8FAFC);font-size:14.5px;font-weight:700;text-decoration:none;box-shadow:0 1px 2px rgb(15 23 42 / 12%);-webkit-tap-highlight-color:transparent}
-.dsn-cta .ui-icon{flex:none;width:18px;height:18px;stroke-width:2.2}
+.dsn-cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;margin:0 2px 8px;padding:0 14px;border-radius:10px;background:var(--brand,#2457D6);color:var(--accent-ink,#F8FAFC);font-size:16.5px;font-weight:700;text-decoration:none;box-shadow:0 1px 2px rgb(15 23 42 / 12%);-webkit-tap-highlight-color:transparent}
+.dsn-cta .ui-icon{flex:none;width:20px;height:20px;stroke-width:2.2}
 a.dsn-rb{text-decoration:none}
-.dsn-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14.5px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.dsn-h .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
+.dsn-h{width:100%;display:flex;align-items:center;gap:10px;min-height:50px;padding:0 8px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:16.5px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-h .ui-icon{flex:none;width:21px;height:21px;color:var(--ink-2,#4C596D)}
 .dsn-h span{flex:1;min-width:0}
-.dsn-h .dsn-chev{flex:none;width:16px;height:16px;color:var(--muted,#5F6D82);transition:transform .16s cubic-bezier(.2,0,0,1)}
+.dsn-h .dsn-chev{flex:none;width:18px;height:18px;color:var(--muted,#5F6D82);transition:transform .16s cubic-bezier(.2,0,0,1)}
 .dsn-h[aria-expanded="false"] .dsn-chev{transform:rotate(-90deg)}
 .dsn-items{display:grid;gap:2px;padding:0 0 10px}
 .dsn-h[aria-expanded="false"]+.dsn-items{display:none}
-.dsn-i{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 10px 0 37px;border-radius:10px;color:var(--ink-2,#4C596D);font-size:14px;font-weight:500;line-height:20px;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-i{display:flex;align-items:center;gap:8px;min-height:46px;padding:0 10px 0 39px;border-radius:10px;color:var(--ink,#1B2537);font-size:16px;font-weight:500;line-height:22px;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .dsn-i span{flex:1;min-width:0}
 .dsn-i[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
-.dsn-i .ui-icon{flex:none;width:15px;height:15px;color:var(--muted,#5F6D82)}
-.dsn-badge{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;background:var(--st-warn-bg,#FFF4E0);color:var(--st-warn,#8A5400);font-size:12px;font-style:normal;font-weight:600}
-.dsn-foot{flex:none;border-top:1px solid var(--line,#E8EDF3);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
-.dsn-me{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14px;font-weight:600;text-align:left;cursor:pointer}
+.dsn-i .ui-icon{flex:none;width:17px;height:17px;color:var(--muted,#5F6D82)}
+.dsn-badge{flex:none;display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:6px;background:var(--st-warn-bg,#FFF4E0);color:var(--st-warn,#8A5400);font-size:13.5px;font-style:normal;font-weight:600}
+.dsn-foot{flex:none;display:grid;gap:2px;border-top:1px solid var(--line,#E8EDF3);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+.dsn-set{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 10px;border-radius:10px;color:var(--ink,#1B2537);font-size:16px;font-weight:600;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-set .ui-icon{flex:none;width:20px;height:20px;color:var(--ink-2,#4C596D)}
+.dsn-set[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6)}
+.dsn-set[aria-current="page"] .ui-icon{color:var(--brand,#2457D6)}
+.dsn-me{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:16px;font-weight:600;text-align:left;cursor:pointer}
 .dsn-me svg{flex:none;width:20px;height:20px;color:var(--ink-2,#4C596D)}
 .dsn-me span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dsn-me small{flex:none;font-size:12.5px;font-weight:500;color:var(--muted,#5F6D82)}
+.dsn-me small{flex:none;font-size:14px;font-weight:500;color:var(--muted,#5F6D82)}
 .dsn-rail{position:fixed;top:0;bottom:0;left:0;z-index:29;width:72px;box-sizing:border-box;flex-direction:column;align-items:center;gap:4px;padding:calc(12px + env(safe-area-inset-top,0px)) 0 12px;background:var(--surface,#FCFCFD);border-right:1px solid var(--line,#E8EDF3)}
-.dsn-rb{width:62px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 0;border:0;border-radius:10px;background:transparent;color:var(--ink-2,#4C596D);font:inherit;font-size:12px;font-weight:600;line-height:16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-rb{width:62px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 0;border:0;border-radius:10px;background:transparent;color:var(--ink-2,#4C596D);font:inherit;font-size:13px;font-weight:600;line-height:17px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dsn-rb svg{width:22px;height:22px}
 .dsn-rb.menu{min-height:48px;width:48px;margin-bottom:8px;background:var(--field,#F0F3F8);color:var(--ink,#1B2537)}
 .dsn-rb.on{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
 html.dsn-open .dsn-bg{display:block;position:fixed;inset:0;z-index:44;background:var(--overlay,rgb(15 23 42 / 30%))}
 .dsn-nav :focus-visible,.dsn-rail :focus-visible,.dsn-burger:focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:-2px}
 @media (hover:hover){
-  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-x:hover,.dsn-rb:hover,.dsn-home:hover{background:var(--field,#F0F3F8)}
+  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-set:hover,.dsn-x:hover,.dsn-rb:hover,.dsn-home:hover{background:var(--field,#F0F3F8)}
   .dsn-cta:hover{background:var(--brand-hover,#1E49B8)}
   .dsn-home[aria-current="page"]:hover{background:var(--bg-selected,#EDF2FF)}
-  .dsn-i[aria-current="page"]:hover,.dsn-step[aria-current="page"]:hover,.dsn-rb.on:hover{background:var(--bg-selected,#EDF2FF)}
+  .dsn-set[aria-current="page"]:hover,.dsn-i[aria-current="page"]:hover,.dsn-step[aria-current="page"]:hover,.dsn-rb.on:hover{background:var(--bg-selected,#EDF2FF)}
   .dsn-case .dsn-step:hover{background:var(--surface,#FCFCFD)}
 }
-.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active,.dsn-cta:active,.dsn-home:active{transform:scale(.98)}
+.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active,.dsn-cta:active,.dsn-home:active,.dsn-set:active{transform:scale(.98)}
 @media (min-width:1100px){
   html.dw-side:not(.dw-gated) body{padding-left:256px!important}
 }
@@ -1274,22 +1278,24 @@ window.dwSide = (function () {
   function call(n, a) { try { return typeof window[n] === 'function' ? window[n](a) : null; } catch (e) { return null; } }
   function role() { try { return NV.role ? NV.role() : 'member'; } catch (e) { return 'member'; } }
   /* 맨 위 「홈 화면」 (2026.11.25 사용자 「아코디언 제일 위에 홈 화면으로 가기」) */
+  /* 「함께 쓰기」 → 「파트 · 자료」 (2026.11.25 사용자 「함께 쓰기 다른 단어로」) · 설정은 묶음 밖 맨 아래 한 줄 (늘 보이게) */
+  var SHARE_L = '파트 · 자료';
   function homeHref() { return role() === 'chief' ? './#fhome' : 'funeral.html#home'; }
   /* 묶음: [열쇠, 이름, 주소(forms/ 기준), 표시] — 표시 btn = 버튼 모양(행사 등록) · ext = 바깥 주소(새 창) · duty = 휴무 권한 */
   function secs() {
     if (role() === 'chief') return [
-      { k: 'forms', l: '서식', ic: 'doc', items: [['gather', '취합', './#gather'], ['forms', '서식 작성', './#forms'], ['company', '회사 서류', 'admin.html']] },
-      { k: 'share', l: '함께 쓰기', ic: 'board', items: [['docs', '자료실', './#docs'], ['set', '설정', './#settings']] }];
+      { k: 'forms', l: '서식', ic: 'doc', items: [['gather', '취합', './#gather'], ['forms', '서식 작성', './#forms'], ['company', '회사 서류', 'admin.html'], ['docs', '자료실', './#docs']] }];
     var L = role() === 'leader', S = [
       { k: 'work', l: '행사 업무', ic: 'list', items: [['new', '행사 등록', 'funeral.html#new', 'btn'], ['list', '행사 목록', 'funeral.html#list'], ['poster', '장례일정표', 'funeral.html#poster']] },
       { k: 'money', l: '정산 · 봉투', ic: 'settle', items: [['todo', '정산할 행사', 'funeral.html#todo'], ['envelopes', '봉투정리', 'funeral.html#envelopes']] },
       { k: 'crem', l: '화장예약', ic: 'crem', items: [['cremres', '화장예약', CREM_RES, 'ext'], ['crem', '화장예약 조회', CREM, 'ext'], ['crem2', '개장유골 화장예약', CREM_OLD, 'ext']] }];
     if (L) S.push({ k: 'forms', l: '서식', ic: 'doc', items: [['weekly', '주간보고', './#weekly'], ['minutes', '회의록', './#minutes'], ['review', '후기보고', './#review'], ['consult', '상담서', './#consult'], ['company', '회사 서류', 'admin.html']] });
     S.push({ k: 'ship', l: '배송', ic: 'truck', items: [['dnew', '새 배송', 'funeral.html#dnew'], ['deliv', '배송 기록', 'funeral.html#deliv']].concat(L ? [['ship', '탁송 · 출고', './#ship'], ['stock', '물품 수령 · 불출', './#stock']] : []) });
-    S.push({ k: 'share', l: '함께 쓰기', ic: 'board', items: [['board', '게시판', './#board'], ['docs', '자료실', './#docs'], ['duty', '휴무 · 당직', 'funeral.html#duty', 'duty'], ['set', '설정', 'funeral.html#admin']] });
+    S.push({ k: 'share', l: SHARE_L, ic: 'board', items: [['board', '파트 게시판', './#board']].concat(L ? [['bstatus', '파트 현황', './#board:status'], ['bpeople', '파트원 관리', './#board:people']] : [], [['docs', '자료실', './#docs'], ['duty', '휴무 · 당직', 'funeral.html#duty', 'duty']]) });
     return S;
   }
-  var RAIL = { work: '행사', money: '정산', crem: '화장', forms: '서식', ship: '배송', share: '함께' };
+  var RAIL = { work: '행사', money: '정산', crem: '화장', forms: '서식', ship: '배송', share: '파트' };
+  function setHref() { return role() === 'chief' ? './#settings' : 'funeral.html#admin'; }
   function accGet() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
   function accSet(k, v) { var a = accGet(); a[k] = v; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
   function overlay() { return !(window.matchMedia && matchMedia('(min-width:1100px)').matches); }
@@ -1300,7 +1306,7 @@ window.dwSide = (function () {
     nav = document.createElement('aside'); nav.id = 'dwSide'; nav.className = 'dsn-nav'; nav.setAttribute('aria-label', '전체 메뉴');
     nav.innerHTML = '<div class="dsn-top"><b class="dsn-brand">DW장례업무</b><button type="button" class="dsn-x" data-dsn-x aria-label="메뉴 닫기">' + X + '</button></div>'
       + '<div class="dsn-body"><div class="dsn-case" id="dwSideCase" role="group" aria-label="지금 보는 행사" hidden></div><nav class="dsn-secs" aria-label="메뉴"></nav></div>'
-      + '<div class="dsn-foot"><button type="button" class="dsn-me" data-dsn-me>' + (IC.user || '') + '<span>내 정보</span><small>내 정보</small></button></div>';
+      + '<div class="dsn-foot"><a class="dsn-set" data-dsn="set" href="' + esc(setHref()) + '">' + (IC.set || '') + '<span>설정</span></a><button type="button" class="dsn-me" data-dsn-me>' + (IC.user || '') + '<span>내 정보</span><small>내 정보</small></button></div>';
     rail = document.createElement('nav'); rail.className = 'dsn-rail'; rail.setAttribute('aria-label', '메뉴 줄');
     bg = document.createElement('div'); bg.className = 'dsn-bg'; bg.setAttribute('aria-hidden', 'true');
     document.body.insertBefore(bg, document.body.firstChild);
@@ -1379,6 +1385,9 @@ window.dwSide = (function () {
       + (cb && cb.t ? '<button type="button" class="dsn-rb on" data-dsn-open="case" aria-label="지금 보는 행사 · ' + esc(cb.t) + '">' + (IC.input || '') + '<span>이 행사</span></button>' : '')
       + S.map(function (s) { return '<button type="button" class="dsn-rb' + (!(cb && cb.t) && s.k === curSec ? ' on' : '') + '" data-dsn-open="' + s.k + '" aria-label="' + esc(s.l) + ' 메뉴">' + (IC[s.ic] || '') + '<span>' + esc(RAIL[s.k] || s.l) + '</span></button>'; }).join('');
     var who = '', v = null; try { if (window.dwHome && window.dwHome.who) who = window.dwHome.who().replace(/님$/, ''); } catch (e) {}
+    var bd = nav.querySelector('.dsn-body'), ci = bd && bd.querySelector('.dsn-i[aria-current="page"]');   /* 글씨를 키워 메뉴가 길어짐 → 지금 메뉴가 가려져 있으면 보이게 (2026.11.25) */
+    if (ci) { var br = bd.getBoundingClientRect(), ir = ci.getBoundingClientRect(); if (br.height > 0) { if (ir.bottom > br.bottom - 8) bd.scrollTop += ir.bottom - br.bottom + 24; else if (ir.top < br.top) bd.scrollTop -= br.top - ir.top + 8; } }
+    var sl = nav.querySelector('.dsn-set'); sl.setAttribute('href', setHref()); if (cur === 'set') sl.setAttribute('aria-current', 'page'); else sl.removeAttribute('aria-current');
     var me = nav.querySelector('[data-dsn-me]'); me.querySelector('span').textContent = who || '내 정보'; me.querySelector('small').textContent = who ? '내 정보' : '';
     sync();
   }
@@ -1841,6 +1850,43 @@ html body .case-steps button:focus-visible{outline:2px solid var(--brand);outlin
 }
 @media (prefers-reduced-motion:reduce){html body .case-steps button:active{transform:none}}
 @media print{html body .case-steps{display:none!important}}
+/* ---------- 보기 쉬운 글씨 (2026.11.25 사용자 「모든 기능은 찾기 편하게 · 작은 글씨들은 더 잘 보이고 직관적이게」) ----------
+   12 · 13px 설명 · 라벨 · 배지 · 고르는 줄을 한 단계 키우고 흐린 글자는 조금 진하게. 큰 숫자 · 제목은 그대로, 인쇄 · 이미지 양식은 상관없음 */
+html body .pg-sub{font-size:15px;line-height:23px;color:var(--ink-2)}
+html body .pg-link{font-size:15px}
+html body .pg-link small{font-size:13.5px}
+html body .pg-count{font-size:14.5px}
+html body .kpi-l{font-size:15px;line-height:22px;font-weight:600;color:var(--ink-2)}
+html body .kpi-s{font-size:13.5px;line-height:20px}
+html body .lv-th{font-size:14px}
+html body .lv-what small{font-size:13.5px;line-height:20px}
+html body .lv-badge{font-size:13px}
+html body .lv-more,html body .lv-me{font-size:13px}
+html body .lvd-money span,html body .lvd-note,html body .pg-note,html body .pg-status{font-size:14px}
+html body .lvd-at,html body .lvd-sn small,html body .lvd-ss{font-size:13px}
+html body .small-t{font-size:14.5px;line-height:22px}
+html body header .local{font-size:13.5px}
+html body .dsh-rt small,html body .dsh-qs,html body .dsh-todo-t small,html body .dsh-note{font-size:14px}
+html body .dsh-rt small{white-space:normal}   /* 글씨를 키운 만큼 … 으로 자르지 않고 다음 줄로 */
+html body .dsh-bar-l,html body .dsh-amt small{font-size:13.5px}
+html body .field-label{font-size:14.5px;color:var(--ink-2)}
+html body .field-hint{font-size:13.5px}
+html body .ftabs button{min-height:48px;font-size:16px}
+html body .group-tabs button{font-size:14.5px}
+html body .input-progress{font-size:13.5px}
+html body .case-steps b{font-size:15px}
+html body .case-steps small{font-size:13px}
+:root body .case-panel .cp-crumb{font-size:14.5px}
+:root body .case-panel .cp-s{font-size:14.5px;line-height:21px}
+@media (max-width:699px){
+  html body .pg-sub{font-size:14.5px;line-height:22px}
+  html body .pg-count{font-size:14px}
+  html body .lv-day{font-size:14px}
+  html body .ftabs button{padding:0 8px;font-size:15.5px}
+  html body .group-tabs button{font-size:13.5px}
+  html body .im-row .input-progress{font-size:13.5px}
+}
+@media (max-width:360px){html body .ftabs button{padding:0 5px;font-size:14.5px}}
 </style>
 
 </head>

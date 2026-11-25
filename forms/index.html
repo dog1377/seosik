@@ -13,7 +13,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.25-6";</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.25-7";</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
@@ -1464,59 +1464,63 @@ html.dw-side:root{--tabbar-h:0px}
 .dsn-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 12px 16px;display:flex;flex-direction:column;gap:14px}
 .dsn-case{display:grid;gap:2px;padding:12px;border-radius:14px;background:var(--field,#F0F3F8)}
 .dsn-case[hidden]{display:none}
-.dsn-ck{font-size:12px;font-weight:600;line-height:18px;color:var(--muted,#5F6D82)}
-.dsn-ct{font-size:15px;font-weight:700;line-height:22px;color:var(--ink,#1B2537);overflow-wrap:anywhere}
-.dsn-cs{font-size:12.5px;line-height:18px;color:var(--ink-2,#4C596D);overflow-wrap:anywhere}
+.dsn-ck{font-size:13.5px;font-weight:600;line-height:20px;color:var(--muted,#5F6D82)}
+.dsn-ct{font-size:16px;font-weight:700;line-height:23px;color:var(--ink,#1B2537);overflow-wrap:anywhere}
+.dsn-cs{font-size:14px;line-height:20px;color:var(--ink-2,#4C596D);overflow-wrap:anywhere}
 .dsn-steps{display:grid;gap:2px;margin:8px 0 6px}
-.dsn-step{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-step{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:15.5px;font-weight:500;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dsn-step span{flex:1;min-width:0}
-.dsn-step small{flex:none;font-size:12px;font-weight:600;color:var(--muted,#5F6D82)}
+.dsn-step small{flex:none;font-size:13.5px;font-weight:600;color:var(--muted,#5F6D82)}
 .dsn-step small.ok{color:var(--st-ok,#216843)}
 .dsn-step small.warn{color:var(--st-warn,#8A5400)}
 .dsn-step small.bad{color:var(--st-bad,#B3323D)}
 .dsn-step[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
-.dsn-other{display:flex;align-items:center;justify-content:center;min-height:40px;border:0;border-radius:10px;background:var(--surface,#FCFCFD);color:var(--ink,#1B2537);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.dsn-other{display:flex;align-items:center;justify-content:center;min-height:44px;border:0;border-radius:10px;background:var(--surface,#FCFCFD);color:var(--ink,#1B2537);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
 .dsn-sec+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
-.dsn-home{display:flex;align-items:center;gap:10px;min-height:48px;margin-bottom:4px;padding:0 8px;border-radius:10px;color:var(--ink,#1B2537);font-size:14.5px;font-weight:700;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.dsn-home .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
+.dsn-home{display:flex;align-items:center;gap:10px;min-height:50px;margin-bottom:4px;padding:0 8px;border-radius:10px;color:var(--ink,#1B2537);font-size:16.5px;font-weight:700;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-home .ui-icon{flex:none;width:21px;height:21px;color:var(--ink-2,#4C596D)}
 .dsn-home[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6)}
 .dsn-home[aria-current="page"] .ui-icon{color:var(--brand,#2457D6)}
 .dsn-home+.dsn-sec{border-top:1px solid var(--line,#E8EDF3)}
-.dsn-cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0 2px 8px;padding:0 14px;border-radius:10px;background:var(--brand,#2457D6);color:var(--accent-ink,#F8FAFC);font-size:14.5px;font-weight:700;text-decoration:none;box-shadow:0 1px 2px rgb(15 23 42 / 12%);-webkit-tap-highlight-color:transparent}
-.dsn-cta .ui-icon{flex:none;width:18px;height:18px;stroke-width:2.2}
+.dsn-cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;margin:0 2px 8px;padding:0 14px;border-radius:10px;background:var(--brand,#2457D6);color:var(--accent-ink,#F8FAFC);font-size:16.5px;font-weight:700;text-decoration:none;box-shadow:0 1px 2px rgb(15 23 42 / 12%);-webkit-tap-highlight-color:transparent}
+.dsn-cta .ui-icon{flex:none;width:20px;height:20px;stroke-width:2.2}
 a.dsn-rb{text-decoration:none}
-.dsn-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14.5px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.dsn-h .ui-icon{flex:none;width:19px;height:19px;color:var(--ink-2,#4C596D)}
+.dsn-h{width:100%;display:flex;align-items:center;gap:10px;min-height:50px;padding:0 8px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:16.5px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-h .ui-icon{flex:none;width:21px;height:21px;color:var(--ink-2,#4C596D)}
 .dsn-h span{flex:1;min-width:0}
-.dsn-h .dsn-chev{flex:none;width:16px;height:16px;color:var(--muted,#5F6D82);transition:transform .16s cubic-bezier(.2,0,0,1)}
+.dsn-h .dsn-chev{flex:none;width:18px;height:18px;color:var(--muted,#5F6D82);transition:transform .16s cubic-bezier(.2,0,0,1)}
 .dsn-h[aria-expanded="false"] .dsn-chev{transform:rotate(-90deg)}
 .dsn-items{display:grid;gap:2px;padding:0 0 10px}
 .dsn-h[aria-expanded="false"]+.dsn-items{display:none}
-.dsn-i{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 10px 0 37px;border-radius:10px;color:var(--ink-2,#4C596D);font-size:14px;font-weight:500;line-height:20px;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-i{display:flex;align-items:center;gap:8px;min-height:46px;padding:0 10px 0 39px;border-radius:10px;color:var(--ink,#1B2537);font-size:16px;font-weight:500;line-height:22px;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .dsn-i span{flex:1;min-width:0}
 .dsn-i[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
-.dsn-i .ui-icon{flex:none;width:15px;height:15px;color:var(--muted,#5F6D82)}
-.dsn-badge{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;background:var(--st-warn-bg,#FFF4E0);color:var(--st-warn,#8A5400);font-size:12px;font-style:normal;font-weight:600}
-.dsn-foot{flex:none;border-top:1px solid var(--line,#E8EDF3);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
-.dsn-me{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:14px;font-weight:600;text-align:left;cursor:pointer}
+.dsn-i .ui-icon{flex:none;width:17px;height:17px;color:var(--muted,#5F6D82)}
+.dsn-badge{flex:none;display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:6px;background:var(--st-warn-bg,#FFF4E0);color:var(--st-warn,#8A5400);font-size:13.5px;font-style:normal;font-weight:600}
+.dsn-foot{flex:none;display:grid;gap:2px;border-top:1px solid var(--line,#E8EDF3);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+.dsn-set{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 10px;border-radius:10px;color:var(--ink,#1B2537);font-size:16px;font-weight:600;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dsn-set .ui-icon{flex:none;width:20px;height:20px;color:var(--ink-2,#4C596D)}
+.dsn-set[aria-current="page"]{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6)}
+.dsn-set[aria-current="page"] .ui-icon{color:var(--brand,#2457D6)}
+.dsn-me{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#1B2537);font:inherit;font-size:16px;font-weight:600;text-align:left;cursor:pointer}
 .dsn-me svg{flex:none;width:20px;height:20px;color:var(--ink-2,#4C596D)}
 .dsn-me span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dsn-me small{flex:none;font-size:12.5px;font-weight:500;color:var(--muted,#5F6D82)}
+.dsn-me small{flex:none;font-size:14px;font-weight:500;color:var(--muted,#5F6D82)}
 .dsn-rail{position:fixed;top:0;bottom:0;left:0;z-index:29;width:72px;box-sizing:border-box;flex-direction:column;align-items:center;gap:4px;padding:calc(12px + env(safe-area-inset-top,0px)) 0 12px;background:var(--surface,#FCFCFD);border-right:1px solid var(--line,#E8EDF3)}
-.dsn-rb{width:62px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 0;border:0;border-radius:10px;background:transparent;color:var(--ink-2,#4C596D);font:inherit;font-size:12px;font-weight:600;line-height:16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsn-rb{width:62px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 0;border:0;border-radius:10px;background:transparent;color:var(--ink-2,#4C596D);font:inherit;font-size:13px;font-weight:600;line-height:17px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dsn-rb svg{width:22px;height:22px}
 .dsn-rb.menu{min-height:48px;width:48px;margin-bottom:8px;background:var(--field,#F0F3F8);color:var(--ink,#1B2537)}
 .dsn-rb.on{background:var(--bg-selected,#EDF2FF);color:var(--brand,#2457D6);font-weight:700}
 html.dsn-open .dsn-bg{display:block;position:fixed;inset:0;z-index:44;background:var(--overlay,rgb(15 23 42 / 30%))}
 .dsn-nav :focus-visible,.dsn-rail :focus-visible,.dsn-burger:focus-visible{outline:2px solid var(--brand,#2457D6);outline-offset:-2px}
 @media (hover:hover){
-  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-x:hover,.dsn-rb:hover,.dsn-home:hover{background:var(--field,#F0F3F8)}
+  .dsn-i:hover,.dsn-step:hover,.dsn-h:hover,.dsn-me:hover,.dsn-set:hover,.dsn-x:hover,.dsn-rb:hover,.dsn-home:hover{background:var(--field,#F0F3F8)}
   .dsn-cta:hover{background:var(--brand-hover,#1E49B8)}
   .dsn-home[aria-current="page"]:hover{background:var(--bg-selected,#EDF2FF)}
-  .dsn-i[aria-current="page"]:hover,.dsn-step[aria-current="page"]:hover,.dsn-rb.on:hover{background:var(--bg-selected,#EDF2FF)}
+  .dsn-set[aria-current="page"]:hover,.dsn-i[aria-current="page"]:hover,.dsn-step[aria-current="page"]:hover,.dsn-rb.on:hover{background:var(--bg-selected,#EDF2FF)}
   .dsn-case .dsn-step:hover{background:var(--surface,#FCFCFD)}
 }
-.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active,.dsn-cta:active,.dsn-home:active{transform:scale(.98)}
+.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active,.dsn-cta:active,.dsn-home:active,.dsn-set:active{transform:scale(.98)}
 @media (min-width:1100px){
   html.dw-side:not(.dw-gated) body{padding-left:256px!important}
 }
@@ -1555,22 +1559,24 @@ window.dwSide = (function () {
   function call(n, a) { try { return typeof window[n] === 'function' ? window[n](a) : null; } catch (e) { return null; } }
   function role() { try { return NV.role ? NV.role() : 'member'; } catch (e) { return 'member'; } }
   /* 맨 위 「홈 화면」 (2026.11.25 사용자 「아코디언 제일 위에 홈 화면으로 가기」) */
+  /* 「함께 쓰기」 → 「파트 · 자료」 (2026.11.25 사용자 「함께 쓰기 다른 단어로」) · 설정은 묶음 밖 맨 아래 한 줄 (늘 보이게) */
+  var SHARE_L = '파트 · 자료';
   function homeHref() { return role() === 'chief' ? './#fhome' : 'funeral.html#home'; }
   /* 묶음: [열쇠, 이름, 주소(forms/ 기준), 표시] — 표시 btn = 버튼 모양(행사 등록) · ext = 바깥 주소(새 창) · duty = 휴무 권한 */
   function secs() {
     if (role() === 'chief') return [
-      { k: 'forms', l: '서식', ic: 'doc', items: [['gather', '취합', './#gather'], ['forms', '서식 작성', './#forms'], ['company', '회사 서류', 'admin.html']] },
-      { k: 'share', l: '함께 쓰기', ic: 'board', items: [['docs', '자료실', './#docs'], ['set', '설정', './#settings']] }];
+      { k: 'forms', l: '서식', ic: 'doc', items: [['gather', '취합', './#gather'], ['forms', '서식 작성', './#forms'], ['company', '회사 서류', 'admin.html'], ['docs', '자료실', './#docs']] }];
     var L = role() === 'leader', S = [
       { k: 'work', l: '행사 업무', ic: 'list', items: [['new', '행사 등록', 'funeral.html#new', 'btn'], ['list', '행사 목록', 'funeral.html#list'], ['poster', '장례일정표', 'funeral.html#poster']] },
       { k: 'money', l: '정산 · 봉투', ic: 'settle', items: [['todo', '정산할 행사', 'funeral.html#todo'], ['envelopes', '봉투정리', 'funeral.html#envelopes']] },
       { k: 'crem', l: '화장예약', ic: 'crem', items: [['cremres', '화장예약', CREM_RES, 'ext'], ['crem', '화장예약 조회', CREM, 'ext'], ['crem2', '개장유골 화장예약', CREM_OLD, 'ext']] }];
     if (L) S.push({ k: 'forms', l: '서식', ic: 'doc', items: [['weekly', '주간보고', './#weekly'], ['minutes', '회의록', './#minutes'], ['review', '후기보고', './#review'], ['consult', '상담서', './#consult'], ['company', '회사 서류', 'admin.html']] });
     S.push({ k: 'ship', l: '배송', ic: 'truck', items: [['dnew', '새 배송', 'funeral.html#dnew'], ['deliv', '배송 기록', 'funeral.html#deliv']].concat(L ? [['ship', '탁송 · 출고', './#ship'], ['stock', '물품 수령 · 불출', './#stock']] : []) });
-    S.push({ k: 'share', l: '함께 쓰기', ic: 'board', items: [['board', '게시판', './#board'], ['docs', '자료실', './#docs'], ['duty', '휴무 · 당직', 'funeral.html#duty', 'duty'], ['set', '설정', 'funeral.html#admin']] });
+    S.push({ k: 'share', l: SHARE_L, ic: 'board', items: [['board', '파트 게시판', './#board']].concat(L ? [['bstatus', '파트 현황', './#board:status'], ['bpeople', '파트원 관리', './#board:people']] : [], [['docs', '자료실', './#docs'], ['duty', '휴무 · 당직', 'funeral.html#duty', 'duty']]) });
     return S;
   }
-  var RAIL = { work: '행사', money: '정산', crem: '화장', forms: '서식', ship: '배송', share: '함께' };
+  var RAIL = { work: '행사', money: '정산', crem: '화장', forms: '서식', ship: '배송', share: '파트' };
+  function setHref() { return role() === 'chief' ? './#settings' : 'funeral.html#admin'; }
   function accGet() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
   function accSet(k, v) { var a = accGet(); a[k] = v; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
   function overlay() { return !(window.matchMedia && matchMedia('(min-width:1100px)').matches); }
@@ -1581,7 +1587,7 @@ window.dwSide = (function () {
     nav = document.createElement('aside'); nav.id = 'dwSide'; nav.className = 'dsn-nav'; nav.setAttribute('aria-label', '전체 메뉴');
     nav.innerHTML = '<div class="dsn-top"><b class="dsn-brand">DW장례업무</b><button type="button" class="dsn-x" data-dsn-x aria-label="메뉴 닫기">' + X + '</button></div>'
       + '<div class="dsn-body"><div class="dsn-case" id="dwSideCase" role="group" aria-label="지금 보는 행사" hidden></div><nav class="dsn-secs" aria-label="메뉴"></nav></div>'
-      + '<div class="dsn-foot"><button type="button" class="dsn-me" data-dsn-me>' + (IC.user || '') + '<span>내 정보</span><small>내 정보</small></button></div>';
+      + '<div class="dsn-foot"><a class="dsn-set" data-dsn="set" href="' + esc(setHref()) + '">' + (IC.set || '') + '<span>설정</span></a><button type="button" class="dsn-me" data-dsn-me>' + (IC.user || '') + '<span>내 정보</span><small>내 정보</small></button></div>';
     rail = document.createElement('nav'); rail.className = 'dsn-rail'; rail.setAttribute('aria-label', '메뉴 줄');
     bg = document.createElement('div'); bg.className = 'dsn-bg'; bg.setAttribute('aria-hidden', 'true');
     document.body.insertBefore(bg, document.body.firstChild);
@@ -1660,6 +1666,9 @@ window.dwSide = (function () {
       + (cb && cb.t ? '<button type="button" class="dsn-rb on" data-dsn-open="case" aria-label="지금 보는 행사 · ' + esc(cb.t) + '">' + (IC.input || '') + '<span>이 행사</span></button>' : '')
       + S.map(function (s) { return '<button type="button" class="dsn-rb' + (!(cb && cb.t) && s.k === curSec ? ' on' : '') + '" data-dsn-open="' + s.k + '" aria-label="' + esc(s.l) + ' 메뉴">' + (IC[s.ic] || '') + '<span>' + esc(RAIL[s.k] || s.l) + '</span></button>'; }).join('');
     var who = '', v = null; try { if (window.dwHome && window.dwHome.who) who = window.dwHome.who().replace(/님$/, ''); } catch (e) {}
+    var bd = nav.querySelector('.dsn-body'), ci = bd && bd.querySelector('.dsn-i[aria-current="page"]');   /* 글씨를 키워 메뉴가 길어짐 → 지금 메뉴가 가려져 있으면 보이게 (2026.11.25) */
+    if (ci) { var br = bd.getBoundingClientRect(), ir = ci.getBoundingClientRect(); if (br.height > 0) { if (ir.bottom > br.bottom - 8) bd.scrollTop += ir.bottom - br.bottom + 24; else if (ir.top < br.top) bd.scrollTop -= br.top - ir.top + 8; } }
+    var sl = nav.querySelector('.dsn-set'); sl.setAttribute('href', setHref()); if (cur === 'set') sl.setAttribute('aria-current', 'page'); else sl.removeAttribute('aria-current');
     var me = nav.querySelector('[data-dsn-me]'); me.querySelector('span').textContent = who || '내 정보'; me.querySelector('small').textContent = who ? '내 정보' : '';
     sync();
   }
@@ -2118,6 +2127,43 @@ html body .case-steps button:focus-visible{outline:2px solid var(--brand);outlin
 }
 @media (prefers-reduced-motion:reduce){html body .case-steps button:active{transform:none}}
 @media print{html body .case-steps{display:none!important}}
+/* ---------- 보기 쉬운 글씨 (2026.11.25 사용자 「모든 기능은 찾기 편하게 · 작은 글씨들은 더 잘 보이고 직관적이게」) ----------
+   12 · 13px 설명 · 라벨 · 배지 · 고르는 줄을 한 단계 키우고 흐린 글자는 조금 진하게. 큰 숫자 · 제목은 그대로, 인쇄 · 이미지 양식은 상관없음 */
+html body .pg-sub{font-size:15px;line-height:23px;color:var(--ink-2)}
+html body .pg-link{font-size:15px}
+html body .pg-link small{font-size:13.5px}
+html body .pg-count{font-size:14.5px}
+html body .kpi-l{font-size:15px;line-height:22px;font-weight:600;color:var(--ink-2)}
+html body .kpi-s{font-size:13.5px;line-height:20px}
+html body .lv-th{font-size:14px}
+html body .lv-what small{font-size:13.5px;line-height:20px}
+html body .lv-badge{font-size:13px}
+html body .lv-more,html body .lv-me{font-size:13px}
+html body .lvd-money span,html body .lvd-note,html body .pg-note,html body .pg-status{font-size:14px}
+html body .lvd-at,html body .lvd-sn small,html body .lvd-ss{font-size:13px}
+html body .small-t{font-size:14.5px;line-height:22px}
+html body header .local{font-size:13.5px}
+html body .dsh-rt small,html body .dsh-qs,html body .dsh-todo-t small,html body .dsh-note{font-size:14px}
+html body .dsh-rt small{white-space:normal}   /* 글씨를 키운 만큼 … 으로 자르지 않고 다음 줄로 */
+html body .dsh-bar-l,html body .dsh-amt small{font-size:13.5px}
+html body .field-label{font-size:14.5px;color:var(--ink-2)}
+html body .field-hint{font-size:13.5px}
+html body .ftabs button{min-height:48px;font-size:16px}
+html body .group-tabs button{font-size:14.5px}
+html body .input-progress{font-size:13.5px}
+html body .case-steps b{font-size:15px}
+html body .case-steps small{font-size:13px}
+:root body .case-panel .cp-crumb{font-size:14.5px}
+:root body .case-panel .cp-s{font-size:14.5px;line-height:21px}
+@media (max-width:699px){
+  html body .pg-sub{font-size:14.5px;line-height:22px}
+  html body .pg-count{font-size:14px}
+  html body .lv-day{font-size:14px}
+  html body .ftabs button{padding:0 8px;font-size:15.5px}
+  html body .group-tabs button{font-size:13.5px}
+  html body .im-row .input-progress{font-size:13.5px}
+}
+@media (max-width:360px){html body .ftabs button{padding:0 5px;font-size:14.5px}}
 </style>
 
 </head>
@@ -2165,9 +2211,12 @@ html body .case-steps button:focus-visible{outline:2px solid var(--brand);outlin
     <button type="button" data-ftab="stock" data-nochief>물품</button>
     <button type="button" data-ftab="consult" data-nochief>상담서</button>
   </nav>
-  <!-- 게시판 고르는 줄 (2026.10.28): 파트 게시판 · 자료실 (총괄실장은 아래 메뉴 「자료실」) -->
-  <nav class="ftabs" id="boardTabs" aria-label="게시판 고르기" data-nochief hidden>
+  <!-- 게시판 고르는 줄 (2026.10.28): 파트 게시판 · 자료실 (총괄실장은 아래 메뉴 「자료실」)
+       2026.11.25 사용자 「게시판 들어가면 파트원 관리 글씨가 너무 작아서 안 보임」 → 파트장은 파트 현황 · 파트원 관리도 이 줄에 (예전 제목 아래 작은 바로가기) -->
+  <nav class="ftabs bd-tabs" id="boardTabs" aria-label="게시판 고르기" data-nochief hidden>
     <button type="button" data-btab="board">파트 게시판</button>
+    <button type="button" data-btab="board:status" data-admin>파트 현황</button>
+    <button type="button" data-btab="board:people" data-admin>파트원 관리</button>
     <button type="button" data-btab="docs">자료실</button>
   </nav>
 
@@ -2928,11 +2977,12 @@ window.DW_MODE = () => modeOf(S.tab);
 window.DW_MODE_GO = (m) => { const ph = !!(window.dwPhone && window.dwPhone());   /* 칸 바꾸기는 태블릿 · PC 위 막대만 (휴대폰은 첫 화면 한 장) */
   if (m === 'event') goFuneral(ph ? 'home' : 'sec-event'); else if (m === 'deliv') goFuneral(ph ? 'home' : 'deliv'); else showTab(ph ? 'fhome' : 'forms'); return true; };
 /* 왼쪽 메뉴 (2026.11.25 B안, leader-gate-head.html window.dwSide): 지금 메뉴 · 이 화면에서 여는 메뉴 */
-window.DW_SIDE_CUR = () => (S.tab === 'settings' ? 'set' : S.tab === 'fhome' ? 'home' : isChief() && FORM_TABS.includes(S.tab) ? 'forms' : S.tab);
+window.DW_SIDE_CUR = () => (S.tab === 'settings' ? 'set' : S.tab === 'fhome' ? 'home' : isChief() && FORM_TABS.includes(S.tab) ? 'forms' : S.tab === 'board' ? ({ status: 'bstatus', people: 'bpeople' }[bdView()] || 'board') : S.tab);
 window.DW_SIDE_GO = (k) => {
   if (k === 'company') { goCompany(); return true; }
   if (k === 'home' && isChief()) { showTab('fhome'); return true; }
   if (k === 'set') { if (isChief()) { showTab('settings'); return true; } return false; }
+  if (k === 'bstatus' || k === 'bpeople') { showTab(k === 'bstatus' ? 'board:status' : 'board:people'); return true; }
   if (['board', 'docs', 'weekly', 'minutes', 'review', 'consult', 'ship', 'stock', 'gather', 'forms'].includes(k)) { showTab(k); return true; }
   return false;
 };
@@ -2965,6 +3015,7 @@ function renderSetHubF() {
 function showTab(t) {
   let sv = '';
   if (typeof t === 'string' && t.indexOf('settings:') === 0) { sv = t.slice(9); t = 'settings'; }
+  if (typeof t === 'string' && /^board(:|$)/.test(t)) { const bv = t.slice(6); PB.view = ['status', 'people'].includes(bv) ? bv : 'posts'; t = 'board'; }
   if (t === 'fhome' && !isChief()) t = 'home';   /* 서식 첫 화면은 총괄실장만 (2026.11.11) — 파트장은 장례업무 첫 화면 한 장 */
   if (t === 'settings' && !isMember()) { sv = setViewFix(sv); if (!sv) { goFuneral('admin'); return; } }   /* 파트장 설정 목록 = 장례업무 설정 */
   if (t === 'forms') t = lastFormTab();
@@ -2987,10 +3038,10 @@ function showTab(t) {
   grpRemember(t);
   paintNav();
   $('#boardTabs').hidden = !(t === 'board' || t === 'docs') || isChief();
-  $$('#boardTabs [data-btab]').forEach((b) => b.setAttribute('aria-current', b.dataset.btab === t ? 'page' : 'false'));
-  try { localStorage.setItem('mf.tab', t); if (isForm) localStorage.setItem('mf.formTab', t); sessionStorage.setItem('mf.tabS', t === 'settings' ? 'settings:' + S.setView : t); } catch (e) { /* ignore */ }
+  bdTabsPaint();
+  try { localStorage.setItem('mf.tab', t); if (isForm) localStorage.setItem('mf.formTab', t); sessionStorage.setItem('mf.tabS', t === 'settings' ? 'settings:' + S.setView : t === 'board' ? bdKey() : t); } catch (e) { /* ignore */ }
   window.scrollTo(0, 0);
-  if (t === 'board') boardOpen();
+  if (t === 'board') { boardOpen(); if (PB.view === 'status' && PB.me && pbMine()) teamFor(PB.part, pbMonth(), false); }
   if (t === 'docs') docsOpen();
   if (t === 'settings') { applySetView(); renderSettings(); if (sv === 'staff') sfLoad(false); mixLoad(); }
   if (t === 'review') renderReview();
@@ -4879,6 +4930,14 @@ async function boardLoad(force) {
   PB.busy = false; paintBoard();
   if (!PB.err && PB.view === 'status' && pbMine()) teamFor(PB.part, pbMonth(), force);
 }
+/* 게시판 위 줄 (2026.11.25): 파트 게시판 · 파트 현황 · 파트원 관리(파트장) · 자료실 — 지금 보는 칸 표시 */
+function bdView() { return isMember() ? 'posts' : (PB.view || 'posts'); }   /* function 선언 — showTab(위쪽)이 부름. 파트 정보를 받기 전에도 고른 칸 그대로 */
+function bdKey() { return bdView() === 'posts' ? 'board' : 'board:' + bdView(); }
+function bdTabsPaint() {
+  const cur = S.tab === 'board' ? bdKey() : S.tab;
+  $$('#boardTabs [data-btab]').forEach((b) => b.setAttribute('aria-current', b.dataset.btab === cur ? 'page' : 'false'));
+  if (window.dwSide && S.tab === 'board') window.dwSide.paint();
+}
 function boardOpen() { if (!PB.me || Date.now() - PB.at > 30000) whenAcct(() => boardLoad(false)); else paintBoard(); }
 function paintBoard() {
   const el = $('#bdBody'); if (!el) return;
@@ -4894,15 +4953,11 @@ function paintBoard() {
   /* 4단 구조 (2026.11.14): ① 제목 줄(게시판 · 현황 · 파트원 관리 — 파트장은 제목 줄 바로가기로 오감) ② 요약 카드 + 검색 · 파트 ③ 글 목록 + 연필 → 글 보기 서랍 */
   const view = pbMine() ? (PB.view || 'posts') : 'posts', ps = PB.posts || [];
   const T = { posts: ['파트 게시판', `${ps.length}건`], status: ['파트 현황', monthName(pbMonth())], people: ['파트원 관리', `${(PB.people || []).filter((x) => !x.leader).length}명`] }[view];
-  const R = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', L = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
-  const links = !pbMine() ? '' : view === 'posts'
-    ? `<button class="pg-link" type="button" data-bdv="status">파트 <b>현황</b>${R}</button><button class="pg-link" type="button" data-bdv="people">파트원 <b>관리</b>${R}</button>`
-    : `<button class="pg-link" type="button" data-bdv="posts">${L}게시판으로</button>`;
-  h += `<header class="pg-head"><div class="pg-h"><h1 class="pg-title">${esc(T[0])}<span class="pg-count num">${esc(T[1])}</span></h1><p class="pg-sub"><span>${esc(p.name)}${p.leader_name ? ` · 파트장 ${esc(p.leader_name)}` : ''} · 파트원 ${Number(p.members) || 0}명</span>${links}</p></div>${view === 'posts' ? `<button class="btn primary pg-cta" type="button" data-bd="write">${PG_ICO_PLUS}글쓰기</button>` : ''}</header>`;
+  h += `<header class="pg-head"><div class="pg-h"><h1 class="pg-title">${esc(T[0])}<span class="pg-count num">${esc(T[1])}</span></h1><p class="pg-sub"><span>${esc(p.name)}${p.leader_name ? ` · 파트장 ${esc(p.leader_name)}` : ''} · 파트원 ${Number(p.members) || 0}명</span></p></div>${view === 'posts' ? `<button class="btn primary pg-cta" type="button" data-bd="write">${PG_ICO_PLUS}글쓰기</button>` : ''}</header>`;
   if (parts.length > 1 && view !== 'posts') h += `<div class="pg-tools keep"><div class="pg-sel"><select class="input" id="bdPart" aria-label="파트 고르기">${parts.map((x) => `<option value="${esc(x.id)}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)}${x.mine && !PB.me.leader ? ' (내 파트)' : ''}</option>`).join('')}</select></div></div>`;
   h += view === 'people' ? peopleView(p) : view === 'status' ? statusView(p) : postsView(parts, p);
   const ae = document.activeElement, hadQ = ae && ae.id === 'bdQ', pos = hadQ ? ae.selectionStart : 0;
-  el.innerHTML = h;
+  el.innerHTML = h; bdTabsPaint();
   if (hadQ) { const q = $('#bdQ'); if (q) { q.focus(); try { q.setSelectionRange(pos, pos); } catch (err) { /* ignore */ } } }
 }
 function postsView(parts, p) {
@@ -4950,7 +5005,7 @@ function peopleView(p) {
   const mem = (PB.people || []).filter((x) => !x.leader);
   let h = '';
   h += `<section class="card"><h2>파트원 넣기</h2><p class="small-t muted">직원이 가입할 때 쓴 이메일을 입력하십시오. 한 직원은 한 파트에만 들어갈 수 있습니다.</p>
-    <div class="bd-add"><input id="bdAddId" type="email" inputmode="email" maxlength="80" placeholder="이메일 입력" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="직원 이메일"><button class="btn primary" type="button" data-bd="add">넣기</button></div></section>`;
+    <div class="bd-add"><input id="bdAddId" type="text" inputmode="email" maxlength="80" placeholder="이메일 입력" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="직원 이메일"><button class="btn primary" type="button" data-bd="add">넣기</button></div></section>`;
   h += `<section class="card"><h2>파트원 명단 · ${mem.length}명</h2>${mem.length ? `<div class="bd-ppl">${mem.map((x) => `<div class="bd-pp rl"><div><b>${esc(pName(x))}</b>${x.name ? `<small>${esc(x.login_id)}</small>` : ''}</div><span class="rl-btns"><button class="btn small quiet" type="button" data-pwreset="${esc(x.user_id)}" data-nm="${esc(pName(x))}">비밀번호 초기화</button><button class="btn small quiet" type="button" data-bd="remove" data-uid="${esc(x.user_id)}">빼기</button></span></div>`).join('')}</div>` : '<p class="bd-empty">아직 파트원이 없습니다.</p>'}</section>`;
   h += p.fixed ? `<section class="card"><h2>파트 설정</h2><p class="small-t muted">1파트 ~ 4파트는 회사 공통 파트입니다. 파트장이면 누구든 모든 파트의 게시판 · 파트원 · 현황을 같이 관리하고, 직원의 파트는 이 화면 「파트원 넣기」나 설정 → 직원 명단에서 정합니다.</p>
     <button class="btn quiet small" type="button" data-bd="more">파트 하나 더 만들기</button><div id="bdMore" hidden>${partCreateCard(false)}</div></section>`
@@ -4969,7 +5024,7 @@ async function pbCall(fn, args, btn) {
 }
 function pbAfterChange() { PB.meAt = 0; PB.team = {}; boardLoad(true); }
 async function boardClick(e) {
-  const v = e.target.closest('[data-bdv]'); if (v) { PB.view = v.dataset.bdv; paintBoard(); if (PB.view === 'status') teamFor(PB.part, pbMonth(), false); return; }
+  const v = e.target.closest('[data-bdv]'); if (v) { showTab(v.dataset.bdv === 'posts' ? 'board' : 'board:' + v.dataset.bdv); return; }
   const sh = e.target.closest('[data-pb-shift]'); if (sh) { PB.month = shiftMonth(pbMonth(), Number(sh.dataset.pbShift)); paintBoard(); teamFor(PB.part, PB.month, false); return; }
   const kc = e.target.closest('[data-bd-card]'); if (kc) { const k = kc.dataset.bdCard === 'all' ? '' : kc.dataset.bdCard; PB.pf = (PB.pf || '') === k ? '' : k; paintBoard(); const f = $(`#bdBody [data-bd-card="${kc.dataset.bdCard}"]`); if (f) f.focus(); return; }
   const post = e.target.closest('[data-post]'); if (post) { const id = pgOpenFrom(e, 'data-post'); if (id) openPost(id); return; }
@@ -5342,7 +5397,7 @@ function bindHomeBoard() {
   $('#bdBody').addEventListener('input', (e) => { if (e.target.id !== 'bdQ') return; PB.q = e.target.value; clearTimeout(PB.qT); PB.qT = setTimeout(paintBoard, 160); });
   sfBind();
   $('#mixCard').addEventListener('click', mixClick); $('#mixCard').addEventListener('change', mixClick);
-  $('#bdBody').addEventListener('change', (e) => { if (e.target.id === 'bdPart') { PB.part = e.target.value; try { localStorage.setItem('dw-part-sel', PB.part); } catch (err) { /* ignore */ } PB.view = 'posts'; PB.people = null; PB.posts = null; boardLoad(false); } });
+  $('#bdBody').addEventListener('change', (e) => { if (e.target.id === 'bdPart') { PB.part = e.target.value; try { localStorage.setItem('dw-part-sel', PB.part); } catch (err) { /* ignore */ } PB.people = null; PB.posts = null; boardLoad(false); } });
   $('#bdBody').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const map = { bdAddId: 'add', bdNewName: 'create', bdRename: 'rename' }, act = map[e.target.id]; if (act) { e.preventDefault(); const b = e.target.parentNode.querySelector(`[data-bd="${act}"]`); if (b) b.click(); } });
   $('#psBack').addEventListener('click', closePost);
   $('#psEdit').addEventListener('click', () => { if (PS.post) openPostEditor(PS.post); });
@@ -6925,7 +6980,7 @@ async function init() {
   const fromHash = (location.hash || '').replace('#', '');
   let landed = true;   /* dw-landed: 이 창에서 첫 화면을 이미 보여 줌 (funeral.html 과 같이 씀, 로그인 · 로그아웃하면 지움) */
   if (!document.documentElement.classList.contains('dw-gated')) { try { landed = !!sessionStorage.getItem('dw-landed'); sessionStorage.setItem('dw-landed', '1'); } catch (e) { /* ignore */ } }
-  const okTab = (h) => ALL_TABS.includes(h) || ['forms', 'report', 'shipg'].includes(h) || /^settings:\w+$/.test(h);
+  const okTab = (h) => ALL_TABS.includes(h) || ['forms', 'report', 'shipg'].includes(h) || /^settings:\w+$/.test(h) || /^board:(status|people)$/.test(h);
   if (okTab(fromHash)) {
     landed = true; tab = fromHash;
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
@@ -6935,7 +6990,7 @@ async function init() {
   renderAll();
   showTab(tab);
   /* 휴대폰 「뒤로」 (2026.11.01, 공통 dwHist): 화면 = S.tab, 홈 = 서식 첫 화면(휴대폰 · 파트장 · 총괄실장), 이 화면만의 창 = 저장 · 보내기 */
-  window.DW_VIEW = () => (S.tab === 'settings' ? 'settings:' + S.setView : S.tab);
+  window.DW_VIEW = () => (S.tab === 'settings' ? 'settings:' + S.setView : S.tab === 'board' ? bdKey() : S.tab);
   /* 홈: 총괄실장 = 서식 첫 화면, 파트장 · 직원 = 장례업무 첫 화면(이 화면 밖 → 'home'), 설정 한 가지에서 뒤로 = 설정 목록(장례업무 설정 → 'sethub') */
   window.DW_GO = (t) => { if (t === 'sethub') { goFuneral('admin'); return; } showTab(t); };
   window.DW_HOMEV = () => (!(window.dwPhone && window.dwPhone()) ? '' : isChief() ? 'fhome' : S.tab === 'settings' ? 'sethub' : 'home');

@@ -122,6 +122,19 @@ def main():
                 got = p.evaluate("[document.body.dataset.mode, (document.querySelector('#dwMode [aria-pressed=\"true\"]')||{getAttribute:()=>''}).getAttribute('data-dwmode')]")
                 if got[0] != want or got[1] != want:
                     problems.append(f'{tag} {t}: 행사 · 서식 칸 표시가 다름 {got}')
+            # 게시판 위 줄 (2026.11.25 사용자 「파트원 관리 글씨가 너무 작아서 안 보임」): 파트 게시판 · 파트 현황 · 파트원 관리 · 자료실
+            p.evaluate("showTab('board')"); p.wait_for_timeout(600)
+            got = p.evaluate("[...document.querySelectorAll('#boardTabs [data-btab]')].filter(b=>b.offsetParent).map(b=>b.textContent).join(',')")
+            if got != '파트 게시판,파트 현황,파트원 관리,자료실':
+                problems.append(f'{tag}: 게시판 위 줄이 다름 {got}')
+            p.click('#boardTabs [data-btab="board:people"]'); p.wait_for_timeout(500); look(p, f'forms_board_people_{tag}')
+            got = p.evaluate("[S.tab, PB.view, (document.querySelector('#bdBody .pg-title')||{}).textContent||'', document.querySelector('#boardTabs [aria-current=page]').dataset.btab, !!document.getElementById('bdAddId')]")
+            if got[:2] != ['board', 'people'] or not got[2].startswith('파트원 관리') or got[3] != 'board:people' or not got[4]:
+                problems.append(f'{tag}: 「파트원 관리」 칸이 안 열림 {got}')
+            p.click('#boardTabs [data-btab="board:status"]'); p.wait_for_timeout(500)
+            if p.evaluate("[PB.view, (document.querySelector('#bdBody .pg-title')||{}).textContent||'']")[0] != 'status':
+                problems.append(f'{tag}: 「파트 현황」 칸이 안 열림')
+            p.click('#boardTabs [data-btab="board"]'); p.wait_for_timeout(400)
             if (w, h, sc) == SIZES[0]:   # 1~4파트 · 파트장 누구든 직원 파트 지정 (2026.11.25)
                 got = p.evaluate("""(async()=>{ const L=await window.dwAcct.rpc('dw_staff_list'), kim=(L.people||[]).find(x=>x.login_id==='kim'), p2=(L.parts||[]).find(x=>x.name==='2파트');
                   const S=await window.dwAcct.rpc('dw_staff_set',{p:{user:kim.user_id,part:p2.id}}), M=await window.dwAcct.rpc('dw_me'), D=await window.dwAcct.rpc('dw_part_delete',{p_part:p2.id});
@@ -144,11 +157,11 @@ def main():
                 if not p.evaluate("!!(document.getElementById('dwHomeBtn')||{}).offsetParent"):
                     problems.append(f'{tag}: 행사 입력 화면에 「‹ 홈」 버튼이 안 보임')
                 p.click('#dwHomeBtn'); p.wait_for_timeout(300)
-                # 첫 화면 (2026.11.25 B안): 요약 카드 + 묶음 접기 · 펴기(진행 중인 행사 · 정산 남음 · 자주 쓰는 기능 · 서식 · 함께 쓰기) · 떠 있는 「+ 새 행사」 · 위 막대 ☰ (아래 탭 바 없음)
+                # 첫 화면 (2026.11.25 B안): 요약 카드 + 묶음 접기 · 펴기(진행 중인 행사 · 정산 남음 · 자주 쓰는 기능 · 서식 · 파트 · 자료 — 예전 이름 함께 쓰기, 2026.11.25) · 맨 아래 설정 · 떠 있는 「+ 새 행사」 · 위 막대 ☰ (아래 탭 바 없음)
                 vis = "(id=>{const e=document.getElementById(id);return !!e&&getComputedStyle(e).display!=='none'})"
                 p.evaluate("db.homeQuick=[]; save(); renderHome()")   # 같은 계정으로 화면 크기마다 다시 들어오므로 처음 상태로
                 got = p.evaluate(f"[db.tab, [...document.querySelectorAll('#p-home .dsh-acc-h b')].map(x=>x.textContent).join(' '), document.querySelectorAll('#p-home .dsh-q').length, (document.querySelector('#p-home .dsh-todo b')||{{}}).textContent||'', !!(document.getElementById('dwHomeBtn')||{{}}).offsetParent, {vis}('dwSideBtn'), {vis}('dwFab'), !!document.getElementById('dwTabbar')]")
-                if got != ['home', '진행 중인 행사 정산 남음 자주 쓰는 기능 서식 함께 쓰기', 0, '오늘 할 일 3건', False, True, True, False]:   # 자주 쓰는 기능은 처음엔 비어 있음 (2026.11.19)
+                if got != ['home', '진행 중인 행사 정산 남음 자주 쓰는 기능 서식 파트 · 자료', 0, '오늘 할 일 3건', False, True, True, False]:   # 자주 쓰는 기능은 처음엔 비어 있음 (2026.11.19)
                     problems.append(f'{tag}: 첫 화면이 다름 [탭, 묶음, 퀵 카드, 할 일, 홈 버튼 보임, ☰, 새 행사 버튼, 탭 바 있음] = {got}')
                 if p.evaluate("document.querySelectorAll('#p-home .dsh-case').length"):   # 시험 행사는 발인일(10월)이 지남 → 진행 중 아님
                     problems.append(f'{tag}: 발인일이 지난 행사가 「진행 중인 행사」에 보임')
@@ -174,7 +187,7 @@ def main():
                 # 왼쪽 메뉴 (2026.11.25 B안): ☰ → 왼쪽에서 열림 · 묶음 · 정산할 행사 → 행사 목록(정산할 것만)
                 p.click('#dwSideBtn'); p.wait_for_timeout(350); look(p, f'funeral_side_{tag}')
                 got = p.evaluate("[document.documentElement.classList.contains('dsn-open'), [...document.querySelectorAll('#dwSide .dsn-h span')].map(x=>x.textContent).join(' '), document.getElementById('dwSide').inert]")
-                if got != [True, '행사 업무 정산 · 봉투 화장예약 서식 배송 함께 쓰기', False]:
+                if got != [True, '행사 업무 정산 · 봉투 화장예약 서식 배송 파트 · 자료', False]:
                     problems.append(f'{tag}: ☰ 왼쪽 메뉴가 다름 [열림, 묶음, 막힘] = {got}')
                 p.click('#dwSide [data-dsn="todo"]'); p.wait_for_timeout(350)
                 if p.evaluate("[db.tab, LV.st, document.documentElement.classList.contains('dsn-open')]") != ['list', 'todo', False]:
@@ -207,8 +220,7 @@ def main():
                 p.evaluate("window.dwDrawer.close(); db.ships=[]; db.shipCur=null; save()"); p.wait_for_timeout(250)
                 # 설정 한 곳 (2026.11.11): 전체 「설정」 → 설정 목록 → 한 가지 → 「‹ 설정」
                 p.click('#dwSideBtn'); p.wait_for_timeout(350)
-                p.click('#dwSide [data-dsn-h="share"]'); p.wait_for_timeout(200)   # 묶음 「함께 쓰기」 펼치기
-                p.click('#dwSide [data-dsn="set"]'); p.wait_for_timeout(400)
+                p.click('#dwSide .dsn-foot [data-dsn="set"]'); p.wait_for_timeout(400)   # 설정 = 메뉴 맨 아래 늘 보이는 한 줄 (2026.11.25)
                 got = p.evaluate("[db.tab, db.adminView, [...document.querySelectorAll('#setHub .dws-g h2')].map(x=>x.textContent).join(' '), !!document.querySelector('#setHub .dws-me')]")
                 if got != ['admin', 'hub', '직원 행사 업무 서식 · 보고서 회사 서류 화면 · 계정', True]:   # 직원 명단 묶음 (2026.11.14)
                     problems.append(f'{tag}: 설정 목록이 다름 {got}')
@@ -274,12 +286,15 @@ def main():
             if w < 700:
                 if p.evaluate('db.tab') != 'home':
                     problems.append(f'member {tag}: 휴대폰에서 앱을 열었는데 첫 화면이 아님')
-                elif p.evaluate("[...document.querySelectorAll('#p-home .dsh-acc-h b')].map(x=>x.textContent).join(' ')") != '진행 중인 행사 정산 남음 자주 쓰는 기능 함께 쓰기':
+                elif p.evaluate("[...document.querySelectorAll('#p-home .dsh-acc-h b')].map(x=>x.textContent).join(' ')") != '진행 중인 행사 정산 남음 자주 쓰는 기능 파트 · 자료':
                     problems.append(f'member {tag}: 직원 첫 화면에 서식 묶음이 보이거나 묶음이 다름')
                 p.evaluate("setTab('admin')"); look(p, f'member_settings_{tag}')
                 if p.evaluate("[...document.querySelectorAll('#setHub [data-dws]')].map(b=>b.dataset.dws).filter(k=>k.startsWith('ev-')||k.startsWith('fm-')||k.startsWith('co-')).join(',')") != 'ev-rules,ev-lists,ev-keep':
                     problems.append(f'member {tag}: 직원 설정 목록에 파트장 설정이 보임')
             p.goto(BASE + 'forms/#board'); p.wait_for_function("typeof showTab==='function' && typeof S!=='undefined' && S.tab==='board'", timeout=15000); look(p, f'member_board_{tag}')
+            got = p.evaluate("[...document.querySelectorAll('#boardTabs [data-btab]')].filter(b=>b.offsetParent).map(b=>b.textContent).join(',')")
+            if got != '파트 게시판,자료실':   # 직원은 파트 현황 · 파트원 관리 없음
+                problems.append(f'member {tag}: 직원 게시판 위 줄이 다름 {got}')
             p.goto(BASE + 'forms/admin.html'); p.wait_for_timeout(1500)
             if 'admin.html' in p.url:
                 problems.append(f'member {tag}: 직원이 회사 서류에 들어감')
