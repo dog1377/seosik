@@ -217,6 +217,20 @@ body.duty-mode .wrap{max-width:none;padding-inline:0;padding-block:0}
 .dd .dd-amt{grid-column:2;margin-top:-4px;font-size:13px;line-height:1.4;color:var(--muted)}
 .dd .dd-amt:empty{display:none}
 .dd .no{font-weight:700;color:var(--bronze);text-align:right;font-variant-numeric:tabular-nums}
+/* 장례 기간 고르기 (2026.11.26 시안 1안): 임종 당일부터 / 임종 다음 날부터 — 밴드에 찍힐 기간을 그대로 보여 줌 */
+#schedInfo .span-pick{display:grid;gap:6px}
+.span-opts{display:grid;gap:8px}
+.span-opt{display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;align-items:center;width:100%;min-height:64px;padding:11px 14px;border:1px solid var(--edge);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s var(--ease,ease),background-color .15s var(--ease,ease)}
+.span-opt i{width:20px;height:20px;border-radius:50%;border:2px solid var(--edge);box-sizing:border-box;transition:border-width .15s var(--ease,ease),border-color .15s var(--ease,ease)}
+.span-opt b{display:block;font-size:17px;font-weight:700;line-height:24px;letter-spacing:-.01em;font-variant-numeric:tabular-nums;word-break:keep-all}
+.span-opt small{display:block;margin-top:1px;font-size:14px;line-height:20px;color:var(--muted)}
+.span-opt[aria-checked="true"]{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset;background:var(--bg-selected)}
+.span-opt[aria-checked="true"] i{border:6px solid var(--brand)}
+.span-opt[aria-checked="true"] b{color:var(--brand)}
+.span-opt:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.span-opt:active{transform:scale(.98)}
+@media (min-width:700px){.span-opts{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){.span-opt,.span-opt i{transition:none}.span-opt:active{transform:none}}
 .cert-q{display:grid;gap:12px;margin:0 0 14px;padding:0 0 14px;border-bottom:1px solid var(--line)}
 .cert-q .cq{display:grid;gap:8px}
 .cert-q .cq-h{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
@@ -1784,6 +1798,12 @@ function hm(p){ return p.h==null?'':`${pad(p.h)}시${p.mi?' '+pad(p.mi)+'분':''
 function longDT(v){ const p=parseDT(v); if(!p) return ''; return `${pad(p.mo)}월 ${pad(p.d)}일${p.h==null?'':` ${pad(p.h)}시 ${pad(p.mi)}분`}`; }
 function dayTime(v){ const p=parseDT(v); return p?`${pad(p.d)}일 ${hm(p)}`.trim():''; }
 function period(a,b){ const p=parseDT(a), q=parseDT(b); if(!p||!q) return ''; const n=Math.round((new Date(q.y,q.mo-1,q.d)-new Date(p.y,p.mo-1,p.d))/86400000)+1; return n>0?`${pad(p.d)}일-${pad(q.d)}일 ${n}일`:''; }
+/* 장례 시작일 (2026.11.26 사용자 「25일 임종해서 26일부터 3일장 → 사실상 26일부터 3일장, 다들 간단하게 이해하게」 → 시안 1안 「두 가지 중 고르기」)
+   c.f.spanNext = true 면 장례는 임종 다음 날부터 (없으면 예전처럼 임종 당일). 기간 · 장례기간 · 장례 일정 · 행사 보고서 기간 · 3일장 자동 입력 · 도우미 날짜가 씀.
+   임종 줄(실제 임종 시각)은 그대로. 발인이 임종 다음 날보다 앞이면 다음 날부터를 쓰지 않음 */
+function spanNextDay(f){ return f&&f.death&&parseDT(f.death)?addDaysAt(f.death,1,0,0).slice(0,10):''; }
+function spanNextOk(f){ const n=spanNextDay(f); return !!n&&(!f.depart||String(f.depart).slice(0,10)>=n); }
+function spanDeath(f){ f=f||{}; return f.spanNext&&spanNextOk(f)?spanNextDay(f):(f.death||''); }
 /* 배차 양식용 */
 function dispatchDT(f){ if(String(f.dispatchAt||'').trim()) return f.dispatchAt; const p=parseDT(f.depart); if(!p||p.h==null) return ''; const t=new Date(p.y,p.mo-1,p.d,p.h,p.mi||0); t.setMinutes(t.getMinutes()-30); return `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}`; }
 function departDay(f){ const p=parseDT(f.depart); if(!p) return ''; return `${p.mo}월 ${p.d}일 ${'일월화수목금토'[new Date(p.y,p.mo-1,p.d).getDay()]}요일`; }
@@ -1860,7 +1880,7 @@ function addDaysAt(v,days,hh,mm){ const p=parseDT(v); const t=new Date(p.y,p.mo-
 /* ---------- 양식 채우기 ---------- */
 /* 장례 종료 보고용: 장례 일정 「09월 29일~10월 01일」, 결제 방식에 따라 달라지는 줄 */
 const md2=v=>{ const p=parseDT(v); return p?`${pad(p.mo)}월 ${pad(p.d)}일`:''; };
-function funeralSpan(f){ const a=md2(f.death||f.recv||f.arrive), b=md2(f.depart); return a&&b?`${a}~${b}`:(a||b); }
+function funeralSpan(f){ const a=md2(spanDeath(f)||f.recv||f.arrive), b=md2(f.depart); return a&&b?`${a}~${b}`:(a||b); }
 function endPay(c){ try{ return endPay_(c); }catch(e){ return {method:'',day:'',amount:'',payer:'',cardNote:'',receipt:''}; } }   // 처음 불러오는 중에는 계산에 쓰는 것들이 아직 준비 전일 수 있음
 function endPay_(c){
   const s=c.s?S(c):{}, f=c.f||{}, r=rcptSums(c);
@@ -1913,7 +1933,7 @@ function vals(c){
   return {
     '퇴근줄':OW.off, '출근줄':OW.on, '입관줄':OW.casket, '발인줄':OW.depart,
     '장례일정':funeralSpan(f), '결제방식':EP.method, '결제일자':EP.day, '결제금액':EP.amount, '입금자명':EP.payer, '카드결제내역':EP.cardNote, '현금영수증':EP.receipt, '사전가입할인':g('preJoin')||'없음', '이행완료확인서':g('certDone')||'하단 첨부',
-    '장소':g('place'), '기간':period(f.death,f.depart), '회사명':g('company'), '업체명':caseCoName(c), '고객명':g('customer'), '관계':g('custRel'), '고객연락처':g('custTel'),
+    '장소':g('place'), '기간':period(spanDeath(f),f.depart), '회사명':g('company'), '업체명':caseCoName(c), '고객명':g('customer'), '관계':g('custRel'), '고객연락처':g('custTel'),
     '고인명':deceased, '고인이름':g('name'), '상주명':g('chief'), '상주연락처':g('chiefTel'), '종교':g('religion'),
     '성별':g('gender'), '나이':g('age'), '상주관계':g('chiefRel'),
     '임종':dayTime(f.death), '입관':dayTime(f.casket), '발인':dayTime(f.depart), '장지':g('burial')||[g('burial1'),g('burial2')].filter(Boolean).join('-'), '배차':f.vehNone?'미사용':dayTime(dispatchDT(f)), '운행경로':g('route')||autoRoute(f), '발인날짜':departDay(f), '화장장회차':cremWithRound(f), '화장하관':cremOrHagwan(f), '차량경로':f.vehNone?'':vehRouteLines(f), '상품':g('product'),
@@ -1937,8 +1957,8 @@ function vals(c){
   };
 }
 /* 대한선진(국향) 양식용 (2026.10.27) */
-function daysSpan(f){   /* 08월08일 ~08월10일 (3일장) — 임종(없으면 접수 · 도착)부터 발인까지 */
-  const a=parseDT(f.death||f.recv||f.arrive), b=parseDT(f.depart), md=p=>`${pad(p.mo)}월${pad(p.d)}일`;
+function daysSpan(f){   /* 08월08일 ~08월10일 (3일장) — 장례 시작일(임종 · 다음 날부터, 없으면 접수 · 도착)부터 발인까지 */
+  const a=parseDT(spanDeath(f)||f.recv||f.arrive), b=parseDT(f.depart), md=p=>`${pad(p.mo)}월${pad(p.d)}일`;
   if(!a||!b) return a?md(a):b?md(b):'';
   const n=Math.round((new Date(b.y,b.mo-1,b.d)-new Date(a.y,a.mo-1,a.d))/86400000)+1;
   return `${md(a)} ~${md(b)}${n>0?` (${n}일장)`:''}`;
@@ -2433,12 +2453,23 @@ function bMarkPaint(c){
 }
 function schedInfo(){
   const c=curCase(); if(!c) return; const f=c.f, el=$('#schedInfo'); if(!el) return;
-  const out=[]; const per=period(f.death,f.depart); if(per) out.push(`<p class="calc">기간 : ${per}</p>`);
+  const out=[]; const sp=spanPickHtml(f);
+  if(sp) out.push(sp); else { const per=period(spanDeath(f),f.depart); if(per) out.push(`<p class="calc">기간 : ${per}</p>`); }
   if(f.death&&f.casket&&f.casket<f.death) out.push('<p class="warnline">입관이 임종보다 앞서 있습니다.</p>');
   if(f.casket&&f.depart&&f.depart<f.casket) out.push('<p class="warnline">발인이 입관보다 앞서 있습니다.</p>');
   if(!isBurial(f)&&f.depart&&f.cremDate&&f.cremDate<f.depart.slice(0,10)) out.push('<p class="warnline">화장 날짜가 발인보다 앞서 있습니다.</p>');
   if(isBurial(f)&&f.depart&&f.hagwanDate&&f.hagwanDate<f.depart.slice(0,10)) out.push('<p class="warnline">하관 날짜가 발인보다 앞서 있습니다.</p>');
   el.innerHTML=out.join(''); el.hidden=!out.length;
+}
+/* 장례 기간 고르기 (1안): 「25일 ~ 28일 · 4일장 / 임종 당일부터」 · 「26일 ~ 28일 · 3일장 / 임종 다음 날부터」 */
+function spanPickHtml(f){
+  const d=parseDT(f.death), nx=spanNextDay(f); if(!d||!nx||!spanNextOk(f)) return '';
+  const dp=parseDT(f.depart), on=!!f.spanNext;
+  const opt=(next)=>{ const st=next?parseDT(nx):d, n=dp?Math.round((new Date(dp.y,dp.mo-1,dp.d)-new Date(st.y,st.mo-1,st.d))/86400000)+1:0;
+    const day=p=>`${p.mo!==st.mo||(dp&&dp.mo!==st.mo)?p.mo+'월 ':''}${p.d}일`;
+    const big=dp&&n>0?`${day(st)} ~ ${day(dp)} · ${n}일장`:`${day(st)}부터`;
+    return `<button type="button" class="span-opt" role="radio" data-span-next="${next?1:0}" aria-checked="${next===on}"><i aria-hidden="true"></i><span><b>${big}</b><small>${next?`임종 다음 날(${st.d}일)부터`:`임종 당일(${st.d}일)부터`}</small></span></button>`; };
+  return `<div class="f-wrap span-pick"><span class="field-label">장례 기간 <span class="lbl-sub">임종이 늦은 밤이면 다음 날부터</span></span><div class="span-opts" role="radiogroup" aria-label="장례 기간">${opt(false)}${opt(true)}</div></div>`;
 }
 function updCremPreview(){
   const f=curCase().f||{}, hg=$('#hagwanPreview');
@@ -2508,6 +2539,8 @@ $('#p-input').addEventListener('click',e=>{
   if(a==='new'){ openPicker('new'); return; }
   if(!c) return;
   if(b.dataset.burial){ setBurial(c,b.dataset.burial); return; }
+  if(b.dataset.spanNext!=null){ if(b.dataset.spanNext==='1') c.f.spanNext=true; else delete c.f.spanNext; schedInfo(); touched();
+    const el=document.querySelector(`#schedInfo [data-span-next="${b.dataset.spanNext}"]`); if(el) el.focus(); return; }
   if(b.dataset.bmark!=null){ const w=b.dataset.bmark, cur=new Set(bMarks(c.f)); cur.has(w)?cur.delete(w):cur.add(w);
     c.f.burialMark=[...markList().filter(x=>cur.has(x)),...[...cur].filter(x=>!markList().includes(x))].join(',');
     b.setAttribute('aria-pressed',String(cur.has(w))); bMarkPaint(c); touched(); return; }
@@ -2525,9 +2558,9 @@ $('#p-input').addEventListener('click',e=>{
   }
   if(!c.mgr) c.mgr=[];
   if(b.dataset.mgdel){ delRow(c,'mgr',b.dataset.mgdel,renderInput,'도우미 시간대'); return; }
-  if(a==='mgrAdd'){ const last=c.mgr[c.mgr.length-1]; const next=last&&last.date?addDaysAt(last.date,1,0,0).slice(0,10):((c.f.recv||c.f.death||'').slice(0,10)); c.mgr.push({id:uid(),date:next,sh:last?last.sh:'',sm:last?last.sm:'',eh:last?last.eh:'',em:last?last.em:'',n:last?last.n:'2'}); touched(); renderInput(); return; }
+  if(a==='mgrAdd'){ const last=c.mgr[c.mgr.length-1]; const next=last&&last.date?addDaysAt(last.date,1,0,0).slice(0,10):((c.f.recv||c.f.death||'').slice(0,10)); c.mgr.push({id:uid(),date:last&&last.date?next:(String((c.f.spanNext&&spanDeath(c.f))||'').slice(0,10)||next),sh:last?last.sh:'',sm:last?last.sm:'',eh:last?last.eh:'',em:last?last.em:'',n:last?last.n:'2'}); touched(); renderInput(); return; }
   if(a==='mgrFill'){
-    const s=(c.f.recv||c.f.death||'').slice(0,10), e=(c.f.depart||'').slice(0,10);
+    const s=((c.f.spanNext&&c.f.death?spanDeath(c.f):'')||c.f.recv||c.f.death||'').slice(0,10), e=(c.f.depart||'').slice(0,10);   /* 장례 시작일을 다음 날로 골랐으면 그 날부터 */
     if(!s||!e){ toast('임종(접수)과 발인 날짜를 먼저 입력하십시오'); return; }
     const keep={}; c.mgr.forEach(m=>keep[m.date]=m);
     const out=[]; for(let d=s; d<e; d=addDaysAt(d,1,0,0).slice(0,10)) out.push(keep[d]||{id:uid(),date:d,sh:'',sm:'',eh:'',em:'',n:'2'});
@@ -2538,8 +2571,9 @@ $('#p-input').addEventListener('click',e=>{
   if(a==='changeCo') openPicker('change');
   if(a==='threeDay'){
     if(!c.f.death){ toast('임종 일시를 먼저 입력하십시오'); const el=$('#f_death input'); if(el) el.focus(); return; }
-    c.f.casket=addDaysAt(c.f.death,1,9,0); c.f.depart=addDaysAt(c.f.death,2,7,0); if(!c.f.cremDate) c.f.cremDate=c.f.depart.slice(0,10); if(!c.f.hagwanDate) c.f.hagwanDate=c.f.depart.slice(0,10);
-    touched(); renderInput(); toast('입관 다음 날 09시, 발인 모레 07시로 채웠습니다');
+    const st=c.f.spanNext?spanNextDay(c.f):c.f.death;   /* 장례 시작일(임종 · 다음 날부터) 기준 */
+    c.f.casket=addDaysAt(st,1,9,0); c.f.depart=addDaysAt(st,2,7,0); if(!c.f.cremDate) c.f.cremDate=c.f.depart.slice(0,10); if(!c.f.hagwanDate) c.f.hagwanDate=c.f.depart.slice(0,10);
+    const dd=v=>parseDT(v).d+'일'; touched(); renderInput(); toast(`${c.f.spanNext?`장례 시작일(${dd(st)}) 기준 · `:''}입관 ${dd(c.f.casket)} 09시, 발인 ${dd(c.f.depart)} 07시로 채웠습니다`);
   }
 });
 
@@ -2740,8 +2774,8 @@ function psPut(R,key,raw){
       const p=psDT(head.replace(/\d{1,2}\s*시.*$/,'')); if(p) (R.dt.hagwan=R.dt.hagwan||[]).push({...p,h:null,rank:2});
       const span=String(m[2]||''), a=span.match(/(\d{1,2})\s*시\s*~/)||span.match(/^(\d{1,2})\s*시/), b=span.match(/~\s*(\d{1,2})\s*시/);
       psSet(R,'hagwanFrom',a?pad(+a[1]):''); psSet(R,'hagwanTo',b?pad(+b[1]):''); return; }
-    case '장례기간': { const ds=[...v.matchAll(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/g)]; if(ds[0]) psDate(R,'death',`${ds[0][1]}월 ${ds[0][2]}일`,1.5); if(ds[1]) psDate(R,'depart',`${ds[1][1]}월 ${ds[1][2]}일`,1.5); return; }
-    case '기간': { const m=v.match(/(\d{1,2})\s*일\s*-\s*(\d{1,2})\s*일/); if(m){ psDate(R,'death',m[1]+'일',0.5); psDate(R,'depart',m[2]+'일',0.5); } return; }
+    case '장례기간': { const ds=[...v.matchAll(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/g)]; if(ds[0]) R.spanDay=+ds[0][2]; if(ds[0]) psDate(R,'death',`${ds[0][1]}월 ${ds[0][2]}일`,1.5); if(ds[1]) psDate(R,'depart',`${ds[1][1]}월 ${ds[1][2]}일`,1.5); return; }
+    case '기간': { const m=v.match(/(\d{1,2})\s*일\s*-\s*(\d{1,2})\s*일/); if(m){ R.spanDay=+m[1]; psDate(R,'death',m[1]+'일',0.5); psDate(R,'depart',m[2]+'일',0.5); } return; }
     case '접수월일': { const m=v.match(/(\d{1,2})\s*\/\s*(\d{1,2})/); if(m) psDate(R,'recv',`${m[1]}월 ${m[2]}일`,0.5); return; }
     case '제공항목': case '공제항목': case '대체공제': case '관리사배치': return;
   }
@@ -2832,6 +2866,7 @@ function psFinishDates(R){
     if(k==='hagwan'){ psSet(R,'hagwanDate',ymd); return; }
     psSet(R,k,ymd+hm);
   });
+  if(R.spanDay&&got.death){ const t=got.death.t, nx=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1); if(t.getDate()!==R.spanDay&&nx.getDate()===R.spanDay) R.f.spanNext=true; }   /* 기간이 임종 다음 날부터 */
   if(R.mgrRaw){ const base=got.death?got.death.t:got.recv?got.recv.t:ref;
     R.mgr=R.mgrRaw.map(m=>{ const t=psResolve({d:m.d},base,got.recv?got.recv.t:(got.death?got.death.t:null)); return t?{id:uid(),date:psYMD(t),sh:m.sh,sm:m.sm,eh:m.eh,em:m.em,n:m.n}:null; }).filter(Boolean); }
 }
@@ -2889,7 +2924,7 @@ function psRender(){
   psPaint();
 }
 const PS_SHOW=[['eventNo','행사번호',v=>v+'번'],['place','장소'],['name','고인',(v,f)=>['故 '+v,f.gender,f.age?f.age+'세':''].filter(Boolean).join(' · ')],['chief','상주',(v,f)=>[v,f.chiefRel,f.chiefTel].filter(Boolean).join(' · ')],
-  ['customer','고객 · 회원',(v,f)=>[f.company,v,f.custRel,f.custTel].filter(Boolean).join(' · ')],['death','임종',v=>psDTShow(v)],['casket','입관',v=>psDTShow(v)],['depart','발인',v=>psDTShow(v)],
+  ['customer','고객 · 회원',(v,f)=>[f.company,v,f.custRel,f.custTel].filter(Boolean).join(' · ')],['death','임종',v=>psDTShow(v)],['spanNext','장례 기간',(v,f)=>v?`임종 다음 날(${parseDT(spanNextDay(f)).d}일)부터`:''],['casket','입관',v=>psDTShow(v)],['depart','발인',v=>psDTShow(v)],
   ['cremDate','화장',(v,f)=>[psDTShow(v+(f.cremTime?'T'+f.cremTime:'')),f.cremName,f.cremRound?f.cremRound+'회차':''].filter(Boolean).join(' · ')],['hagwanDate','하관',v=>psDTShow(v)],
   ['burial','장지'],['burial1','1차 장지'],['product','상품'],['staff','담당',(v,f)=>[v,f.staffTel].filter(Boolean).join(' · ')]];
 const psDTShow=v=>{ const p=parseDT(v); return p?`${p.mo}월 ${pad(p.d)}일 (${wdOf(p)})${p.h!=null?` ${pad(p.h)}:${pad(p.mi)}`:''}`:''; };
@@ -4181,7 +4216,7 @@ function rcptForms(c){
    앱에 칸이 없는 것(장례용품 수량 · 도우미 날짜별 시간 · 숙박료 · 실제 주행거리 · 앰블런스 업체)은 빈칸.
    수금 결제 구분: 카드/현금 줄 = 상품 수금(제단공제 뺀 금액), 추가 줄 = 유골함 · 추가내역 · 관꽃장식 판매 합계 */
 function schedDT(v){ const p=parseDT(v); return p?`${pad(p.d)}일${p.h!=null?' '+hmStr(p.h,p.mi):''}`:''; }
-function schedSpan(f){ const a=parseDT(f.recv||f.arrive||f.death), b=parseDT(f.depart);
+function schedSpan(f){ const a=parseDT(spanDeath(f)||f.recv||f.arrive),   /* 2026.11.26 사용자: 장례 시작일부터 (예전 접수일부터) */ b=parseDT(f.depart);
   const full=p=>`${p.y}.${pad(p.mo)}.${pad(p.d)}`;
   if(a&&b){ if(a.y===b.y&&a.mo===b.mo) return a.d===b.d?full(a):`${full(a)} ~${pad(b.d)}`; return `${full(a)} ~${a.y===b.y?'':b.y+'.'}${pad(b.mo)}.${pad(b.d)}`; }
   return a?full(a):b?full(b):''; }
@@ -4929,7 +4964,7 @@ function szScreen(c,st,steps){
   let q=st.q, sub='', body='';
   const autoSub='흐린 글자는 행사 입력 · 정산에서 자동으로 들어가는 값입니다. 다르게 쓰려면 직접 입력하십시오.';
   if(st.id==='no') body=fIn('eventNo','행사번호','',{num:1})+fIn('place','행사 진행 장소','예: 함안하늘 특실')+go();
-  else if(st.id==='span'){ sub='비우면 접수일(없으면 임종일)부터 발인일까지 자동으로 들어갑니다.'; body=xIn('span','행사 진행 기간',ph(A.Q3,'예: 2026.04.01 ~03'))+go(); }
+  else if(st.id==='span'){ sub='비우면 장례 시작일(임종일 · 다음 날부터를 고르면 그 날)부터 발인일까지 자동으로 들어갑니다.'; body=xIn('span','행사 진행 기간',ph(A.Q3,'예: 2026.04.01 ~03'))+go(); }
   else if(st.id==='staff') body=fIn('staff','담당자',ph(!f.staff&&me().name,'예: 서영우'))+fIn('staffTel','연락처','예: 010-0000-0000',{tel:1})+go();
   else if(st.id==='cust') body=fIn('customer','고객명','예: 노승지')+fIn('custTel','연락처','예: 010-0000-0000',{tel:1})+fIn('custRel','고인과의 관계','예: 녀')+go();
   else if(st.id==='dec') body=fIn('name','고인','예: 노성택')+fIn('chief','상주명','예: 노승지')+fIn('chiefTel','상주 연락처','예: 010-0000-0000',{tel:1})+go();
