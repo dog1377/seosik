@@ -103,6 +103,13 @@ SETUP = r"""(()=>{
      g.closed=Date.now(); S(g).rcCashAmt='250'; delete S(g).rcCashBase; r.push(line(g)); delete g.closed;   // 종결한 행사는 그대로
      startCase(co('현진시닝')); const h=curCase(); S(h).pay='카드'; h.f.collect=''; S(h).rcCashAmt='5'; r.push(rcAmt(h,'cash'));   // 자동 0원이면 예전 값 그대로
      return r; })(),
+   hjAltar:(()=>{ startCase(co('현진시닝')); const c=curCase(), r=[], ln=t=>(bandOut(c).match(t)||[''])[0];   // 2026.11.26 현진시닝 「상품금액에서 공제」 체크 (체크할 때만 수금액에서 뺌)
+     Object.assign(c.f,{collect:'300',altar:'20'}); Object.assign(S(c),{pay:'현금'});
+     r.push(c.f.altarDed, collectNetWon(c), ln(/제단공제 : .*/), ln(/수금액 : .*/), settleCalc(c).sendWon);   // 새 행사 = 안 뺌
+     c.f.altarDed=true; r.push(collectNetWon(c), ln(/수금액 : .*/), settleCalc(c).sendWon);                    // 체크 = 뺌
+     delete c.f.altarDed; r.push(collectNetWon(c)); c.f.altarCard=true; r.push(collectNetWon(c)); delete c.f.altarCard;   // 값 없는 예전 행사 = 예전 규칙 그대로
+     startCase(co('디더블유')); const d=curCase(); Object.assign(d.f,{collect:'300',altar:'20'}); r.push(collectNetWon(d)); changeCaseCo(d,coById(co('현진시닝'))); r.push(d.f.altarDed, collectNetWon(d));   // 현진시닝으로 바꾸면 꺼짐부터
+     return r; })(),
    span:(()=>{ startCase(co('현진시닝')); const c=curCase(), r=[], ln=t=>(bandOut(c).match(t)||[''])[0];   // 2026.11.26 장례 시작일: 25일 23:30 임종 · 26일부터 3일장
      Object.assign(c.f,{place:'부산영락 2호',name:'홍길동',death:'2026-11-25T23:30',casket:'2026-11-27T10:00',depart:'2026-11-28T07:00'});
      r.push(ln(/기\s*간 : .*/), daysSpan(c.f), funeralSpan(c.f), schedSpan(c.f));
@@ -131,6 +138,8 @@ EXPECT = [
     ('금액 고치면 바로 (고이 붙여넣은 잔액 → 상품금액 기준, 할인 · 상품금액 고치면 수금액 · 지난 마이너스 따라감)', 'live', [True, '289', '', '2,771,100원', '2,741,100원', 2741100, '2,851,100원', '10월3번행사 -18만원 / 보내는금액 : 306만원', '10월3번행사 -8만원 / 보내는금액 : 316만원', '헌화 : / 보내는금액 : 324만원', True]),
     ('현진시닝 유골함 본사송금 (카드처럼 실장 몫 줄 · 카톡 끝 (본사송금) · 현금영수증에 안 넣음 · 받은 카톡에서 읽음)', 'urnHq', ['유골함 : 32만원(65만원)수금(90만원)할인(5만원)봉분골드천향(본사송금)', '이승구실장 : -33만원', 2485000, 2575000, '본사송금', '봉분골드천향']),
     ('직접 넣은 영수증 금액 → 금액이 바뀌면 자동 (고이 장례 종료 보고 결제 금액 · 예전 값 · 종결 · 자동 0원)', 'rcLive', ['-결제 금액 : 2,771,100원', True, '', '2662200', '-결제 금액 : 2,700,000원', '-결제 금액 : 2,751,100원', '-결제 금액 : 2,500,000원', 50000]),
+    ('현진시닝 「상품금액에서 공제」 (새 행사 = 안 뺌 · 밴드 「제단공제 : 20만원 공제」 그대로 · 체크하면 뺌 · 예전 행사 그대로 · 업체를 현진시닝으로 바꾸면 꺼짐)', 'hjAltar', [
+        False, 3000000, '제단공제 : 20만원 공제', '수금액 : 300만원', 3000000, 2800000, '수금액 : 280만원', 2800000, 2800000, 3000000, 2800000, False, 3000000]),
     ('장례 시작일 (임종 25일 23:30 → 26일부터 3일장: 밴드 기간 · 장례기간 · 장례 일정 · 일정표 기간, 임종 줄 그대로, 붙여넣기 · 발인이 앞이면 안 씀 · 달 넘김)', 'span', [
         '기   간 : 25일-28일 4일', '11월25일 ~11월28일 (4일장)', '11월 25일~11월 28일', '2026.11.25 ~28',
         '기   간 : 26일-28일 3일', '11월26일 ~11월28일 (3일장)', '11월 26일~11월 28일', '2026.11.26 ~28', '임종 : 25일 23시 30분',
