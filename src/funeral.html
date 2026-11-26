@@ -3438,10 +3438,10 @@ const mgrName=()=>String(rules().mgrName||'').trim()||'실장';
    → 수금액에서 빼지 않음(보내는금액 · 영수증 · 일정표 모두 수금액 그대로), 양식 글은 「20만원 법인카드결제」 */
 function altarText(v,card){ const t=String(v??'').trim(); if(!t) return ''; if(/^\d+(\.\d+)?$/.test(t.replace(/,/g,''))) return `${money(t)} ${card?'법인카드결제':'공제'}`; return card&&!/카드|법카/.test(t)?`${t} (법인카드결제)`:t; }
 /* 현진시닝 「상품금액에서 공제」 (2026.11.26 사용자: 「현진시닝은 제단에 법인카드 옵션처럼 상품금액에서 공제 체크박스 하나만 · 위에 얼마 공제라고 쓰긴 쓸 거임」)
-   현진시닝은 제단공제 칸 글(「20만원 공제」)은 양식에 그대로 나가고, 체크했을 때만 수금액에서 뺌. 값 c.f.altarDed (새 행사 false = 안 뺌).
-   값이 없는 예전 현진시닝 행사는 예전 규칙 그대로(c.altarNet · 법인카드결제) — 이미 보낸 정산 금액이 바뀌지 않게. 현진시닝은 법인카드결제 체크 칸 대신 이 칸 */
+   현진시닝은 제단공제 칸 글(「20만원 공제」)은 양식에 그대로 나가고, 체크했을 때만 수금액에서 뺌. 값 c.f.altarDed (없으면 false = 안 뺌).
+   같은 날 사용자 「이미 만든 행사도 다 적용되게」 → 예전 현진시닝 행사도 이 규칙(예전 c.altarNet · 법인카드결제는 현진시닝에서 안 씀). 현진시닝은 법인카드결제 체크 칸 대신 이 칸 */
 function altarHJ(c){ return !!c&&coKey(caseCoName(c))==='현진시닝'; }
-function altarHJSet(c){ return altarHJ(c)&&(c.f||{}).altarDed!=null; }
+function altarHJSet(c){ return altarHJ(c); }
 function altarDedOn(c){ const f=(c&&c.f)||{}; return altarHJSet(c)?!!f.altarDed:!!(c&&c.altarNet)&&!f.altarCard; }
 function altarCardOn(c){ return !!((c&&c.f)||{}).altarCard&&!altarHJSet(c); }
 function altarDeductWon(c){ if(!c||!altarDedOn(c)) return 0; const t=String((c.f||{}).altar||'').trim(); return t?Math.abs(toWon(t)):0; }
