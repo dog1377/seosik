@@ -505,8 +505,11 @@ window.dwMobile = function () {
 <!-- 그림만 인쇄 (장례 상담서 · 장례일정표 공통, 2026.10.31 사용자 「인쇄 누르니 쪽 번호 · 홈페이지 주소가 찍히고, 2 · 4쪽이 빈 페이지 → 딱 두 장으로」)
      - @page 여백 0 → 브라우저가 머리글 · 바닥글(주소 · 쪽 번호 · 날짜)을 찍을 자리가 없음. 종이는 A4. 여백은 그림 안에 이미 있음
      - 그림 한 장 = 한 쪽 칸(A4 보다 1mm 낮게 + 종이 높이를 넘지 않게) → 넘쳐서 생기던 빈 쪽 없음
-     - 쓰는 곳: 서식 상담서 consultPrint(그림 안에 여백이 있어 그대로) · 장례업무 prPrint(장례일정표 — 배경이 종이 끝까지라 pad 8mm, 예전 여백과 같게)
-       → window.dwPrintImages(그림 주소들, {pad}) -->
+     - 쓰는 곳: 서식 상담서 consultPrint(그림 안에 여백이 있어 그대로) · 장례업무 prPrint(장례일정표 — 배경이 종이 끝까지라 pad 2.5% ≈ 5mm) · 봉투 라벨
+       → window.dwPrintImages(그림 주소들, {pad})
+     - (2026.11.27 사용자 「장례일정표 출력할 때 장례식장 프린터마다 설정이 달라서 크기가 달라짐 → 여백 조금만 주고」)
+       칸 크기를 mm 대신 종이 기준(가로 100% · 세로 100vh)으로 → 인쇄 창의 배율 · 여백 · 용지(A4 · Letter)가 달라도 종이에 꽉 차게, 가운데.
+       여백(pad)도 % 로 주면 배율과 상관없이 같은 여백. 왼쪽 메뉴 자리(body padding-left)가 인쇄에 남던 것도 고침(dw-side-css 맨 아래) -->
 <style id="dw-print">
 #dwPrint{display:none}
 @page{size:A4 portrait;margin:0}
@@ -514,13 +517,13 @@ window.dwMobile = function () {
   html.dw-printing,html.dw-printing body{margin:0!important;padding:0!important;min-height:0!important;height:auto!important;background:#fff!important}
   html.dw-printing body>*:not(#dwPrint){display:none!important}
   html.dw-printing #dwPrint{display:block!important}
-  #dwPrint .dwp{box-sizing:border-box;width:100%;height:296mm;max-height:calc(100vh - 2mm);overflow:hidden;break-inside:avoid;break-after:page;page-break-after:always}
+  #dwPrint .dwp{box-sizing:border-box;width:100%;height:calc(100vh - 2mm);overflow:hidden;break-inside:avoid;break-after:page;page-break-after:always}
   #dwPrint .dwp:last-child{break-after:auto;page-break-after:auto}
-  #dwPrint img{display:block;width:100%;height:100%;object-fit:contain;object-position:center top}
+  #dwPrint img{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
 }
 </style>
 <script>
-window.dwPrintImages = function (urls, o) {   /* 인쇄창을 열면 true, 못 열면 false. o.pad = 종이 가장자리 여백(예: '8mm') */
+window.dwPrintImages = function (urls, o) {   /* 인쇄창을 열면 true, 못 열면 false. o.pad = 종이 가장자리 여백(예: '2.5%' — % 는 종이 너비 기준이라 인쇄 배율이 달라도 같음) */
   return new Promise(function (res) {
     var box = document.getElementById('dwPrint');
     if (!box) { box = document.createElement('div'); box.id = 'dwPrint'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
@@ -829,7 +832,7 @@ html.dw-gated .dsn-nav,html.dw-gated .dsn-rail,html.dw-gated .dsn-bg,html.dw-gat
 html.dw-noduty [data-dsn="duty"]{display:none!important}
 html[data-theme="dark"] .dsn-nav,html[data-theme="dark"] .dsn-rail{box-shadow:none}
 @media (prefers-reduced-motion:reduce){.dsn-nav,html.dsn-open .dsn-nav,.dsn-h .dsn-chev{transition:none}.dsn-i:active,.dsn-step:active,.dsn-rb:active,.dsn-burger:active{transform:none}}
-@media print{.dsn-nav,.dsn-rail,.dsn-bg,.dsn-burger{display:none!important}html.dw-side body{padding-left:0!important}}
+@media print{.dsn-nav,.dsn-rail,.dsn-bg,.dsn-burger{display:none!important}html.dw-side:not(.dw-gated) body{padding-left:0!important}}   /* 위 「왼쪽 여백」과 같은 세기 + 뒤에 있어야 이김 — 예전에는 인쇄 때도 왼쪽 메뉴 자리(72px · 256px)가 남아 그림이 오른쪽으로 밀리고 작아졌음 (2026.11.27) */
 </style>
 <script>
 window.dwSide = (function () {

@@ -4597,15 +4597,15 @@ async function prFonts(text){
 }
 function prFit(g,t,maxW,px,weight,fam){ let p=px; g.font=`${weight} ${p}px ${fam}`; const w=g.measureText(String(t)).width; if(maxW>0&&w>maxW){ p=Math.max(px*.55,px*maxW/w); g.font=`${weight} ${p}px ${fam}`; } return p; }
 function prJsPDF(){ return window.jspdf&&window.jspdf.jsPDF?Promise.resolve(window.jspdf.jsPDF):new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='vendor/jspdf.umd.min.js'; s.onload=()=>window.jspdf&&window.jspdf.jsPDF?res(window.jspdf.jsPDF):rej(new Error('jspdf')); s.onerror=()=>rej(new Error('jspdf')); document.head.appendChild(s); }); }
-async function prPdf(canvases){   /* A4 세로, 한 장에 그림 하나 (여백 8mm, 비율 그대로) */
+async function prPdf(canvases){   /* A4 세로, 한 장에 그림 하나 (여백 5mm · 가운데, 비율 그대로 — 2026.11.27 「여백 조금만」) */
   const J=await prJsPDF(), doc=new J({unit:'mm',format:'a4',orientation:'portrait',compress:true});
-  canvases.forEach((cv,i)=>{ if(i) doc.addPage('a4','portrait'); const W=210,H=297,m=8; let w=W-2*m, h=w*cv.height/cv.width; if(h>H-2*m){ h=H-2*m; w=h*cv.width/cv.height; }
+  canvases.forEach((cv,i)=>{ if(i) doc.addPage('a4','portrait'); const W=210,H=297,m=5; let w=W-2*m, h=w*cv.height/cv.width; if(h>H-2*m){ h=H-2*m; w=h*cv.width/cv.height; }
     doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',(W-w)/2,(H-h)/2,w,h); });
   return doc.output('blob');
 }
 const prBlob=(cv,type='image/png')=>new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('blob')),type,.92));
 async function prPrint(canvases){   /* 화면 대신 그림만 인쇄 (A4, 휴대폰은 인쇄창 → 프린터 또는 PDF) */
-  if(!(await window.dwPrintImages(canvases.map(cv=>cv.toDataURL('image/png')),{pad:'8mm'}))) toast('인쇄창을 열지 못했습니다 · PDF 저장을 이용하십시오');   /* 공통 인쇄(leader-gate-head): A4 한 장씩, 머리글 · 바닥글 없음 */
+  if(!(await window.dwPrintImages(canvases.map(cv=>cv.toDataURL('image/png')),{pad:'2.5%'}))) toast('인쇄창을 열지 못했습니다 · PDF 저장을 이용하십시오');   /* 공통 인쇄(leader-gate-head): A4 한 장씩, 머리글 · 바닥글 없음 */
 }
 const prSafe=v=>String(v||'').replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'').slice(0,30);
 /* 압축 없는 zip 읽기 (assets/poster.pptx 는 tools/poster_pptx.py 가 압축 없이 묶음) */
@@ -4823,7 +4823,7 @@ function renderPoster(){
     <div class="out"><div class="out-head"><h2>미리보기<small>빈소 게시용 · A4 세로 꽉 차게</small></h2><button class="btn sm" type="button" data-pxclear>새로 쓰기</button></div>
       <div class="px-pv" data-pr-zoom><canvas id="pxCanvas" width="1500" height="2121" aria-label="장례일정표 미리보기"></canvas></div>
       <div class="pr-acts"><button class="btn primary" type="button" data-px="print">인쇄</button><button class="btn" type="button" data-px="pdf">PDF 저장</button><button class="btn" type="button" data-px="png">이미지 저장</button><button class="btn" type="button" data-px="pptx">PPT 저장</button></div>
-      <p class="note">미리보기를 누르면 크게 보입니다. PPT 로 저장하면 파워포인트에서 글자를 바로 수정할 수 있습니다.</p>
+      <p class="note">미리보기를 누르면 크게 보입니다. 인쇄 · PDF 는 프린터 설정(배율 · 여백)과 상관없이 A4 한 장에 여백 약 5mm로 꽉 차게 나옵니다 — 용지는 A4로 고르십시오. PPT 로 저장하면 파워포인트에서 글자를 바로 수정할 수 있습니다.</p>
     </div>
   </div></div>`;
   pxPaintSoon(true);
