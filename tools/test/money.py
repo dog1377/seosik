@@ -83,6 +83,14 @@ SETUP = r"""(()=>{
      c.f.casket='2026-11-22T13:00'; r.push(chgText(c), chgPending(c));
      c.f.vehNone=true; c.f.depart='2026-11-23T08:00'; r.push(chgText(c));
      return r; })(),
+   help:(()=>{ const r=[];   // 2026.11.27 도우미 배치 양식 = 모든 업체 (현진시닝은 업체 양식 「관리사 시간배치」 그대로)
+     startCase(co('고이장례연구소')); let c=curCase(); Object.assign(c.f,{place:'부산메리놀 특2호',eventNo:'5'});
+     c.mgr=[{id:'m2',date:'2026-11-24',sh:'09',sm:'00',eh:'22',em:'00',n:'2'},{id:'m1',date:'2026-11-23',sh:'12',sm:'30',eh:'22',em:'00',n:'1'}];
+     const ov=outViews(c).map(x=>x[0]); r.push(helpText(c), ov.indexOf('help')>0&&ov.indexOf('help')===ov.indexOf('disp')-1);
+     startCase(co('현진시닝')); r.push(outViews(curCase()).some(([k])=>k==='help'));
+     startCase(ETC); c=curCase(); Object.assign(c.f,{coName:'고려라이프',place:'양산농협 VIP1호'}); r.push(helpText(c));
+     r.push(db.companies.filter(x=>x.name!=='현진시닝').every(x=>{ startCase(x.id); return outViews(curCase()).some(([k])=>k==='help'); }));
+     return r; })(),
    etc:(()=>{ const e=coById(ETC), g=db.companies.find(x=>x.name==='고이장례연구소'), r=[activeReports(e).length, activeReports(g).length>0];   // 2026.11.24 기타 업체 = 고이 양식 없음
      const keep=e.reports; e.reports=[{id:'a',name:'보고 양식',body:GOI_REPORT},{id:'b',name:'내 양식',body:'장소 : {장소}'}]; e.reportsEnabled=true; etcNoGoi(); r.push(e.reports.map(x=>x.name).join(',')); e.reports=keep; delete e.reportsEnabled;
      startCase(ETC); r.push(outViews(curCase()).some(([k])=>/^rep/.test(k))); return r; })(),
@@ -150,6 +158,8 @@ EXPECT = [
         False, 2,
         '양산농협 VIP1호(고려라이프)\n입관시간 변경됩니다.\n\n입관 : 22일 11시 -> 22일 13시\n\n- 밴드 수정완료.', True,
         '양산농협 VIP1호(고려라이프)\n입관시간, 발인시간 변경됩니다.\n\n입관 : 22일 11시 -> 22일 13시\n\n발인 : 23일 07시 30분 -> 23일 08시\n\n- 밴드 수정완료.']),
+    ('도우미 배치 양식 (모든 업체 · 날짜 · 시간순 · 빈 자리 줄 빠짐 · 현진시닝은 업체 양식 그대로)', 'help', [
+        '회사명 : 고이장례연구소\n부산메리놀 특2호\n23일 : 12시 30분-22시 1명\n24일 : 09시-22시 2명\n관리사 배치완료.\n행사번호 5번', True, False, '회사명 : 고려라이프\n양산농협 VIP1호\n관리사 배치완료.', True]),
     ('기타 업체 = 회사 보고 양식 없음 (고이 양식만 빠지고 직접 만든 양식은 남음, 고이는 그대로)', 'etc', [0, True, '내 양식', False]),
     ('고이 수금액 = 잔액 − 공제 + 추가 (이행완료확인서 한 번만: 붙여넣기 · 붙여넣은 뒤 있음 · 직접 적은 줄)', 'goiBal', ['2,771,100원', None, '2781100', 2771100, '2,771,100원', '2,771,100원', '2,781,100원', '2,621,100원', '잔액 2,781,100원에서 제단공제 20만원 빼고 · 공제 · 추가 +4만원 → 2,621,100원']),
     ('금액 고치면 바로 (고이 붙여넣은 잔액 → 상품금액 기준, 할인 · 상품금액 고치면 수금액 · 지난 마이너스 따라감)', 'live', [True, '289', '', '2,771,100원', '2,741,100원', 2741100, '2,851,100원', '10월3번행사 -18만원 / 보내는금액 : 306만원', '10월3번행사 -8만원 / 보내는금액 : 316만원', '헌화 : / 보내는금액 : 324만원', True]),

@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.27-1">
+<meta name="app-version" content="2026.11.27-2">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -391,7 +391,7 @@ a.dwg-t{text-decoration:none}
       ['ad-staff', '직원 명단', '이름 · 직급 · 전화번호 · 권한 · 비밀번호 초기화 · 제명', 'people', 'LA', './#settings:staff']] },
     { t: '행사 업무', items: [
       ['ev-forms', '업체 양식', '밴드 · 회사 보고 양식 · 제공내역', 'doc', 'L', 'funeral.html#admin:forms'],
-      ['ev-common', '배차 · 퇴근 양식', '모든 업체 공통 배차 · 퇴근 문자', 'truck', 'L', 'funeral.html#admin:common'],
+      ['ev-common', '배차 · 퇴근 · 도우미 양식', '모든 업체 공통 배차 · 퇴근 · 도우미 배치 문자', 'truck', 'L', 'funeral.html#admin:common'],
       ['ev-rules', '정산 기준', '제단 · 유골함 · 장지 · 관꽃장식 나누는 기준', 'settle', 'LM', 'funeral.html#admin:rules'],
       ['ev-lists', '선택 목록', '행사 입력 · 정산에서 눌러 고르는 목록', 'list', 'LM', 'funeral.html#admin:lists'],
       ['duty', '휴무 · 당직 규칙', '휴무 일수 · 출발일 · 당직 규칙', 'duty', 'LM', 'funeral.html#duty:settings'],
@@ -3360,6 +3360,12 @@ html body .case-steps small{font-size:13px}
       <label class="f">퇴근 양식<textarea class="input tpl" id="offTpl" rows="7"></textarea></label>
       <div class="row"><button class="btn sm primary" id="saveOffTpl" type="button">저장</button><button class="btn sm" id="resetOffTpl" type="button">기본값으로</button></div>
     </div>
+    <div class="sec" data-av="common" data-admin>
+      <div class="sec-head"><h2>도우미 배치 양식</h2></div>
+      <p class="note">업체 양식에 관리사(도우미) 배치 양식이 없는 업체의 양식 화면 「도우미 배치」에 나옵니다. 현진시닝은 업체 양식 「관리사 시간배치」를 그대로 씁니다. {관리사배치}에는 행사 입력 「도우미 시간대」의 날짜별 줄이 들어가고, 자리 값이 비어 있는 줄은 빠집니다(고객 회사가 없으면 「업체명 :」 줄 없음).</p>
+      <label class="f">도우미 배치 양식<textarea class="input tpl" id="helpTpl" rows="7"></textarea></label>
+      <div class="row"><button class="btn sm primary" id="saveHelpTpl" type="button">저장</button><button class="btn sm" id="resetHelpTpl" type="button">기본값으로</button></div>
+    </div>
     <div class="sec" data-av="rules">
       <div class="sec-head"><h2>정산 기준</h2></div>
       <div class="pair">
@@ -3418,7 +3424,7 @@ html body .case-steps small{font-size:13px}
       <button class="acc-h" type="button" aria-expanded="false"><span><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>설정</span><i></i></button>
       <div class="acc-b"><div>
         <button type="button" data-go="admin:forms" data-admin>업체 양식</button>
-        <button type="button" data-go="admin:common" data-admin>공통 양식 (배차 · 퇴근)</button>
+        <button type="button" data-go="admin:common" data-admin>공통 양식 (배차 · 퇴근 · 도우미)</button>
         <button type="button" data-go="admin:rules">정산 기준</button>
         <button type="button" data-go="admin:lists">선택 목록</button>
         <button type="button" data-go="admin:keep">행사 기록 정리</button>
@@ -3766,6 +3772,18 @@ const HJ_REPORTS=[
 관리사 배치완료.
 행사번호 {행사번호}번`},
 ];
+/* 도우미(관리사) 배치 양식 — 모든 업체 공통 (2026.11.27 사용자 「다른 회사들도 도우미 배치 양식은 다 넣어 줘」). 현진시닝처럼 업체 양식에 관리사 배치 양식이 있으면 그 양식을 씀.
+   설정 → 배차 · 퇴근 · 도우미 양식(db.helpTpl, 비우면 이 기본). 자리 값이 다 비어 있는 줄은 뺌(고객 회사가 없는 업체는 「업체명 :」 줄 없음) */
+const HELP_TPL=`회사명 : {업체명}
+업체명 : {회사명}
+{장소}
+{관리사배치}
+관리사 배치완료.
+행사번호 {행사번호}번`;
+function helpText(c){
+  return String(db.helpTpl||HELP_TPL).split('\n').filter(l=>{ const ph=l.match(/\{[^}]+\}/g); return !ph||ph.some(x=>String(fillTpl(x,c)||'').trim()); })
+    .map(l=>fillTpl(l,c)).join('\n').replace(/\n{3,}/g,'\n\n').trim();
+}
 const GOI_ITEMS=['전삼베(남) 제공','헌화30송이 5만원공제','생화꽃관장식 10만원 공제','관리사 2명 24만 공제','상복 페이백 예정','영정사진 서비스','앰블관내 제공','장의차량 배차완료','장의차량 70km(실제운행거리)'];
 const GOI_DEDUCT=[];
 // 밴드 제공내역 기본 17개 (모든 업체 공통 · 행사마다 고쳐 씀). 12번처럼 줄바꿈 뒤 줄은 번호 없이 이어짐
@@ -5281,7 +5299,7 @@ function renderKeep(){
    이 기기 저장값: dw-sb-auth(로그인), dw-sb-meta(무엇을 올렸는지), dw-sb-dev(기기 번호). */
 const SB_URL='https://bruqeidlbougfdveomag.supabase.co', SB_KEY='sb_publishable_nA1F7Ye-9e5Xy6Zj4xTQjg_J56YLY2P';
 const SB_APP='funeral', SB_DOMAIN='dwfuneral.com', SB_AUTH='dw-sb-auth', SB_META='dw-sb-meta', SB_DEV='dw-sb-dev';
-const SB_SET_KEYS=['companies','lists','crems','defaultItems','settleRules','me','dispatchTpl','offTpl','envelopeSkipped','ships','homeQuick'];   /* ships = 배송 기록 (2026.10.30), homeQuick = 첫 화면 자주 쓰는 기능 (2026.11.19) */
+const SB_SET_KEYS=['companies','lists','crems','defaultItems','settleRules','me','dispatchTpl','offTpl','envelopeSkipped','ships','homeQuick','helpTpl'];   /* ships = 배송 기록 (2026.10.30), homeQuick = 첫 화면 자주 쓰는 기능 (2026.11.19), helpTpl = 도우미 배치 양식 (2026.11.27) */
 var sbc=null, sbUser=null, sbChan=null, sbBusy=false, sbAgain=false, sbTimer=0, sbState='off', sbRt='', sbNeedRender=false, sbBooting=false;
 const sbDev=(()=>{ try{ let d=localStorage.getItem(SB_DEV); if(!d){ d=Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem(SB_DEV,d); } return d; }catch(e){ return 'x'+Math.random().toString(36).slice(2,10); } })();
 function sbLoadMeta(){ let m={}; try{ m=JSON.parse(localStorage.getItem(SB_META)||'{}')||{}; }catch(e){} ['h','up','known'].forEach(k=>{ if(!m[k]||typeof m[k]!=='object') m[k]={}; }); return m; }
@@ -5521,7 +5539,7 @@ window.addEventListener('resize',()=>document.querySelectorAll('.out-tabs').forE
 const isHelpRep=r=>/\{관리사배치\}/.test(String(r.body||''))||/관리사|도우미/.test(String(r.name||''));
 function outViews(c){
   const reps=activeReports(coById(c.companyId)).map((r,i)=>({k:'rep'+i,l:r.name,h:isHelpRep(r)})), prov=!!splitBand(bandOut(c)).prov;
-  return [...reps.filter(x=>!x.h).map(x=>[x.k,x.l]),['band',prov?'밴드 일정':'밴드'],...(prov?[['prov','제공내역']]:[]),...reps.filter(x=>x.h).map(x=>[x.k,x.l]),['disp','배차'],['off','퇴근'],['xl','행사 일정표'],['chg','변경 안내']];
+  return [...reps.filter(x=>!x.h).map(x=>[x.k,x.l]),['band',prov?'밴드 일정':'밴드'],...(prov?[['prov','제공내역']]:[]),...reps.filter(x=>x.h).map(x=>[x.k,x.l]),...(reps.some(x=>x.h)?[]:[['help','도우미 배치']]),['disp','배차'],['off','퇴근'],['xl','행사 일정표'],['chg','변경 안내']];
 }
 let outCase=null;
 function applyOutView(){
@@ -5544,9 +5562,13 @@ function renderOut(){
   const co=coById(c.companyId), reports=activeReports(co);
   { const bo=bandOut(c), sp=splitBand(bo); $('#bandText').value=sp.prov?sp.sched:bo; $('#provText').value=sp.prov; $('#bandAll').hidden=!sp.prov;
     $('#bandH').innerHTML=`${sp.prov?'밴드 일정':'밴드 양식'}<small>${esc(caseCoName(c))} 양식</small>`; $('#provTag').textContent=`${caseCoName(c)} 양식`; }
-  $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+chgCardHtml()+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  const ownHelp=reports.some(isHelpRep);
+  $('#reportCards').innerHTML=(ownHelp?'':`<div class="out" id="hpOut" data-ov="help"><div class="out-head"><h2>도우미 배치<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copyhelp>복사</button></div><p class="note hp-note" id="hpNote" hidden></p><textarea class="text-out" id="hpText" rows="7" aria-label="도우미 배치 양식"></textarea></div>`)+`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+chgCardHtml()+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   { const ov=outViews(c); if(outCase!==c.id){ outCase=c.id; db.outView=ov[0][0]; }   /* 행사를 바꾸면 맨 앞(회사 보고)부터 */
     $('#outTabs').innerHTML=ov.map(([k,l])=>`<button type="button" role="tab" data-ov-tab="${k}">${esc(l)}</button>`).join(''); applyOutView(); }
+  if($('#hpText')){ const t=helpText(c); $('#hpText').value=t; $('#hpText').rows=Math.min(16,Math.max(5,t.split('\n').length+1));
+    const f=c.f||{}, nb=f.helperNone?'이 행사는 도우미 미사용입니다.':!mgrRows(c).length?'행사 입력 「도우미 시간대」에 날짜별 시간 · 인원을 넣으면 여기에 들어갑니다.':'';
+    $('#hpNote').hidden=!nb; $('#hpNote').innerHTML=nb?`${esc(nb)}${f.helperNone||c.closed?'':' <button class="btn link" type="button" data-help-go>도우미 시간대 입력 ›</button>'}`:''; }
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c,{'업체명':dispCoName(c)});   /* 배차는 업체별 배차 회사명 (대한선진(국향) → 대한항공노동조합) */
   { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없습니다':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워집니다. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 입력하십시오. 미리보기를 누르면 크게 보입니다.';
@@ -5703,6 +5725,7 @@ let coSel=null, lastTpl='coBand';
 function renderCompanies(){
   const dtpl=$('#dispTpl'); if(dtpl&&document.activeElement!==dtpl) dtpl.value=db.dispatchTpl||DISPATCH_TPL;
   const otpl=$('#offTpl'); if(otpl&&document.activeElement!==otpl) otpl.value=db.offTpl||OFF_TPL;
+  const htpl=$('#helpTpl'); if(htpl&&document.activeElement!==htpl) htpl.value=db.helpTpl||HELP_TPL;
   if(!db.companies.find(x=>x.id===coSel)) coSel=(db.companies.find(x=>x.id!==ETC)||db.companies[0]).id;
   const list=[...db.companies.filter(x=>x.id!==ETC).sort((a,b)=>a.name.localeCompare(b.name,'ko')), coById(ETC)];
   $('#coChips').innerHTML=list.map(x=>`<button class="chip" type="button" data-co="${x.id}" aria-pressed="${x.id===coSel}">${esc(x.name)}</button>`).join('')+`<button class="chip add" type="button" data-co="__new">+ 업체 추가</button>`;
@@ -8633,13 +8656,15 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 setInterval(offRefresh,60000);
 $('#saveOffTpl').onclick=()=>{ const t=$('#offTpl').value.replace(/\s+$/,''); db.offTpl=t&&t!==OFF_TPL?t:''; save(); dirty=true; renderAll(); toast('퇴근 양식을 저장했습니다'); };
 $('#resetOffTpl').onclick=()=>{ $('#offTpl').value=OFF_TPL; db.offTpl=''; save(); dirty=true; renderAll(); toast('퇴근 양식을 기본값으로 되돌렸습니다'); };
+$('#saveHelpTpl').onclick=()=>{ const t=$('#helpTpl').value.replace(/\s+$/,''); db.helpTpl=t&&t!==HELP_TPL?t:''; save(); dirty=true; renderAll(); toast('도우미 배치 양식을 저장했습니다'); };
+$('#resetHelpTpl').onclick=()=>{ $('#helpTpl').value=HELP_TPL; db.helpTpl=''; save(); dirty=true; renderAll(); toast('도우미 배치 양식을 기본값으로 되돌렸습니다'); };
 $('#saveDispTpl').onclick=()=>{ const t=$('#dispTpl').value.replace(/\s+$/,''); db.dispatchTpl=t&&t!==DISPATCH_TPL?t:''; save(); dirty=true; renderAll(); toast('배차 양식을 저장했습니다'); };
 $('#resetDispTpl').onclick=()=>{ $('#dispTpl').value=DISPATCH_TPL; db.dispatchTpl=''; save(); dirty=true; renderAll(); toast('배차 양식을 기본값으로 되돌렸습니다'); };
-$('#reportCards').onclick=e=>{ if(e.target.closest('[data-xlinput]')){ setTab('sched'); return; } { const b=e.target.closest('[data-xlsave]'); if(b){ szSave(curCase(),b.dataset.xlsave); return; } } { const z=e.target.closest('[data-sz-zoom]'); if(z){ z.classList.toggle('zoom'); return; } } if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
+$('#reportCards').onclick=e=>{ if(e.target.closest('[data-xlinput]')){ setTab('sched'); return; } { const b=e.target.closest('[data-xlsave]'); if(b){ szSave(curCase(),b.dataset.xlsave); return; } } { const z=e.target.closest('[data-sz-zoom]'); if(z){ z.classList.toggle('zoom'); return; } } if(e.target.closest('[data-copydisp]')){ copyFrom($('#dispText'),'배차 양식을 복사했습니다'); return; } if(e.target.closest('[data-copyhelp]')){ copyFrom($('#hpText'),'도우미 배치 양식을 복사했습니다'); return; } if(e.target.closest('[data-help-go]')){ inputGroup='staff'; inputSection='mgr'; setTab('input'); return; } if(e.target.closest('[data-copyoff]')){ copyFrom($('#offText'),'퇴근 양식을 복사했습니다'); return; } const b=e.target.closest('[data-copyrep]'); if(!b) return; const co=coById(curCase().companyId), r=activeReports(co)[+b.dataset.copyrep]; if(r) copyFrom($('#rep_'+b.dataset.copyrep),`${r.name}을(를) 복사했습니다`); };
 /* 설정 (2026.11.11 사용자: 「설정도 이 설정 저 설정 중구난방 → 한군데로 묶고, 백업 · 내보내기처럼 안 쓰는 기능은 없애고, 정보 설정도 쉽게」)
    첫 화면 hub = 모든 설정 목록(leader-gate-head.html window.dwSet — 맨 위 내 정보 카드 · 행사 업무 · 서식 · 보고서(파트장) · 회사 서류(파트장) · 관리자 · 화면 밝기 · 로그아웃).
    장례업무 설정은 이 화면 안에서 한 가지씩(맨 위 「‹ 설정」), 서식 · 회사 서류 설정은 그 화면으로 넘어감. 예전 설정 고르기 카드 · 「내 계정」 칸 · 앱 · 양식 공유(내보내기 · 가져오기)는 없앰 */
-const ADMIN_TITLES={hub:'설정',forms:'업체 양식',common:'배차 · 퇴근 양식',rules:'정산 기준',lists:'선택 목록',keep:'행사 기록 정리'};
+const ADMIN_TITLES={hub:'설정',forms:'업체 양식',common:'배차 · 퇴근 · 도우미 양식',rules:'정산 기준',lists:'선택 목록',keep:'행사 기록 정리'};
 /* 양식 고치기(업체 양식 · 공통 양식)는 파트장만 (2026.11.01 사용자 「어차피 공통으로 고쳐서 배포하니 직원한테는 없어도 됨」).
    직원 계정(html.dw-member)은 [data-admin] 이 숨겨지고(leader-gate-head.html), 설정 목록에도 안 나옴 */
 const ADMIN_LEAD=['forms','common'];
@@ -8856,7 +8881,7 @@ function stepNextHTML(from){
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-step-go]'); if(!b) return; ctabGo(b.dataset.stepGo); });
 /* ② 보고서: 보고서 화면에서 무엇이든 복사하면 끝낸 것으로 */
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('#p-out button'); if(!b) return;
-  if(b.matches('#copyBand,#copySched,#copyProv,[data-copydisp],[data-copyoff]')||/복사/.test(b.textContent||'')){ if(!b.closest('#chgOut')) chgPost(curCase()); markStep('out'); } },true);   /* 처음 복사(밴드에 올림) = 변경 안내 기준 */
+  if(b.matches('#copyBand,#copySched,#copyProv,[data-copydisp],[data-copyoff],[data-copyhelp]')||/복사/.test(b.textContent||'')){ if(!b.closest('#chgOut')) chgPost(curCase()); markStep('out'); } },true);   /* 처음 복사(밴드에 올림) = 변경 안내 기준 */
 /* 아래 메뉴(#mobileNav)는 2026.10.30 에 없앰 → 휴대폰은 첫 화면 바둑판 + 위 막대 「‹ 홈」(#mobileNav 글은 그림 모음으로만 씀) */
 /* ---------- 휴대폰 첫 화면 (2026.10.30 사용자 「모바일 화면 ATM 큰 글씨처럼 큰 바둑판 배열 · 원하는 기능으로만 바로」 · 「첫 화면 바둑판 · 홈 화면으로 돌아가기」) ----------
    첫 화면 = home 하나(2026.11.11 — 행사 · 서식 · 배송 묶음 한 장). 휴대폰에서 앱을 열면(주소 끝 화면 없이 처음 열 때) 첫 화면, 다른 화면은 위 막대 「‹ 홈」으로 돌아옴.
