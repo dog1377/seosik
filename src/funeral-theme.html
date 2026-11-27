@@ -747,4 +747,24 @@ body.case-locked [data-lock-inert]{opacity:.78;cursor:not-allowed}
 .sec.goi .altar-net[data-altar-note="collect"]{display:none}
 /* 휴대폰: 한 줄에 하나씩(이름 · 설명 왼쪽, 금액 오른쪽) — 「2,781,100원」이 중간에서 끊기지 않게 (2026.11.24) */
 @media (max-width:699px){.goi-sum{grid-template-columns:1fr;gap:6px}.gs-c{grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:0;align-items:center;padding:10px 14px}.gs-c>span{grid-column:1;grid-row:1}.gs-c>small{grid-column:1;grid-row:2}.gs-c>b{grid-column:2;grid-row:1/span 2;text-align:right}}
+/* 변경 안내 (2026.11.27) — 양식 화면 위 한 줄 안내 · 고르는 줄 점 · 끝 줄 고르기 */
+.chg-hint:not([hidden]){display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 10px;padding:10px 12px 10px 16px;border-radius:12px;background:var(--st-info-bg,#EDF2FF);color:var(--st-info,#2858B8);font-size:14.5px;line-height:1.5;word-break:keep-all}
+.chg-hint span{flex:1 1 200px;min-width:0;font-weight:600}
+.chg-hint button{min-height:40px;padding:0 14px;border:0;border-radius:10px;background:var(--surface,#fff);color:var(--st-info,#2858B8);font:inherit;font-weight:700;cursor:pointer}
+#p-out[data-ov-now="chg"] .chg-hint{display:none}
+#outTabs [data-ov-tab].has-dot{padding-right:18px}
+#outTabs [data-ov-tab].has-dot::before{content:"";position:absolute;top:12px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--st-bad,#B3323D)}
+#chgOut .chg-note{font-size:14.5px;line-height:1.65;color:var(--muted);margin:2px 0 4px}
+#chgOut .chg-lines{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+#chgOut .chg-lines::before{content:"끝에 붙는 줄";flex:1 1 100%;font-size:13.5px;font-weight:600;color:var(--muted)}
+body #chgOut .chg-lines .chip{min-height:40px;padding:0 14px;border-radius:10px;font-size:14.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+body #chgOut .chg-lines .chip[aria-pressed="true"]{border-color:transparent;background:var(--bg-selected,#EDF2FF);color:var(--st-info,#2858B8)}
+body #chgOut .chg-lines .chip[aria-pressed="true"]::before{content:"✓ "}
+body #chgOut .chg-lines .chip[aria-pressed="false"]{text-decoration:line-through;text-decoration-color:var(--faint,#94A3B8)}
+#chgOut .chg-acts{margin-top:10px}
+#chgOut .chg-acts .btn{flex:1 1 auto}
+#chgOut .chg-foot{margin-top:10px;font-size:13.5px;line-height:1.6;color:var(--muted)}
+#chgOut .chg-foot .btn.link{display:inline;min-height:0;padding:0;font-size:13.5px;vertical-align:baseline}
+#chgOut .chg-sent{color:var(--st-ok,#216843);font-weight:700}
+@media (max-width:699px){.chg-hint button{min-height:44px}body #chgOut .chg-lines .chip{min-height:44px}#chgOut .chg-foot .btn.link{display:inline-block;min-height:44px;line-height:44px}}
 </style>

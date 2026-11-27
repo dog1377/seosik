@@ -1089,6 +1089,7 @@ body[data-tab="list"] .page-intro,body[data-tab="list"] #newCase{display:none!im
   <section id="p-out" class="stack" hidden>
     <p class="split-label">입력하면 바로 바뀌는 보고서</p>
     <div class="missing" id="missing"></div>
+    <div class="chg-hint" id="chgHint" hidden></div>
     <div class="out-tabs" id="outTabs" role="tablist" aria-label="보고 양식 고르기"></div>
     <div class="out" data-ov="band">
       <div class="out-head"><h2 id="bandH">밴드 일정</h2><button class="btn primary" id="copySched" type="button">복사</button></div>
@@ -1755,7 +1756,7 @@ if(!db.vGoiEnd){ const goi=db.companies.find(x=>isGoi(x)); if(goi){ if(!goi.repo
 const goiLike=b=>{ const k=String(b||'').replace(/\s/g,''); return k===GOI_REPORT.replace(/\s/g,'')||/^장소:\{장소\}상품:\{상품\}고인:\{고인이름\}/.test(k); };
 function etcNoGoi(){ const e=(db.companies||[]).find(x=>x.id===ETC); if(!e||!Array.isArray(e.reports)) return; const r=e.reports.filter(x=>!goiLike(x&&x.body)); if(r.length!==e.reports.length){ e.reports=r; if(!r.length) delete e.reportsEnabled; } }
 etcNoGoi();
-function save(){ syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
+function save(){ if(CHG_ON) chgCatchAll(); syncEnvelopeArchives(); const ok=store.set(db); updateSaveState(ok?'saved':'error'); if(ok&&(db.cases.length||db.envelopes.length)) askPersist(); if(ok&&typeof sbSchedule==='function') sbSchedule(); return ok; }
 const coById=id=>db.companies.find(x=>x.id===id) || db.companies.find(x=>x.id===ETC);
 // 기타 업체로 작성한 건은 직접 넣은 업체명을 씀
 const caseCoName=c=>{ const co=coById(c&&c.companyId); return co.id===ETC&&String((c.f||{}).coName||'').trim()?String(c.f.coName).trim():co.name; };
@@ -1831,11 +1832,11 @@ const cremDispName=f=>cremShort(cremReportLabel(f));
 const markList=()=>Array.isArray(db.lists&&db.lists.burialMarks)?db.lists.burialMarks:DEFAULT_LISTS.burialMarks;
 const bMarks=f=>String((f||{}).burialMark||'').split(',').map(x=>x.trim()).filter(Boolean);
 const burialBase=f=>String((f||{}).burial||'').trim()||[f.burial1,f.burial2].map(v=>String(v||'').trim()).filter(Boolean).join('-');
-function bandBurial(f){
-  const base=burialBase(f), mk=bMarks(f); if(!mk.length||!base) return base;
-  const m=base.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
-  return m?`${m[1]}(${[...new Set([...m[2].split(',').map(x=>x.trim()).filter(Boolean),...mk])].join(',')})`:`${base}(${mk.join(',')})`;
+function markJoin(v,mk){   /* 「부산추모」 + 봉안 → 「부산추모(봉안)」 · 이미 괄호가 있으면 합침 (밴드 장지 · 변경 안내가 같이 씀) */
+  const m=String(v).match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+  return m?`${m[1]}(${[...new Set([...m[2].split(',').map(x=>x.trim()).filter(Boolean),...mk])].join(',')})`:`${v}(${mk.join(',')})`;
 }
+function bandBurial(f){ const base=burialBase(f), mk=bMarks(f); return mk.length&&base?markJoin(base,mk):base; }
 function noMarks(v){   /* 「부산추모(봉안)」 → 「부산추모」 · 장법 말만 든 괄호만 뺌 (「(기장)」 같은 건 그대로) */
   const W=new Set([...markList(),'봉안','벽담','벽식','평장','산골','수목','수목장','자차','자차이동','봉분']);
   return String(v||'').replace(/\s*\(([^()]*)\)/g,(all,inner)=>{ const ws=inner.split(/[,·\s]+/).filter(Boolean); return ws.length&&ws.every(w=>W.has(w))?'':all; });
@@ -2961,7 +2962,7 @@ function psGo(mode){
   const R=psR; if(!R) return; const coId=psCo||psCompany(R), dup=mode==='fill'?psDup(R):null; let c, n;
   if(dup&&dup.closed) return;   /* 종결된 행사는 채우지 않음 */
   if(dup){ c=dup; n=psApply(c,R,true); c.updated=Date.now(); db.cur=c.id; }
-  else { c=makeCase(coId); if(c.companyId===ETC&&R.coName&&!psFindCo(R.coName)) c.f.coName=R.coName; c.mgr=[]; n=psApply(c,R,false); db.cases.push(c); db.cur=c.id; }
+  else { c=makeCase(coId); if(c.companyId===ETC&&R.coName&&!psFindCo(R.coName)) c.f.coName=R.coName; c.mgr=[]; n=psApply(c,R,false); c.chg={base:chgSnap(c),at:Date.now(),src:'paste'}; db.cases.push(c); db.cur=c.id; }   /* 붙여 넣은 글 = 이미 올라간 일정 → 변경 안내 기준 */
   save(); dirty=true; psClose(); setTab('input'); renderAll(); inputGroup='basic'; inputSection=null; applyInputGroup();
   toast(dup?(n?`${caseTitle(c)} 행사에 ${n}칸을 채웠습니다`:'새로 채울 빈 칸이 없습니다'):`새 행사를 만들었습니다 · ${n}칸을 채웠습니다. 확인하십시오`);
 }
@@ -3311,7 +3312,7 @@ window.addEventListener('resize',()=>document.querySelectorAll('.out-tabs').forE
 const isHelpRep=r=>/\{관리사배치\}/.test(String(r.body||''))||/관리사|도우미/.test(String(r.name||''));
 function outViews(c){
   const reps=activeReports(coById(c.companyId)).map((r,i)=>({k:'rep'+i,l:r.name,h:isHelpRep(r)})), prov=!!splitBand(bandOut(c)).prov;
-  return [...reps.filter(x=>!x.h).map(x=>[x.k,x.l]),['band',prov?'밴드 일정':'밴드'],...(prov?[['prov','제공내역']]:[]),...reps.filter(x=>x.h).map(x=>[x.k,x.l]),['disp','배차'],['off','퇴근'],['xl','행사 일정표']];
+  return [...reps.filter(x=>!x.h).map(x=>[x.k,x.l]),['band',prov?'밴드 일정':'밴드'],...(prov?[['prov','제공내역']]:[]),...reps.filter(x=>x.h).map(x=>[x.k,x.l]),['disp','배차'],['off','퇴근'],['xl','행사 일정표'],['chg','변경 안내']];
 }
 let outCase=null;
 function applyOutView(){
@@ -3319,6 +3320,7 @@ function applyOutView(){
   if(!btns.some(b=>b.dataset.ovTab===v)) v=btns.length?btns[0].dataset.ovTab:'band';
   btns.forEach(b=>{ const on=b.dataset.ovTab===v; b.setAttribute('aria-selected',String(on)); b.tabIndex=on?0:-1; });
   document.querySelectorAll('#p-out [data-ov]').forEach(el=>el.classList.toggle('ov-off',el.dataset.ov!==v));
+  $('#p-out').dataset.ovNow=v;   /* 변경 안내를 보고 있으면 위 안내 줄 숨김 */
   tbScroll(btns.find(b=>b.dataset.ovTab===v)); tabsFade($('#outTabs'));
   return v;
 }
@@ -3329,11 +3331,11 @@ $('#outTabs').addEventListener('keydown',e=>{ if(e.key!=='ArrowRight'&&e.key!=='
   const n=bs[(i+(e.key==='ArrowRight'?1:-1)+bs.length)%bs.length]; n.focus(); n.click(); e.preventDefault(); });
 function renderOut(){
   goiNormCur(); const c=curCase();
-  if(!c){ $('#bandText').value=''; $('#provText').value=''; $('#reportCards').innerHTML=''; $('#missing').innerHTML=''; $('#outTabs').innerHTML=''; $('#outNext').innerHTML=''; return; }
+  if(!c){ $('#bandText').value=''; $('#provText').value=''; $('#reportCards').innerHTML=''; $('#chgHint').hidden=true; $('#missing').innerHTML=''; $('#outTabs').innerHTML=''; $('#outNext').innerHTML=''; return; }
   const co=coById(c.companyId), reports=activeReports(co);
   { const bo=bandOut(c), sp=splitBand(bo); $('#bandText').value=sp.prov?sp.sched:bo; $('#provText').value=sp.prov; $('#bandAll').hidden=!sp.prov;
     $('#bandH').innerHTML=`${sp.prov?'밴드 일정':'밴드 양식'}<small>${esc(caseCoName(c))} 양식</small>`; $('#provTag').textContent=`${caseCoName(c)} 양식`; }
-  $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
+  $('#reportCards').innerHTML=`<div class="out" id="dispOut" data-ov="disp"><div class="out-head"><h2>배차 양식<small>모든 업체 공통</small></h2><button class="btn primary" type="button" data-copydisp>복사</button></div><textarea class="text-out" id="dispText" rows="12" aria-label="배차 양식"></textarea></div><div class="out" id="offOut" data-ov="off"><div class="out-head"><h2>퇴근 양식<small id="offTag"></small></h2><button class="btn primary" type="button" data-copyoff>복사</button></div><textarea class="text-out" id="offText" rows="7" aria-label="퇴근 양식"></textarea></div><div class="out" id="xlOut" data-ov="xl"><div class="out-head"><h2>장례행사 일정표<small>이미지 · 엑셀 · 모든 업체 공통</small></h2><button class="btn primary" type="button" data-xlinput>보고서 입력</button></div><div class="sz-pv" data-sz-zoom><canvas id="xlCanvas" aria-label="장례행사 일정표 미리보기"></canvas></div><div class="pair"><button class="btn" type="button" data-xlsave="png">이미지 저장</button><button class="btn" type="button" data-xlsave="xlsx">엑셀 저장</button></div><p class="note xl-note" id="xlNote"></p></div>`+chgCardHtml()+reports.map((r,i)=>`<div class="out" data-ov="rep${i}"><div class="out-head"><h2>${esc(r.name)}<small>${esc(caseCoName(c))} 보고</small></h2><button class="btn primary" type="button" data-copyrep="${i}">복사</button></div><textarea class="text-out" id="rep_${i}" rows="${Math.min(18,Math.max(6,r.body.split('\n').length+2))}" aria-label="${esc(r.name)}"></textarea></div>`).join('');
   { const ov=outViews(c); if(outCase!==c.id){ outCase=c.id; db.outView=ov[0][0]; }   /* 행사를 바꾸면 맨 앞(회사 보고)부터 */
     $('#outTabs').innerHTML=ov.map(([k,l])=>`<button type="button" role="tab" data-ov-tab="${k}">${esc(l)}</button>`).join(''); applyOutView(); }
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c,{'업체명':dispCoName(c)});   /* 배차는 업체별 배차 회사명 (대한선진(국향) → 대한항공노동조합) */
@@ -3341,6 +3343,7 @@ function renderOut(){
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워집니다. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 입력하십시오. 미리보기를 누르면 크게 보입니다.';
   { const cv=$('#xlCanvas'); szPaint(cv,c); szWhenFonts(()=>{ if(db.tab==='out'||isSplit()) szPaint($('#xlCanvas'),curCase()); }); }
   reports.forEach((r,i)=>{ $('#rep_'+i).value=reportFill(r.body,c); });   /* 회사 보고 = 화장장 정식 이름 */
+  chgPaint(c);
   const miss=c.closed?[]:inputMiss(c);   /* 종결한 행사는 「비어 있음」을 띄우지 않음 */
   const ml=(k,l)=>String((co.labels||{})[k]||'').replace(/\s*\([^)]*\)\s*$/,'').trim()||l;   /* 업체 칸 이름대로 (대한선진 → 조합원 · 장례담당자) */
   $('#outNext').innerHTML=stepNextHTML('out');
@@ -3353,6 +3356,137 @@ function inputMiss(c){
   return Object.entries(REQUIRED).filter(([k])=>(k==='cremDate'?(used.has('화장')&&!isBurial(c.f)):k==='hagwanDate'?(burialOn&&isBurial(c.f)):visible(k,used)) && !String(c.f[k]??'').trim());
 }
 $('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return; setTab('input'); const el=$('#f_'+b.dataset.go); if(el){ const sec=el.closest('[data-group]'); if(sec){ inputGroup=sec.dataset.group; inputSection=sec.dataset.section||null; applyInputGroup(); } el.scrollIntoView({block:'center'}); (el.matches('input,select,textarea,button')?el:el.querySelector('input:not([type=hidden]),select,button'))?.focus(); } };
+
+/* ---------- 변경 안내 (2026.11.27 사용자: 「부산한중 401호(신한은행) / 2차장지 신어추모(봉안)으로 확정되었습니다. / - 밴드 수정완료. - 장의차량 재배차 완료. - FSMS 수정완료.
+   현진시닝만 FSMS수정완료, 나머지 상조는 밴드랑 장의차량만 · 장지뿐 아니라 입관시간 · 발인시간 · 화장장 변경 때도 하나의 양식으로 · 변경된 것은 카톡 하나에 다」) ----------
+   기준 값 c.chg.base(새 칸) = 이 행사 양식을 처음 복사했을 때(= 밴드에 올린 값) · 복사한 글로 만든 행사는 만들 때 · 이 버전 전에 이미 복사한 행사는 처음 고치기 바로 전 값(save → chgCatchAll).
+   지금 값과 다르면 양식 화면 「변경 안내」에 바로 만들어짐(입관 · 발인 · 화장장(날짜 · 이름 · 회차 · 시간) · 1차 · 2차 장지(밴드 장법 괄호) · 매장이면 하관 · 장법).
+   변경 안내를 복사 · 보내면 c.chg.sent = 그때 값 → 그 뒤에 또 바뀌면 그 값과 비교. 끝 줄(밴드 · 장의차량 · FSMS)은 고를 수 있음 c.chg.opt(바뀐 내용이 같을 때만 기억).
+   카톡방에 저절로 올리는 길은 카카오가 막아 둠 → 「복사」 · 「카톡으로 보내기」(휴대폰 공유창). 행사 기록 안이라 내 계정에 같이 저장, 저장 키 · 돈 계산 바뀐 것 없음 */
+var CHG_MEM, CHG_ON, CHG_TMP;   /* var: 위쪽 save() 가 먼저 불러도 멈추지 않게 (CHG_ON 은 맨 아래 처음 그리기 바로 전에 켬) */
+const CHG_KEYS=['mt','cd','cn','rd','ct','hg','b1','b2','bb','ip','dp'];
+const CHG_ITEMS=[['mt','장법','장법','p'],['cr','화장장','화장장','p'],['b1','1차장지','1차장지','p'],['b2','2차장지','2차장지','p'],['bb','장지','장지','p'],['ip','입관시간','입관','t'],['dp','발인시간','발인','t'],['hg','하관시간','하관','t']];
+function chgSnap(c){   /* 변경 안내에 쓰는 값 — 화장장 이름은 적힌 그대로(cn) 두고 보여 줄 때 짧은 이름으로 (선택 목록을 바꿔도 「바뀜」으로 안 보이게) */
+  const f=(c&&c.f)||{}, bur=isBurial(f), mk=bMarks(f), t=k=>String(f[k]??'').trim();
+  const b1=t('burial1'), b2=t('burial2'), bb=b1||b2?'':t('burial'), last=b2?'b2':b1?'b1':bb?'bb':'';
+  const wm=(k,v)=>k===last&&mk.length?markJoin(v,mk):v;   /* 밴드처럼 마지막 장지에 장법 괄호 「신어추모(봉안)」 */
+  const cd=parseDT(f.cremDate), tm=t('cremTime').match(/^(\d{1,2}):(\d{2})/), rd=t('cremRound');
+  const hd=bur?parseDT(f.hagwanDate):null, ha=t('hagwanFrom'), hb=t('hagwanTo'), hs=ha&&hb?`${ha}시 ~ ${hb}시`:ha?`${ha}시`:hb?`~ ${hb}시`:'';
+  return { mt:bur?'매장':t('method')==='수목장'?'수목장':'화장',
+    cd:bur||!cd?'':`${pad(cd.d)}일`, cn:bur?'':cremReportLabel(f), rd:bur||!rd?'':String(/^\d+$/.test(rd)?+rd:rd),
+    ct:bur||!tm?'':hm({h:+tm[1],mi:+tm[2]}),
+    hg:hd?[`${pad(hd.d)}일`,t('hagwanSi'),hs?`(${hs})`:''].filter(Boolean).join(' '):'',
+    b1:wm('b1',b1), b2:wm('b2',b2), bb:wm('bb',bb), ip:dayTime(f.casket), dp:dayTime(f.depart) };
+}
+const chgEq=(a,b)=>CHG_KEYS.every(k=>String((a||{})[k]||'')===String((b||{})[k]||''));
+function chgBase(c){   /* 지금 비교할 값: 보낸 뒤에 또 바뀌었으면 보낸 값, 아니면 기준 값 */
+  const g=c&&c.chg;
+  if(g&&g.base) return g.sent&&!chgEq(chgSnap(c),g.sent)?g.sent:g.base;
+  if(c&&c.steps&&c.steps.out&&CHG_MEM&&CHG_MEM.has(c.id)){ try{ return JSON.parse(CHG_MEM.get(c.id)); }catch(e){} }   /* 이미 복사한 예전 행사 · 아직 저장 전 */
+  return null;
+}
+function chgCatchAll(){   /* save() 마다: 이미 복사했는데 기준이 없는 행사 → 바뀌면 바로 전 값을 기준으로 */
+  CHG_MEM=CHG_MEM||new Map();
+  try{ db.cases.forEach(c=>{
+    if(c.chg||c.closed||!(c.steps&&c.steps.out)){ CHG_MEM.delete(c.id); return; }
+    const s=JSON.stringify(chgSnap(c)), m=CHG_MEM.get(c.id);
+    if(m==null) CHG_MEM.set(c.id,s); else if(m!==s){ c.chg={base:JSON.parse(m),at:Date.now(),src:'edit'}; CHG_MEM.delete(c.id); }
+  }); }catch(e){}
+}
+function chgPost(c){   /* 양식을 복사할 때(밴드에 올릴 때) 기준이 없으면 지금 값이 기준 */
+  if(!c||c.closed||c.chg) return; const B=chgBase(c); c.chg={base:B||chgSnap(c),at:Date.now(),src:B?'edit':'copy'}; if(CHG_MEM) CHG_MEM.delete(c.id); c.updated=Date.now(); save(); }
+function chgEnsure(c){ if(!c.chg){ const B=chgBase(c); if(!B) return null; c.chg={base:B,at:Date.now(),src:'edit'}; if(CHG_MEM) CHG_MEM.delete(c.id); } return c.chg; }
+function chgDiff(c){
+  const B=c&&chgBase(c); if(!B) return []; const S=chgSnap(c), out=[], mtChg=!!(B.mt&&S.mt&&B.mt!==S.mt);
+  const cr=X=>[X.cd||'',X.cn?cremShort(X.cn):'',X.rd?`${X.rd}회차`:''].filter(Boolean).join(' ');   /* 「23일 진주 4회차」 */
+  const val=(X,k)=>k==='cr'?cr(X):String(X[k]||'');
+  CHG_ITEMS.forEach(([k,label,short,kind])=>{
+    let o=val(B,k), n=val(S,k);
+    if(k==='cr'&&o===n){ const ot=String(B.ct||''), nt=String(S.ct||''); if(ot!==nt){ o=o&&ot?`${o} (${ot})`:o||ot; n=n&&nt?`${n} (${nt})`:n||nt; } }   /* 시간만 바뀐 화장 */
+    if(o===n||(k==='mt'&&(!o||!n))||(mtChg&&!n&&(k==='cr'||k==='hg'))) return;
+    out.push({k,label,short,kind,o,n,st:!o?'new':!n?'gone':'chg'});
+  });
+  return out;
+}
+function chgOpt(c,D){
+  const f=c.f||{}, sig=D.map(d=>`${d.k}:${d.o}>${d.n}`).join('|'), hj=isHJ(c), vehOk=!f.vehNone;
+  const o=c.chg&&c.chg.opt&&c.chg.opt.sig===sig?c.chg.opt:CHG_TMP&&CHG_TMP.id===c.id&&CHG_TMP.sig===sig?CHG_TMP:null;
+  return {sig,hj,vehOk, band:o?o.band!==false:true, veh:vehOk&&(o?!!o.veh:D.some(d=>d.k!=='ip')), fsms:hj&&(o?o.fsms!==false:true)};   /* 입관만 바뀌면 장의차량 줄은 처음엔 뺌 */
+}
+function josaRo(s){   /* 받침 있으면 「으로」 · 없거나 ㄹ이면 「로」 (「신어추모(봉안)으로」 「4회차로」) */
+  const t=String(s||'').replace(/[\s)\]}>"'.,!?·~-]+$/,''), ch=t.slice(-1); if(!ch) return '로';
+  const k=ch.charCodeAt(0); if(k>=0xAC00&&k<=0xD7A3){ const j=(k-0xAC00)%28; return j===0||j===8?'로':'으로'; }
+  return /[036]/.test(ch)?'으로':'로';
+}
+function chgText(c,D,O){
+  D=D||chgDiff(c); if(!D.length) return ''; O=O||chgOpt(c,D);
+  const f=c.f||{}, nm=String(f.name||'').trim(), top=String(f.place||'').trim()||(nm?'故 '+nm:''), who=O.hj?(String(f.company||'').trim()||'현진시닝'):caseCoName(c);
+  const V={new:'확정',chg:'변경',gone:'취소'};
+  const ph=L=>{ const st=[...new Set(L.map(d=>d.st))]; return st.length===1?`${L.map(d=>d.label).join(', ')} ${V[st[0]]}`:L.map(d=>`${d.label} ${V[d.st]}`).join(', '); };
+  const line=d=>d.st==='new'?`${d.short} : ${d.n}`:`${d.short} : ${d.o} -> ${d.n||'없음'}`;
+  let head, det;
+  if(D.length===1){ const d=D[0];
+    if(d.st==='new'){ head=`${d.label} ${d.n}${josaRo(d.n)} 확정되었습니다.`; det=[]; }
+    else { head=`${d.label} ${d.st==='gone'?'취소되었습니다.':'변경됩니다.'}`; det=[line(d)]; } }
+  else { const P=D.filter(d=>d.kind==='p'), T=D.filter(d=>d.kind==='t'), a=P.length&&T.length&&P.every(d=>d.st==='chg')?ph(P):'';   /* 「화장장 변경으로 발인시간 변경됩니다.」 (장소가 바뀐 때만 「~으로」) */
+    head=a?`${a}${josaRo(a)} ${ph(T)}됩니다.`:`${ph(D)}됩니다.`; det=D.map(line); }
+  const done=[O.band&&'- 밴드 수정완료.',O.veh&&'- 장의차량 재배차 완료.',O.fsms&&'- FSMS 수정완료.'].filter(Boolean);
+  return [`${top}${who?`(${who})`:''}\n${head}`,...det,...(done.length?[done.join('\n')]:[])].join('\n\n');
+}
+function chgPending(c){ const D=chgDiff(c); return D.length>0&&!(c.chg&&c.chg.sent&&chgEq(chgSnap(c),c.chg.sent)); }   /* 아직 안 보낸 변경 */
+const chgFmt=ms=>{ const d=new Date(ms); return isNaN(d)?'':`${d.getMonth()+1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+function chgSent(c){   /* 복사 · 보내기 = 보냄 (그때 값을 남김) */
+  if(!c||c.closed) return; const B=chgBase(c); if(!B) return; const g=c.chg||(c.chg={base:B,at:Date.now(),src:'edit'});
+  if(g.sent&&B===g.sent){ g.base=g.sent; g.at=g.sentAt||g.at; g.src='sent'; }
+  g.sent=chgSnap(c); g.sentAt=Date.now(); if(CHG_MEM) CHG_MEM.delete(c.id); c.updated=Date.now(); save();
+}
+function chgReset(c){   /* 「변경 없음으로 하기」 · 「지금 값을 기준으로」 — 되돌리기 있음 */
+  if(!c||c.closed) return; const id=c.id, prev=c.chg?JSON.parse(JSON.stringify(c.chg)):null;
+  c.chg={base:chgSnap(c),at:Date.now(),src:'reset'}; if(CHG_MEM) CHG_MEM.delete(id); c.updated=Date.now(); save(); renderOut();
+  const msg=prev?'변경 안내를 비웠습니다 · 지금 값이 기준입니다':'지금 값을 기준으로 했습니다';
+  if(window.dwUndo) window.dwUndo(msg,()=>{ const x=db.cases.find(k=>k.id===id); if(!x) return; if(prev) x.chg=prev; else delete x.chg; x.updated=Date.now(); save(); if(db.tab==='out'||isSplit()) renderOut(); }); else toast(msg);
+}
+function chgCardHtml(){
+  return `<div class="out" id="chgOut" data-ov="chg"><div class="out-head"><h2>변경 안내<small>입관 · 발인 · 화장장 · 장지</small></h2><button class="btn primary" type="button" data-chg-copy>복사</button></div>
+    <p class="note chg-note" id="chgNote"></p>
+    <div class="chg-body" id="chgBody"><textarea class="text-out" id="chgText" rows="9" aria-label="변경 안내"></textarea>
+    <div class="chg-lines" id="chgLines" role="group" aria-label="끝에 붙는 줄"></div><div class="row chg-acts" id="chgActs"></div></div>
+    <p class="note chg-foot" id="chgFoot"></p></div>`;
+}
+function chgPaint(c,keepText){
+  const box=$('#chgOut'); if(!box||!c) return;
+  const D=chgDiff(c), O=chgOpt(c,D), g=c.chg, B=chgBase(c), has=D.length>0, pend=chgPending(c);
+  if(!keepText){ const t=chgText(c,D,O); $('#chgText').value=t; $('#chgText').rows=Math.min(18,Math.max(5,t.split('\n').length+1)); }
+  box.querySelector('[data-chg-copy]').disabled=!has; $('#chgBody').hidden=!has;
+  $('#chgNote').hidden=has; $('#chgNote').textContent=has?'':B?'바뀐 일정이 없습니다. 행사 입력에서 입관 · 발인 · 화장장 · 장지를 바꾸면 여기에 변경 안내가 바로 만들어집니다.':'아직 비교할 기준이 없습니다. 이 행사 양식(밴드 일정 등)을 한 번 복사하면 그때 값이 기준이 되고, 그 뒤로 바꾼 일정이 여기에 만들어집니다.';
+  $('#chgLines').innerHTML=has?[['band','밴드 수정완료',true],['veh','장의차량 재배차 완료',O.vehOk],['fsms','FSMS 수정완료',O.hj]].filter(x=>x[2]).map(([k,l])=>`<button type="button" class="chip" data-chg-line="${k}" aria-pressed="${!!O[k]}">${l}</button>`).join(''):'';
+  $('#chgActs').innerHTML=has&&navigator.share?'<button class="btn" type="button" data-chg-share>카톡으로 보내기</button>':''; $('#chgActs').hidden=!$('#chgActs').innerHTML;
+  const sent=has&&g&&g.sent&&chgEq(chgSnap(c),g.sent), since=!!(g&&g.sent&&B===g.sent), rs=t=>c.closed?'':` · <button class="btn link" type="button" data-chg-reset>${t}</button>`;
+  const from=since?`지난 변경 안내(${chgFmt(g.sentAt)}) 뒤로 바뀐 것입니다`:!g?'고치기 전 값과 비교했습니다':
+    ({copy:`양식을 복사했을 때(${chgFmt(g.at)}) 값과 비교했습니다`,paste:'붙여 넣은 글의 값과 비교했습니다',sent:`지난 변경 안내(${chgFmt(g.at)}) 때 값과 비교했습니다`,reset:`${chgFmt(g.at)}에 기준으로 한 값과 비교했습니다`})[g.src]||'고치기 전 값과 비교했습니다';
+  $('#chgFoot').innerHTML=!B?(c.closed?'':`<button class="btn link" type="button" data-chg-reset>지금 값을 기준으로 하기</button>`)
+    :!has?'':sent?`<b class="chg-sent">✓ ${esc(chgFmt(g.sentAt))} 보냄</b> · 일정이 또 바뀌면 여기에 새로 만들어집니다`:`${esc(from)}${rs('변경 없음으로 하기')}`;
+  $('#chgFoot').hidden=!$('#chgFoot').innerHTML;
+  const tb=document.querySelector('#outTabs [data-ov-tab="chg"]'); if(tb){ tb.classList.toggle('has-dot',pend); tb.setAttribute('aria-label',pend?'변경 안내 · 보내지 않은 변경 있음':'변경 안내'); }
+  const hint=$('#chgHint'); hint.hidden=!pend; hint.innerHTML=pend?`<span>일정이 바뀌었습니다 · ${esc(D.map(d=>d.short).join(' · '))}</span><button type="button" data-ov-go="chg">변경 안내 보기 ›</button>`:'';
+}
+$('#chgHint').addEventListener('click',e=>{ if(!e.target.closest('[data-ov-go]')) return; db.outView='chg'; save(); applyOutView(); fitOutText(); const el=$('#chgOut'); if(el) el.scrollIntoView({block:'nearest'}); });
+$('#reportCards').addEventListener('click',async e=>{
+  const c=curCase(); if(!c) return; const el=$('#chgText');
+  if(e.target.closest('[data-chg-copy]')){ const t=el.value; if(!t.trim()){ toast('복사할 내용이 없습니다'); return; }
+    if(await doCopy(t)) toast('변경 안내를 복사했습니다 · 카톡방에 붙여 넣으십시오'); else { el.focus(); el.select(); toast('이 화면에서는 복사가 막혀 있습니다. 선택된 글을 길게 눌러 복사하십시오'); }
+    chgSent(c); chgPaint(c,true); return; }
+  if(e.target.closest('[data-chg-share]')){ const t=el.value; if(!t.trim()) return;
+    try{ await navigator.share({text:t}); chgSent(c); chgPaint(c,true); }
+    catch(err){ if(err&&err.name==='AbortError') return; if(await doCopy(t)){ toast('보내기 창이 열리지 않아 문구를 복사했습니다'); chgSent(c); chgPaint(c,true); } else toast('보내기 창을 열지 못했습니다'); }
+    return; }
+  if(e.target.closest('[data-chg-reset]')){ chgReset(c); return; }
+});
+$('#reportCards').addEventListener('click',e=>{ const x=e.target.closest&&e.target.closest('[data-chg-line]'); if(!x) return; const c=curCase(); if(!c) return;
+  const on=x.getAttribute('aria-pressed')!=='true'; x.setAttribute('aria-pressed',String(on));
+  const D=chgDiff(c), O=chgOpt(c,D); O[x.dataset.chgLine]=on; const o={sig:O.sig,band:O.band,veh:O.veh,fsms:O.fsms};
+  if(c.closed) CHG_TMP=Object.assign({id:c.id},o); else { const g=chgEnsure(c); if(g){ g.opt=o; c.updated=Date.now(); save(); } }
+  const t=chgText(c,D,O); $('#chgText').value=t; $('#chgText').rows=Math.min(18,Math.max(5,t.split('\n').length+1)); fitOutText(); });
 
 
 /* ---------- 관리: 회사 ---------- */
@@ -6513,7 +6647,7 @@ function stepNextHTML(from){
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-step-go]'); if(!b) return; ctabGo(b.dataset.stepGo); });
 /* ② 보고서: 보고서 화면에서 무엇이든 복사하면 끝낸 것으로 */
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('#p-out button'); if(!b) return;
-  if(b.matches('#copyBand,#copySched,#copyProv,[data-copydisp],[data-copyoff]')||/복사/.test(b.textContent||'')) markStep('out'); },true);
+  if(b.matches('#copyBand,#copySched,#copyProv,[data-copydisp],[data-copyoff]')||/복사/.test(b.textContent||'')){ if(!b.closest('#chgOut')) chgPost(curCase()); markStep('out'); } },true);   /* 처음 복사(밴드에 올림) = 변경 안내 기준 */
 /* 아래 메뉴(#mobileNav)는 2026.10.30 에 없앰 → 휴대폰은 첫 화면 바둑판 + 위 막대 「‹ 홈」(#mobileNav 글은 그림 모음으로만 씀) */
 /* ---------- 휴대폰 첫 화면 (2026.10.30 사용자 「모바일 화면 ATM 큰 글씨처럼 큰 바둑판 배열 · 원하는 기능으로만 바로」 · 「첫 화면 바둑판 · 홈 화면으로 돌아가기」) ----------
    첫 화면 = home 하나(2026.11.11 — 행사 · 서식 · 배송 묶음 한 장). 휴대폰에서 앱을 열면(주소 끝 화면 없이 처음 열 때) 첫 화면, 다른 화면은 위 막대 「‹ 홈」으로 돌아옴.
@@ -6784,6 +6918,7 @@ window.addEventListener('pagehide',()=>save());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});
 const purged=purge();
 if(!db.cases.length&&db.envelopes.length&&['input','out','settle',undefined].includes(db.tab))db.tab='envelopes';
+CHG_ON=true; chgCatchAll();   /* 변경 안내: 이미 복사한 행사의 지금 값을 기억 (바뀌면 그 값이 기준) */
 save();
 renderAll();
 /* DW장례업무 홈에서 「봉투정리 보기」 등을 누르면 funeral.html#envelopes 로 옴 → 그 화면을 엶 */

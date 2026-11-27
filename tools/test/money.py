@@ -72,6 +72,17 @@ SETUP = r"""(()=>{
      c.f.burial='창원상복-부산추모(벽식)'; c.f.burialMark='자차'; r.push(bandBurial(c.f), reportFill('장지 : {장지}',c));
      c.f.burial=''; c.f.burial1='안동선영'; c.f.burial2=''; c.f.burialMark='산골,자차'; r.push(bandBurial(c.f), reportFill('장지 : {장지}',c), settleText(c).split('\n').find(l=>/^장지 :/.test(l))||'');
      return r; })(),
+   chg:(()=>{ const r=[];   // 2026.11.27 변경 안내: 양식을 복사한 때 값과 비교 → 카톡 한 통
+     startCase(co('현진시닝')); let c=curCase();
+     Object.assign(c.f,{place:'부산한중 401호',company:'신한은행',name:'김철수',casket:'2026-11-26T11:00',depart:'2026-11-27T07:00',method:'화장',cremName:'부산영락',cremDate:'2026-11-27',cremTime:'09:00',cremRound:'3',burial1:'부산영락',burial2:''});
+     chgPost(c); r.push(chgText(c));
+     c.f.burial2='신어추모'; c.f.burialMark='봉안'; r.push(chgText(c));
+     startCase(ETC); c=curCase(); Object.assign(c.f,{coName:'고려라이프',place:'양산농협 VIP1호',casket:'2026-11-22T11:00',depart:'2026-11-23T10:00',method:'화장',cremName:'진주',cremDate:'2026-11-23',cremRound:'4',vehType:'버스 리무진'});
+     chgPost(c); Object.assign(c.f,{cremName:'경주',cremDate:'2026-11-13',depart:'2026-11-23T07:30'}); r.push(chgText(c));
+     chgSent(c); r.push(chgPending(c), chgDiff(c).length);
+     c.f.casket='2026-11-22T13:00'; r.push(chgText(c), chgPending(c));
+     c.f.vehNone=true; c.f.depart='2026-11-23T08:00'; r.push(chgText(c));
+     return r; })(),
    etc:(()=>{ const e=coById(ETC), g=db.companies.find(x=>x.name==='고이장례연구소'), r=[activeReports(e).length, activeReports(g).length>0];   // 2026.11.24 기타 업체 = 고이 양식 없음
      const keep=e.reports; e.reports=[{id:'a',name:'보고 양식',body:GOI_REPORT},{id:'b',name:'내 양식',body:'장소 : {장소}'}]; e.reportsEnabled=true; etcNoGoi(); r.push(e.reports.map(x=>x.name).join(',')); e.reports=keep; delete e.reportsEnabled;
      startCase(ETC); r.push(outViews(curCase()).some(([k])=>/^rep/.test(k))); return r; })(),
@@ -133,6 +144,12 @@ EXPECT = [
         '화장 : 11월 25일 09시 (창원상복공원 03회차)\n장법 : 화장(창원상복공원)\n장지 : 창원상복공원-부산추모', '화장 : 11월 25일 09시 (창원상복 03회차)', '화장 : 창원상복 (03회차)',
         '화장 : 11월 25일 09시 (마산화장장 03회차)\n장법 : 화장(마산화장장)\n장지 : 창원상복공원-부산추모', '화장 : 11월 25일 09시 (마산화장 03회차)', '화장 : 마산화장 (03회차)']),
     ('밴드 장법 괄호 (밴드만 · 회사 보고 · 정산 카톡에는 없음)', 'bmark', ['부산영락-부산추모(봉안)', '장지 : 부산영락공원-부산추모\n2차 : 부산추모', '장    지 : 부산영락-부산추모(봉안)', '창원상복-부산추모(벽식,자차)', '장지 : 창원상복공원-부산추모', '안동선영(산골,자차)', '장지 : 안동선영', '장지 : 안동선영']),
+    ('변경 안내 (2차장지 확정 · 현진시닝 FSMS / 화장장 · 발인 변경 · 보낸 뒤 입관만 → 장의차량 줄 없음 · 장의차량 미사용)', 'chg', ['',
+        '부산한중 401호(신한은행)\n2차장지 신어추모(봉안)으로 확정되었습니다.\n\n- 밴드 수정완료.\n- 장의차량 재배차 완료.\n- FSMS 수정완료.',
+        '양산농협 VIP1호(고려라이프)\n화장장 변경으로 발인시간 변경됩니다.\n\n화장장 : 23일 진주 4회차 -> 13일 경주 4회차\n\n발인 : 23일 10시 -> 23일 07시 30분\n\n- 밴드 수정완료.\n- 장의차량 재배차 완료.',
+        False, 2,
+        '양산농협 VIP1호(고려라이프)\n입관시간 변경됩니다.\n\n입관 : 22일 11시 -> 22일 13시\n\n- 밴드 수정완료.', True,
+        '양산농협 VIP1호(고려라이프)\n입관시간, 발인시간 변경됩니다.\n\n입관 : 22일 11시 -> 22일 13시\n\n발인 : 23일 07시 30분 -> 23일 08시\n\n- 밴드 수정완료.']),
     ('기타 업체 = 회사 보고 양식 없음 (고이 양식만 빠지고 직접 만든 양식은 남음, 고이는 그대로)', 'etc', [0, True, '내 양식', False]),
     ('고이 수금액 = 잔액 − 공제 + 추가 (이행완료확인서 한 번만: 붙여넣기 · 붙여넣은 뒤 있음 · 직접 적은 줄)', 'goiBal', ['2,771,100원', None, '2781100', 2771100, '2,771,100원', '2,771,100원', '2,781,100원', '2,621,100원', '잔액 2,781,100원에서 제단공제 20만원 빼고 · 공제 · 추가 +4만원 → 2,621,100원']),
     ('금액 고치면 바로 (고이 붙여넣은 잔액 → 상품금액 기준, 할인 · 상품금액 고치면 수금액 · 지난 마이너스 따라감)', 'live', [True, '289', '', '2,771,100원', '2,741,100원', 2741100, '2,851,100원', '10월3번행사 -18만원 / 보내는금액 : 306만원', '10월3번행사 -8만원 / 보내는금액 : 316만원', '헌화 : / 보내는금액 : 324만원', True]),
