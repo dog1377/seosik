@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.28-4">
+<meta name="app-version" content="2026.11.28-5">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -5616,6 +5616,7 @@ function applyOutView(){
   btns.forEach(b=>{ const on=b.dataset.ovTab===v; b.setAttribute('aria-selected',String(on)); b.tabIndex=on?0:-1; });
   document.querySelectorAll('#p-out [data-ov]').forEach(el=>el.classList.toggle('ov-off',el.dataset.ov!==v));
   $('#p-out').dataset.ovNow=v;   /* 변경 안내를 보고 있으면 위 안내 줄 숨김 */
+  if(v==='chg') requestAnimationFrame(chgFit);
   tbScroll(btns.find(b=>b.dataset.ovTab===v)); tabsFade($('#outTabs'));
   return v;
 }
@@ -5664,7 +5665,7 @@ $('#missing').onclick=e=>{ const b=e.target.closest('[data-go]'); if(!b) return;
    카톡방에 저절로 올리는 길은 카카오가 막아 둠 → 「복사」 · 「카톡으로 보내기」(휴대폰 공유창). 행사 기록 안이라 내 계정에 같이 저장, 저장 키 · 돈 계산 바뀐 것 없음 */
 var CHG_MEM, CHG_ON, CHG_TMP;   /* var: 위쪽 save() 가 먼저 불러도 멈추지 않게 (CHG_ON 은 맨 아래 처음 그리기 바로 전에 켬) */
 const CHG_KEYS=['mt','cd','cn','rd','ct','hg','b1','b2','bb','ip','dp'];
-const CHG_ITEMS=[['mt','장법','장법','p'],['cr','화장장','화장장','p'],['b1','1차장지','1차장지','p'],['b2','2차장지','2차장지','p'],['bb','장지','장지','p'],['ip','입관시간','입관','t'],['dp','발인시간','발인','t'],['hg','하관시간','하관','t']];
+const CHG_ITEMS=[['mt','장법','장법','p'],['cr','화장장','화장','p'],['b1','1차장지','1차장지','p'],['b2','2차장지','2차장지','p'],['bb','장지','장지','p'],['ip','입관시간','입관','t'],['dp','발인시간','발인','t'],['hg','하관시간','하관','t']];
 function chgSnap(c){   /* 변경 안내에 쓰는 값 — 화장장 이름은 적힌 그대로(cn) 두고 보여 줄 때 짧은 이름으로 (선택 목록을 바꿔도 「바뀜」으로 안 보이게) */
   const f=(c&&c.f)||{}, bur=isBurial(f), mk=bMarks(f), t=k=>String(f[k]??'').trim();
   const b1=t('burial1'), b2=t('burial2'), bb=b1||b2?'':t('burial'), last=b2?'b2':b1?'b1':bb?'bb':'';
@@ -5695,13 +5696,19 @@ function chgCatchAll(){   /* save() 마다: 이미 복사했는데 기준이 없
 function chgPost(c){   /* 양식을 복사할 때(밴드에 올릴 때) 기준이 없으면 지금 값이 기준 */
   if(!c||c.closed||c.chg) return; const B=chgBase(c); c.chg={base:B||chgSnap(c),at:Date.now(),src:B?'edit':'copy'}; if(CHG_MEM) CHG_MEM.delete(c.id); c.updated=Date.now(); save(); }
 function chgEnsure(c){ if(!c.chg){ const B=chgBase(c); if(!B) return null; c.chg={base:B,at:Date.now(),src:'edit'}; if(CHG_MEM) CHG_MEM.delete(c.id); } return c.chg; }
+/* 2026.11.28 사용자 「2차장지가 안 정해져 있으면 미정인데, 미정에서 장지가 확정되는 경우는 변경이 아닌 확정으로」 → 비어 있거나 「미정 · 미확정 · 추후 …」였던 장소는 확정.
+   「확정이든 변경이든 카톡은 한 번만, 그 안에 내용이 다」 → 확정은 한 줄씩 「2차장지 신어추모(봉안)으로 확정되었습니다.」, 변경은 한 줄로 「화장장 및 발인시간 변경 되었습니다.」 + 아래 바뀐 줄
+   화장은 「함안 03회차 12시 -> 부산 05회차 10시 20분」 (날짜는 바뀐 때만 앞에) */
+function chgTbd(v){ return /^(미정|미확정|미결정|추후|결정전|정해지지|미지정)/.test(String(v||'').replace(/\s+/g,'')); }
 function chgDiff(c){
-  const B=c&&chgBase(c); if(!B) return []; const S=chgSnap(c), out=[], mtChg=!!(B.mt&&S.mt&&B.mt!==S.mt);
-  const cr=X=>[X.cd||'',X.cn?cremShort(X.cn):'',X.rd?`${X.rd}회차`:''].filter(Boolean).join(' ');   /* 「23일 진주 4회차」 */
+  const B=c&&chgBase(c); if(!B) return []; const S=chgSnap(c), out=[], mtChg=!!(B.mt&&S.mt&&B.mt!==S.mt), dOn=String(B.cd||'')!==String(S.cd||'');
+  const rdT=r=>{ r=String(r||'').trim(); return !r?'':/^\d+$/.test(r)?`${pad(+r)}회차`:/회차$/.test(r)?r:`${r}회차`; };
+  const cr=X=>chgTbd(X.cn)?String(X.cn).trim():[dOn&&X.cd,X.cn&&cremShort(X.cn),rdT(X.rd),X.ct].filter(Boolean).join(' ');   /* 「함안 03회차 12시」 · 날짜가 바뀌면 「23일 진주 04회차」 */
   const val=(X,k)=>k==='cr'?cr(X):String(X[k]||'');
+  const und=(X,k)=>k==='cr'?!X.cn||chgTbd(X.cn):chgTbd(X[k]);   /* 아직 안 정해짐 */
   CHG_ITEMS.forEach(([k,label,short,kind])=>{
     let o=val(B,k), n=val(S,k);
-    if(k==='cr'&&o===n){ const ot=String(B.ct||''), nt=String(S.ct||''); if(ot!==nt){ o=o&&ot?`${o} (${ot})`:o||ot; n=n&&nt?`${n} (${nt})`:n||nt; } }   /* 시간만 바뀐 화장 */
+    if(kind==='p'&&k!=='mt'&&und(B,k)){ if(k!=='cr'&&und(S,k)) return; if(!und(S,k)) o=''; }   /* 미정 → 정해짐 = 확정 · 미정 → 미정(봉안) = 그대로 */
     if(o===n||(k==='mt'&&(!o||!n))||(mtChg&&!n&&(k==='cr'||k==='hg'))) return;
     out.push({k,label,short,kind,o,n,st:!o?'new':!n?'gone':'chg'});
   });
@@ -5720,17 +5727,13 @@ function josaRo(s){   /* 받침 있으면 「으로」 · 없거나 ㄹ이면 �
 function chgText(c,D,O){
   D=D||chgDiff(c); if(!D.length) return ''; O=O||chgOpt(c,D);
   const f=c.f||{}, nm=String(f.name||'').trim(), top=String(f.place||'').trim()||(nm?'故 '+nm:''), who=O.hj?(String(f.company||'').trim()||'현진시닝'):caseCoName(c);
-  const V={new:'확정',chg:'변경',gone:'취소'};
-  const ph=L=>{ const st=[...new Set(L.map(d=>d.st))]; return st.length===1?`${L.map(d=>d.label).join(', ')} ${V[st[0]]}`:L.map(d=>`${d.label} ${V[d.st]}`).join(', '); };
-  const line=d=>d.st==='new'?`${d.short} : ${d.n}`:`${d.short} : ${d.o} -> ${d.n||'없음'}`;
-  let head, det;
-  if(D.length===1){ const d=D[0];
-    if(d.st==='new'){ head=`${d.label} ${d.n}${josaRo(d.n)} 확정되었습니다.`; det=[]; }
-    else { head=`${d.label} ${d.st==='gone'?'취소되었습니다.':'변경됩니다.'}`; det=[line(d)]; } }
-  else { const P=D.filter(d=>d.kind==='p'), T=D.filter(d=>d.kind==='t'), a=P.length&&T.length&&P.every(d=>d.st==='chg')?ph(P):'';   /* 「화장장 변경으로 발인시간 변경됩니다.」 (장소가 바뀐 때만 「~으로」) */
-    head=a?`${a}${josaRo(a)} ${ph(T)}됩니다.`:`${ph(D)}됩니다.`; det=D.map(line); }
+  const and=L=>L.length<2?L.join(''):`${L.slice(0,-1).join(', ')} 및 ${L[L.length-1]}`;   /* 「화장장 및 발인시간」 · 「화장장, 입관시간 및 발인시간」 */
+  const C=D.filter(d=>d.st==='chg'), G=D.filter(d=>d.st==='gone');
+  const head=[...D.filter(d=>d.st==='new').map(d=>`${d.label} ${d.n}${josaRo(d.n)} 확정되었습니다.`),
+    C.length&&`${and(C.map(d=>d.label))} 변경 되었습니다.`, G.length&&`${and(G.map(d=>d.label))} 취소되었습니다.`].filter(Boolean);
+  const det=D.filter(d=>d.st!=='new').map(d=>`${d.short} : ${d.o} -> ${d.n||'없음'}`);
   const done=[O.band&&'- 밴드 수정완료.',O.veh&&'- 장의차량 재배차 완료.',O.fsms&&'- FSMS 수정완료.'].filter(Boolean);
-  return [`${top}${who?`(${who})`:''}\n${head}`,...det,...(done.length?[done.join('\n')]:[])].join('\n\n');
+  return [[`${top}${who?`(${who})`:''}`,...head].join('\n'),det.join('\n'),done.join('\n')].filter(Boolean).join('\n\n');
 }
 function chgPending(c){ const D=chgDiff(c); return D.length>0&&!(c.chg&&c.chg.sent&&chgEq(chgSnap(c),c.chg.sent)); }   /* 아직 안 보낸 변경 */
 const chgFmt=ms=>{ const d=new Date(ms); return isNaN(d)?'':`${d.getMonth()+1}월 ${d.getDate()}일 ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
@@ -5752,10 +5755,11 @@ function chgCardHtml(){
     <div class="chg-lines" id="chgLines" role="group" aria-label="끝에 붙는 줄"></div><div class="row chg-acts" id="chgActs"></div></div>
     <p class="note chg-foot" id="chgFoot"></p></div>`;
 }
+function chgFit(){ const ta=$('#chgText'); if(!ta||!ta.clientHeight||ta.style.height) return; let n=ta.rows; while(ta.scrollHeight>ta.clientHeight+2&&n<18) ta.rows=++n; }   /* 휴대폰에서 긴 줄이 두 줄로 접혀도 끝 줄까지 보이게 */
 function chgPaint(c,keepText){
   const box=$('#chgOut'); if(!box||!c) return;
   const D=chgDiff(c), O=chgOpt(c,D), g=c.chg, B=chgBase(c), has=D.length>0, pend=chgPending(c);
-  if(!keepText){ const t=chgText(c,D,O); $('#chgText').value=t; $('#chgText').rows=Math.min(18,Math.max(5,t.split('\n').length+1)); }
+  if(!keepText){ const t=chgText(c,D,O); $('#chgText').value=t; $('#chgText').rows=Math.min(18,Math.max(5,t.split('\n').length+1)); requestAnimationFrame(chgFit); }
   box.querySelector('[data-chg-copy]').disabled=!has; $('#chgBody').hidden=!has;
   $('#chgNote').hidden=has; $('#chgNote').textContent=has?'':B?'바뀐 일정이 없습니다. 행사 입력에서 입관 · 발인 · 화장장 · 장지를 바꾸면 여기에 변경 안내가 바로 만들어집니다.':'아직 비교할 기준이 없습니다. 이 행사 양식(밴드 일정 등)을 한 번 복사하면 그때 값이 기준이 되고, 그 뒤로 바꾼 일정이 여기에 만들어집니다.';
   $('#chgLines').innerHTML=has?[['band','밴드 수정완료',true],['veh','장의차량 재배차 완료',O.vehOk],['fsms','FSMS 수정완료',O.hj]].filter(x=>x[2]).map(([k,l])=>`<button type="button" class="chip" data-chg-line="${k}" aria-pressed="${!!O[k]}">${l}</button>`).join(''):'';
@@ -5767,7 +5771,7 @@ function chgPaint(c,keepText){
     :!has?'':sent?`<b class="chg-sent">✓ ${esc(chgFmt(g.sentAt))} 보냄</b> · 일정이 또 바뀌면 여기에 새로 만들어집니다`:`${esc(from)}${rs('변경 없음으로 하기')}`;
   $('#chgFoot').hidden=!$('#chgFoot').innerHTML;
   const tb=document.querySelector('#outTabs [data-ov-tab="chg"]'); if(tb){ tb.classList.toggle('has-dot',pend); tb.setAttribute('aria-label',pend?'변경 안내 · 보내지 않은 변경 있음':'변경 안내'); }
-  const hint=$('#chgHint'); hint.hidden=!pend; hint.innerHTML=pend?`<span>일정이 바뀌었습니다 · ${esc(D.map(d=>d.short).join(' · '))}</span><button type="button" data-ov-go="chg">변경 안내 보기 ›</button>`:'';
+  const hint=$('#chgHint'); hint.hidden=!pend; hint.innerHTML=pend?`<span>일정이 바뀌었습니다 · ${esc(D.map(d=>d.st==='new'?d.short+' 확정':d.short).join(' · '))}</span><button type="button" data-ov-go="chg">변경 안내 보기 ›</button>`:'';
 }
 $('#chgHint').addEventListener('click',e=>{ if(!e.target.closest('[data-ov-go]')) return; db.outView='chg'; save(); applyOutView(); fitOutText(); const el=$('#chgOut'); if(el) el.scrollIntoView({block:'nearest'}); });
 $('#reportCards').addEventListener('click',async e=>{
