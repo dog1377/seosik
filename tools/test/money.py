@@ -104,7 +104,16 @@ SETUP = r"""(()=>{
      const m={sh:'',sm:'',eh:'',em:''}; step(m,'sh','12'); step(m,'sm','00'); r.push(m.eh+':'+m.em);
      step(m,'sm','30'); r.push(m.eh+':'+m.em);
      m.eh='20'; m.em='00'; step(m,'sh','13'); r.push(m.eh+':'+m.em);
-     const n={sh:'',sm:'',eh:'',em:''}; step(n,'sh','16'); step(n,'sm','00'); r.push(n.eh+':'+n.em);
+     const n={sh:'',sm:'',eh:'',em:''}; step(n,'sh','16'); step(n,'sm','00'); r.push(n.eh+':'+n.em);   // 2026.11.28 23시를 넘으면 23시까지
+     step(n,'sh','15'); r.push(n.eh+':'+n.em); step(n,'sh','13'); step(n,'sm','30'); r.push(n.eh+':'+n.em); step(n,'sh','23'); step(n,'sm','00'); r.push(n.eh+':'+n.em);
+     return r; })(),
+   mgBal:(()=>{ const r=[];   // 2026.11.28 발인 날 5시간 미만 = (발인) · 발인도우미 체크 · 발인 날은 끝 = 발인 시간
+     startCase(co('디더블유')); const c=curCase(); c.f.depart='2026-11-15T08:00';
+     const a={id:'a',date:'2026-11-14',sh:'',sm:'',eh:'',em:'',n:'2'}, b={id:'b',date:'2026-11-15',sh:'',sm:'',eh:'',em:'',n:'2'}, st=(m,k,v)=>{ const o={sh:m.sh,sm:m.sm}; m[k]=v; mgAutoEnd(m,o,null,c.f.depart); };
+     c.mgr=[a,b]; st(a,'sh','12'); st(a,'sm','00'); st(b,'sh','06'); st(b,'sm','00');
+     r.push(mgrRows(c).map(m=>m.line).join(' / '));
+     b.eh='13'; r.push(mgrRows(c)[1].line); b.bal=true; r.push(mgrRows(c)[1].line); b.eh='08'; b.bal=false; r.push(mgrRows(c)[1].line);
+     r.push(JSON.stringify(psMgr(['15일 : 06시-08시 (발인) 2명','14일 : 12시-22시 2명'])));
      return r; })(),
    etc:(()=>{ const e=coById(ETC), g=db.companies.find(x=>x.name==='고이장례연구소'), r=[activeReports(e).length, activeReports(g).length>0];   // 2026.11.24 기타 업체 = 고이 양식 없음
      const keep=e.reports; e.reports=[{id:'a',name:'보고 양식',body:GOI_REPORT},{id:'b',name:'내 양식',body:'장소 : {장소}'}]; e.reportsEnabled=true; etcNoGoi(); r.push(e.reports.map(x=>x.name).join(',')); e.reports=keep; delete e.reportsEnabled;
@@ -182,7 +191,9 @@ EXPECT = [
         2650000, '수의대체 : 개인수의 사용 15만원 공제',
         2800000,
         3000000, '10']),
-    ('도우미 시작 시간 → 끝 시간 = 시작 + 10시간 (직접 고른 끝은 그대로 · 자정 넘김)', 'mgEnd', ['22:00','22:30','20:00','02:00']),
+    ('도우미 시작 시간 → 끝 시간 = 시작 + 10시간 (직접 고른 끝은 그대로 · 23시를 넘으면 23시 · 23시 시작은 그대로)', 'mgEnd', ['22:00','22:30','20:00','23:00','23:00','23:00','09:00']),
+    ('발인 날 5시간 미만 = (발인) · 발인도우미 체크 · 발인 날 끝 = 발인 시간', 'mgBal', ['14일 : 12시-22시 2명 / 15일 : 06시-08시 (발인) 2명','15일 : 06시-13시 2명','15일 : 06시-13시 (발인) 2명','15일 : 06시-08시 2명',
+      '[{"d":15,"sh":"06","sm":"00","eh":"08","em":"00","n":"2","bal":true},{"d":14,"sh":"12","sm":"00","eh":"22","em":"00","n":"2"}]']),
     ('기타 업체 = 회사 보고 양식 없음 (고이 양식만 빠지고 직접 만든 양식은 남음, 고이는 그대로)', 'etc', [0, True, '내 양식', False]),
     ('고이 수금액 = 잔액 − 공제 + 추가 (이행완료확인서 한 번만: 붙여넣기 · 붙여넣은 뒤 있음 · 직접 적은 줄)', 'goiBal', ['2,771,100원', None, '2781100', 2771100, '2,771,100원', '2,771,100원', '2,781,100원', '2,621,100원', '잔액 2,781,100원에서 제단공제 20만원 빼고 · 공제 · 추가 +4만원 → 2,621,100원']),
     ('금액 고치면 바로 (고이 붙여넣은 잔액 → 상품금액 기준, 할인 · 상품금액 고치면 수금액 · 지난 마이너스 따라감)', 'live', [True, '289', '', '2,771,100원', '2,741,100원', 2741100, '2,851,100원', '10월3번행사 -18만원 / 보내는금액 : 306만원', '10월3번행사 -8만원 / 보내는금액 : 316만원', '헌화 : / 보내는금액 : 324만원', True]),

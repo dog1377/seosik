@@ -94,6 +94,7 @@ textarea.input{min-height:80px;resize:vertical;line-height:1.55}
 .mg-top{display:grid;grid-template-columns:minmax(0,1fr) 96px 36px;gap:8px;align-items:center}
 .mg-time{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) 14px repeat(2,minmax(0,1fr));gap:4px;align-items:center}
 .mg-time span{text-align:center;color:var(--muted)}
+.mg-bal{justify-self:start;min-height:44px}
 .mg select.input,.mg input.input{background-color:var(--surface);padding-left:8px;padding-right:22px;background-position:right 6px center;font-size:15px}
 .mg input.input{padding-right:8px}
 .pk{display:grid;gap:6px}
@@ -2163,12 +2164,24 @@ function tpCtl({mode='hm',h='',m='',hAttr='',mAttr='',tAttr='',label='시간',ph
   return `<div class="tp" data-tpmode="${mode}" data-tplabel="${esc(label)}" data-tpph="${esc(ph)}"${id?` id="${id}"`:''}><button type="button" class="ch-btn tp-btn ${txt?'':'empty'}" aria-haspopup="dialog" aria-label="${esc(label)}"><span>${esc(txt||ph)}</span>${TP_ICON}</button>${ins}</div>`;
 }
 /* 도우미 · 관리사 시작 시간을 고르면 끝 시간 = 시작 + 10시간 (2026.11.28 사용자 「12시 · 00 누르고 나면 끝나는 시간 입력? 보통 10시간 기준이라 자동으로?」 → 10시간 자동).
-   끝이 비어 있거나 전에 자동으로 들어간 값(예전 시작 + 10시간)일 때만 바꿈 — 직접 고른 끝 시간은 그대로. 행사 입력 도우미 시간대(c.mgr) · 배송 관리사 배치(r.mgr) · 보고서 입력 도우미 날짜별 */
-const MG_HOURS=10;
-function mgPlus(h,m){ return h?{h:pad((Number(h)+MG_HOURS)%24),m:m||'00'}:null; }
-function mgAutoEnd(row,old,box){
+   끝이 비어 있거나 전에 자동으로 들어간 값(예전 시작 + 10시간)일 때만 바꿈 — 직접 고른 끝 시간은 그대로. 행사 입력 도우미 시간대(c.mgr) · 배송 관리사 배치(r.mgr) · 보고서 입력 도우미 날짜별
+   2026.11.28 사용자 「15시부터는 23시로 끊기게」 → 10시간 뒤가 23시를 넘으면 23시까지(23시 이후 시작은 그대로 10시간).
+   발인 날(출상하는 날)에 발인 시간 전에 시작하면 끝 = 발인 시간 (예: 06시 시작 · 08시 발인 → 06시-08시) */
+const MG_HOURS=10, MG_CAP=23;
+function mgPlus(h,m){ if(!h) return null; const s=Number(h)*60+Number(m||0); let e=s+MG_HOURS*60; if(s<MG_CAP*60&&e>MG_CAP*60) e=MG_CAP*60; e%=1440; return {h:pad(Math.floor(e/60)),m:pad(e%60)}; }
+function mgEndFor(h,m,date,dep){ if(!h) return null; const p=parseDT(dep), s=Number(h)*60+Number(m||0);
+  if(p&&p.h!=null&&date&&date===String(dep).slice(0,10)&&p.h*60+(p.mi||0)>s) return {h:pad(p.h),m:pad(p.mi||0)};
+  return mgPlus(h,m); }
+/* 발인도우미 (2026.11.28 사용자 「출상하는 날에 5시간 아래로 배치하는 건 06시-08시 (발인)」 · 「체크박스 발인도우미」)
+   m.bal = true/false 는 직접 체크한 값, 없으면 자동 — 발인 날짜이고 5시간 미만이면 체크. 체크된 줄은 양식에 「06시-08시 (발인) 2명」 */
+function mgDur(m){ if(!m||!m.sh||!m.eh) return null; const s=Number(m.sh)*60+Number(m.sm||0), e=Number(m.eh)*60+Number(m.em||0); return ((e-s)%1440+1440)%1440; }
+function mgBalAuto(m,dep){ const d=String(dep||'').slice(0,10), u=mgDur(m); return !!d&&!!m&&m.date===d&&u!=null&&u>0&&u<300; }
+function mgBal(m,dep){ return !!m&&(typeof m.bal==='boolean'?m.bal:mgBalAuto(m,dep)); }
+function mgBalSync(el,m,dep){ const row=el&&el.closest&&el.closest('.mg'), cb=row&&row.querySelector('.mg-bal input'); if(cb) cb.checked=mgBal(m,dep); }
+function mgBalAll(scope,list,dep,attr){ if(!scope) return; scope.querySelectorAll('.mg-bal input').forEach(cb=>{ const m=(list||[]).find(x=>x.id===cb.getAttribute(attr)); if(m) cb.checked=mgBal(m,dep); }); }
+function mgAutoEnd(row,old,box,dep){
   if(!row||!row.sh) return false;
-  const was=mgPlus(old.sh,old.sm), now=mgPlus(row.sh,row.sm), em=row.em||'00';
+  const was=mgEndFor(old.sh,old.sm,row.date,dep), now=mgEndFor(row.sh,row.sm,row.date,dep), em=row.em||'00';
   if(row.eh&&!(was&&row.eh===was.h&&em===was.m)) return false;   /* 직접 고른 끝 시간 */
   if(row.eh===now.h&&em===now.m) return false;
   row.eh=now.h; row.em=now.m;
@@ -2379,23 +2392,26 @@ function itemsHtml(c){
     <p class="note">번호를 누르면 제외 · 포함이 바뀝니다. 포함한 항목만 번호가 붙습니다. 칸 안에서 줄을 바꾸면 그 줄은 번호 없이 이어집니다 (예: 장의차량 거리추가).</p>`;
 }
 function mgrHtml(c){
+  const dep=(c.f||{}).depart;
   const rows=(c.mgr||[]).map(m=>`<div class="mg">
     <div class="mg-top"><input class="input" type="date" data-mg="${m.id}" data-mgf="date" value="${esc(m.date||'')}" aria-label="날짜">
       <div class="suffix"><input class="input" data-mg="${m.id}" data-mgf="n" inputmode="numeric" value="${esc(m.n||'')}" aria-label="인원"><span>명</span></div>
       <button class="x" type="button" data-mgdel="${m.id}" aria-label="삭제">✕</button></div>
     <div class="mg-time">${tpCtl({mode:'hm',h:m.sh||'',m:m.sm||'',hAttr:`data-mg="${m.id}" data-mgf="sh"`,mAttr:`data-mg="${m.id}" data-mgf="sm"`,label:'도우미 시작 시간',ph:'시작'})}<span>~</span>${tpCtl({mode:'hm',h:m.eh||'',m:m.em||'',hAttr:`data-mg="${m.id}" data-mgf="eh"`,mAttr:`data-mg="${m.id}" data-mgf="em"`,label:'도우미 끝 시간',ph:'끝'})}</div>
+    <label class="check mg-bal"><input type="checkbox" data-mg="${m.id}" data-mgf="bal" ${mgBal(m,dep)?'checked':''}> 발인도우미</label>
   </div>`).join('');
   return `<div class="stack" style="gap:8px">${rows}</div>
     <div class="row"><button class="btn sm" type="button" data-act="mgrFill">행사 기간으로 채우기</button><button class="btn sm" type="button" data-act="mgrAdd">+ 날짜 추가</button></div>
-    <p class="note">날짜별로 도우미(관리사) 근무 시간과 인원을 입력하십시오. 시작 시간을 고르면 끝 시간은 10시간 뒤로 자동으로 들어갑니다(다르면 끝 시간을 눌러 고치십시오) · 행사 보고서(일정표) 도우미 칸에도 자동으로 들어갑니다 (3줄까지, 넘치는 줄은 비고).</p>`;
+    <p class="note">날짜별로 도우미(관리사) 근무 시간과 인원을 입력하십시오. 시작 시간을 고르면 끝 시간은 10시간 뒤로 자동으로 들어갑니다(23시까지 · 발인 날은 발인 시간까지 · 다르면 끝 시간을 눌러 고치십시오). 발인 날 5시간 미만이면 「발인도우미」가 저절로 체크되고 양식에 「06시-08시 (발인)」처럼 나갑니다 · 행사 보고서(일정표) 도우미 칸에도 자동으로 들어갑니다 (3줄까지, 넘치는 줄은 비고).</p>`;
 }
 /* 도우미 시간대(c.mgr) → 날짜 · 시간순 한 줄씩. 「관리사배치」 양식과 일정표 도우미 칸(36~38줄)이 같이 씀 (2026.10.31) */
 function mgrHm(hh,mm){ return hh?`${hh}시${mm&&mm!=='00'?' '+mm+'분':''}`:''; }
 function mgrRows(c){
   const key=m=>`${m.date}T${m.sh||'99'}${m.sm||'00'}`;
+  const dep=(c.f||{}).depart;
   return (c.mgr||[]).filter(m=>m.date&&parseDT(m.date)).slice().sort((a,b)=>key(a).localeCompare(key(b))).map(m=>{
-    const d=`${pad(parseDT(m.date).d)}일`, s=mgrHm(m.sh,m.sm), e=mgrHm(m.eh,m.em);
-    return {d,s,e,n:m.n?`${m.n}명`:'',line:`${d} : ${[s,e].filter(Boolean).join('-')}${m.n?' '+m.n+'명':''}`.trim()}; });
+    const d=`${pad(parseDT(m.date).d)}일`, s=mgrHm(m.sh,m.sm), e=mgrHm(m.eh,m.em), bal=mgBal(m,dep), n=m.n?`${m.n}명`:'';
+    return {d,s,e,n,bal,line:`${d} : ${[[s,e].filter(Boolean).join('-'),bal&&'(발인)',n].filter(Boolean).join(' ')}`.trim()}; });
 }
 function certHtml(c){   /* 고이장례연구소 이행완료확인서 질문 — 상품 · 금액 카드 (2026.11.14, 2026.11.24 「이행완료확인서가 있습니까?」 하나로) */
   const f=c.f||{}, ask=f.certAsk||(certOn(f)?'yes':'');
@@ -2564,9 +2580,11 @@ $('#p-input').addEventListener('change',e=>{
     else { c.f['_d_'+k]=false; c.f[k]=t.value; txt.hidden=true; txt.value=''; }
     touched(); return;
   }
-  if(t.dataset.mgf){ const m=(c.mgr||[]).find(x=>x.id===t.dataset.mg); if(m){ const k=t.dataset.mgf, old={sh:m.sh,sm:m.sm}; m[k]=t.value; if(k==='sh'||k==='sm') mgAutoEnd(m,old,t.closest('.tp')); touched(); } return; }
+  if(t.dataset.mgf){ const m=(c.mgr||[]).find(x=>x.id===t.dataset.mg); if(m){ const k=t.dataset.mgf, old={sh:m.sh,sm:m.sm}, dep=f.depart;
+      if(k==='bal'){ m.bal=t.checked; touched(); return; }
+      m[k]=t.value; if(k==='sh'||k==='sm') mgAutoEnd(m,old,t.closest('.tp'),dep); mgBalSync(t,m,dep); touched(); } return; }
   const dtBox=t.closest('[data-dt]');
-  if(dtBox){ f[dtBox.dataset.dt]=composeDT(dtBox); schedInfo(); touched(); return; }
+  if(dtBox){ f[dtBox.dataset.dt]=composeDT(dtBox); if(dtBox.dataset.dt==='depart') mgBalAll($('#p-input'),c.mgr,f.depart,'data-mg'); schedInfo(); touched(); return; }
   if(t.tagName==='SELECT' && t.dataset.k){
     f[t.dataset.k]=t.value;
     touched();
@@ -2828,7 +2846,7 @@ function psDeceased(R,v){ const m=String(v||'').trim().match(/^(?:故\s*)?([^\s(
   if(g) psSet(R,'gender',psGender(g[1])); if(a) psSet(R,'age',a[1]); if(o) psSet(R,'origin',o[1]); }
 /* 번호 줄 묶음: 「1.내용」 + 번호 없는 다음 줄은 위 항목에 이어짐 */
 function psNumbered(lines){ const out=[]; lines.forEach(l=>{ const t=l.trim(); if(!t) return; const m=t.match(/^(\d{1,2})\s*[.)．]\s*(.*)$/); if(m) out.push(m[2].trim()); else if(out.length) out[out.length-1]+='\n'+t; }); return out.filter(x=>x.trim()); }
-function psMgr(lines){ return lines.map(l=>{ const m=l.trim().match(/^(\d{1,2})\s*일\s*[:：]?\s*(?:(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?)?\s*[-~]?\s*(?:(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?)?\s*(?:(\d+)\s*명)?/); return m&&(m[2]||m[6])?{d:+m[1],sh:m[2]?pad(+m[2]):'',sm:m[2]?pad(+(m[3]||0)):'',eh:m[4]?pad(+m[4]):'',em:m[4]?pad(+(m[5]||0)):'',n:m[6]||''}:null; }).filter(Boolean); }
+function psMgr(lines){ return lines.map(l=>{ const m=l.trim().match(/^(\d{1,2})\s*일\s*[:：]?\s*(?:(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?)?\s*[-~]?\s*(?:(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?)?\s*(\(\s*발인\s*\))?\s*(?:(\d+)\s*명)?\s*(\(\s*발인\s*\))?/); return m&&(m[2]||m[7])?{d:+m[1],sh:m[2]?pad(+m[2]):'',sm:m[2]?pad(+(m[3]||0)):'',eh:m[4]?pad(+m[4]):'',em:m[4]?pad(+(m[5]||0)):'',n:m[7]||'',...(m[6]||m[8]?{bal:true}:{})}:null; }).filter(Boolean); }   /* 「06시-08시 (발인) 2명」 → 발인도우미 체크 (2026.11.28) */
 /* 양식에 안 맞은 줄: 「이름 : 값」 · 「[이름] 값」 · 「※이름: 값」 */
 const PS_LABEL=[[/^(장소|빈소|장례식장|식장)$/,'장소'],[/^(고인|고인명)$/,'고인*'],[/^(고객|고객명|회원|회원명|직원|직원명|조합원)$/,'고객*'],[/^(상주|상주명)$/,'상주*'],
   [/^(종교)$/,'종교'],[/^(임종|발생|사망일시)$/,'임종'],[/^(입관)$/,'입관'],[/^(발인)$/,'발인'],[/^(접수)$/,'접수'],[/^(도착)$/,'도착'],[/^(장지)$/,'장지'],[/^(1차장지)$/,'1차장지'],[/^(2차장지)$/,'2차장지'],
@@ -2910,7 +2928,7 @@ function psFinishDates(R){
   });
   if(R.spanDay&&got.death){ const t=got.death.t, nx=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1); if(t.getDate()!==R.spanDay&&nx.getDate()===R.spanDay) R.f.spanNext=true; }   /* 기간이 임종 다음 날부터 */
   if(R.mgrRaw){ const base=got.death?got.death.t:got.recv?got.recv.t:ref;
-    R.mgr=R.mgrRaw.map(m=>{ const t=psResolve({d:m.d},base,got.recv?got.recv.t:(got.death?got.death.t:null)); return t?{id:uid(),date:psYMD(t),sh:m.sh,sm:m.sm,eh:m.eh,em:m.em,n:m.n}:null; }).filter(Boolean); }
+    R.mgr=R.mgrRaw.map(m=>{ const t=psResolve({d:m.d},base,got.recv?got.recv.t:(got.death?got.death.t:null)); return t?{id:uid(),date:psYMD(t),sh:m.sh,sm:m.sm,eh:m.eh,em:m.em,n:m.n,...(m.bal?{bal:true}:{})}:null; }).filter(Boolean); }
 }
 const psCount=R=>Object.keys(R.f).length+(R.items?1:0)+(R.ded?1:0)+(R.mgr&&R.mgr.length?1:0)+(R.collect?1:0);
 /* 업체: ① 양식의 업체명 줄 ② 글 안의 업체 이름(하나일 때) ③ 그 업체 회사 양식 ④ 현진시닝 밴드 양식(회사명 · 회사지원) */
@@ -4873,9 +4891,9 @@ function dvGet(k){ const r=dvCur(); if(!r) return ''; const [a,b]=String(k).spli
 function dvSet(k,v){ const r=dvCur(); if(!r) return; const [a,b]=String(k).split('.'); if(b){ if(!r[a]||typeof r[a]!=='object') r[a]={}; r[a][b]=v; } else r[a]=v; }
 const dvT=(hh,mm)=>hh?`${hh}시${mm&&mm!=='00'?' '+mm+'분':''}`:'';
 /* 관리사 배치 줄: 날짜순, 같은 날 둘째 줄부터는 날짜 없이 들여 씀 (30일 : 12시-22시 1명 /            12시-22시 3명) */
-function dvMgrLines(r){ let last='';
+function dvMgrLines(r){ let last=''; const dep=(r.veh||{}).depart;
   return (r.mgr||[]).filter(m=>m&&m.date).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(m=>{ const p=parseDT(m.date), span=[dvT(m.sh,m.sm),dvT(m.eh,m.em)].filter(Boolean).join('-');
-    const body=[span,String(m.n||'').trim()&&String(m.n).trim()+'명'].filter(Boolean).join(' '), head=last===m.date?DV_IND:`${pad(p.d)}일 : `; last=m.date; return (head+body).trimEnd(); }); }
+    const body=[span,mgBal(m,dep)&&'(발인)',String(m.n||'').trim()&&String(m.n).trim()+'명'].filter(Boolean).join(' '), head=last===m.date?DV_IND:`${pad(p.d)}일 : `; last=m.date; return (head+body).trimEnd(); }); }
 /* 장의차량 줄. 차종이 「버스 리무진」처럼 두 대 이상이면 차마다 따로 (2026.10.30 사용자: 「버스 리무진 붙이면 안 됨, 리무진은 화장장까지만」 → 고른 답: 리무진 먼저 · 차마다 따로)
    리무진 = 「리무진 부산영락」(화장장까지), 장의버스 = 「장의버스 200km 부산영락-부산추모-장례식장」(운행 거리는 버스 줄), 배차 · 발인 · 배차완료 줄은 차마다. 한 대면 예전 그대로 */
 const dvCremName=v=>cremShort(gimhaeShort(String(v||'').trim()));
@@ -4910,12 +4928,14 @@ const dvSub=r=>[String(r.place||'').trim(), dvKindL(r.kind), dvDay(r)].filter(Bo
 const dvIn=(k,l,ph,o={})=>`<label class="f">${l}<input class="input" data-dv="${k}" value="${esc(dvGet(k))}" placeholder="${esc(ph||'')}" autocomplete="off"${o.tel?' type="tel" inputmode="tel"':''}${o.num?' inputmode="numeric"':''}></label>`;
 const dvSuf=(k,l,u,ph)=>`<label class="f">${l}<div class="suffix"><input class="input" data-dv="${k}" value="${esc(dvGet(k))}" inputmode="numeric" placeholder="${esc(ph||'')}" autocomplete="off"><span>${u}</span></div></label>`;
 function dvMgrHtml(r){
+  const dep=(r.veh||{}).depart;
   const rows=(r.mgr||[]).map(m=>`<div class="mg"><div class="mg-top"><input class="input" type="date" data-dvm="${m.id}" data-dvmf="date" value="${esc(m.date||'')}" aria-label="날짜">
       <div class="suffix"><input class="input" data-dvm="${m.id}" data-dvmf="n" inputmode="numeric" value="${esc(m.n||'')}" aria-label="인원"><span>명</span></div>
       <button class="x" type="button" data-dvm-del="${m.id}" aria-label="이 줄 삭제">✕</button></div>
-    <div class="mg-time">${tpCtl({mode:'hm',h:m.sh||'',m:m.sm||'',hAttr:`data-dvm="${m.id}" data-dvmf="sh"`,mAttr:`data-dvm="${m.id}" data-dvmf="sm"`,label:'관리사 시작 시간',ph:'시작'})}<span>~</span>${tpCtl({mode:'hm',h:m.eh||'',m:m.em||'',hAttr:`data-dvm="${m.id}" data-dvmf="eh"`,mAttr:`data-dvm="${m.id}" data-dvmf="em"`,label:'관리사 끝 시간',ph:'끝'})}</div></div>`).join('');
+    <div class="mg-time">${tpCtl({mode:'hm',h:m.sh||'',m:m.sm||'',hAttr:`data-dvm="${m.id}" data-dvmf="sh"`,mAttr:`data-dvm="${m.id}" data-dvmf="sm"`,label:'관리사 시작 시간',ph:'시작'})}<span>~</span>${tpCtl({mode:'hm',h:m.eh||'',m:m.em||'',hAttr:`data-dvm="${m.id}" data-dvmf="eh"`,mAttr:`data-dvm="${m.id}" data-dvmf="em"`,label:'관리사 끝 시간',ph:'끝'})}</div>
+    <label class="check mg-bal"><input type="checkbox" data-dvm="${m.id}" data-dvmf="bal" ${mgBal(m,dep)?'checked':''}> 발인도우미</label></div>`).join('');
   return `<div class="stack dv-rows">${rows}</div><div class="row"><button class="btn sm" type="button" data-dv-mgr-add>+ 날짜 추가</button></div>
-    <p class="note">시작 시간을 고르면 끝 시간은 10시간 뒤로 자동으로 들어갑니다(다르면 끝 시간을 눌러 고치십시오). 같은 날 시간이 여러 개면 날짜를 한 번 더 추가하십시오. 양식에는 날짜가 한 번만 나갑니다.</p>`;
+    <p class="note">시작 시간을 고르면 끝 시간은 10시간 뒤로 자동으로 들어갑니다(23시까지 · 발인 날은 발인 시간까지 · 다르면 끝 시간을 눌러 고치십시오). 발인 날 5시간 미만이면 「발인도우미」가 저절로 체크되고 「06시-08시 (발인)」처럼 나갑니다. 같은 날 시간이 여러 개면 날짜를 한 번 더 추가하십시오. 양식에는 날짜가 한 번만 나갑니다.</p>`;
 }
 function dvSubHtml(r){
   const rows=(r.subs||[]).map(sb=>{ const w=sb.what||'veh';
@@ -5062,7 +5082,9 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 function dvField(t){
   const r=dvCur(); if(!r) return false;
   if(t.dataset.dv){ let v=t.value; if(t.dataset.dv==='custTel'){ const nv=fmtTel(v); if(nv!==v){ t.value=nv; v=nv; } } dvSet(t.dataset.dv,v); return true; }
-  if(t.dataset.dvm){ const m=(r.mgr||[]).find(x=>x.id===t.dataset.dvm); if(m){ const k=t.dataset.dvmf, old={sh:m.sh,sm:m.sm}; m[k]=t.value; if(k==='sh'||k==='sm') mgAutoEnd(m,old,t.closest('.tp')); return true; } }
+  if(t.dataset.dvm){ const m=(r.mgr||[]).find(x=>x.id===t.dataset.dvm); if(m){ const k=t.dataset.dvmf, old={sh:m.sh,sm:m.sm}, dep=(r.veh||{}).depart;
+      if(k==='bal'){ m.bal=t.checked; return true; }
+      m[k]=t.value; if(k==='sh'||k==='sm') mgAutoEnd(m,old,t.closest('.tp'),dep); mgBalSync(t,m,dep); return true; } }
   if(t.dataset.dvs){ const sb=(r.subs||[]).find(x=>x.id===t.dataset.dvs); if(sb){ sb[t.dataset.dvsf]=t.value; return true; } }
   return false;
 }
@@ -5077,7 +5099,7 @@ document.addEventListener('change',e=>{ if(!dvScope(e)) return; const t=e.target
   if(t.id==='dvMonth'){ DVM=t.value; dvRenderPage(); return; }
   if(!dvInDr(e)) return;
   const dt=t.closest('[data-dt]');
-  if(dt){ const map={dvDisp:'veh.disp',dvDepart:'veh.depart'}, k=map[dt.dataset.dt]; if(k){ dvSet(k,composeDT(dt)); dvTouched(); } return; }
+  if(dt){ const map={dvDisp:'veh.disp',dvDepart:'veh.depart'}, k=map[dt.dataset.dt]; if(k){ dvSet(k,composeDT(dt)); if(k==='veh.depart'){ const r=dvCur(); if(r) mgBalAll($('#dwDr'),r.mgr,(r.veh||{}).depart,'data-dvm'); } dvTouched(); } return; }
   if(dvField(t)) dvTouched(); });
 document.addEventListener('click',e=>{
   if(!dvScope(e)) return;
