@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.28-6">
+<meta name="app-version" content="2026.11.28-7">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -3390,7 +3390,7 @@ html body .case-steps small{font-size:13px}
     </div>
     <div class="sec" data-av="common" data-admin>
       <div class="sec-head"><h2>퇴근 양식</h2></div>
-      <p class="note">모든 행사의 보고서 화면에 나오고, 날짜가 바뀌면 자동으로 바뀝니다. 퇴근은 오늘 19시. 출근은 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분), 발인이면 1시간 전(현진시닝은 1시간 30분 전). 계산한 출근이 08시 30분보다 늦으면 모두 08시 30분. 내일 일정이 없으면 08시 30분. 발인 날부터는 퇴근 · 출근 줄이 빠집니다. 쓸 수 있는 자리: {장소} {담당} {담당연락처} {업체명} {퇴근줄} {출근줄} {입관줄} {발인줄}</p>
+      <p class="note">모든 행사의 보고서 화면에 나오고, 날짜가 바뀌면 자동으로 바뀝니다. 퇴근은 지금 시간(앱을 열거나 다시 돌아온 시간, 보고 있으면 1분마다). 출근은 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분), 발인이면 1시간 전(현진시닝은 1시간 30분 전). 계산한 출근이 08시 30분보다 늦으면 모두 08시 30분. 내일 일정이 없으면 08시 30분. 발인 날부터는 퇴근 · 출근 줄이 빠집니다. 쓸 수 있는 자리: {장소} {담당} {담당연락처} {업체명} {퇴근줄} {출근줄} {입관줄} {발인줄}</p>
       <label class="f">퇴근 양식<textarea class="input tpl" id="offTpl" rows="7"></textarea></label>
       <div class="row"><button class="btn sm primary" id="saveOffTpl" type="button">저장</button><button class="btn sm" id="resetOffTpl" type="button">기본값으로</button></div>
     </div>
@@ -3769,7 +3769,7 @@ const DISPATCH_TPL=`{발인날짜}
 {차량경로}
 
 {담당팀장} {담당연락처}`;   /* 업체에 주는 문자라 담당 뒤에 「팀장」 (2026.11.01 사용자) — 서영우 → 서영우팀장 */
-/* 퇴근 양식 (2026.10.20): 오늘 19시 퇴근 + 다음 날 첫 일정(입관 · 발인) 기준 출근. 날짜가 바뀌면 자동으로 바뀜. 설정 → 퇴근 양식(db.offTpl). 날은 두 자리 「03일」(2026.10.30 사용자) */
+/* 퇴근 양식 (2026.10.20): 오늘 19시 퇴근(2026.11.28부터 앱을 연 지금 시간) + 다음 날 첫 일정(입관 · 발인) 기준 출근. 날짜가 바뀌면 자동으로 바뀜. 설정 → 퇴근 양식(db.offTpl). 날은 두 자리 「03일」(2026.10.30 사용자) */
 const OFF_TPL=`{장소}
 담당 : {담당}
 {퇴근줄}
@@ -4170,14 +4170,17 @@ function endPay_(c){
     receipt: method==='카드'?'카드':String(s.rcCashNo||'').trim() };
 }
 /* 퇴근 · 출근 계산
-   퇴근: 오늘 19시. 출근: 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분),
+   퇴근: 지금 시간 (2026.11.28 사용자 「퇴근 양식도 어플 킨 시간이랑 맞게 퇴근하는 걸로」 — 전에는 늘 19시). 앱을 열거나 다시 돌아오면 · 보고 있으면 1분마다 그때 시간으로(offRefresh).
+   출근: 내일 첫 일정 기준 — 입관이면 1시간 전(입관 09시 30분부터는 08시 30분),
    발인이면 1시간 전(현진시닝은 1시간 30분 전). 계산한 출근이 08시 30분보다 늦으면 08시 30분. 내일 일정이 없거나 시간이 없으면 08시 30분.
-   발인 날부터는 퇴근 · 출근 줄 없음. 오늘 날짜는 window.__todayYMD 로 바꿔 시험할 수 있음 */
+   발인 날부터는 퇴근 · 출근 줄 없음. 오늘 날짜는 window.__todayYMD, 지금 시간은 window.__nowHM=[시,분] 으로 바꿔 시험할 수 있음 */
 const ymdOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const todayYMD=()=>window.__todayYMD||ymdOf(new Date());
 const hmStr=(hh,mm)=>`${pad(hh)}시${mm?' '+pad(mm)+'분':''}`;
+function nowHM(){ if(Array.isArray(window.__nowHM)) return window.__nowHM; const d=new Date(); return [d.getHours(),d.getMinutes()]; }
+function offKey(){ const n=nowHM(); return `${todayYMD()} ${n[0]}:${n[1]}`; }
 function offWork(c){
-  const out={off:'',on:'',casket:'',depart:'',ended:false,day:''};
+  const out={off:'',on:'',casket:'',depart:'',ended:false,day:'',at:''};
   try{
     const f=c.f||{}, today=todayYMD(), dep=String(f.depart||'').slice(0,10), t=parseDT(today);
     const ev=[]; if(f.casket) ev.push({k:'입관',v:f.casket}); if(f.depart) ev.push({k:'발인',v:f.depart});
@@ -4185,7 +4188,7 @@ function offWork(c){
     out.day=`${pad(t.d)}일`;
     if(dep&&today>=dep){ out.ended=true; return out; }
     const tm=new Date(t.y,t.mo-1,t.d+1), tmY=ymdOf(tm);
-    out.off=`${pad(t.d)}일 : 19시 퇴근`;
+    const N=nowHM(); out.at=hmStr(N[0],N[1]); out.off=`${pad(t.d)}일 : ${out.at} 퇴근`;   /* 지금 시간 퇴근 */
     const next=ev.filter(e=>String(e.v).slice(0,10)===tmY).sort((a,b)=>String(a.v).localeCompare(String(b.v)))[0], np=next&&parseDT(next.v);
     let mins=8*60+30;
     if(np&&np.h!=null){ const at=np.h*60+np.mi;
@@ -5647,7 +5650,7 @@ function renderOut(){
     const f=c.f||{}, nb=f.helperNone?'이 행사는 도우미 미사용입니다.':!mgrRows(c).length?'행사 입력 「도우미 시간대」에 날짜별 시간 · 인원을 넣으면 여기에 들어갑니다.':'';
     $('#hpNote').hidden=!nb; $('#hpNote').innerHTML=nb?`${esc(nb)}${f.helperNone||c.closed?'':' <button class="btn link" type="button" data-help-go>도우미 시간대 입력 ›</button>'}`:''; }
   $('#dispText').value=fillTpl(db.dispatchTpl||DISPATCH_TPL,c,{'업체명':dispCoName(c)});   /* 배차는 업체별 배차 회사명 (대한선진(국향) → 대한항공노동조합) */
-  { const OW=offWork(c); $('#offText').value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n'); $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없습니다':`오늘(${OW.day}) 기준 · 날짜가 바뀌면 자동으로 바뀜`; offShown=todayYMD(); }
+  offPaint(c);
   $('#xlNote').textContent='행사 입력 · 정산에 넣은 값이 자동으로 채워집니다. 장례용품 수량 · 도우미 날짜별 시간처럼 앱에 없는 칸은 「보고서 입력」에서 한 단계씩 입력하십시오. 미리보기를 누르면 크게 보입니다.';
   { const cv=$('#xlCanvas'); szPaint(cv,c); szWhenFonts(()=>{ if(db.tab==='out'||isSplit()) szPaint($('#xlCanvas'),curCase()); }); }
   reports.forEach((r,i)=>{ $('#rep_'+i).value=reportFill(r.body,c); });   /* 회사 보고 = 화장장 정식 이름 */
@@ -8748,7 +8751,11 @@ $('#copyProv').onclick=()=>copyFrom($('#provText'),'제공내역을 복사했습
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-crempick]'); if(!b) return; const inp=$('#f_cremName'); if(!inp) return;
   inp.value=b.dataset.crempick; inp.dispatchEvent(new Event('input',{bubbles:true})); document.querySelectorAll('[data-crempick]').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); });
 var offShown='';
-const offRefresh=()=>{ if(db.tab==='out'&&offShown&&offShown!==todayYMD()) renderOut(); };
+function offPaint(c){ const ta=$('#offText'); if(!ta||!c) return; const OW=offWork(c);
+  ta.value=fillTpl(db.offTpl||OFF_TPL,c).split('\n').filter(l=>l.trim()).join('\n');
+  $('#offTag').textContent=OW.ended?'발인 날부터는 퇴근 · 출근 줄이 없습니다':`퇴근 = 지금 시간(${OW.day} ${OW.at}) · 앱을 열면 그때 시간으로 바뀜`; offShown=offKey(); }
+const offRefresh=()=>{ if(!offShown||!(db.tab==='out'||isSplit())) return; const k=offKey(); if(k===offShown) return;   /* 날짜가 바뀌면 다시 그림 · 시간만 바뀌면 퇴근 칸만 (고치고 있으면 그대로) */
+  if(k.slice(0,10)!==offShown.slice(0,10)) renderOut(); else if(document.activeElement!==$('#offText')) offPaint(curCase()); };
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') offRefresh(); });
 setInterval(offRefresh,60000);
 $('#saveOffTpl').onclick=()=>{ const t=$('#offTpl').value.replace(/\s+$/,''); db.offTpl=t&&t!==OFF_TPL?t:''; save(); dirty=true; renderAll(); toast('퇴근 양식을 저장했습니다'); };
