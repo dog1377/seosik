@@ -2544,7 +2544,7 @@ $('#p-input').addEventListener('input',e=>{
   if(t.closest('[data-dt]')) return;
   { const box=t.closest('.amt'); if(box){ box.querySelector('.amt-u').textContent=amtUnit(t.value); const r=box.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); } }
   if(t.dataset.pd){ c.f[t.dataset.pd]=t.value; touched(); return; }
-  if(t.type==='tel' && t.dataset.k){ const nv=fmtTel(t.value); if(nv!==t.value) t.value=nv; }
+  if((t.type==='tel'||t.dataset.imeType==='tel') && t.dataset.k){   /* PC 한글 기본: 전화 칸이 글 칸으로 바뀌어도 (leader-gate-head) */ const nv=fmtTel(t.value); if(nv!==t.value) t.value=nv; }
   if(t.dataset.k==='altar') c.altarNet=true;
   if(t.dataset.k && t.tagName!=='SELECT'){ c.f[t.dataset.k]=t.value; if(Object.values(SAME_MAP).includes(t.dataset.k)) syncChief(c); if(['death','casket','depart','cremDate'].includes(t.dataset.k)) schedInfo(); if(t.dataset.k.startsWith('crem')) updCremPreview(); touched(); }
   if(t.dataset.it && t.dataset.itf==='text'){ const it=c.items.find(x=>x.id===t.dataset.it); if(it){ it.text=t.value; if(t.tagName==='TEXTAREA') fitItemText(t); renumber(); touched(); } }

@@ -14,7 +14,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/gukhwa-32.png">
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
-<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.28-3"; window.DW_LEADER_ONLY = true;</script>
+<script>window.__PWA__ = true; window.__APP_VERSION__ = "2026.11.28-4"; window.DW_LEADER_ONLY = true;</script>
 <style>:root{color-scheme:light;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.__LOCK_STATE__ = {"forms": false, "admin": false};</script>
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
@@ -1424,6 +1424,36 @@ window.dwSide = (function () {
   ['dw-role', 'dw-me', 'dw-me-load', 'dw-name'].forEach(function (ev) { window.addEventListener(ev, function () { paint(); }); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else paint();
   return { paint: paint, open: open, close: close, isOpen: isOpen };
+})();
+</script>
+<script>
+/* PC 한글 기본 (2026.11.28 사용자 「커서 올려서 한글 입력하면 PC 같은 경우에 영어로 자동 전환되는데 한글이 기본이 되게」)
+   윈도우 크롬 · 엣지는 숫자 · 금액 · 전화 칸(inputmode="numeric|decimal|tel", type="tel|number|email|url")에 커서가 가면 한글 입력기를 영어로 바꾸고,
+   다른 칸으로 가도 영어로 남는다. 웹 화면이 입력기를 한글로 켤 수는 없으므로, 화면 키보드를 안 쓰는 PC(마우스 · pointer:fine)에서는
+   이런 칸을 보통 글 칸으로 바꿔 입력기를 건드리지 않게 한다. 휴대폰 · 태블릿(손가락)은 그대로 숫자 키패드.
+   원래 값은 data-ime-im · data-ime-type 에 남김(전화번호 모양 맞추기 등은 이것도 봄). 숫자 칸은 pattern 으로 숫자만 맞음 처리. 로그인 이메일 칸(#gtId)은 그대로 영어. */
+(function () {
+  try { if (!window.matchMedia || !matchMedia('(pointer:fine)').matches || matchMedia('(hover:none)').matches) return; } catch (e) { return; }
+  var TY = { tel: 1, number: 1, email: 1, url: 1 }, SEL = 'input[inputmode],textarea[inputmode],input[type=tel],input[type=number],input[type=email],input[type=url]';
+  function fix(el) {
+    if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') || el.id === 'gtId' || el.hasAttribute('data-ime-keep')) return;
+    var im = el.getAttribute('inputmode');
+    if (im && im !== 'none' && im !== 'text') { el.setAttribute('data-ime-im', im); el.removeAttribute('inputmode'); }
+    if (el.tagName !== 'INPUT') return;
+    var t = String(el.getAttribute('type') || '').toLowerCase();
+    if (!TY[t]) return;
+    if (t === 'number' && !el.hasAttribute('pattern')) el.setAttribute('pattern', /\./.test(el.getAttribute('step') || '') || el.getAttribute('step') === 'any' ? '[0-9]+([.][0-9]*)?|[.][0-9]+' : '[0-9]+');
+    el.setAttribute('data-ime-type', t); el.setAttribute('type', 'text');
+  }
+  function scan(n) { if (!n || n.nodeType !== 1) return; if (n.matches && n.matches(SEL)) fix(n); if (n.querySelectorAll) { var l = n.querySelectorAll(SEL); for (var i = 0; i < l.length; i++) fix(l[i]); } }
+  try {
+    new MutationObserver(function (rs) {
+      for (var i = 0; i < rs.length; i++) { var r = rs[i]; if (r.type === 'attributes') { if (r.target.matches && r.target.matches(SEL)) fix(r.target); } else for (var j = 0; j < r.addedNodes.length; j++) scan(r.addedNodes[j]); }
+    }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['inputmode', 'type'] });
+  } catch (e) {}
+  document.addEventListener('focusin', function (e) { var t = e.target; if (t && t.matches && t.matches(SEL)) fix(t); }, true);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { scan(document.body); }); else scan(document.body);
+  window.dwImeKo = true;
 })();
 </script>
 
