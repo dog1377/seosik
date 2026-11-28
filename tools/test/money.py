@@ -100,6 +100,12 @@ SETUP = r"""(()=>{
      c.f.shroud='개인수의 사용'; r.push(collectNetWon(c));
      startCase(co('고이장례연구소')); const g=curCase(); Object.assign(g.f,{collect:'300',shroud:'10',shroudDed:true}); r.push(collectNetWon(g), fillTpl('{수의대체}',g));
      return r; })(),
+   mgEnd:(()=>{ const r=[], step=(m,k,v)=>{ const o={sh:m.sh,sm:m.sm}; m[k]=v; mgAutoEnd(m,o); };   // 2026.11.28 도우미 시작 시간 → 끝 = 시작 + 10시간
+     const m={sh:'',sm:'',eh:'',em:''}; step(m,'sh','12'); step(m,'sm','00'); r.push(m.eh+':'+m.em);
+     step(m,'sm','30'); r.push(m.eh+':'+m.em);
+     m.eh='20'; m.em='00'; step(m,'sh','13'); r.push(m.eh+':'+m.em);
+     const n={sh:'',sm:'',eh:'',em:''}; step(n,'sh','16'); step(n,'sm','00'); r.push(n.eh+':'+n.em);
+     return r; })(),
    etc:(()=>{ const e=coById(ETC), g=db.companies.find(x=>x.name==='고이장례연구소'), r=[activeReports(e).length, activeReports(g).length>0];   // 2026.11.24 기타 업체 = 고이 양식 없음
      const keep=e.reports; e.reports=[{id:'a',name:'보고 양식',body:GOI_REPORT},{id:'b',name:'내 양식',body:'장소 : {장소}'}]; e.reportsEnabled=true; etcNoGoi(); r.push(e.reports.map(x=>x.name).join(',')); e.reports=keep; delete e.reportsEnabled;
      startCase(ETC); r.push(outViews(curCase()).some(([k])=>/^rep/.test(k))); return r; })(),
@@ -176,6 +182,7 @@ EXPECT = [
         2650000, '수의대체 : 개인수의 사용 15만원 공제',
         2800000,
         3000000, '10']),
+    ('도우미 시작 시간 → 끝 시간 = 시작 + 10시간 (직접 고른 끝은 그대로 · 자정 넘김)', 'mgEnd', ['22:00','22:30','20:00','02:00']),
     ('기타 업체 = 회사 보고 양식 없음 (고이 양식만 빠지고 직접 만든 양식은 남음, 고이는 그대로)', 'etc', [0, True, '내 양식', False]),
     ('고이 수금액 = 잔액 − 공제 + 추가 (이행완료확인서 한 번만: 붙여넣기 · 붙여넣은 뒤 있음 · 직접 적은 줄)', 'goiBal', ['2,771,100원', None, '2781100', 2771100, '2,771,100원', '2,771,100원', '2,781,100원', '2,621,100원', '잔액 2,781,100원에서 제단공제 20만원 빼고 · 공제 · 추가 +4만원 → 2,621,100원']),
     ('금액 고치면 바로 (고이 붙여넣은 잔액 → 상품금액 기준, 할인 · 상품금액 고치면 수금액 · 지난 마이너스 따라감)', 'live', [True, '289', '', '2,771,100원', '2,741,100원', 2741100, '2,851,100원', '10월3번행사 -18만원 / 보내는금액 : 306만원', '10월3번행사 -8만원 / 보내는금액 : 316만원', '헌화 : / 보내는금액 : 324만원', True]),

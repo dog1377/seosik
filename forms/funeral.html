@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="icons/gukhwa-apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="app-version" content="2026.11.28-1">
+<meta name="app-version" content="2026.11.28-2">
 <!-- 첫 화면 가림 (2026.11.14, 사용자: 「새로고침하면 예전 UI · UX 가 0.1초 정도 나오면서 지금 화면이 보임 → 확실하게 수정」)
      원인: 화면을 다 읽기 전(큰 스크립트를 읽는 동안)에 브라우저가 반쯤 읽은 화면을 먼저 그림 → 아직 새 디자인 · 첫 화면이 안 들어간 모습이 잠깐 보임.
      고침: ① 모든 화면 꾸밈(<style>)을 <head> 로 올림 (build.py hoist) ② 이 조각을 <head> 맨 앞에 넣어 화면을 잠깐 투명하게 →
@@ -4374,6 +4374,19 @@ function tpCtl({mode='hm',h='',m='',hAttr='',mAttr='',tAttr='',label='시간',ph
     : `<input type="hidden" data-tpr="h" ${hAttr} value="${esc(h)}">`+(mode==='hm'?`<input type="hidden" data-tpr="m" ${mAttr} value="${esc(h?(m||'00'):'')}">`:'');
   return `<div class="tp" data-tpmode="${mode}" data-tplabel="${esc(label)}" data-tpph="${esc(ph)}"${id?` id="${id}"`:''}><button type="button" class="ch-btn tp-btn ${txt?'':'empty'}" aria-haspopup="dialog" aria-label="${esc(label)}"><span>${esc(txt||ph)}</span>${TP_ICON}</button>${ins}</div>`;
 }
+/* 도우미 · 관리사 시작 시간을 고르면 끝 시간 = 시작 + 10시간 (2026.11.28 사용자 「12시 · 00 누르고 나면 끝나는 시간 입력? 보통 10시간 기준이라 자동으로?」 → 10시간 자동).
+   끝이 비어 있거나 전에 자동으로 들어간 값(예전 시작 + 10시간)일 때만 바꿈 — 직접 고른 끝 시간은 그대로. 행사 입력 도우미 시간대(c.mgr) · 배송 관리사 배치(r.mgr) · 보고서 입력 도우미 날짜별 */
+const MG_HOURS=10;
+function mgPlus(h,m){ return h?{h:pad((Number(h)+MG_HOURS)%24),m:m||'00'}:null; }
+function mgAutoEnd(row,old,box){
+  if(!row||!row.sh) return false;
+  const was=mgPlus(old.sh,old.sm), now=mgPlus(row.sh,row.sm), em=row.em||'00';
+  if(row.eh&&!(was&&row.eh===was.h&&em===was.m)) return false;   /* 직접 고른 끝 시간 */
+  if(row.eh===now.h&&em===now.m) return false;
+  row.eh=now.h; row.em=now.m;
+  const end=box&&box.closest('.mg-time')?box.closest('.mg-time').querySelectorAll('.tp')[1]:null; if(end) tpPut(end,now.h,now.m,false);
+  return true;
+}
 function tpRead(box){
   const g=r=>box.querySelector(`[data-tpr="${r}"]`);
   if(box.dataset.tpmode==='t'){ const v=g('t').value||''; return {h:v.slice(0,2),m:v.slice(3,5)}; }
@@ -4586,7 +4599,7 @@ function mgrHtml(c){
   </div>`).join('');
   return `<div class="stack" style="gap:8px">${rows}</div>
     <div class="row"><button class="btn sm" type="button" data-act="mgrFill">행사 기간으로 채우기</button><button class="btn sm" type="button" data-act="mgrAdd">+ 날짜 추가</button></div>
-    <p class="note">날짜별로 도우미(관리사) 근무 시간과 인원을 입력하십시오. 예: 27일 : 12시-22시 2명 · 행사 보고서(일정표) 도우미 칸에도 자동으로 들어갑니다 (3줄까지, 넘치는 줄은 비고).</p>`;
+    <p class="note">날짜별로 도우미(관리사) 근무 시간과 인원을 입력하십시오. 시작 시간을 고르면 끝 시간은 10시간 뒤로 자동으로 들어갑니다(다르면 끝 시간을 눌러 고치십시오) · 행사 보고서(일정표) 도우미 칸에도 자동으로 들어갑니다 (3줄까지, 넘치는 줄은 비고).</p>`;
 }
 /* 도우미 시간대(c.mgr) → 날짜 · 시간순 한 줄씩. 「관리사배치」 양식과 일정표 도우미 칸(36~38줄)이 같이 씀 (2026.10.31) */
 function mgrHm(hh,mm){ return hh?`${hh}시${mm&&mm!=='00'?' '+mm+'분':''}`:''; }
@@ -4763,7 +4776,7 @@ $('#p-input').addEventListener('change',e=>{
     else { c.f['_d_'+k]=false; c.f[k]=t.value; txt.hidden=true; txt.value=''; }
     touched(); return;
   }
-  if(t.dataset.mgf){ const m=(c.mgr||[]).find(x=>x.id===t.dataset.mg); if(m){ m[t.dataset.mgf]=t.value; touched(); } return; }
+  if(t.dataset.mgf){ const m=(c.mgr||[]).find(x=>x.id===t.dataset.mg); if(m){ const k=t.dataset.mgf, old={sh:m.sh,sm:m.sm}; m[k]=t.value; if(k==='sh'||k==='sm') mgAutoEnd(m,old,t.closest('.tp')); touched(); } return; }
   const dtBox=t.closest('[data-dt]');
   if(dtBox){ f[dtBox.dataset.dt]=composeDT(dtBox); schedInfo(); touched(); return; }
   if(t.tagName==='SELECT' && t.dataset.k){
@@ -7114,7 +7127,7 @@ function dvMgrHtml(r){
       <button class="x" type="button" data-dvm-del="${m.id}" aria-label="이 줄 삭제">✕</button></div>
     <div class="mg-time">${tpCtl({mode:'hm',h:m.sh||'',m:m.sm||'',hAttr:`data-dvm="${m.id}" data-dvmf="sh"`,mAttr:`data-dvm="${m.id}" data-dvmf="sm"`,label:'관리사 시작 시간',ph:'시작'})}<span>~</span>${tpCtl({mode:'hm',h:m.eh||'',m:m.em||'',hAttr:`data-dvm="${m.id}" data-dvmf="eh"`,mAttr:`data-dvm="${m.id}" data-dvmf="em"`,label:'관리사 끝 시간',ph:'끝'})}</div></div>`).join('');
   return `<div class="stack dv-rows">${rows}</div><div class="row"><button class="btn sm" type="button" data-dv-mgr-add>+ 날짜 추가</button></div>
-    <p class="note">같은 날 시간이 여러 개면 날짜를 한 번 더 추가하십시오. 양식에는 날짜가 한 번만 나갑니다.</p>`;
+    <p class="note">시작 시간을 고르면 끝 시간은 10시간 뒤로 자동으로 들어갑니다(다르면 끝 시간을 눌러 고치십시오). 같은 날 시간이 여러 개면 날짜를 한 번 더 추가하십시오. 양식에는 날짜가 한 번만 나갑니다.</p>`;
 }
 function dvSubHtml(r){
   const rows=(r.subs||[]).map(sb=>{ const w=sb.what||'veh';
@@ -7261,7 +7274,7 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 function dvField(t){
   const r=dvCur(); if(!r) return false;
   if(t.dataset.dv){ let v=t.value; if(t.dataset.dv==='custTel'){ const nv=fmtTel(v); if(nv!==v){ t.value=nv; v=nv; } } dvSet(t.dataset.dv,v); return true; }
-  if(t.dataset.dvm){ const m=(r.mgr||[]).find(x=>x.id===t.dataset.dvm); if(m){ m[t.dataset.dvmf]=t.value; return true; } }
+  if(t.dataset.dvm){ const m=(r.mgr||[]).find(x=>x.id===t.dataset.dvm); if(m){ const k=t.dataset.dvmf, old={sh:m.sh,sm:m.sm}; m[k]=t.value; if(k==='sh'||k==='sm') mgAutoEnd(m,old,t.closest('.tp')); return true; } }
   if(t.dataset.dvs){ const sb=(r.subs||[]).find(x=>x.id===t.dataset.dvs); if(sb){ sb[t.dataset.dvsf]=t.value; return true; } }
   return false;
 }
@@ -7473,7 +7486,10 @@ $('#p-sched').addEventListener('input',e=>{
   const t=e.target, c=curCase(); if(!c) return;
   if(t.dataset.sf){ let v=t.value; if(/Tel$/.test(t.dataset.sf)){ const nv=fmtTel(v); if(nv!==v){ t.value=nv; v=nv; } } c.f[t.dataset.sf]=v; c.f['_d_'+t.dataset.sf]=false; }
   else if(t.dataset.s){ let v=t.value; if(t.dataset.s==='rcCashNo'&&/^01\d/.test(v.replace(/\D/g,''))){ const nv=fmtTel(v); if(nv!==v){ t.value=nv; v=nv; } } S(c)[t.dataset.s]=v; }
-  else if(t.dataset.sx) sxSet(c,t.dataset.sx,t.value);
+  else if(t.dataset.sx){ const p=t.dataset.sx, hs=p.match(/^help\.(\d)\.s$/);
+    if(hs){ const ep=`help.${hs[1]}.e`, e=sxGet(c,ep), was=mgPlus(sxGet(c,p)), now=mgPlus(t.value);   /* 시작을 고르면 종료 = 시작 + 10시간 (비어 있거나 자동 값일 때) */
+      if(now&&(!e||(was&&e===was.h))){ sxSet(c,ep,now.h); const es=document.querySelector(`[data-sx="${ep}"]`); if(es) es.value=now.h; } }
+    sxSet(c,p,t.value); }
   else return;
   { const box=t.closest('.amt'); if(box){ box.querySelector('.amt-u').textContent=amtUnit(t.value); const r=box.nextElementSibling; if(r&&r.classList.contains('amt-r')) r.textContent=amtRead(t.value); } }
   touched(); szLive();
